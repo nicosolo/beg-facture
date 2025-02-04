@@ -1,0 +1,12 @@
+{
+    "name": "@beg/validations",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "index.ts",
+    "exports": {
+        ".": "./index.ts"
+    },
+    "peerDependencies": {
+        "typescript": "^5.0.0"
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "name": "fullstack-project",
+    "private": true,
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "dev": "docker compose up --watch",
+        "build": "bun run build:api",
+        "build:api": "cd api && bun run build"
+    },
+    "module": "index.ts",
+    "type": "module",
+    "devDependencies": {
+        "@types/bun": "latest"
+    },
+    "peerDependencies": {
+        "typescript": "^5.0.0"
+    }
+}

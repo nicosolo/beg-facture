@@ -1,0 +1,10 @@
+.
+├── apps/
+│   ├── api/
+│   ├── app/
+├── packages/
+├── |__ types/
+├── |__ utils/
+├── |__ validations/
+├── provision/
+│   ├── nginx/

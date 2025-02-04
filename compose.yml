@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+    api:
+        build:
+            context: .
+            target: development
+            dockerfile: apps/api/Dockerfile
+        develop:
+            watch:
+                - action: sync
+                  path: ./apps/api
+                  target: /app/apps/api
+                  ignore:
+                      - node_modules/
+                - action: sync
+                  path: ./packages
+                  target: /app/packages
+                  ignore:
+                      - node_modules/
+                - action: rebuild
+                  path: apps/api/package.json
+                - action: rebuild
+                  path: packages/*/package.json
+        environment:
+            - NODE_ENV=development
+        working_dir: /app/apps/api
+        command: bun run dev
+    app:
+        build:
+            context: .
+            target: development
+            dockerfile: apps/app/Dockerfile
+        develop:
+            watch:
+                - action: sync
+                  path: ./apps/app
+                  target: /app/apps/app
+                  ignore:
+                      - node_modules/
+                - action: sync
+                  path: ./packages
+                  target: /app/packages
+                  ignore:
+                      - node_modules/
+                - action: rebuild
+                  path: apps/app/package.json
+                - action: rebuild
+                  path: packages/*/package.json
+        environment:
+            - NODE_ENV=development
+        working_dir: /app/apps/app
+        command: bun run dev
+    proxy:
+        restart: "on-failure"
+        container_name: "proxy"
+        build:
+            context: ./provision/nginx
+            dockerfile: Dockerfile
+        ports:
+            - 8084:80
+        develop:
+            watch:
+                - action: sync+restart
+                  path: ./provision/nginx/nginx.dev.conf
+                  target: /etc/nginx/nginx.conf
+volumes:
+    sqlite-data:

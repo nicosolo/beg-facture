@@ -13,6 +13,7 @@ export const describeTables = async (): Promise<void> => {
         "LienUtilisateurTacheParTarif",
         "Projet_____",
         "Tarif______",
+        "Tache______",
     ]
     const tablesMap = new Map<string, Record<string, string>>()
     for (const table of tables) {

@@ -1,32 +1,32 @@
 import { z } from "zod"
 import { paginationSchema } from "./pagination"
 
-// Create a schema that parses query string values
-export const activityFilterSchema = z
+// Update schema to match activity filter schema pattern
+export const projectFilterSchema = z
     .object({
-        projectId: z.string().transform((val) => parseInt(val)),
-        userId: z
+        accountId: z
             .string()
             .transform((val) => parseInt(val))
             .optional(),
-        taskId: z
-            .string()
-            .transform((val) => parseInt(val))
-            .optional(),
-        startDate: z
-            .string()
-            .transform((val) => new Date(val))
-            .optional(),
-        endDate: z
-            .string()
-            .transform((val) => new Date(val))
-            .optional(),
-        validationStatus: z.string().optional(),
-        isTemplate: z
+        name: z.string().optional(),
+        archived: z
             .string()
             .transform((val) => val.toLowerCase() === "true")
+            .optional()
+            .default("false"),
+        referentUserId: z
+            .string()
+            .transform((val) => parseInt(val))
+            .optional(),
+        fromDate: z
+            .string()
+            .transform((val) => new Date(val))
+            .optional(),
+        toDate: z
+            .string()
+            .transform((val) => new Date(val))
             .optional(),
     })
     .merge(paginationSchema)
 
-export type ActivityFilter = z.infer<typeof activityFilterSchema>
+export type ProjectFilter = z.infer<typeof projectFilterSchema>

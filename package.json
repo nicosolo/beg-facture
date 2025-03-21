@@ -6,9 +6,7 @@
         "packages/*"
     ],
     "scripts": {
-        "dev": "docker compose up --watch",
-        "build": "bun run build:api",
-        "build:api": "cd api && bun run build"
+        "dev": "docker compose up --watch"
     },
     "module": "index.ts",
     "type": "module",

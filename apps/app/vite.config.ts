@@ -4,12 +4,15 @@ import { resolve } from "path"
 
 export default defineConfig({
     plugins: [vue()],
-    // resolve: {
-    //     alias: {
-    //         "@beg/shared": resolve(import.meta.dirname, "../packages/shared/index.ts"),
-    //     },
-    // },
+
     server: {
         port: 8080,
+        host: true,
+    },
+
+    resolve: {
+        alias: {
+            "~": resolve(__dirname, "src"),
+        },
     },
 })

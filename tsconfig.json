@@ -2,7 +2,8 @@
     "compilerOptions": {
         "paths": {
             "@beg/types": ["./packages/types"],
-            "@beg/validations": ["./packages/validations"]
+            "@beg/validations": ["./packages/validations"],
+            "@beg/api": ["./apps/api"]
         },
         // Enable latest features
         "lib": ["ESNext", "DOM"],

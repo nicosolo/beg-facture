@@ -1,11 +1,10 @@
 import { Hono } from "hono"
-import { odysActivityRepository } from "../db/repositories/odys/activity"
+import { odysTaskRepository } from "../db/repositories/odys/task"
+import type { Task } from "@beg/types"
 
-const api = new Hono()
-
-api.get("/task", async (c) => {
-    const accounts = await odysActivityRepository.getAll()
-    return c.json(accounts)
+const api = new Hono().get("/", async (c) => {
+    const tasks = await odysTaskRepository.getAll()
+    return c.json<Task[]>(tasks)
 })
 
 export const taskRoutes = api

@@ -1,6 +1,6 @@
 import type { OdysActivite } from "../../../types/odys"
 import { odysDb } from "../../odsy"
-import type { Activity } from "@beg/types"
+import type { Activity, Page } from "@beg/types"
 import type { ActivityFilter } from "@beg/validations"
 
 export const mapActivity = (activite: OdysActivite & { CustomMontant?: number }): Activity => ({
@@ -9,7 +9,6 @@ export const mapActivity = (activite: OdysActivite & { CustomMontant?: number })
     taskId: activite.FK_Tache,
     userId: activite.FK_Utilisateur,
     invoiceId: activite.FK_Facture,
-    scheduledTaskId: activite.FK_TachePlanifiee,
     date: activite.DateActivite,
     duration: activite.Duree,
     actualDuration: activite.DureeReel,
@@ -52,7 +51,7 @@ export const mapActivity = (activite: OdysActivite & { CustomMontant?: number })
 })
 
 export const odysActivityRepository = {
-    getAll: async (filter: ActivityFilter): Promise<Activity[]> => {
+    getAll: async (filter: ActivityFilter): Promise<Page<Activity>> => {
         const qb = odysDb<OdysActivite>("Activite___ as Activite")
             .select("Activite.*")
             .select(odysDb.raw("LienUtilisateurTacheParTarif.Montant as CustomMontant"))
@@ -67,32 +66,72 @@ export const odysActivityRepository = {
             .where("Rubrique.FK_Projet", filter.projectId)
             .andWhere("LienUtilisateurTacheParTarif.FK_Tarif", "=", "26")
 
+        // Create a separate count query that only selects the count
+        const countQuery = odysDb<OdysActivite>("Activite___ as Activite")
+            .count({ count: "*" })
+            .join("Rubrique___ as Rubrique", "Activite.FK_Rubrique", "Rubrique.Id")
+            .leftJoin("LienUtilisateurTacheParTarif", function () {
+                this.on(
+                    "LienUtilisateurTacheParTarif.FK_Utilisateur",
+                    "=",
+                    "Activite.FK_Utilisateur"
+                ).andOn("LienUtilisateurTacheParTarif.FK_Tache", "=", "Activite.FK_Tache")
+            })
+            .where("Rubrique.FK_Projet", filter.projectId)
+            .andWhere("LienUtilisateurTacheParTarif.FK_Tarif", "=", "26")
+
         if (filter.userId !== undefined) {
             qb.where("Activite.FK_Utilisateur", filter.userId)
+            countQuery.where("Activite.FK_Utilisateur", filter.userId)
         }
 
         if (filter.taskId !== undefined) {
             qb.where("Activite.FK_Tache", filter.taskId)
+            countQuery.where("Activite.FK_Tache", filter.taskId)
         }
 
         if (filter.startDate !== undefined) {
             qb.where("Activite.DateActivite", ">=", filter.startDate)
+            countQuery.where("Activite.DateActivite", ">=", filter.startDate)
         }
 
         if (filter.endDate !== undefined) {
             qb.where("Activite.DateActivite", "<=", filter.endDate)
+            countQuery.where("Activite.DateActivite", "<=", filter.endDate)
         }
 
         if (filter.validationStatus !== undefined) {
             qb.where("Activite.CD_StatutValidation", filter.validationStatus)
+            countQuery.where("Activite.CD_StatutValidation", filter.validationStatus)
         }
 
         if (filter.isTemplate !== undefined) {
             qb.where("Activite.EstModele", filter.isTemplate ? "True" : "False")
+            countQuery.where("Activite.EstModele", filter.isTemplate ? "True" : "False")
         }
-        console.log(qb.toQuery())
-        const activities = await qb.orderBy("DateActivite", "desc")
-        return activities.map(mapActivity)
+
+        // Get total count for pagination
+        const [{ count }] = await countQuery
+        const total = Number(count)
+
+        // Add pagination
+        console.log(filter)
+        const page = filter.page || 1
+        const limit = filter.limit || 20
+        const offset = (page - 1) * limit
+
+        qb.orderBy("DateActivite", "desc").offset(offset).limit(limit)
+
+        const activities = await qb
+        const totalPages = Math.ceil(total / limit)
+
+        return {
+            data: activities.map(mapActivity),
+            total,
+            page,
+            limit,
+            totalPages,
+        }
     },
     getById: async (id: number): Promise<Activity | null> => {
         const activity = await odysDb<OdysActivite>("Activite___ as Activite")

@@ -1,5 +1,4 @@
 import { ref } from "vue"
-import type { BaseUser } from "@beg/types"
 
 export function useUsers() {
     const users = ref<BaseUser[]>([])

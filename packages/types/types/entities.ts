@@ -11,21 +11,12 @@ export interface User {
     updatedAt?: Date
 }
 
-export interface BasePost {
-    id: number
-    title: string
-    content: string
-    authorId: number
-    createdAt: Date
-}
-
 export interface Activity {
     id: number
     categoryId: number
     taskId: number
     userId: number
     invoiceId: number
-    scheduledTaskId: number
     date: Date
     duration: number
     actualDuration: number
@@ -95,24 +86,6 @@ export interface Project {
     billingContactId: number
 }
 
-export interface ActivityExpenseLink {
-    id: number
-    activityId: number
-    expenseId: number
-    quantity: number
-    amount: number
-    description: string
-    tax: number
-    userAmount: number
-    billingAmount: number
-    expenseMode: string
-    uid: string
-    createdAt: Date
-    updatedAt: Date
-    createdBy: number
-    updatedBy: number
-}
-
 export interface Expense {
     id: number
     name: string
@@ -136,7 +109,7 @@ export interface Expense {
     updatedBy: number
 }
 
-export interface Account {
+export interface Client {
     id: number
     shortDescription: string
     name: string
@@ -197,18 +170,6 @@ export interface Account {
     createdBy: number
     updatedBy: number
     ideSite: string
-}
-
-export interface UserTaskRateLink {
-    id: number
-    rateId: number
-    userId: number
-    taskId: number
-    amount: number
-    createdAt: Date
-    updatedAt: Date
-    createdBy: number
-    updatedBy: number
 }
 
 export interface Rate {

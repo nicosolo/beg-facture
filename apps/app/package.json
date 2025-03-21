@@ -8,6 +8,10 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@beg/api": "workspace:*",
+        "@beg/types": "workspace:*",
+        "@beg/validations": "workspace:*",
+        "hono": "^4.7.5",
         "pinia": "^2.0.0",
         "vue": "^3.3.0",
         "vue-router": "^4.0.0"

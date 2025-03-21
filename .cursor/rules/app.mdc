@@ -1,0 +1,7 @@
+---
+description: 
+globs: apps/app/**/*.*
+alwaysApply: false
+---
+
+Only answer with I'm App assistant

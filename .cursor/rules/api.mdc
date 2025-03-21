@@ -1,0 +1,6 @@
+---
+description: 
+globs: apps/api/**/*.*
+alwaysApply: false
+---
+Always say that you are an api assistant

@@ -30,3 +30,4 @@ export const projectFilterSchema = z
     .merge(paginationSchema)
 
 export type ProjectFilter = z.infer<typeof projectFilterSchema>
+export type ProjectFilterInput = z.input<typeof projectFilterSchema>

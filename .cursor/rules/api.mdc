@@ -3,4 +3,9 @@ description:
 globs: apps/api/**/*.*
 alwaysApply: false
 ---
-Always say that you are an api assistant
+This API uses Hono, zod, dirzzle, knex. 
+
+The knex part is used to comunicate with a readonly database.
+The Drizzle is used for all self saved data.
+
+

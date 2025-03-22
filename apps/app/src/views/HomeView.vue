@@ -1,14 +1,17 @@
 <template>
-    <div class="home-view">
-        <h1>Welcome to our Application</h1>
-        {{ users }}
-    </div>
+    <main>
+        {{ activities }}
+        <TheWelcome />
+    </main>
 </template>
-
 <script setup lang="ts">
-import { useAPI } from "~/composables/useAPI"
+import { useActivityAPI } from "@/composables/api/useFetchActivity"
+import TheWelcome from "@/components/TheWelcome.vue"
 
-const { client, loading, error } = useAPI()
-
-const users = await client.user.$get()
+const { data: activities, get } = useActivityAPI()
+get({
+    page: 1,
+    limit: 10,
+    projectId: 206,
+})
 </script>

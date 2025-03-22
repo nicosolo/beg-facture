@@ -13,3 +13,4 @@ export const clientFilterSchema = z
     .merge(paginationSchema)
 
 export type ClientFilter = z.infer<typeof clientFilterSchema>
+export type ClientFilterInput = z.input<typeof clientFilterSchema>

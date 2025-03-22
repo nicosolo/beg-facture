@@ -24,9 +24,27 @@ export const activityFilterSchema = z
         validationStatus: z.string().optional(),
         isTemplate: z
             .string()
-            .transform((val) => val.toLowerCase() === "true")
+            .transform(
+                (val) =>
+                    val.toString().toLowerCase() === "true" || val.toString().toLowerCase() === "1"
+            )
             .optional(),
     })
     .merge(paginationSchema)
 
 export type ActivityFilter = z.infer<typeof activityFilterSchema>
+export type ActivityFilterInput = z.input<typeof activityFilterSchema>
+
+export function convertActivityFilterToInput(filter: ActivityFilter): ActivityFilterInput {
+    return {
+        projectId: filter.projectId?.toString(),
+        userId: filter.userId?.toString(),
+        taskId: filter.taskId?.toString(),
+        startDate: filter.startDate?.toISOString(),
+        endDate: filter.endDate?.toISOString(),
+        validationStatus: filter.validationStatus,
+        isTemplate: filter.isTemplate?.toString(),
+        page: filter.page?.toString(),
+        limit: filter.limit?.toString(),
+    }
+}

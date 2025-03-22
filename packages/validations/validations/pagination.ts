@@ -17,3 +17,4 @@ export const paginationSchema = z.object({
 })
 
 export type PaginationParams = z.infer<typeof paginationSchema>
+export type PaginationParamsInput = z.input<typeof paginationSchema>

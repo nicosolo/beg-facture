@@ -6,22 +6,6 @@ services:
             context: .
             target: production
             dockerfile: apps/api/Dockerfile
-        develop:
-            watch:
-                - action: sync
-                  path: ./apps/api
-                  target: /app/apps/api
-                  ignore:
-                      - node_modules/
-                - action: sync
-                  path: ./packages
-                  target: /app/packages
-                  ignore:
-                      - node_modules/
-                - action: rebuild
-                  path: apps/api/package.json
-                - action: rebuild
-                  path: packages/*/package.json
         environment:
             - NODE_ENV=production
         working_dir: /app/apps/api
@@ -31,22 +15,6 @@ services:
             context: .
             target: production
             dockerfile: apps/app/Dockerfile
-        develop:
-            watch:
-                - action: sync
-                  path: ./apps/app
-                  target: /app/apps/app
-                  ignore:
-                      - node_modules/
-                - action: sync
-                  path: ./packages
-                  target: /app/packages
-                  ignore:
-                      - node_modules/
-                - action: rebuild
-                  path: apps/app/package.json
-                - action: rebuild
-                  path: packages/*/package.json
         environment:
             - NODE_ENV=production
         volumes:

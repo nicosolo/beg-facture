@@ -11,8 +11,10 @@
         "@beg/api": "workspace:*",
         "@beg/types": "workspace:*",
         "@beg/validations": "workspace:*",
+        "@tailwindcss/vite": "^4.0.15",
         "hono": "^4.7.5",
         "pinia": "^3.0.1",
+        "tailwindcss": "^4.0.15",
         "vue": "^3.5.13",
         "vue-router": "^4.5.0"
     },

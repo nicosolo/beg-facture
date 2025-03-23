@@ -26,8 +26,26 @@ export const projectFilterSchema = z
             .string()
             .transform((val) => new Date(val))
             .optional(),
+        sortBy: z
+            .enum(["name", "totalDuration", "firstActivityDate", "lastActivityDate"])
+            .optional()
+            .default("name"),
+        sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
     })
     .merge(paginationSchema)
 
 export type ProjectFilter = z.infer<typeof projectFilterSchema>
 export type ProjectFilterInput = z.input<typeof projectFilterSchema>
+
+export function convertProjectFilterToInput(filter: ProjectFilter): ProjectFilterInput {
+    return {
+        ...filter,
+        page: filter.page?.toString(),
+        limit: filter.limit?.toString(),
+        accountId: filter.accountId?.toString(),
+        archived: filter.archived?.toString(),
+        referentUserId: filter.referentUserId?.toString(),
+        fromDate: filter.fromDate?.toISOString(),
+        toDate: filter.toDate?.toISOString(),
+    }
+}

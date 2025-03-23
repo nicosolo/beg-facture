@@ -84,6 +84,9 @@ export interface Project {
     createdBy: number
     updatedBy: number
     billingContactId: number
+    totalDuration?: number
+    firstActivityDate?: Date | null
+    lastActivityDate?: Date | null
 }
 
 export interface Expense {

@@ -4,7 +4,13 @@ import type { Project, Page } from "@beg/types"
 import type { ProjectFilter } from "@beg/validations"
 
 const projectTable = "Projet_____"
-export const mapProject = (projet: OdysProjet): Project => ({
+export const mapProject = (
+    projet: OdysProjet & {
+        totalDuration?: number
+        firstActivityDate?: string
+        lastActivityDate?: string
+    }
+): Project => ({
     id: Number(projet.Id),
     accountId: projet.FK_Compte,
     shortDescription: projet.DescAbr,
@@ -30,6 +36,9 @@ export const mapProject = (projet: OdysProjet): Project => ({
     createdBy: Number(projet.sys_tsCreationUser),
     updatedBy: Number(projet.sys_tsUpdateUser),
     billingContactId: projet.FK_ContactFacturation,
+    totalDuration: projet.totalDuration || 0,
+    firstActivityDate: projet.firstActivityDate ? new Date(projet.firstActivityDate) : null,
+    lastActivityDate: projet.lastActivityDate ? new Date(projet.lastActivityDate) : null,
 })
 
 export const odysProjectRepository = {
@@ -46,36 +55,30 @@ export const odysProjectRepository = {
         return projects.map(mapProject)
     },
     filter: async (filter: ProjectFilter): Promise<Page<Project>> => {
-        const query = odysDb<OdysProjet>(projectTable)
+        // Build a base query for counting
         const countQuery = odysDb<OdysProjet>(projectTable)
 
         if (filter.accountId) {
-            query.where("FK_Compte", filter.accountId)
             countQuery.where("FK_Compte", filter.accountId)
         }
 
         if (filter.name) {
-            query.where("Nom", "like", `%${filter.name}%`)
             countQuery.where("Nom", "like", `%${filter.name}%`)
         }
 
         if (filter.archived !== undefined) {
-            query.where("Archive", filter.archived ? "True" : "False")
             countQuery.where("Archive", filter.archived ? "True" : "False")
         }
 
         if (filter.referentUserId) {
-            query.where("FK_UtilisateurReferent", filter.referentUserId)
             countQuery.where("FK_UtilisateurReferent", filter.referentUserId)
         }
 
         if (filter.fromDate) {
-            query.where("sys_tsCreationDate", ">=", filter.fromDate.toISOString())
             countQuery.where("sys_tsCreationDate", ">=", filter.fromDate.toISOString())
         }
 
         if (filter.toDate) {
-            query.where("sys_tsCreationDate", "<=", filter.toDate.toISOString())
             countQuery.where("sys_tsCreationDate", "<=", filter.toDate.toISOString())
         }
 
@@ -88,9 +91,68 @@ export const odysProjectRepository = {
         const limit = filter.limit || 20
         const offset = (page - 1) * limit
 
-        query.orderBy("Nom", "asc").offset(offset).limit(limit)
+        // Create a subquery for activity aggregates
+        const activitySubquery = odysDb
+            .select("Rubrique___.FK_Projet")
+            .sum("Activite___.Duree as totalDuration")
+            .min("Activite___.DateActivite as firstActivityDate")
+            .max("Activite___.DateActivite as lastActivityDate")
+            .from("Activite___")
+            .leftJoin("Rubrique___", "Activite___.FK_Rubrique", "Rubrique___.Id")
+            .groupBy("Rubrique___.FK_Projet")
+            .as("activity_stats")
 
-        const projects = await query
+        // Main query with subquery join
+        const query = odysDb<
+            OdysProjet & {
+                totalDuration?: number
+                firstActivityDate?: string
+                lastActivityDate?: string
+            }
+        >(projectTable)
+            .select(`${projectTable}.*`)
+            .select([
+                "activity_stats.totalDuration",
+                "activity_stats.firstActivityDate",
+                "activity_stats.lastActivityDate",
+            ])
+            .leftJoin(activitySubquery, `${projectTable}.Id`, "activity_stats.FK_Projet")
+
+        if (filter.accountId) {
+            query.where(`${projectTable}.FK_Compte`, filter.accountId)
+        }
+
+        if (filter.name) {
+            query.where(`${projectTable}.Nom`, "like", `%${filter.name}%`)
+        }
+
+        if (filter.archived !== undefined) {
+            query.where(`${projectTable}.Archive`, filter.archived ? "True" : "False")
+        }
+
+        if (filter.referentUserId) {
+            query.where(`${projectTable}.FK_UtilisateurReferent`, filter.referentUserId)
+        }
+
+        if (filter.fromDate) {
+            query.where(`${projectTable}.sys_tsCreationDate`, ">=", filter.fromDate.toISOString())
+        }
+
+        if (filter.toDate) {
+            query.where(`${projectTable}.sys_tsCreationDate`, "<=", filter.toDate.toISOString())
+        }
+
+        if (filter.sortBy === "totalDuration") {
+            query.orderBy("activity_stats.totalDuration", filter.sortOrder)
+        } else if (filter.sortBy === "firstActivityDate") {
+            query.orderBy("activity_stats.firstActivityDate", filter.sortOrder)
+        } else if (filter.sortBy === "lastActivityDate") {
+            query.orderBy("activity_stats.lastActivityDate", filter.sortOrder)
+        } else {
+            query.orderBy(`activity_stats.lastActivityDate`, "desc")
+        }
+
+        const projects = await query.offset(offset).limit(limit)
         const totalPages = Math.ceil(total / limit)
 
         return {

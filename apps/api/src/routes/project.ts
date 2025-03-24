@@ -1,7 +1,7 @@
 import { Hono } from "hono"
 import { odysProjectRepository } from "../db/repositories/odys/project"
 import { zValidator } from "@hono/zod-validator"
-import { projectFilterSchema, type ProjectFilter } from "@beg/validations"
+import { projectFilterSchema } from "@beg/validations"
 import type { Project, Page } from "@beg/types"
 
 const api = new Hono().get("/", zValidator("query", projectFilterSchema), async (c) => {

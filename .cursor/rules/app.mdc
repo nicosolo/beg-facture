@@ -4,3 +4,4 @@ globs: apps/app/**/*.*
 alwaysApply: false
 ---
 This app uses Vite, Vu3 TS composition, Hono client for API fetching, tailwindcss for UI.
+For component organization use atomic pattern.

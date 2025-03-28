@@ -16,24 +16,23 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+interface Props {
     type?: "button" | "submit" | "reset"
-    variant?: "primary" | "secondary" | "danger" | "ghost"
+    variant?: "primary" | "secondary" | "danger" | "ghost" | "custom"
     size?: "sm" | "md" | "lg"
     disabled?: boolean
     className?: string
-}>()
+}
+
+const { type = "button", variant, size, disabled, className } = defineProps<Props>()
 
 defineEmits<{
     (e: "click", event: MouseEvent): void
 }>()
 
-// Set defaults
-const type = props.type || "button"
-
 // Generate variant classes
 const variantClasses = (() => {
-    switch (props.variant) {
+    switch (variant) {
         case "primary":
             return "bg-indigo-600 hover:bg-indigo-700 text-white"
         case "secondary":
@@ -42,14 +41,16 @@ const variantClasses = (() => {
             return "bg-red-600 hover:bg-red-700 text-white"
         case "ghost":
             return "bg-transparent hover:bg-gray-100 text-gray-700"
+        case "custom":
+            return ""
         default:
-            return "bg-gray-200 hover:bg-gray-300 text-gray-700" // default to secondary
+            return "bg-gray-200 hover:bg-gray-300 text-gray-700"
     }
 })()
 
 // Generate size classes
 const sizeClasses = (() => {
-    switch (props.size) {
+    switch (size) {
         case "sm":
             return "text-xs px-2.5 py-1.5"
         case "lg":

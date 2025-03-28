@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router"
+import { useI18n } from "vue-i18n"
+
+const { t } = useI18n()
 </script>
 
 <template>
@@ -8,8 +11,8 @@ import { RouterLink, RouterView } from "vue-router"
 
         <div class="wrapper">
             <nav>
-                <RouterLink to="/">Home</RouterLink>
-                <RouterLink to="/about">About</RouterLink>
+                <RouterLink to="/">{{ $t("navigation.home") }}</RouterLink>
+                <RouterLink to="/about">{{ $t("navigation.about") }}</RouterLink>
             </nav>
         </div>
     </header>

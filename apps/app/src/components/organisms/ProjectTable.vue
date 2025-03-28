@@ -1,12 +1,7 @@
 <template>
     <div class="bg-white rounded-md shadow overflow-hidden">
-        <div v-if="loading" class="p-4 text-center">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p class="mt-2">Loading projects...</p>
-        </div>
-
-        <div v-else-if="projects.length === 0" class="p-8 text-center">
-            <p class="text-gray-500">No projects found matching your criteria.</p>
+        <div v-if="projects.length === 0" class="p-8 text-center">
+            <p class="text-gray-500">{{ $t("projects.noProjectsFound") }}</p>
         </div>
 
         <table v-else class="min-w-full divide-y divide-gray-200">
@@ -15,32 +10,32 @@
                     <th
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                        Name
+                        {{ $t("projects.name") }}
                     </th>
                     <th
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                        Description
+                        {{ $t("projects.description") }}
                     </th>
                     <th
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                        Total Duration
+                        {{ $t("projects.totalDuration") }}
                     </th>
                     <th
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                        First Activity
+                        {{ $t("projects.firstActivity") }}
                     </th>
                     <th
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                        Last Activity
+                        {{ $t("projects.lastActivity") }}
                     </th>
                     <th
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                        Status
+                        {{ $t("projects.statusLabel") }}
                     </th>
                 </tr>
             </thead>
@@ -68,8 +63,10 @@
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <Badge v-if="project.archived" variant="error"> Archived </Badge>
-                        <Badge v-else variant="success"> Active </Badge>
+                        <Badge v-if="project.archived" variant="error">{{
+                            $t("projects.status.archived")
+                        }}</Badge>
+                        <Badge v-else variant="success">{{ $t("projects.status.active") }}</Badge>
                     </td>
                 </tr>
             </tbody>
@@ -80,21 +77,26 @@
 <script setup lang="ts">
 import type { Project } from "@beg/types"
 import Badge from "../atoms/Badge.vue"
+import { useI18n } from "vue-i18n"
+
+interface Props {
+    projects: Project[]
+}
+
+// Initialize i18n
+const { t } = useI18n()
 
 // Define component props
-const props = defineProps<{
-    projects: Project[]
-    loading: boolean
-}>()
+const { projects } = defineProps<Props>()
 
 // Formatting helpers
 const formatDate = (date: Date | null | undefined) => {
-    if (!date) return "N/A"
+    if (!date) return t("common.notAvailable")
     return new Date(date).toLocaleDateString()
 }
 
 const formatDuration = (duration: number | null | undefined) => {
-    if (duration === undefined || duration === null) return "N/A"
+    if (duration === undefined || duration === null) return t("common.notAvailable")
 
     // Format duration in hours
     const hours = Math.floor(duration / 60)

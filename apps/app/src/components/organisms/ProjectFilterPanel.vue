@@ -2,33 +2,35 @@
     <div class="bg-white p-4 rounded-md shadow mb-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
-                label="Project Name"
+                :label="$t('projects.name')"
                 v-model="filterData.name"
-                placeholder="Search by name"
+                :placeholder="$t('projects.filters.searchByName')"
                 @update:model-value="emitInputChange"
             />
 
-            <SelectField
-                label="Include Archived"
+            <!-- <SelectField
+                :label="$t('projects.filters.includeArchived')"
                 v-model="filterData.archived"
                 @update:model-value="emitChange"
             >
-                <option :value="false">No</option>
-                <option :value="true">Yes</option>
-            </SelectField>
+                <option :value="false">{{ $t("common.no") }}</option>
+                <option :value="true">{{ $t("common.yes") }}</option>
+            </SelectField> -->
 
             <div class="form-group">
-                <Label>Sort By</Label>
+                <Label>{{ $t("projects.filters.sortBy") }}</Label>
                 <div class="flex gap-2">
                     <Select v-model="filterData.sortBy" @update:model-value="emitChange">
-                        <option value="name">Name</option>
-                        <option value="totalDuration">Total Duration</option>
-                        <option value="firstActivityDate">First Activity</option>
-                        <option value="lastActivityDate">Last Activity</option>
+                        <option value="name">{{ $t("projects.name") }}</option>
+                        <option value="totalDuration">{{ $t("projects.totalDuration") }}</option>
+                        <option value="firstActivityDate">
+                            {{ $t("projects.firstActivity") }}
+                        </option>
+                        <option value="lastActivityDate">{{ $t("projects.lastActivity") }}</option>
                     </Select>
                     <Select v-model="filterData.sortOrder" @update:model-value="emitChange">
-                        <option value="asc">Ascending</option>
-                        <option value="desc">Descending</option>
+                        <option value="asc">{{ $t("projects.filters.ascending") }}</option>
+                        <option value="desc">{{ $t("projects.filters.descending") }}</option>
                     </Select>
                 </div>
             </div>
@@ -36,19 +38,21 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             <DateField
-                label="From Date"
+                :label="$t('projects.filters.fromDate')"
                 v-model="filterData.fromDate"
                 @update:model-value="emitChange"
             />
 
             <DateField
-                label="To Date"
+                :label="$t('projects.filters.toDate')"
                 v-model="filterData.toDate"
                 @update:model-value="emitChange"
             />
 
             <div class="flex items-end">
-                <Button @click="resetFilters" variant="secondary"> Reset Filters </Button>
+                <Button @click="resetFilters" variant="secondary">{{
+                    $t("projects.filters.reset")
+                }}</Button>
             </div>
         </div>
     </div>
@@ -56,12 +60,16 @@
 
 <script setup lang="ts">
 import { reactive, watch } from "vue"
+import { useI18n } from "vue-i18n"
 import Label from "../atoms/Label.vue"
 import Select from "../atoms/Select.vue"
 import Button from "../atoms/Button.vue"
 import FormField from "../molecules/FormField.vue"
 import SelectField from "../molecules/SelectField.vue"
 import DateField from "../molecules/DateField.vue"
+
+// Initialize i18n
+const { t } = useI18n()
 
 // Define the filter type
 export interface ProjectFilterModel {

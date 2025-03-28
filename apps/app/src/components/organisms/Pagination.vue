@@ -8,7 +8,7 @@
                 variant="secondary"
                 size="sm"
             >
-                Previous
+                {{ $t("pagination.previous") }}
             </Button>
             <Button
                 @click="$emit('next')"
@@ -16,7 +16,7 @@
                 variant="secondary"
                 size="sm"
             >
-                Next
+                {{ $t("pagination.next") }}
             </Button>
         </div>
 
@@ -24,18 +24,18 @@
         <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
                 <p class="text-sm text-gray-700">
-                    Showing
-                    <span class="font-medium">{{ startItem }}</span>
-                    to
-                    <span class="font-medium">{{ endItem }}</span>
-                    of
-                    <span class="font-medium">{{ totalItems }}</span>
-                    results
+                    {{
+                        $t("pagination.showing", {
+                            from: startItem,
+                            to: endItem,
+                            total: totalItems,
+                        })
+                    }}
                 </p>
             </div>
             <div>
                 <nav
-                    class="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                    class="isolate inline-flex space-x-1 rounded-md shadow-sm"
                     aria-label="Pagination"
                 >
                     <Button
@@ -45,7 +45,7 @@
                         variant="ghost"
                         size="sm"
                     >
-                        <span class="sr-only">First</span>
+                        <span class="sr-only">{{ $t("pagination.first") }}</span>
                         &laquo;
                     </Button>
                     <Button
@@ -55,7 +55,7 @@
                         variant="ghost"
                         size="sm"
                     >
-                        <span class="sr-only">Previous</span>
+                        <span class="sr-only">{{ $t("pagination.previous") }}</span>
                         &lsaquo;
                     </Button>
 
@@ -64,19 +64,19 @@
                             v-if="page !== '...'"
                             @click="$emit('go-to', Number(page))"
                             :class="[
-                                'relative inline-flex items-center border px-4 py-2',
+                                'relative inline-flex items-center px-4 py-2',
                                 currentPage === Number(page)
-                                    ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                                    : '',
+                                    ? 'z-10 bg-indigo-700 text-white hover:bg-indigo-700'
+                                    : 'border border-gray-300',
                             ]"
-                            :variant="currentPage === Number(page) ? 'primary' : 'ghost'"
+                            variant="custom"
                             size="sm"
                         >
                             {{ page }}
                         </Button>
                         <span
                             v-else
-                            class="relative inline-flex items-center border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700"
+                            class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700"
                         >
                             {{ page }}
                         </span>
@@ -89,7 +89,7 @@
                         variant="ghost"
                         size="sm"
                     >
-                        <span class="sr-only">Next</span>
+                        <span class="sr-only">{{ $t("pagination.next") }}</span>
                         &rsaquo;
                     </Button>
                     <Button
@@ -99,7 +99,7 @@
                         variant="ghost"
                         size="sm"
                     >
-                        <span class="sr-only">Last</span>
+                        <span class="sr-only">{{ $t("pagination.last") }}</span>
                         &raquo;
                     </Button>
                 </nav>
@@ -112,12 +112,14 @@
 import { computed } from "vue"
 import Button from "../atoms/Button.vue"
 
-const props = defineProps<{
+interface Props {
     currentPage: number
     totalPages: number
     totalItems: number
     pageSize: number
-}>()
+}
+
+const { totalItems, totalPages, currentPage, pageSize } = defineProps<Props>()
 
 // Emitted events
 defineEmits<{
@@ -128,44 +130,44 @@ defineEmits<{
 
 // Computed properties
 const startItem = computed(() => {
-    if (props.totalItems === 0) return 0
-    return (props.currentPage - 1) * props.pageSize + 1
+    if (totalItems === 0) return 0
+    return (currentPage - 1) * pageSize + 1
 })
 
 const endItem = computed(() => {
-    if (props.totalItems === 0) return 0
-    return Math.min(props.currentPage * props.pageSize, props.totalItems)
+    if (totalItems === 0) return 0
+    return Math.min(currentPage * pageSize, totalItems)
 })
 
 const displayedPages = computed(() => {
-    if (props.totalPages <= 7) {
-        return Array.from({ length: props.totalPages }, (_, i) => String(i + 1))
+    if (totalPages <= 7) {
+        return Array.from({ length: totalPages }, (_, i) => String(i + 1))
     }
 
-    if (props.currentPage <= 4) {
-        return ["1", "2", "3", "4", "5", "...", String(props.totalPages)]
+    if (currentPage <= 4) {
+        return ["1", "2", "3", "4", "5", "...", String(totalPages)]
     }
 
-    if (props.currentPage >= props.totalPages - 3) {
+    if (currentPage >= totalPages - 3) {
         return [
             "1",
             "...",
-            String(props.totalPages - 4),
-            String(props.totalPages - 3),
-            String(props.totalPages - 2),
-            String(props.totalPages - 1),
-            String(props.totalPages),
+            String(totalPages - 4),
+            String(totalPages - 3),
+            String(totalPages - 2),
+            String(totalPages - 1),
+            String(totalPages),
         ]
     }
 
     return [
         "1",
         "...",
-        String(props.currentPage - 1),
-        String(props.currentPage),
-        String(props.currentPage + 1),
+        String(currentPage - 1),
+        String(currentPage),
+        String(currentPage + 1),
         "...",
-        String(props.totalPages),
+        String(totalPages),
     ]
 })
 </script>

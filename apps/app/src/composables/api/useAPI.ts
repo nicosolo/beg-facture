@@ -21,28 +21,32 @@ export function useAPI<
     const data = ref<TResponse | null>(null)
 
     const get = async (args: TFilterInput) => {
+        loading.value = true
         const result = filterSchema.safeParse(convertFilterToInput(args))
         if (!result.success) {
             console.log(result)
             error.value = result.error.message
             return
         }
-        console.log((client as any)[endpoint])
+
         const response = await (client as any)[endpoint].$get({
             query: convertFilterToInput(result.data as TFilterInput),
         })
 
         if (!response.ok) {
             error.value = response.statusText
+            loading.value = false
             return
         }
 
         const json = await response.json()
         console.log(convertResponseToData(json))
         data.value = convertResponseToData(json)
+        loading.value = false
     }
 
     const post = async (args: TFilterInput) => {
+        loading.value = true
         const result = filterSchema.safeParse(args)
         if (!result.success) {
             error.value = result.error.message
@@ -54,8 +58,10 @@ export function useAPI<
 
         if (!response.ok) {
             error.value = response.statusText
+            loading.value = false
             return
         }
+        loading.value = false
     }
 
     return {

@@ -1,18 +1,15 @@
 <template>
-    <ProjectListTemplate title="Projects">
-        <template #filter>
-            <ProjectFilterPanel
-                v-model:filter="filter"
-                @filter-change="loadProjects"
-                @filter-input-change="debouncedFetch"
-            />
-        </template>
+    <div class="container mx-auto py-8">
+        <h1 class="text-2xl font-bold mb-6">{{ $t("projects.title") }}</h1>
 
-        <template #content>
-            <ProjectTable :projects="projects" :loading="loading" />
-        </template>
+        <ProjectFilterPanel
+            v-model:filter="filter"
+            @filter-change="loadProjects"
+            @filter-input-change="debouncedFetch"
+        />
+        <LoadingOverlay :loading="loading">
+            <ProjectTable :projects="projects" />
 
-        <template #pagination>
             <Pagination
                 v-if="projects.length > 0 || totalItems > 0"
                 :current-page="currentPage"
@@ -23,20 +20,24 @@
                 @next="nextPage"
                 @go-to="goToPage"
             />
-        </template>
-    </ProjectListTemplate>
+        </LoadingOverlay>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue"
+import { useI18n } from "vue-i18n"
 import type { Project, Page } from "@beg/types"
-import { useFetchProject } from "../composables/api/useFetchProject"
+import { useFetchProject } from "@/composables/api/useFetchProject"
 import ProjectFilterPanel, {
     type ProjectFilterModel,
-} from "../components/organisms/ProjectFilterPanel.vue"
-import ProjectTable from "../components/organisms/ProjectTable.vue"
-import Pagination from "../components/organisms/Pagination.vue"
-import ProjectListTemplate from "../templates/ProjectListTemplate.vue"
+} from "@/components/organisms/ProjectFilterPanel.vue"
+import ProjectTable from "@/components/organisms/ProjectTable.vue"
+import Pagination from "@/components/organisms/Pagination.vue"
+import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
+
+// Initialize i18n
+const { t } = useI18n()
 
 // API client
 const { get: fetchProjects, loading, data } = useFetchProject()

@@ -7,6 +7,7 @@ import type { Project, Page } from "@beg/types"
 const api = new Hono().get("/", zValidator("query", projectFilterSchema), async (c) => {
     const filter = c.req.valid("query")
     const result = await odysProjectRepository.filter(filter)
+    await new Promise((resolve) => setTimeout(resolve, 500))
     return c.json<Page<Project>>(result)
 })
 

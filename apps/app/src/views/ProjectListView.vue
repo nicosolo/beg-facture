@@ -1,27 +1,25 @@
 <template>
-    <div class="container mx-auto py-8">
-        <h1 class="text-2xl font-bold mb-6">{{ $t("projects.title") }}</h1>
+    <h1 class="text-2xl font-bold mb-6">{{ $t("projects.title") }}</h1>
 
-        <ProjectFilterPanel
-            v-model:filter="filter"
-            @filter-change="loadProjects"
-            @filter-input-change="debouncedFetch"
+    <ProjectFilterPanel
+        v-model:filter="filter"
+        @filter-change="loadProjects"
+        @filter-input-change="debouncedFetch"
+    />
+    <LoadingOverlay :loading="loading">
+        <ProjectTable :projects="projects" />
+
+        <Pagination
+            v-if="projects.length > 0 || totalItems > 0"
+            :current-page="currentPage"
+            :total-pages="totalPages"
+            :total-items="totalItems"
+            :page-size="pageSize"
+            @prev="prevPage"
+            @next="nextPage"
+            @go-to="goToPage"
         />
-        <LoadingOverlay :loading="loading">
-            <ProjectTable :projects="projects" />
-
-            <Pagination
-                v-if="projects.length > 0 || totalItems > 0"
-                :current-page="currentPage"
-                :total-pages="totalPages"
-                :total-items="totalItems"
-                :page-size="pageSize"
-                @prev="prevPage"
-                @next="nextPage"
-                @go-to="goToPage"
-            />
-        </LoadingOverlay>
-    </div>
+    </LoadingOverlay>
 </template>
 
 <script setup lang="ts">

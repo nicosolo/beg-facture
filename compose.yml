@@ -49,11 +49,13 @@ services:
                   ignore:
                       - node_modules/
                 - action: rebuild
-                  path: apps/app/package.json
+                  path: ./apps/app/package.json
                 - action: rebuild
-                  path: packages/*/package.json
+                  path: ./packages/*/package.json
         environment:
             - NODE_ENV=development
+            - VITE_HMR_HOST=0.0.0.0
+            - VITE_HMR_PORT=8080
         working_dir: /app/apps/app
         command: bun run dev
 

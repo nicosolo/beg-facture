@@ -49,15 +49,17 @@ const logout = () => {
 <template>
     <div class="flex flex-col min-h-screen overflow-x-hidden">
         <!-- Header for all viewports with toggle button -->
-        <header class="flex items-center p-4 border-b border-gray-200">
-            <img alt="Vue logo" class="h-5 w-auto mr-4" src="@/assets/logo.png" />
+        <header class="flex items-center p-2 border-b border-gray-200">
             <div class="flex justify-between items-center w-full">
+                <RouterLink to="/">
+                    <img alt="BEG logo" class="h-7 w-auto mr-4" src="@/assets/logo.png" />
+                </RouterLink>
                 <button
                     class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
                     @click="toggleSidebar"
                 >
                     <span class="sr-only">Toggle sidebar</span>
-                    <span class="text-3xl">☰</span>
+                    <span class="text-3xl"><Bars3Icon class="h-6 w-6" /></span>
                 </button>
             </div>
         </header>
@@ -65,7 +67,7 @@ const logout = () => {
         <div class="flex flex-1 relative overflow-hidden">
             <!-- Main content - adjust margin on desktop when sidebar is open -->
             <main
-                class="flex-1 transition-all duration-300 p-4 w-full"
+                class="flex-1 transition-all duration-300 py-4 sm:px-2 md:px-4 lg:px-6 w-full md:container md:mx-auto"
                 :class="{ 'lg:mr-64': isSidebarOpen }"
             >
                 <RouterView />
@@ -81,13 +83,13 @@ const logout = () => {
                     class="flex min-h-0 flex-1 flex-col border-l border-gray-200 bg-white shadow-lg"
                 >
                     <div class="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
-                        <div class="flex flex-shrink-0 items-center px-4">
+                        <div class="flex flex-shrink-0 items-center px-4 lg:hidden">
                             <button
                                 class="ml-auto inline-flex items-center justify-center p-1 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
                                 @click="toggleSidebar"
                             >
                                 <span class="sr-only">Close sidebar</span>
-                                <span class="text-xxl">×</span>
+                                <span class="text-xxl"><XMarkIcon class="h-6 w-6" /></span>
                             </button>
                         </div>
                         <nav class="mt-5 flex-1 space-y-1 bg-white px-2">
@@ -105,20 +107,6 @@ const logout = () => {
                             >
                                 {{ item.name }}
                             </RouterLink>
-
-                            <!-- Logout/close button -->
-                            <a
-                                @click="logout"
-                                class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer"
-                            >
-                                <span
-                                    class="mr-3 flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-500"
-                                >
-                                    <!-- Simple arrow icon as placeholder -->
-                                    ←
-                                </span>
-                                Log Out
-                            </a>
                         </nav>
                     </div>
                     <div class="flex flex-shrink-0 border-t border-gray-200 p-4">

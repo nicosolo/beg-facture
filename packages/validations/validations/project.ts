@@ -27,10 +27,15 @@ export const projectFilterSchema = z
             .transform((val) => new Date(val))
             .optional(),
         sortBy: z
-            .enum(["name", "totalDuration", "firstActivityDate", "lastActivityDate"])
+            .enum(["name", "unBilledDuration", "firstActivityDate", "lastActivityDate"])
             .optional()
             .default("name"),
         sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
+        hasUnbilledTime: z
+            .string()
+            .transform((val) => val.toLowerCase() === "true")
+            .optional()
+            .default("true"),
     })
     .merge(paginationSchema)
 
@@ -47,5 +52,6 @@ export function convertProjectFilterToInput(filter: ProjectFilter): ProjectFilte
         referentUserId: filter.referentUserId?.toString(),
         fromDate: filter.fromDate?.toISOString(),
         toDate: filter.toDate?.toISOString(),
+        hasUnbilledTime: filter.hasUnbilledTime?.toString(),
     }
 }

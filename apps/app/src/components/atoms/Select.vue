@@ -9,16 +9,26 @@
         ]"
         @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
     >
-        <slot></slot>
+        <option v-for="option in options" :key="String(option.value)" :value="option.value">
+            {{ option.label }}
+        </option>
     </select>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+export interface SelectOption {
+    label: string
+    value: string | number | boolean
+}
+
+interface SelectProps {
     modelValue: string | number | boolean
     disabled?: boolean
     className?: string
-}>()
+    options: SelectOption[]
+}
+
+const { modelValue, disabled, className, options } = defineProps<SelectProps>()
 
 defineEmits<{
     (e: "update:modelValue", value: string | number | boolean): void

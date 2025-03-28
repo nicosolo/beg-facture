@@ -43,7 +43,7 @@ services:
                   target: /app/apps/app
                   ignore:
                       - node_modules/
-                - action: sync
+                - action: sync+restart
                   path: ./packages
                   target: /app/packages
                   ignore:

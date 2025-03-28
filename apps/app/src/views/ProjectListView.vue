@@ -31,8 +31,8 @@ import type { Project, Page } from "@beg/types"
 import { useFetchProject } from "@/composables/api/useFetchProject"
 import ProjectFilterPanel, {
     type ProjectFilterModel,
-} from "@/components/organisms/ProjectFilterPanel.vue"
-import ProjectTable from "@/components/organisms/ProjectTable.vue"
+} from "@/components/organisms/project/ProjectFilterPanel.vue"
+import ProjectTable from "@/components/organisms/project/ProjectTable.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 
@@ -53,10 +53,12 @@ const pageSize = ref(10)
 const filter = ref<ProjectFilterModel>({
     name: "",
     archived: false,
-    sortBy: "name",
+    sortBy: "lastActivityDate",
     sortOrder: "asc",
     fromDate: undefined,
     toDate: undefined,
+    referentUserId: undefined,
+    hasUnbilledTime: true,
 })
 
 // Watch for API data changes
@@ -86,27 +88,11 @@ const debouncedFetch = (() => {
 })()
 
 const loadProjects = async () => {
-    // Create params as a simple object with the correct string formats
-    const params: Record<string, string | undefined> = {
-        page: currentPage.value.toString(),
-        limit: pageSize.value.toString(),
-        name: filter.value.name,
-        archived: filter.value.archived.toString(),
-        sortBy: filter.value.sortBy,
-        sortOrder: filter.value.sortOrder,
-    }
-
-    // Add date filters if present
-    if (filter.value.fromDate) {
-        params.fromDate = filter.value.fromDate.toISOString()
-    }
-
-    if (filter.value.toDate) {
-        params.toDate = filter.value.toDate.toISOString()
-    }
-
-    // Use type assertion to bypass type checking
-    await fetchProjects(params as any)
+    await fetchProjects({
+        ...filter.value,
+        page: currentPage.value,
+        limit: pageSize.value,
+    })
 }
 
 const goToPage = (page: number) => {

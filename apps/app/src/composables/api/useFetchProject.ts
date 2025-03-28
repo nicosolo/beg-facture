@@ -7,8 +7,6 @@ export function useFetchProject() {
         "project",
         projectFilterSchema,
         convertProjectFilterToInput,
-        (data) => ({
-            ...data,
-        })
+        (data) => data
     )
 }

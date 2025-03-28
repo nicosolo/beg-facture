@@ -24,7 +24,7 @@ export function useAPI<
         loading.value = true
         const result = filterSchema.safeParse(convertFilterToInput(args))
         if (!result.success) {
-            console.log(result)
+            console.error(result)
             error.value = result.error.message
             return
         }
@@ -40,8 +40,11 @@ export function useAPI<
         }
 
         const json = await response.json()
-        console.log(convertResponseToData(json))
-        data.value = convertResponseToData(json)
+        if (convertResponseToData) {
+            data.value = convertResponseToData(json)
+        } else {
+            data.value = json
+        }
         loading.value = false
     }
 

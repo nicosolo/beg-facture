@@ -20,6 +20,11 @@
                     <th
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
+                        {{ $t("projects.unBilledDuration") }}
+                    </th>
+                    <th
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
                         {{ $t("projects.totalDuration") }}
                     </th>
                     <th
@@ -46,6 +51,11 @@
                     </td>
                     <td class="px-6 py-4">
                         <div class="text-sm text-gray-500">{{ project.shortDescription }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">
+                            {{ formatDuration(project.unBilledDuration) }}
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">
@@ -76,7 +86,7 @@
 
 <script setup lang="ts">
 import type { Project } from "@beg/types"
-import Badge from "../atoms/Badge.vue"
+import Badge from "@/components/atoms/Badge.vue"
 import { useI18n } from "vue-i18n"
 
 interface Props {

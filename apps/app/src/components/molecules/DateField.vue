@@ -15,20 +15,22 @@ import { computed } from "vue"
 import Label from "../atoms/Label.vue"
 import Input from "../atoms/Input.vue"
 
-const props = defineProps<{
+interface DateFieldProps {
     label?: string
     modelValue?: Date
     disabled?: boolean
     labelClassName?: string
-}>()
+}
+
+const { label, modelValue, disabled, labelClassName } = defineProps<DateFieldProps>()
 
 const emit = defineEmits<{
     (e: "update:modelValue", value?: Date): void
 }>()
 
 const dateString = computed(() => {
-    if (!props.modelValue) return ""
-    return props.modelValue.toISOString().split("T")[0]
+    if (!modelValue) return ""
+    return modelValue.toISOString().split("T")[0]
 })
 
 function handleDateChange(value: string) {

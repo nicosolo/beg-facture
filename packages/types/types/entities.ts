@@ -85,6 +85,7 @@ export interface Project {
     updatedBy: number
     billingContactId: number
     totalDuration?: number
+    unBilledDuration?: number
     firstActivityDate?: Date | null
     lastActivityDate?: Date | null
 }

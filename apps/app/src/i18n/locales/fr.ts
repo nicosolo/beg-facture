@@ -40,6 +40,7 @@ export default {
         endDate: "Date de fin",
         budget: "Budget",
         totalDuration: "Durée totale",
+        unBilledDuration: "Heures non facturées",
         firstActivity: "Première activité",
         lastActivity: "Dernière activité",
         noProjectsFound: "Aucun projet trouvé correspondant à vos critères.",

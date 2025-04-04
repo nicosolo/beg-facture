@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white p-4 rounded-md shadow mb-6">
+    <div class="bg-white p-4 border border-gray-200 rounded-lg mb-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
                 :label="$t('projects.name')"
@@ -41,7 +41,6 @@
                 </div>
             </div>
         </div>
-        <pre>{{ filterData }}</pre>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             <DateField
                 :label="$t('projects.filters.fromDate')"

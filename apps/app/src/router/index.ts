@@ -19,12 +19,12 @@ const router = createRouter({
         // Invoice routes
         {
             path: "/invoice/new",
-            name: "createInvoice",
+            name: "invoice-new",
             component: EditInvoiceView,
         },
         {
             path: "/invoice/:id/edit",
-            name: "editInvoice",
+            name: "invoice-edit",
             component: EditInvoiceView,
         },
         {

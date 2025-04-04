@@ -2,98 +2,50 @@
     <div class="container mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Liste des factures</h1>
-            <Button variant="primary" :to="'/invoices/new'"> Nouvelle facture </Button>
+            <Button variant="primary" :to="{ name: 'invoice-new' }"> Nouvelle facture </Button>
         </div>
 
-        <div class="bg-white shadow-md rounded-lg overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                                Référence
-                            </th>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                                Client
-                            </th>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                                Date
-                            </th>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                                Montant TTC
-                            </th>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                                Statut
-                            </th>
-                            <th
-                                scope="col"
-                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="invoice in invoices" :key="invoice.id" class="hover:bg-gray-50">
-                            <td
-                                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
-                            >
-                                {{ invoice.reference }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ invoice.client.name }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ invoice.date }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ formatCurrency(invoice.totals.ttc) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <Badge :variant="getStatusVariant(invoice.status)">
-                                    {{ invoice.status }}
-                                </Badge>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div class="flex justify-end gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        :to="`/invoices/${invoice.id}`"
-                                        className="text-blue-600 hover:text-blue-900"
-                                    >
-                                        Voir
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        :to="`/invoices/${invoice.id}/edit`"
-                                        className="text-indigo-600 hover:text-indigo-900"
-                                    >
-                                        Modifier
-                                    </Button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <DataTable
+            :items="invoices"
+            :columns="columns"
+            item-key="id"
+            empty-message="Aucune facture trouvée"
+        >
+            <template #cell:client="{ item }">
+                {{ item.client.name }}
+            </template>
+
+            <template #cell:totals="{ item }">
+                {{ formatCurrency(item.totals.ttc) }}
+            </template>
+
+            <template #cell:status="{ item }">
+                <Badge :variant="getStatusVariant(item.status)">
+                    {{ item.status }}
+                </Badge>
+            </template>
+
+            <template #cell:actions="{ item }">
+                <div class="flex justify-end gap-2">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        :to="`/invoices/${item.id}`"
+                        className="text-blue-600 hover:text-blue-900"
+                    >
+                        Voir
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        :to="`/invoices/${item.id}/edit`"
+                        className="text-indigo-600 hover:text-indigo-900"
+                    >
+                        Modifier
+                    </Button>
+                </div>
+            </template>
+        </DataTable>
     </div>
 </template>
 
@@ -101,6 +53,7 @@
 import { ref } from "vue"
 import Button from "../../components/atoms/Button.vue"
 import Badge from "../../components/atoms/Badge.vue"
+import DataTable from "../../components/molecules/DataTable.vue"
 
 interface InvoiceClient {
     name: string
@@ -127,6 +80,15 @@ interface Invoice {
     totals: InvoiceTotals
     status: string
 }
+
+const columns = [
+    { key: "reference", label: "Référence" },
+    { key: "client", label: "Client" },
+    { key: "date", label: "Date" },
+    { key: "totals", label: "Montant TTC" },
+    { key: "status", label: "Statut" },
+    { key: "actions", label: "Actions" },
+]
 
 const invoices = ref<Invoice[]>([
     {

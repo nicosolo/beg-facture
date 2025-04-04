@@ -18,13 +18,8 @@ const navigation = computed(() => [
         current: window.location.pathname === "/",
     },
     {
-        name: t("navigation.about"),
-        to: "/about",
-        current: window.location.pathname === "/about",
-    },
-    {
         name: t("navigation.invoices"),
-        to: "/invoice",
+        to: { name: "invoice-new" },
         current: window.location.pathname === "/invoice",
     },
     {
@@ -38,11 +33,6 @@ const navigation = computed(() => [
         current: window.location.pathname === "/settings",
     },
 ])
-
-const logout = () => {
-    // Implement logout functionality
-    console.log("Logging out")
-}
 </script>
 
 <template>
@@ -98,7 +88,6 @@ const logout = () => {
                                 v-for="item in navigation"
                                 :key="item.name"
                                 :to="item.to"
-                                @click="isSidebarOpen = false"
                                 :class="[
                                     item.current
                                         ? 'bg-gray-100 text-gray-900'

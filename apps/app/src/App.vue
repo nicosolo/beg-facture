@@ -2,13 +2,7 @@
 import { RouterLink, RouterView } from "vue-router"
 import { useI18n } from "vue-i18n"
 import { ref, computed } from "vue"
-import {
-    Bars3Icon,
-    ChartBarIcon,
-    DocumentIcon,
-    LockClosedIcon,
-    XMarkIcon,
-} from "@heroicons/vue/24/outline"
+import { Bars3Icon, XMarkIcon } from "@heroicons/vue/24/outline"
 const { t } = useI18n()
 const isSidebarOpen = ref(false)
 
@@ -27,6 +21,11 @@ const navigation = computed(() => [
         name: t("navigation.about"),
         to: "/about",
         current: window.location.pathname === "/about",
+    },
+    {
+        name: t("navigation.invoices"),
+        to: "/invoice",
+        current: window.location.pathname === "/invoice",
     },
     {
         name: "Projects",
@@ -67,10 +66,12 @@ const logout = () => {
         <div class="flex flex-1 relative overflow-hidden">
             <!-- Main content - adjust margin on desktop when sidebar is open -->
             <main
-                class="flex-1 transition-all duration-300 py-4 sm:px-2 md:px-4 lg:px-6 w-full md:container md:mx-auto"
+                class="flex-1 transition-all duration-300 p-4 w-full"
                 :class="{ 'lg:mr-64': isSidebarOpen }"
             >
-                <RouterView />
+                <div class="container mx-auto">
+                    <RouterView />
+                </div>
             </main>
 
             <!-- Mobile: Overlay sidebar; Desktop: Fixed position sidebar that doesn't overlay content -->

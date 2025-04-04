@@ -88,6 +88,7 @@
 import type { Project } from "@beg/types"
 import Badge from "@/components/atoms/Badge.vue"
 import { useI18n } from "vue-i18n"
+import { useFormat } from "@/composables/utils/useFormat"
 
 interface Props {
     projects: Project[]
@@ -105,17 +106,5 @@ const formatDate = (date: Date | null | undefined) => {
     return new Date(date).toLocaleDateString()
 }
 
-const formatDuration = (duration: number | null | undefined) => {
-    if (duration === undefined || duration === null) return t("common.notAvailable")
-
-    // Format duration in hours
-    const hours = Math.floor(duration / 60)
-    const minutes = duration % 60
-
-    if (hours === 0) {
-        return `${minutes}m`
-    }
-
-    return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`
-}
+const { formatDuration } = useFormat()
 </script>

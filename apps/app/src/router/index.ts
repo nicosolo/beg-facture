@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router"
 import ProjectListView from "@/views/ProjectListView.vue"
+import InvoiceListView from "@/views/invoice/InvoiceListView.vue"
+import EditInvoiceView from "@/views/invoice/EditInvoiceView.vue"
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,9 +12,25 @@ const router = createRouter({
             component: ProjectListView,
         },
         {
-            path: "/projects",
-            name: "projects",
+            path: "/project",
+            name: "project",
             component: ProjectListView,
+        },
+        // Invoice routes
+        {
+            path: "/invoice/new",
+            name: "createInvoice",
+            component: EditInvoiceView,
+        },
+        {
+            path: "/invoice/:id/edit",
+            name: "editInvoice",
+            component: EditInvoiceView,
+        },
+        {
+            path: "/invoice",
+            name: "invoice",
+            component: InvoiceListView,
         },
     ],
 })

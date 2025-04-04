@@ -1,7 +1,7 @@
-FROM public.ecr.aws/nginx/nginx:stable-alpine-slim as base
+FROM public.ecr.aws/nginx/nginx:stable-alpine-slim AS base
 
 # Development
-FROM base as development
+FROM base AS development
 COPY nginx.dev.conf /etc/nginx/nginx.conf
 
 
@@ -10,7 +10,7 @@ CMD ["nginx", "-g", "daemon off;"]
 
 
 # Production
-FROM base as production
+FROM base AS production
 
 COPY nginx.prod.conf /etc/nginx/nginx.conf
 

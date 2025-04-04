@@ -1,19 +1,18 @@
-FROM oven/bun:1 as base
+FROM oven/bun:1 AS base
 WORKDIR /app
 
-FROM base as development
+FROM base AS development
 COPY . .
-RUN bun install
-
+RUN bun install --network-concurrency=5
 
 ENV NODE_ENV=development
 EXPOSE 8080
 CMD ["bun", "run", "dev"]
 
-FROM base as production
+FROM base AS production
 ENV NODE_ENV=production
 COPY . .
-RUN bun install --production
+RUN bun install --production --network-concurrency=5
 
 RUN cd apps/app && bun run build
 

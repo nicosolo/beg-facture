@@ -28,6 +28,11 @@ const navigation = computed(() => [
         current: window.location.pathname === "/projects",
     },
     {
+        name: "File Browser",
+        to: "/files",
+        current: window.location.pathname === "/files",
+    },
+    {
         name: "Settings",
         to: "/settings",
         current: window.location.pathname === "/settings",

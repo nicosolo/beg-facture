@@ -308,8 +308,8 @@
                                         step="0.01"
                                         class="w-24 p-1 border border-gray-300 rounded"
                                     />
-                                    <span v-else>
-                                        {{ formatCurrency(getPackageAmount()) }}
+                                    <span v-else-if="invoice.expenses.package.amount !== null">
+                                        {{ formatCurrency(invoice.expenses.package.amount) }}
                                     </span>
                                 </td>
                             </tr>

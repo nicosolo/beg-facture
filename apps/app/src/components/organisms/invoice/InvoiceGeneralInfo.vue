@@ -11,20 +11,19 @@
                     class="w-full p-2 border border-gray-300 rounded"
                 />
             </div>
-
             <!-- Invoice Period -->
             <div class="mb-4">
                 <h3 class="text-sm font-medium text-gray-700 mb-1">Période de facturation</h3>
                 <div class="flex gap-2">
                     <input
-                        type="text"
-                        v-model="invoice.period.startDate"
+                        type="date"
+                        v-model="startDate"
                         placeholder="Date début"
                         class="w-1/2 p-2 border border-gray-300 rounded"
                     />
                     <input
-                        type="text"
-                        v-model="invoice.period.endDate"
+                        type="date"
+                        v-model="endDate"
                         placeholder="Date fin"
                         class="w-1/2 p-2 border border-gray-300 rounded"
                     />
@@ -33,31 +32,25 @@
 
             <!-- Client Information -->
             <div class="mb-4">
-                <h3 class="text-sm font-medium text-gray-700 mb-1">
+                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceClientAddress">
                     Adresse de facturation (société)
-                </h3>
-                <div class="border border-gray-300 rounded p-3 bg-gray-50">
-                    <div class="mb-2">
-                        <input
-                            type="text"
-                            v-model="invoice.client.name"
-                            placeholder="Nom de la société"
-                            class="w-full p-2 border border-gray-300 rounded mb-2"
-                        />
-                        <input
-                            type="text"
-                            v-model="invoice.client.address"
-                            placeholder="Adresse"
-                            class="w-full p-2 border border-gray-300 rounded"
-                        />
-                    </div>
-                </div>
+                </label>
+                <textarea
+                    id="invoiceClientAddress"
+                    v-model="invoice.client.address"
+                    rows="4"
+                    placeholder="Adresse de facturation (société)"
+                    class="w-full p-2 border border-gray-300 rounded"
+                ></textarea>
             </div>
 
             <!-- Description -->
             <div class="mb-4">
-                <h3 class="text-sm font-medium text-gray-700 mb-1">Description des prestations</h3>
+                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceDescription">
+                    Description des prestations
+                </label>
                 <textarea
+                    id="invoiceDescription"
                     v-model="invoice.description"
                     rows="6"
                     class="w-full p-2 border border-gray-300 rounded"
@@ -69,8 +62,14 @@
         <div>
             <!-- Invoice Type -->
             <div class="mb-4">
-                <h3 class="text-sm font-medium text-gray-700 mb-1">Type de facture</h3>
-                <select v-model="invoice.type" class="w-full p-2 border border-gray-300 rounded">
+                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceType">
+                    Type de facture
+                </label>
+                <select
+                    id="invoiceType"
+                    v-model="invoice.type"
+                    class="w-full p-2 border border-gray-300 rounded"
+                >
                     <option value="Facture finale">Facture finale</option>
                     <option value="Facture">Facture</option>
                     <option value="Situation">Situation</option>
@@ -80,8 +79,11 @@
 
             <!-- Billing mode -->
             <div class="mb-4">
-                <h3 class="text-sm font-medium text-gray-700 mb-1">Mode de facturation</h3>
+                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceBillingMode">
+                    Mode de facturation
+                </label>
                 <select
+                    id="invoiceBillingMode"
                     class="w-full p-2 border border-gray-300 rounded"
                     v-model="invoice.billingMode"
                 >
@@ -93,31 +95,16 @@
 
             <!-- Recipient Information -->
             <div class="mb-4">
-                <h3 class="text-sm font-medium text-gray-700 mb-1">
+                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceRecipientAddress">
                     Adresse d'envoi de la facture
-                </h3>
-                <div class="border border-gray-300 rounded p-3 bg-gray-50">
-                    <div class="mb-2">
-                        <input
-                            type="text"
-                            v-model="invoice.recipient.name"
-                            placeholder="Nom du destinataire"
-                            class="w-full p-2 border border-gray-300 rounded mb-2"
-                        />
-                        <input
-                            type="text"
-                            v-model="invoice.recipient.company"
-                            placeholder="Société"
-                            class="w-full p-2 border border-gray-300 rounded mb-2"
-                        />
-                        <input
-                            type="text"
-                            v-model="invoice.recipient.address"
-                            placeholder="Adresse"
-                            class="w-full p-2 border border-gray-300 rounded"
-                        />
-                    </div>
-                </div>
+                </label>
+                <textarea
+                    id="invoiceRecipientAddress"
+                    v-model="invoice.recipient.address"
+                    placeholder="Adresse d'envoi de la facture"
+                    rows="4"
+                    class="w-full p-2 border border-gray-300 rounded"
+                ></textarea>
             </div>
 
             <!-- Offers -->
@@ -222,7 +209,10 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="(adjudication, index) in invoice.adjudications" :key="index">
+                            <tr
+                                v-for="(adjudication, index) in invoice.adjudications"
+                                :key="`adjudication-${index}`"
+                            >
                                 <td class="px-4 py-2 text-sm text-gray-900">
                                     <input
                                         type="text"
@@ -269,8 +259,23 @@
 
 <script setup lang="ts">
 import { type Invoice } from "@beg/validations"
+import { computed } from "vue"
 
-defineProps<{
+const { invoice } = defineProps<{
     invoice: Invoice
 }>()
+
+const startDate = computed({
+    get: () => invoice.period.startDate?.toISOString().split("T")[0],
+    set: (value: Date) => {
+        invoice.period.startDate = value
+    },
+})
+
+const endDate = computed({
+    get: () => invoice.period.endDate?.toISOString().split("T")[0],
+    set: (value: Date) => {
+        invoice.period.endDate = value
+    },
+})
 </script>

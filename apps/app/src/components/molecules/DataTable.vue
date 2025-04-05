@@ -33,12 +33,12 @@
                         >
                             <div :class="['flex flex-row md:flex-col sm:w-full']">
                                 <div
-                                    class="md:hidden px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3"
+                                    class="md:hidden px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2"
                                 >
                                     {{ column.label }}
                                 </div>
 
-                                <div :class="['md:px-3 py-2 md:py-2', 'sm:w-full']">
+                                <div :class="['md:px-3 py-2 md:py-2', 'w-full w-1/']">
                                     <slot
                                         :name="`cell:${column.key}`"
                                         :item="item"
@@ -61,7 +61,7 @@ interface Column {
     key: string
     label: string
     nowrap?: boolean
-    width?: string
+    width?: "w-1/2" | "w-2/3" | "w-2/4" | "w-1/3"
 }
 
 interface Props {
@@ -74,7 +74,15 @@ interface Props {
 const { items, columns, itemKey, emptyMessage = "No items found" } = defineProps<Props>()
 
 const getWidth = (column: Column) => {
-    return `${column.width ? `sm:${column.width}` : "flex-1"}`
+    return column.width
+        ? column.width === "w-1/2"
+            ? "md:w-1/2"
+            : column.width === "w-2/3"
+              ? "md:w-2/3"
+              : column.width === "w-2/4"
+                ? "md:w-2/4"
+                : "md:w-1/3"
+        : "md:flex-1"
 }
 // Get a unique key for each item
 const getItemKey = (item: any, index: number): string | number => {

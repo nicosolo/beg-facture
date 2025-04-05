@@ -59,17 +59,10 @@ export const InvoiceSchema = z.object({
     client: z.object({
         name: z.string().default(""),
         address: z.string().default(""),
-        city: z.string().default(""),
-        zipCode: z.string().default(""),
-        country: z.string().default(""),
     }),
     recipient: z.object({
         name: z.string().default(""),
-        company: z.string().default(""),
         address: z.string().default(""),
-        city: z.string().default(""),
-        zipCode: z.string().default(""),
-        country: z.string().default(""),
     }),
     description: z.string().default(""),
     offers: z.array(OfferSchema).default([]),

@@ -21,10 +21,10 @@ export default {
     navigation: {
         home: "Accueil",
         about: "À propos",
-        projects: "Projets",
-        factures: "Factures",
+        projects: "Mandats",
         clients: "Clients",
         settings: "Paramètres",
+        invoices: "Factures",
     },
     projects: {
         title: "Mandats",
@@ -58,6 +58,8 @@ export default {
             toDate: "Date de fin",
             includeArchived: "Inclure les archivés",
             searchByName: "Rechercher par nom",
+            referentUser: "Responsable",
+            selectReferentUser: "Sélectionner un responsable",
         },
         status: {
             all: "Tous",

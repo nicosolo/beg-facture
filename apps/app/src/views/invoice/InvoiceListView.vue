@@ -30,7 +30,7 @@
                     <Button
                         variant="ghost"
                         size="sm"
-                        :to="`/invoices/${item.id}`"
+                        :to="`/invoice/${item.id}/preview`"
                         className="text-blue-600 hover:text-blue-900"
                     >
                         Voir
@@ -38,7 +38,7 @@
                     <Button
                         variant="ghost"
                         size="sm"
-                        :to="`/invoices/${item.id}/edit`"
+                        :to="`/invoice/${item.id}/edit`"
                         className="text-indigo-600 hover:text-indigo-900"
                     >
                         Modifier

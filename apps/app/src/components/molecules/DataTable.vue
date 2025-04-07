@@ -52,6 +52,29 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Footer row with totals -->
+            <div v-if="showFooter" class="border-t-2 border-gray-300 bg-gray-50">
+                <div class="flex flex-col md:flex-row gap-2">
+                    <div
+                        v-for="column in columns"
+                        :key="`total-${column.key}`"
+                        :class="[getWidth(column)]"
+                    >
+                        <div :class="['flex flex-row md:flex-col sm:w-full']">
+                            <div
+                                class="md:hidden px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2"
+                            >
+                                {{ column.label }}
+                            </div>
+
+                            <div :class="['md:px-3 py-2 md:py-2 font-medium', 'w-full w-1/']">
+                                <slot :name="`total:${column.key}`" :column="column"> </slot>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -69,9 +92,16 @@ interface Props {
     columns: Column[]
     itemKey?: string
     emptyMessage?: string
+    showFooter?: boolean
 }
 
-const { items, columns, itemKey, emptyMessage = "No items found" } = defineProps<Props>()
+const {
+    items,
+    columns,
+    itemKey,
+    emptyMessage = "No items found",
+    showFooter = false,
+} = defineProps<Props>()
 
 const getWidth = (column: Column) => {
     return column.width

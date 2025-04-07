@@ -1,43 +1,84 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from "vue-router"
+import { RouterLink, RouterView, useRoute } from "vue-router"
 import { useI18n } from "vue-i18n"
 import { ref, computed } from "vue"
-import { Bars3Icon, XMarkIcon } from "@heroicons/vue/24/outline"
+import { Bars3Icon, XMarkIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/vue/24/outline"
 const { t } = useI18n()
 const isSidebarOpen = ref(false)
 
 const toggleSidebar = () => {
     isSidebarOpen.value = !isSidebarOpen.value
 }
-
+const route = useRoute()
 // Navigation items with their routes and active states
 const navigation = computed(() => [
     {
+        name: t("navigation.time"),
+        to: { name: "time-list" },
+        current: route.name === "time-list",
+    },
+    {
         name: t("navigation.projects"),
-        to: "/",
-        current: window.location.pathname === "/",
+        to: { name: "project-list" },
+        current: route.name === "project-list",
     },
     {
         name: t("navigation.invoices"),
-        to: { name: "invoice-new" },
-        current: window.location.pathname === "/invoice",
+        to: { name: "invoice-list" },
+        current: route.name === "invoice-list",
     },
     {
-        name: "Projects",
-        to: "/projects",
-        current: window.location.pathname === "/projects",
-    },
-    {
-        name: "File Browser",
-        to: "/files",
-        current: window.location.pathname === "/files",
-    },
-    {
-        name: "Settings",
-        to: "/settings",
-        current: window.location.pathname === "/settings",
+        name: t("navigation.settings"),
+        children: [
+            {
+                name: t("navigation.collaborators"),
+                to: { name: "collaborator-list" },
+                current: route.name === "collaborator-list",
+            },
+            {
+                name: t("navigation.activities"),
+                to: { name: "activity-list" },
+                current: route.name === "activity-list",
+            },
+            {
+                name: t("navigation.tariffs"),
+                to: { name: "tariff-list" },
+                current: route.name === "tariff-list",
+            },
+            {
+                name: t("navigation.projectTypes"),
+                to: { name: "project-type-list" },
+                current: route.name === "project-type-list",
+            },
+        ],
+        // Mark parent as current if any child is current
+        get current() {
+            return this.children.some((child) => child.current)
+        },
     },
 ])
+
+const expandedItems = ref<Record<string, boolean>>({})
+
+// Initialize expandedItems based on current route
+const initializeExpandedItems = () => {
+    navigation.value.forEach((item) => {
+        if (item.children && item.current) {
+            expandedItems.value[item.name] = true
+        }
+    })
+}
+
+// Call on component creation
+initializeExpandedItems()
+
+const toggleNestedMenu = (itemName: string) => {
+    expandedItems.value[itemName] = !expandedItems.value[itemName]
+}
+
+const isExpanded = (itemName: string): boolean => {
+    return !!expandedItems.value[itemName]
+}
 </script>
 
 <template>
@@ -89,19 +130,58 @@ const navigation = computed(() => [
                             </button>
                         </div>
                         <nav class="mt-5 flex-1 space-y-1 bg-white px-2">
-                            <RouterLink
-                                v-for="item in navigation"
-                                :key="item.name"
-                                :to="item.to"
-                                :class="[
-                                    item.current
-                                        ? 'bg-gray-100 text-gray-900'
-                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                                    'group flex items-center px-2 py-2 text-sm font-medium rounded-md',
-                                ]"
-                            >
-                                {{ item.name }}
-                            </RouterLink>
+                            <template v-for="item in navigation" :key="item.name">
+                                <!-- Parent item with children -->
+                                <div v-if="item.children" class="space-y-1">
+                                    <button
+                                        @click="toggleNestedMenu(item.name)"
+                                        :class="[
+                                            item.current
+                                                ? 'bg-gray-100 text-gray-900'
+                                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                                            'group flex w-full items-center justify-between px-2 py-2 text-sm font-medium rounded-md cursor-pointer',
+                                        ]"
+                                    >
+                                        <span>{{ item.name }}</span>
+                                        <span class="text-gray-500">
+                                            <ChevronDownIcon
+                                                v-if="isExpanded(item.name)"
+                                                class="h-4 w-4"
+                                            />
+                                            <ChevronRightIcon v-else class="h-4 w-4" />
+                                        </span>
+                                    </button>
+                                    <!-- Nested children -->
+                                    <div v-if="isExpanded(item.name)" class="ml-3 space-y-1">
+                                        <RouterLink
+                                            v-for="child in item.children"
+                                            :key="child.name"
+                                            :to="child.to"
+                                            :class="[
+                                                child.current
+                                                    ? 'bg-gray-100 text-gray-900'
+                                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                                                'group flex items-center px-2 py-2 text-sm font-medium rounded-md',
+                                            ]"
+                                        >
+                                            {{ child.name }}
+                                        </RouterLink>
+                                    </div>
+                                </div>
+                                <!-- Regular item without children -->
+                                <RouterLink
+                                    v-else
+                                    :to="item.to"
+                                    :class="[
+                                        item.current
+                                            ? 'bg-gray-100 text-gray-900'
+                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                                        'group flex items-center px-2 py-2 text-sm font-medium rounded-md',
+                                    ]"
+                                >
+                                    {{ item.name }}
+                                </RouterLink>
+                            </template>
                         </nav>
                     </div>
                     <div class="flex flex-shrink-0 border-t border-gray-200 p-4">
@@ -110,13 +190,13 @@ const navigation = computed(() => [
                                 <div
                                     class="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center"
                                 >
-                                    <span class="text-gray-600 text-xs font-medium">User</span>
+                                    <span class="text-gray-600 text-xs font-medium">FP</span>
                                 </div>
                                 <div class="ml-3">
                                     <p
                                         class="text-sm font-medium text-gray-700 group-hover:text-gray-900"
                                     >
-                                        Example User
+                                        Frank Philippossian
                                     </p>
                                     <p
                                         class="text-xs font-medium text-gray-500 group-hover:text-gray-700"

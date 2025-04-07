@@ -29,9 +29,32 @@
             </div>
         </template>
 
-        <template #cell:status="{ item }">
-            <Badge v-if="item.archived" variant="error">{{ $t("projects.status.archived") }}</Badge>
-            <Badge v-else variant="success">{{ $t("projects.status.active") }}</Badge>
+        <template #cell:actions="{ item }">
+            <div class="flex flex-row sm:flex-col md:flex-row gap-2">
+                <Button
+                    :to="{ name: 'time-new', query: { projectId: item.name } }"
+                    variant="primary"
+                    class="whitespace-nowrap inline-block w-fit"
+                >
+                    Ajouter des heures
+                </Button>
+
+                <Button
+                    :to="{ name: 'time-list', query: { projectId: item.name } }"
+                    variant="secondary"
+                    class="whitespace-nowrap inline-block w-fit"
+                >
+                    Heures
+                </Button>
+
+                <Button
+                    :to="{ name: 'project-edit', params: { id: item.id } }"
+                    variant="ghost"
+                    class="whitespace-nowrap inline-block w-fit"
+                >
+                    Modifier
+                </Button>
+            </div>
         </template>
     </DataTable>
 </template>
@@ -40,6 +63,7 @@
 import type { Project } from "@beg/types"
 import Badge from "@/components/atoms/Badge.vue"
 import DataTable from "@/components/molecules/DataTable.vue"
+import Button from "@/components/atoms/Button.vue"
 import { useI18n } from "vue-i18n"
 import { useFormat } from "@/composables/utils/useFormat"
 import { ref } from "vue"
@@ -56,13 +80,9 @@ const columns = ref([
     {
         key: "name",
         label: t("projects.name"),
-        nowrap: true,
         width: "w-1/3",
     },
-    {
-        key: "shortDescription",
-        label: t("projects.description"),
-    },
+
     {
         key: "unBilledDuration",
         label: t("projects.unBilledDuration"),
@@ -81,12 +101,13 @@ const columns = ref([
     {
         key: "lastActivityDate",
         label: t("projects.lastActivity"),
-        nowrap: true,
     },
+
     {
-        key: "status",
-        label: t("projects.statusLabel"),
-        nowrap: true,
+        key: "actions",
+        label: t("projects.actions"),
+        nowrap: false,
+        width: "w-1/3" as "w-1/3",
     },
 ])
 

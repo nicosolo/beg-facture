@@ -82,7 +82,7 @@ interface Invoice {
 }
 
 const columns = [
-    { key: "reference", label: "Référence", width: "w-40" },
+    { key: "reference", label: "Référence", width: "w-1/3" },
     { key: "client", label: "Client" },
     { key: "date", label: "Date" },
     { key: "totals", label: "Montant TTC" },

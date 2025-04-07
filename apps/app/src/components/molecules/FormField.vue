@@ -1,15 +1,7 @@
 <template>
     <div class="form-group">
         <Label :className="labelClassName" v-if="label">{{ label }}</Label>
-        <slot name="input">
-            <Input
-                :model-value="modelValue || ''"
-                :type="type"
-                :placeholder="placeholder"
-                :disabled="disabled"
-                @update:model-value="$emit('update:modelValue', $event)"
-            />
-        </slot>
+        <slot name="input"> </slot>
     </div>
 </template>
 

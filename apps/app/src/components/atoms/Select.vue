@@ -22,7 +22,7 @@ export interface SelectOption {
 }
 
 interface SelectProps {
-    modelValue: string | number | boolean
+    modelValue?: string | number | boolean
     disabled?: boolean
     className?: string
     options: SelectOption[]

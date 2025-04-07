@@ -1,12 +1,15 @@
 <template>
     <div class="bg-white p-4 border border-gray-200 rounded-lg mb-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
-                :label="$t('projects.name')"
-                v-model="filterData.name"
-                :placeholder="$t('projects.filters.searchByName')"
-                @update:model-value="emitInputChange"
-            />
+            <FormField :label="$t('projects.name')">
+                <template #input>
+                    <Input
+                        v-model="filterData.name"
+                        :placeholder="$t('projects.filters.searchByName')"
+                        @update:model-value="emitInputChange"
+                    />
+                </template>
+            </FormField>
 
             <!-- <SelectField
                 :label="$t('projects.filters.includeArchived')"
@@ -86,6 +89,7 @@ import DateField from "../../molecules/DateField.vue"
 import UserSelect from "../../organisms/user/UserSelect.vue"
 import type { ProjectFilter } from "@beg/validations"
 import Checkbox from "@/components/atoms/Checkbox.vue"
+import Input from "@/components/atoms/Input.vue"
 
 export type ProjectFilterModel = Omit<ProjectFilter, "page" | "limit" | "accountId">
 

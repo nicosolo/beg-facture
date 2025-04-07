@@ -45,17 +45,17 @@ const projects = ref<Project[]>([])
 const totalItems = ref(0)
 const totalPages = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(20)
 
 // Filter state
 const filter = ref<ProjectFilterModel>({
     name: "",
     archived: false,
     sortBy: "lastActivityDate",
-    sortOrder: "asc",
+    sortOrder: "desc",
     fromDate: undefined,
     toDate: undefined,
-    referentUserId: undefined,
+    referentUserId: 25,
     hasUnbilledTime: true,
 })
 

@@ -211,7 +211,7 @@ export const odysProjectRepository = {
         } else if (filter.sortBy === "lastActivityDate") {
             query.orderBy("activity_stats.lastActivityDate", filter.sortOrder)
         } else {
-            query.orderBy(`activity_stats.lastActivityDate`, "desc")
+            query.orderBy(`activity_stats.Id`, "desc")
         }
 
         const projects = await query.offset(offset).limit(limit)

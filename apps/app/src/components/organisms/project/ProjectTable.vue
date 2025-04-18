@@ -33,7 +33,7 @@
             <div class="flex flex-row sm:flex-col md:flex-row gap-2">
                 <Button
                     :to="{ name: 'time-new', query: { projectId: item.name } }"
-                    variant="primary"
+                    variant="secondary"
                     class="whitespace-nowrap inline-block w-fit"
                 >
                     Ajouter des heures
@@ -41,18 +41,18 @@
 
                 <Button
                     :to="{ name: 'time-list', query: { projectId: item.name } }"
-                    variant="secondary"
+                    variant="ghost"
                     class="whitespace-nowrap inline-block w-fit"
                 >
                     Heures
                 </Button>
 
                 <Button
-                    :to="{ name: 'project-edit', params: { id: item.id } }"
-                    variant="ghost"
+                    :to="{ name: 'project-view', params: { id: item.id } }"
+                    variant="primary"
                     class="whitespace-nowrap inline-block w-fit"
                 >
-                    Modifier
+                    Voir
                 </Button>
             </div>
         </template>

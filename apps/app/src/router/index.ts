@@ -13,7 +13,7 @@ import TariffListView from "../views/tariff/TariffListView.vue"
 import TariffEditView from "../views/tariff/TariffEditView.vue"
 import ProjectEditView from "../views/project/ProjectEditView.vue"
 import ProjectTypeListView from "../views/projectType/ProjectTypeListView.vue"
-
+import ProjectPreviewView from "../views/project/ProjectPreviewView.vue"
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
@@ -31,6 +31,11 @@ const router = createRouter({
             path: "/project/:id/edit",
             name: "project-edit",
             component: ProjectEditView,
+        },
+        {
+            path: "/project/:id/view",
+            name: "project-view",
+            component: ProjectPreviewView,
         },
         // Project Type routes
         {

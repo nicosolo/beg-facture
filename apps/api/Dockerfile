@@ -4,9 +4,9 @@ WORKDIR /app
 FROM base AS development
 ENV NODE_ENV=development
 COPY . .
+
 RUN bun install --network-concurrency=5
 
-COPY . .
 EXPOSE 3000
 CMD ["bun", "run", "dev"]
 
@@ -17,4 +17,5 @@ RUN bun install --production --network-concurrency=5
 
 RUN cd apps/api && bun run build
 EXPOSE 3000
+VOLUME ["/app/data"]
 CMD ["bun", "run", "start"]

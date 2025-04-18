@@ -1,11 +1,15 @@
 import { Hono } from "hono"
-import { statusRoutes } from "./routes/status"
-import { userRoutes } from "./routes/user"
-import { activityRoutes } from "./routes/activity"
-import { projectRoutes } from "./routes/project"
-import { rateRoutes } from "./routes/rate"
-import { taskRoutes } from "./routes/task"
-import { clientRoutes } from "./routes/client"
+import { statusRoutes } from "@src/routes/status"
+import { userRoutes } from "@src/routes/user"
+import { activityRoutes } from "@src/routes/activity"
+import { projectRoutes } from "@src/routes/project"
+import { rateRoutes } from "@src/routes/rate"
+import { clientRoutes } from "@src/routes/client"
+import { runMigrations } from "@src/db/migrate"
+import { PORT } from "@src/config"
+
+// Run database migrations
+await runMigrations()
 
 const app = new Hono()
     .route("/user", userRoutes)
@@ -13,7 +17,6 @@ const app = new Hono()
     .route("/activity", activityRoutes)
     .route("/project", projectRoutes)
     .route("/rate", rateRoutes)
-    .route("/task", taskRoutes)
     .route("/client", clientRoutes)
 
 export type AppType = typeof app
@@ -21,6 +24,6 @@ export type AppType = typeof app
 // const res = await client.user.$get()
 // console.log((await res.json())[0].firstName)
 export default {
-    port: 3000,
+    port: PORT,
     fetch: app.fetch,
 }

@@ -9,7 +9,11 @@
     },
     "scripts": {
         "dev": "bun run src/index.ts",
-        "start": "bun run src/index.ts"
+        "start": "bun run src/index.ts",
+        "db:generate": "drizzle-kit generate",
+        "db:migrate": "bun run src/db/migrate.ts",
+        "db:push": "drizzle-kit push",
+        "db:studio": "drizzle-kit studio"
     },
     "dependencies": {
         "@beg/types": "workspace:*",

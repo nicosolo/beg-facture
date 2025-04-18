@@ -3,9 +3,8 @@ description:
 globs: apps/api/**/*.*
 alwaysApply: false
 ---
-This API uses Hono, zod, dirzzle, knex. 
+This API uses Hono, zod, dirzzle. 
 
-The knex part is used to comunicate with a readonly database.
 The Drizzle is used for all self saved data.
 
 

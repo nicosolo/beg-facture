@@ -1,15 +1,32 @@
 <script setup lang="ts">
-import { RouterLink, RouterView, useRoute } from "vue-router"
+import { RouterLink, RouterView, useRoute, useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
 import { ref, computed } from "vue"
 import { Bars3Icon, XMarkIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/vue/24/outline"
+import { useAuthStore } from "./stores/auth"
+
 const { t } = useI18n()
 const isSidebarOpen = ref(false)
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
+// Check if the current route is the login page
+const isLoginPage = computed(() => route.name === "login")
 
 const toggleSidebar = () => {
     isSidebarOpen.value = !isSidebarOpen.value
 }
-const route = useRoute()
+
+// Handle logout with router navigation
+const handleLogout = () => {
+    // Clear auth data from the store and localStorage
+    authStore.logout()
+
+    // Navigate to login
+    router.push("/login")
+}
+
 // Navigation items with their routes and active states
 const navigation = computed(() => [
     {
@@ -83,8 +100,8 @@ const isExpanded = (itemName: string): boolean => {
 
 <template>
     <div class="flex flex-col min-h-screen overflow-x-hidden">
-        <!-- Header for all viewports with toggle button -->
-        <header class="flex items-center p-2 border-b border-gray-200">
+        <!-- Header for all viewports with toggle button - hidden on login page -->
+        <header v-if="!isLoginPage" class="flex items-center p-2 border-b border-gray-200">
             <div class="flex justify-between items-center w-full">
                 <RouterLink to="/">
                     <img alt="BEG logo" class="h-7 w-auto mr-4" src="@/assets/logo.png" />
@@ -103,7 +120,7 @@ const isExpanded = (itemName: string): boolean => {
             <!-- Main content - adjust margin on desktop when sidebar is open -->
             <main
                 class="flex-1 transition-all duration-300 p-4 w-full"
-                :class="{ 'lg:mr-64': isSidebarOpen }"
+                :class="{ 'lg:mr-64': isSidebarOpen && !isLoginPage }"
             >
                 <div class="container mx-auto">
                     <RouterView />
@@ -112,6 +129,7 @@ const isExpanded = (itemName: string): boolean => {
 
             <!-- Mobile: Overlay sidebar; Desktop: Fixed position sidebar that doesn't overlay content -->
             <aside
+                v-if="!isLoginPage"
                 class="fixed lg:absolute inset-y-0 right-0 flex flex-col w-64 transition-all duration-300 ease-in-out z-20"
                 :class="[isSidebarOpen ? 'translate-x-0' : 'translate-x-full']"
             >
@@ -190,20 +208,30 @@ const isExpanded = (itemName: string): boolean => {
                                 <div
                                     class="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center"
                                 >
-                                    <span class="text-gray-600 text-xs font-medium">FP</span>
+                                    <span class="text-gray-600 text-xs font-medium">
+                                        {{ authStore.user?.firstName?.[0]
+                                        }}{{ authStore.user?.lastName?.[0] }}
+                                    </span>
                                 </div>
-                                <div class="ml-3">
+                                <div class="ml-3 flex-grow">
                                     <p
                                         class="text-sm font-medium text-gray-700 group-hover:text-gray-900"
                                     >
-                                        Frank Philippossian
+                                        {{ authStore.user?.firstName }}
+                                        {{ authStore.user?.lastName }}
                                     </p>
                                     <p
                                         class="text-xs font-medium text-gray-500 group-hover:text-gray-700"
                                     >
-                                        View profile
+                                        {{ authStore.user?.email }}
                                     </p>
                                 </div>
+                                <button
+                                    @click="handleLogout"
+                                    class="ml-2 text-sm text-red-600 hover:text-red-800"
+                                >
+                                    {{ t("navigation.logout") }}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -213,7 +241,7 @@ const isExpanded = (itemName: string): boolean => {
 
         <!-- Sidebar overlay for mobile - only covers main content -->
         <div
-            v-show="isSidebarOpen"
+            v-if="!isLoginPage && isSidebarOpen"
             @click="toggleSidebar"
             class="fixed inset-y-0 left-0 right-64 z-10 lg:hidden"
         ></div>

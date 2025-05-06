@@ -4,10 +4,11 @@ WORKDIR /app
 FROM base AS development
 ENV NODE_ENV=development
 COPY . .
-
 RUN bun install --network-concurrency=5
 
+COPY . .
 EXPOSE 3000
+VOLUME ["/app/data", "/app/apps/api/drizzle"]
 CMD ["bun", "run", "dev"]
 
 FROM base AS production

@@ -1,145 +1,145 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core"
+import { mysqlTable, varchar, int, timestamp, boolean, text } from "drizzle-orm/mysql-core"
 import type { Class, ProjectAccessLevel, UserRole } from "@beg/types"
 import { timestamps } from "./column.helper"
 
 // User table
-export const users = sqliteTable("users", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    email: text("email").notNull().unique(),
-    lastName: text("lastName").notNull(),
-    firstName: text("firstName").notNull(),
-    initials: text("initials").notNull(),
-    archived: integer("archived", { mode: "boolean" }).notNull().default(false),
-    password: text("password").notNull(),
-    role: text("role").notNull().$type<UserRole>(),
+export const users = mysqlTable("users", {
+    id: int("id").primaryKey().autoincrement(),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    lastName: varchar("lastName", { length: 255 }).notNull(),
+    firstName: varchar("firstName", { length: 255 }).notNull(),
+    initials: varchar("initials", { length: 10 }).notNull(),
+    archived: boolean("archived").notNull().default(false),
+    password: varchar("password", { length: 255 }).notNull(),
+    role: varchar("role", { length: 50 }).notNull().$type<UserRole>(),
     ...timestamps,
 })
 
 // Region table
-export const regions = sqliteTable("regions", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    name: text("name").notNull(),
+export const regions = mysqlTable("regions", {
+    id: int("id").primaryKey().autoincrement(),
+    name: varchar("name", { length: 255 }).notNull(),
     ...timestamps,
 })
 
 // Location table
-export const locations = sqliteTable("locations", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    name: text("name").notNull(),
-    regionId: integer("regionId")
+export const locations = mysqlTable("locations", {
+    id: int("id").primaryKey().autoincrement(),
+    name: varchar("name", { length: 255 }).notNull(),
+    regionId: int("regionId")
         .notNull()
         .references(() => regions.id),
     ...timestamps,
 })
 
 // ProjectAccess table
-export const projectAccess = sqliteTable("project_access", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    projectId: integer("projectId")
+export const projectAccess = mysqlTable("project_access", {
+    id: int("id").primaryKey().autoincrement(),
+    projectId: int("projectId")
         .notNull()
         .references(() => projects.id),
-    userId: integer("userId")
+    userId: int("userId")
         .notNull()
         .references(() => users.id),
-    accessLevel: text("accessLevel").notNull().$type<ProjectAccessLevel>(),
+    accessLevel: varchar("accessLevel", { length: 50 }).notNull().$type<ProjectAccessLevel>(),
     ...timestamps,
 })
 
 // Company table
-export const companies = sqliteTable("companies", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    name: text("name").notNull(),
+export const companies = mysqlTable("companies", {
+    id: int("id").primaryKey().autoincrement(),
+    name: varchar("name", { length: 255 }).notNull(),
     ...timestamps,
 })
 
 // Client table
-export const clients = sqliteTable("clients", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    name: text("name").notNull(),
+export const clients = mysqlTable("clients", {
+    id: int("id").primaryKey().autoincrement(),
+    name: varchar("name", { length: 255 }).notNull(),
     ...timestamps,
 })
 
 // ProjectType table
-export const projectTypes = sqliteTable("project_types", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    name: text("name").notNull(),
+export const projectTypes = mysqlTable("project_types", {
+    id: int("id").primaryKey().autoincrement(),
+    name: varchar("name", { length: 255 }).notNull(),
     ...timestamps,
 })
 
 // Engineer table
-export const engineers = sqliteTable("engineers", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    name: text("name").notNull(),
+export const engineers = mysqlTable("engineers", {
+    id: int("id").primaryKey().autoincrement(),
+    name: varchar("name", { length: 255 }).notNull(),
     ...timestamps,
 })
 
 // RateClass table
-export const rateClasses = sqliteTable("rate_classes", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    class: text("class").notNull().$type<Class>(),
-    year: integer("year").notNull(),
-    amount: integer("amount").notNull(),
+export const rateClasses = mysqlTable("rate_classes", {
+    id: int("id").primaryKey().autoincrement(),
+    class: varchar("class", { length: 50 }).notNull().$type<Class>(),
+    year: int("year").notNull(),
+    amount: int("amount").notNull(),
 })
 
 // ActivityRateUser table
-export const activityRateUsers = sqliteTable("activity_rate_users", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    userId: integer("userId")
+export const activityRateUsers = mysqlTable("activity_rate_users", {
+    id: int("id").primaryKey().autoincrement(),
+    userId: int("userId")
         .notNull()
         .references(() => users.id),
-    activityId: integer("activityId").notNull(),
-    class: text("class").notNull().$type<Class>(),
+    activityId: int("activityId").notNull(),
+    class: varchar("class", { length: 50 }).notNull().$type<Class>(),
     ...timestamps,
 })
 
 // Project table
-export const projects = sqliteTable("projects", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    projectNumber: text("projectNumber").notNull(),
-    name: text("name").notNull(),
-    startDate: integer("startDate", { mode: "timestamp" }).notNull(),
-    locationId: integer("locationId").references(() => locations.id),
-    clientId: integer("clientId").references(() => clients.id),
-    engineerId: integer("engineerId").references(() => engineers.id),
-    companyId: integer("companyId").references(() => companies.id),
-    typeId: integer("typeId")
+export const projects = mysqlTable("projects", {
+    id: int("id").primaryKey().autoincrement(),
+    projectNumber: varchar("projectNumber", { length: 50 }).notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    startDate: timestamp("startDate").notNull(),
+    locationId: int("locationId").references(() => locations.id),
+    clientId: int("clientId").references(() => clients.id),
+    engineerId: int("engineerId").references(() => engineers.id),
+    companyId: int("companyId").references(() => companies.id),
+    typeId: int("typeId")
         .notNull()
         .references(() => projectTypes.id),
     remark: text("remark"),
-    projectManagerId: integer("projectManagerId").references(() => users.id),
-    printFlag: integer("printFlag", { mode: "boolean" }).default(false),
+    projectManagerId: int("projectManagerId").references(() => users.id),
+    printFlag: boolean("printFlag").default(false),
     ...timestamps,
 })
 
 // ActivityType table
-export const activityTypes = sqliteTable("activity_types", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    name: text("name").notNull(),
-    code: text("code").notNull(),
-    billable: integer("billable", { mode: "boolean" }).notNull(),
+export const activityTypes = mysqlTable("activity_types", {
+    id: int("id").primaryKey().autoincrement(),
+    name: varchar("name", { length: 255 }).notNull(),
+    code: varchar("code", { length: 50 }).notNull(),
+    billable: boolean("billable").notNull(),
     ...timestamps,
 })
 
 // Activity table
-export const activities = sqliteTable("activities", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    userId: integer("userId")
+export const activities = mysqlTable("activities", {
+    id: int("id").primaryKey().autoincrement(),
+    userId: int("userId")
         .notNull()
         .references(() => users.id),
-    date: integer("date", { mode: "timestamp" }).notNull(),
-    duration: integer("duration").notNull(),
-    kilometers: integer("kilometers").notNull(),
-    expenses: integer("expenses").notNull(),
-    rate: integer("rate").notNull(),
-    projectId: integer("projectId")
+    date: timestamp("date").notNull(),
+    duration: int("duration").notNull(),
+    kilometers: int("kilometers").notNull(),
+    expenses: int("expenses").notNull(),
+    rate: int("rate").notNull(),
+    projectId: int("projectId")
         .notNull()
         .references(() => projects.id),
-    activityTypeId: integer("activityTypeId")
+    activityTypeId: int("activityTypeId")
         .notNull()
         .references(() => activityTypes.id),
     description: text("description"),
-    billed: integer("billed", { mode: "boolean" }).notNull().default(false),
-    invoiceId: integer("invoiceId"),
-    disbursement: integer("disbursement", { mode: "boolean" }).notNull().default(false),
+    billed: boolean("billed").notNull().default(false),
+    invoiceId: int("invoiceId"),
+    disbursement: boolean("disbursement").notNull().default(false),
     ...timestamps,
 })

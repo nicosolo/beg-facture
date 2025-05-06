@@ -1,37 +1,85 @@
 services:
+    mariadb:
+        image: mariadb:10.11
+        environment:
+            - MARIADB_ROOT_PASSWORD=${DB_PASSWORD}
+            - MARIADB_DATABASE=${DB_DATABASE}
+            - MARIADB_USER=${DB_USER}
+            - MARIADB_PASSWORD=${DB_PASSWORD}
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./data/db:/var/lib/mysql
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
     api:
         build:
             context: .
             target: development
             dockerfile: apps/api/Dockerfile
+        develop:
+            watch:
+                - action: sync
+                  path: ./apps/api
+                  target: /app/apps/api
+                  ignore:
+                      - node_modules/
+                      - drizzle/
+                - action: sync+restart
+                  path: ./packages
+                  target: /app/packages
+                  ignore:
+                      - node_modules/
+                - action: rebuild
+                  path: apps/api/package.json
+                - action: rebuild
+                  path: packages/*/package.json
         environment:
             - NODE_ENV=development
-            - DATABASE_FILE_PATH=${DATABASE_FILE_PATH}
-            - MSSQL_SERVER=${MSSQL_SERVER}
-            - MSSQL_USER=${MSSQL_USER}
-            - MSSQL_PASSWORD=${MSSQL_PASSWORD}
-            - MSSQL_DATABASE=${MSSQL_DATABASE}
-            - MSSQL_PORT=${MSSQL_PORT}
+            - DB_HOST=mariadb
+            - DB_PORT=3306
+            - DB_USER=${DB_USER}
+            - DB_PASSWORD=${DB_PASSWORD}
+            - DB_DATABASE=${DB_DATABASE}
         volumes:
-            - ./apps/api:/app/apps/api
-            - ./packages:/app/packages
-            - ./data:/app/data
-            - api_node_modules:/app/apps/api/node_modules
+            - ./apps/api/drizzle:/app/apps/api/drizzle
+            - ./export-mdb:/app/export-mdb
+        depends_on:
+            mariadb:
+                condition: service_healthy
         working_dir: /app/apps/api
         command: bun run dev
+        ports:
+            - 4983:4983
     app:
         build:
             context: .
             target: development
             dockerfile: apps/app/Dockerfile
+        develop:
+            watch:
+                - action: sync
+                  path: ./apps/app
+                  target: /app/apps/app
+                  ignore:
+                      - node_modules/
+                - action: sync+restart
+                  path: ./packages
+                  target: /app/packages
+                  ignore:
+                      - node_modules/
+                - action: rebuild
+                  path: ./apps/app/package.json
+                - action: rebuild
+                  path: ./packages/*/package.json
         environment:
             - NODE_ENV=development
             - VITE_HMR_HOST=0.0.0.0
             - VITE_HMR_PORT=8080
-        volumes:
-            - ./apps/app:/app/apps/app
-            - ./packages:/app/packages
-            - app_node_modules:/app/apps/app/node_modules
         working_dir: /app/apps/app
         command: bun run dev
 
@@ -48,12 +96,6 @@ services:
                 - action: sync+restart
                   path: ./provision/nginx/nginx.dev.conf
                   target: /etc/nginx/nginx.conf
+
 volumes:
-    sqlite-data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: ./data/db
-    api_node_modules:
-    app_node_modules:
+    mariadb-data:

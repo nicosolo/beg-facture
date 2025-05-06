@@ -1,6 +1,22 @@
 version: "3.8"
 
 services:
+    mariadb:
+        image: mariadb:10.11
+        environment:
+            - MARIADB_ROOT_PASSWORD=${DB_PASSWORD}
+            - MARIADB_DATABASE=${DB_DATABASE}
+            - MARIADB_USER=${DB_USER}
+            - MARIADB_PASSWORD=${DB_PASSWORD}
+        volumes:
+            - ./db:/var/lib/mysql
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        restart: always
+
     api:
         build:
             context: .
@@ -8,8 +24,18 @@ services:
             dockerfile: apps/api/Dockerfile
         environment:
             - NODE_ENV=production
+            - DB_HOST=mariadb
+            - DB_PORT=3306
+            - DB_USER=${DB_USER}
+            - DB_PASSWORD=${DB_PASSWORD}
+            - DB_DATABASE=${DB_DATABASE}
+        depends_on:
+            mariadb:
+                condition: service_healthy
         working_dir: /app/apps/api
         command: bun run start
+        restart: always
+
     app:
         build:
             context: .
@@ -19,6 +45,8 @@ services:
             - NODE_ENV=production
         volumes:
             - app-static:/app/apps/app/dist
+        restart: always
+
     proxy:
         restart: "on-failure"
         container_name: "proxy"
@@ -35,6 +63,6 @@ services:
                 - action: sync+restart
                   path: provision/docker/nginx/nginx.dev.conf
                   target: /etc/nginx/nginx.conf
+
 volumes:
-    sqlite-data:
     app-static:

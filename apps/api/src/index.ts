@@ -7,18 +7,29 @@ import { rateRoutes } from "@src/routes/rate"
 import { clientRoutes } from "@src/routes/client"
 import { runMigrations } from "@src/db/migrate"
 import { PORT } from "@src/config"
+import { authMiddleware } from "@src/tools/auth-middleware"
 
 // Run database migrations
 await runMigrations()
 
 const app = new Hono()
-    .route("/user", userRoutes)
-    .route("/status", statusRoutes)
-    .route("/activity", activityRoutes)
-    .route("/project", projectRoutes)
-    .route("/rate", rateRoutes)
-    .route("/client", clientRoutes)
+// Route for authentication (not protected)
+// public
+app.route("/user", userRoutes)
 
+// protected prefixes + routers
+const protectedRoutes: [string, typeof userRoutes][] = [
+    ["/status", statusRoutes],
+    ["/activity", activityRoutes],
+    ["/project", projectRoutes],
+    ["/rate", rateRoutes],
+    ["/client", clientRoutes],
+]
+
+for (const [prefix, router] of protectedRoutes) {
+    app.use(`${prefix}/*`, authMiddleware)
+    app.route(prefix, router)
+}
 export type AppType = typeof app
 // export const client = hc<AppType>("http://localhost:3000/api")
 // const res = await client.user.$get()

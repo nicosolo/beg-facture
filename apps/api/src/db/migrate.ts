@@ -1,8 +1,6 @@
-import { migrate } from "drizzle-orm/bun-sqlite/migrator"
+import { migrate } from "drizzle-orm/mysql2/migrator"
 import { db } from "./index"
-import { mkdir } from "node:fs/promises"
 import { resolve } from "node:path"
-import { existsSync, mkdirSync, writeFileSync } from "node:fs"
 
 export async function runMigrations() {
     await migrate(db, {

@@ -1,11 +1,7 @@
 // Database configuration
 
-// MariaDB configuration
-export const DB_HOST = process.env.DB_HOST || "mariadb"
-export const DB_PORT = process.env.DB_PORT || "3306"
-export const DB_USER = process.env.DB_USER || "beg"
-export const DB_PASSWORD = process.env.DB_PASSWORD || "rootpassword"
-export const DB_DATABASE = process.env.DB_DATABASE || "beg"
+// SQLite configuration
+export const DB_FILE_PATH = process.env.DB_FILE_PATH || "/app/data/db.sqlite"
 
 // Server configuration
 export const PORT = Number(process.env.PORT || 3000)

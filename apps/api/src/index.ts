@@ -6,8 +6,18 @@ import { projectRoutes } from "@src/routes/project"
 import { rateRoutes } from "@src/routes/rate"
 import { clientRoutes } from "@src/routes/client"
 import { runMigrations } from "@src/db/migrate"
-import { PORT } from "@src/config"
+import { PORT, DB_FILE_PATH } from "@src/config"
 import { authMiddleware } from "@src/tools/auth-middleware"
+import { mkdir } from "node:fs/promises"
+import { dirname } from "node:path"
+import { existsSync } from "node:fs"
+
+// Ensure SQLite database directory exists
+const dbDir = dirname(DB_FILE_PATH)
+if (!existsSync(dbDir)) {
+    await mkdir(dbDir, { recursive: true })
+    console.log(`Created database directory: ${dbDir}`)
+}
 
 // Run database migrations
 await runMigrations()

@@ -1,21 +1,4 @@
 services:
-    mariadb:
-        image: mariadb:10.11
-        environment:
-            - MARIADB_ROOT_PASSWORD=${DB_PASSWORD}
-            - MARIADB_DATABASE=${DB_DATABASE}
-            - MARIADB_USER=${DB_USER}
-            - MARIADB_PASSWORD=${DB_PASSWORD}
-        ports:
-            - "3306:3306"
-        volumes:
-            - ./data/db:/var/lib/mysql
-        healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
-            interval: 5s
-            timeout: 5s
-            retries: 5
-
     api:
         build:
             context: .
@@ -40,17 +23,11 @@ services:
                   path: packages/*/package.json
         environment:
             - NODE_ENV=development
-            - DB_HOST=mariadb
-            - DB_PORT=3306
-            - DB_USER=${DB_USER}
-            - DB_PASSWORD=${DB_PASSWORD}
-            - DB_DATABASE=${DB_DATABASE}
+            - DB_FILE_PATH=/app/data/db.sqlite
         volumes:
             - ./apps/api/drizzle:/app/apps/api/drizzle
+            - ./data:/app/data
             - ./export-mdb:/app/export-mdb
-        depends_on:
-            mariadb:
-                condition: service_healthy
         working_dir: /app/apps/api
         command: bun run dev
         ports:
@@ -96,6 +73,3 @@ services:
                 - action: sync+restart
                   path: ./provision/nginx/nginx.dev.conf
                   target: /etc/nginx/nginx.conf
-
-volumes:
-    mariadb-data:

@@ -321,12 +321,12 @@ async function importActivities() {
     if (activityData.length === 0) return
 
     // Process in chunks due to potentially large size
-    const chunkSize = 100
+    const chunkSize = 1000
     let imported = 0
 
     for (let i = 0; i < activityData.length; i += chunkSize) {
         const chunk = activityData.slice(i, i + chunkSize)
-
+        const chunkActivities = []
         for (const rawActivity of chunk) {
             // Prefer original IDs when available
             const userId = rawActivity.IDcollaborateur
@@ -357,7 +357,7 @@ async function importActivities() {
             }
 
             const activity = {
-                id: rawActivity.IDHeure,
+                // id: rawActivity.IDHeure,
                 userId,
                 projectId,
                 activityTypeId,
@@ -370,10 +370,11 @@ async function importActivities() {
                 billed: rawActivity.Facturé === "Oui",
                 disbursement: rawActivity.Débours === "Oui",
             }
-            console.log(rawActivity, activity)
-            await db.insert(activities).values(activity)
+
+            chunkActivities.push(activity)
             imported++
         }
+        await db.insert(activities).values(chunkActivities)
     }
 
     console.log(`Imported ${imported} activities`)

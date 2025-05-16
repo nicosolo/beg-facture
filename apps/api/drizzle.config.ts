@@ -1,17 +1,23 @@
 import type { Config } from "drizzle-kit"
-import { DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_DATABASE } from "./src/config"
+import { DB_FILE_PATH } from "./src/config"
+import { existsSync, mkdirSync } from "node:fs"
+import { dirname, resolve } from "node:path"
+
+// Ensure database directory exists
+const dbDir = dirname(resolve(DB_FILE_PATH))
+if (!existsSync(dbDir)) {
+    mkdirSync(dbDir, { recursive: true })
+}
 
 export default {
     schema: "./src/db/schema.ts",
     out: "./drizzle",
-    migrations: {},
-    dialect: "mysql",
+    migrations: {
+        schema: "./src/db/schema.ts",
+    },
+    dialect: "sqlite",
     dbCredentials: {
-        host: DB_HOST,
-        port: Number(DB_PORT),
-        user: DB_USER,
-        password: DB_PASSWORD,
-        database: DB_DATABASE,
+        url: DB_FILE_PATH,
     },
     verbose: true,
     strict: true,

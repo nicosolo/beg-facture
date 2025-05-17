@@ -9,11 +9,36 @@ export const userRepository = {
     },
 
     findById: async (id: number) => {
-        const results = await db.select().from(users).where(eq(users.id, id))
+        const results = await db
+            .select({
+                id: users.id,
+                email: users.email,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                initials: users.initials,
+                role: users.role,
+                archived: users.archived,
+                createdAt: users.createdAt,
+                updatedAt: users.updatedAt,
+            })
+            .from(users)
+            .where(eq(users.id, id))
         return results[0] || null
     },
 
     findAll: async () => {
-        return await db.select().from(users)
+        return await db
+            .select({
+                id: users.id,
+                email: users.email,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                initials: users.initials,
+                role: users.role,
+                archived: users.archived,
+                createdAt: users.createdAt,
+                updatedAt: users.updatedAt,
+            })
+            .from(users)
     },
 }

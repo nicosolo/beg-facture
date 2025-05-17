@@ -11,6 +11,9 @@ import { authMiddleware } from "@src/tools/auth-middleware"
 import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 import { existsSync } from "node:fs"
+import { hc } from "hono/client"
+import { zValidator } from "@hono/zod-validator"
+import { z } from "zod"
 
 // Ensure SQLite database directory exists
 const dbDir = dirname(DB_FILE_PATH)
@@ -23,25 +26,20 @@ if (!existsSync(dbDir)) {
 await runMigrations()
 
 const app = new Hono()
-// Route for authentication (not protected)
-// public
-app.route("/user", userRoutes)
+    .route("/user", userRoutes)
 
-// protected prefixes + routers
-const protectedRoutes: [string, typeof userRoutes][] = [
-    ["/status", statusRoutes],
-    ["/activity", activityRoutes],
-    ["/project", projectRoutes],
-    ["/rate", rateRoutes],
-    ["/client", clientRoutes],
-]
+    .route("/status", statusRoutes)
 
-for (const [prefix, router] of protectedRoutes) {
-    app.use(`${prefix}/*`, authMiddleware)
-    app.route(prefix, router)
-}
-export type AppType = typeof app
-// export const client = hc<AppType>("http://localhost:3000/api")
+    .route("/activity", activityRoutes)
+
+    .route("/project", projectRoutes)
+
+    .route("/rate", rateRoutes)
+
+    .route("/client", clientRoutes)
+
+export type ApiRoutes = typeof app
+
 // const res = await client.user.$get()
 // console.log((await res.json())[0].firstName)
 export default {

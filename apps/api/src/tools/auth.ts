@@ -3,6 +3,7 @@ import bcrypt from "bcrypt"
 import { users } from "../db/schema"
 import type { User } from "@beg/types"
 import { JWT_SECRET } from "../config"
+import type { StringValue } from "ms"
 // This should be in environment variables in a production app
 const SALT_ROUNDS = 10
 
@@ -14,7 +15,10 @@ export const comparePassword = async (password: string, hash: string): Promise<b
     return await bcrypt.compare(password, hash)
 }
 
-export const generateToken = (user: Omit<typeof users.$inferSelect, "password">): string => {
+export const generateToken = (
+    user: Omit<typeof users.$inferSelect, "password">,
+    expiresIn: StringValue = "60d"
+): string => {
     // Remove sensitive data from token
     const payload = {
         id: user.id,
@@ -22,7 +26,7 @@ export const generateToken = (user: Omit<typeof users.$inferSelect, "password">)
         role: user.role,
     }
 
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: "1d" })
+    return jwt.sign(payload, JWT_SECRET, { expiresIn })
 }
 
 export const verifyToken = (

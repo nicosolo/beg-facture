@@ -1,13 +1,16 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
 import type { User } from "@beg/types"
-
-type AuthUser = Omit<User, "password"> & { id: number }
+import { loginSchema, type UserResponseSchema } from "@beg/validations"
+import { useLogin } from "@/composables/api/useLogin"
 
 export const useAuthStore = defineStore("auth", () => {
     const token = ref<string | null>(localStorage.getItem("auth_token"))
-    const user = ref<AuthUser | null>(null)
+    const user = ref<UserResponseSchema | null>(null)
     const isAuthenticated = ref(!!token.value)
+
+    // Create API handler for login endpoint
+    const { post: postLogin, error: loginError, data: loginData } = useLogin()
 
     // Try to load user from localStorage
     try {
@@ -23,29 +26,24 @@ export const useAuthStore = defineStore("auth", () => {
     // Login function
     async function login(email: string, password: string) {
         try {
-            const response = await fetch("/api/user/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
-            })
+            await postLogin({ email, password })
 
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.error || "Login failed")
+            if (loginError.value) {
+                throw new Error(loginError.value || "Login failed")
             }
 
-            const data = await response.json()
-            token.value = data.token
-            user.value = data.user
-            isAuthenticated.value = true
+            if (loginData.value) {
+                token.value = loginData.value.token
+                user.value = loginData.value.user
+                isAuthenticated.value = true
 
-            // Store in localStorage
-            localStorage.setItem("auth_token", data.token)
-            localStorage.setItem("auth_user", JSON.stringify(data.user))
+                // Store in localStorage
+                localStorage.setItem("auth_token", loginData.value.token)
+                localStorage.setItem("auth_user", JSON.stringify(loginData.value.user))
 
-            return true
+                return true
+            }
+            return false
         } catch (error) {
             console.error("Login error:", error)
             return false
@@ -65,7 +63,7 @@ export const useAuthStore = defineStore("auth", () => {
 
     // Function to get auth headers for API requests
     function getAuthHeaders() {
-        return token.value ? { Authorization: `Bearer ${token.value}` } : {}
+        return token.value ? { Authorization: `Bearer ${token.value}` } : { Authorization: "" }
     }
 
     return {

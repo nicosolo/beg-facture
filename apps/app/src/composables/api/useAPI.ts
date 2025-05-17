@@ -1,7 +1,8 @@
 import { ref } from "vue"
 import { hc } from "hono/client"
-import type { AppType } from "@beg/api"
+import type { ApiRoutes } from "@beg/api"
 import { z } from "zod"
+import { useAuthStore } from "../../stores/auth"
 
 export function useAPI<
     TFilter extends z.ZodType<any, any, any>,
@@ -10,28 +11,32 @@ export function useAPI<
 >(
     endpoint: string,
     filterSchema: TFilter,
-    convertFilterToInput: (data: TFilterInput) => Record<string, any> = (data) =>
+    convertToInput: (data: TFilterInput) => Record<string, any> = (data) =>
         data as unknown as Record<string, any>,
-    convertResponseToData: (data: TResponse) => TResponse = (data) => data
+    convertToData: (data: TResponse) => TResponse = (data) => data
 ) {
     const baseUrl = "/api"
     const loading = ref(false)
     const error = ref<string | null>(null)
-    const client = hc<AppType>(baseUrl)
-    const data = ref<TResponse | null>(null)
+    const auth = useAuthStore()
+    const client = hc<ApiRoutes>(baseUrl)
 
+    const data = ref<TResponse | null>(null)
     const get = async (args: TFilterInput) => {
-        loading.value = true
-        const result = filterSchema.safeParse(convertFilterToInput(args))
+        const result = filterSchema.safeParse(convertToInput(args))
         if (!result.success) {
             console.error(result)
             error.value = result.error.message
             return
         }
-
-        const response = await (client as any)[endpoint].$get({
-            query: convertFilterToInput(result.data as TFilterInput),
-        })
+        const response = await (client as any)[endpoint].$get(
+            {
+                query: convertToInput(result.data as TFilterInput),
+            },
+            {
+                headers: auth.getAuthHeaders(),
+            }
+        )
 
         if (!response.ok) {
             error.value = response.statusText
@@ -40,8 +45,8 @@ export function useAPI<
         }
 
         const json = await response.json()
-        if (convertResponseToData) {
-            data.value = convertResponseToData(json)
+        if (convertToData) {
+            data.value = convertToData(json)
         } else {
             data.value = json
         }
@@ -55,20 +60,32 @@ export function useAPI<
             error.value = result.error.message
             return
         }
-        const response = await (client as any)[endpoint].$post({
-            body: convertFilterToInput(result.data as TFilterInput),
-        })
+
+        const response = await (client as any)[endpoint].$post(
+            {
+                json: convertToInput(result.data as TFilterInput),
+            },
+            {
+                headers: auth.getAuthHeaders(),
+            }
+        )
 
         if (!response.ok) {
             error.value = response.statusText
             loading.value = false
             return
         }
+
+        const json = await response.json()
+        if (convertToData) {
+            data.value = convertToData(json)
+        } else {
+            data.value = json
+        }
         loading.value = false
     }
 
     return {
-        client,
         loading,
         error,
         data,

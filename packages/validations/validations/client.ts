@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { paginationSchema } from "./pagination"
+import { nullableDateSchema } from "./base"
 
 // Create a schema for client filtering with pagination
 export const clientFilterSchema = z

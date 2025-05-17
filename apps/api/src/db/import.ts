@@ -19,6 +19,7 @@ import { eq, and } from "drizzle-orm"
 import fs from "fs/promises"
 import path from "path"
 import type { UserRole, Class, ProjectAccessLevel } from "@beg/types"
+import { hashPassword } from "@src/tools/auth"
 
 const exportDir = "/app/export-mdb"
 
@@ -84,7 +85,7 @@ async function importUsers() {
 
         // Hash password if it's not already hashed
         if (!user.password.startsWith("$2")) {
-            user.password = await bcrypt.hash(user.password, 10)
+            user.password = await hashPassword(user.password)
         }
 
         await db.insert(users).values(user)

@@ -1,15 +1,10 @@
 import { eq, sql } from "drizzle-orm"
 import { db } from "../index"
 import { projects, clients, companies, engineers, locations, projectTypes, users } from "../schema"
-import type { Pagination } from "@beg/validations"
-import {
-    ProjectResponse,
-    type ProjectResponseType,
-    type ProjectListResponseType,
-} from "@beg/validations"
+import type { Pagination, ProjectListResponse, ProjectResponse } from "@beg/validations"
 
 export const projectRepository = {
-    findAll: async (pagination?: Pagination): Promise<ProjectListResponseType> => {
+    findAll: async (pagination?: Pagination): Promise<ProjectListResponse> => {
         const { page = 1, limit = 10 } = pagination || {}
         const offset = (page - 1) * limit
 
@@ -56,12 +51,10 @@ export const projectRepository = {
             .leftJoin(clients, eq(projects.clientId, clients.id))
             .leftJoin(engineers, eq(projects.engineerId, engineers.id))
             .leftJoin(companies, eq(projects.companyId, companies.id))
-            .leftJoin(projectTypes, eq(projects.typeId, projectTypes.id))
+            .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
             .leftJoin(users, eq(projects.projectManagerId, users.id))
             .limit(limit)
             .offset(offset)
-
-        // Validate data with Zod
 
         // Count total
         const [{ count }] = await db.select({ count: sql<number>`count(*)` }).from(projects)
@@ -77,7 +70,7 @@ export const projectRepository = {
         }
     },
 
-    findById: async (id: number): Promise<ProjectResponseType | null> => {
+    findById: async (id: number): Promise<ProjectResponse | null> => {
         const results = await db
             .select({
                 id: projects.id,
@@ -120,12 +113,12 @@ export const projectRepository = {
             .leftJoin(clients, eq(projects.clientId, clients.id))
             .leftJoin(engineers, eq(projects.engineerId, engineers.id))
             .leftJoin(companies, eq(projects.companyId, companies.id))
-            .leftJoin(projectTypes, eq(projects.typeId, projectTypes.id))
+            .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
             .leftJoin(users, eq(projects.projectManagerId, users.id))
             .where(eq(projects.id, id))
 
         if (!results[0]) return null
 
-        return ProjectResponse.parse(results[0])
+        return results[0]
     },
 }

@@ -5,10 +5,6 @@ import { dateSchema, nullableDateSchema } from "./base"
 // Update schema to match activity filter schema pattern
 export const projectFilterSchema = z
     .object({
-        accountId: z
-            .string()
-            .transform((val) => parseInt(val))
-            .optional(),
         name: z.string().optional(),
         archived: z
             .string()
@@ -48,7 +44,6 @@ export function convertProjectFilterToInput(filter: ProjectFilter): ProjectFilte
         ...filter,
         page: filter.page?.toString(),
         limit: filter.limit?.toString(),
-        accountId: filter.accountId?.toString(),
         archived: filter.archived?.toString(),
         referentUserId: filter.referentUserId?.toString(),
         fromDate: filter.fromDate?.toISOString(),

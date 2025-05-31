@@ -4,7 +4,6 @@ import { loginSchema } from "@beg/validations"
 import { userRepository } from "../db/repositories/user.repository"
 import { comparePassword, generateToken } from "../tools/auth"
 import { authMiddleware } from "../tools/auth-middleware"
-import { roleMiddleware } from "../tools/role-middleware"
 
 // Create the app and apply auth middleware to routes that need it
 export const userRoutes = new Hono()

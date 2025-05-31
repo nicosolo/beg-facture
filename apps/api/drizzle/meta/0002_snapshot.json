@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "5d7be337-6cad-41c8-88e1-f3a40d67216e",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "3d5c4f01-452c-4b21-979a-9784019a2fa8",
+  "prevId": "0d9e051c-b8c6-4924-9a2c-f8b395467645",
   "tables": {
     "activities": {
       "name": "activities",
@@ -117,7 +117,30 @@
           "default": "CURRENT_TIMESTAMP"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "activities_user_project_idx": {
+          "name": "activities_user_project_idx",
+          "columns": [
+            "userId",
+            "projectId"
+          ],
+          "isUnique": false
+        },
+        "activities_date_idx": {
+          "name": "activities_date_idx",
+          "columns": [
+            "date"
+          ],
+          "isUnique": false
+        },
+        "activities_billed_idx": {
+          "name": "activities_billed_idx",
+          "columns": [
+            "billed"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "activities_userId_users_id_fk": {
           "name": "activities_userId_users_id_fk",
@@ -521,7 +544,37 @@
           "default": "CURRENT_TIMESTAMP"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "project_access_user_project_idx": {
+          "name": "project_access_user_project_idx",
+          "columns": [
+            "userId",
+            "projectId"
+          ],
+          "isUnique": false
+        },
+        "project_access_user_idx": {
+          "name": "project_access_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "project_access_project_idx": {
+          "name": "project_access_project_idx",
+          "columns": [
+            "projectId"
+          ],
+          "isUnique": false
+        },
+        "project_access_level_idx": {
+          "name": "project_access_level_idx",
+          "columns": [
+            "accessLevel"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "project_access_projectId_projects_id_fk": {
           "name": "project_access_projectId_projects_id_fk",
@@ -699,7 +752,78 @@
           "default": "CURRENT_TIMESTAMP"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "projects_project_manager_idx": {
+          "name": "projects_project_manager_idx",
+          "columns": [
+            "projectManagerId"
+          ],
+          "isUnique": false
+        },
+        "projects_name_idx": {
+          "name": "projects_name_idx",
+          "columns": [
+            "name"
+          ],
+          "isUnique": false
+        },
+        "projects_project_number_idx": {
+          "name": "projects_project_number_idx",
+          "columns": [
+            "projectNumber"
+          ],
+          "isUnique": false
+        },
+        "projects_start_date_idx": {
+          "name": "projects_start_date_idx",
+          "columns": [
+            "startDate"
+          ],
+          "isUnique": false
+        },
+        "projects_updated_at_idx": {
+          "name": "projects_updated_at_idx",
+          "columns": [
+            "updatedAt"
+          ],
+          "isUnique": false
+        },
+        "projects_location_idx": {
+          "name": "projects_location_idx",
+          "columns": [
+            "locationId"
+          ],
+          "isUnique": false
+        },
+        "projects_client_idx": {
+          "name": "projects_client_idx",
+          "columns": [
+            "clientId"
+          ],
+          "isUnique": false
+        },
+        "projects_engineer_idx": {
+          "name": "projects_engineer_idx",
+          "columns": [
+            "engineerId"
+          ],
+          "isUnique": false
+        },
+        "projects_company_idx": {
+          "name": "projects_company_idx",
+          "columns": [
+            "companyId"
+          ],
+          "isUnique": false
+        },
+        "projects_type_idx": {
+          "name": "projects_type_idx",
+          "columns": [
+            "typeId"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "projects_locationId_locations_id_fk": {
           "name": "projects_locationId_locations_id_fk",
@@ -906,6 +1030,35 @@
             "email"
           ],
           "isUnique": true
+        },
+        "users_email_idx": {
+          "name": "users_email_idx",
+          "columns": [
+            "email"
+          ],
+          "isUnique": false
+        },
+        "users_archived_idx": {
+          "name": "users_archived_idx",
+          "columns": [
+            "archived"
+          ],
+          "isUnique": false
+        },
+        "users_role_idx": {
+          "name": "users_role_idx",
+          "columns": [
+            "role"
+          ],
+          "isUnique": false
+        },
+        "users_name_idx": {
+          "name": "users_name_idx",
+          "columns": [
+            "lastName",
+            "firstName"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {},

@@ -62,10 +62,12 @@ CREATE TABLE `engineers` (
 CREATE TABLE `locations` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
-	`regionId` integer NOT NULL,
+	`country` text(2) NOT NULL,
+	`canton` text(2),
+	`region` text,
+	`address` text,
 	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP,
-	FOREIGN KEY (`regionId`) REFERENCES `regions`(`id`) ON UPDATE no action ON DELETE no action
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP
 );
 --> statement-breakpoint
 CREATE TABLE `project_access` (
@@ -75,8 +77,8 @@ CREATE TABLE `project_access` (
 	`accessLevel` text NOT NULL,
 	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
 	`createdAt` integer DEFAULT CURRENT_TIMESTAMP,
-	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE TABLE `project_types` (
@@ -114,13 +116,6 @@ CREATE TABLE `rate_classes` (
 	`class` text NOT NULL,
 	`year` integer NOT NULL,
 	`amount` integer NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE `regions` (
-	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`name` text NOT NULL,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP
 );
 --> statement-breakpoint
 CREATE TABLE `users` (

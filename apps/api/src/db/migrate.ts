@@ -20,10 +20,10 @@ export async function runMigrations() {
             console.log(`Created database directory: ${dbDir}`)
         }
 
-        // Enable foreign keys in SQLite
-        await db.run(sql`PRAGMA foreign_keys = ON;`)
+        // Note: Foreign keys and other PRAGMA settings are now configured in db/index.ts
+        // This ensures consistent settings across all database connections
 
-        // Method 1: Use drizzle-orm/migrator for applying migrations
+        // Use drizzle-orm/migrator for applying migrations
         console.log("Running migrations using drizzle-orm migrator...")
         const migrationsFolder = resolve(import.meta.dir, "../../drizzle")
         console.log(migrationsFolder)

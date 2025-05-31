@@ -1,7 +1,6 @@
 import { db } from "./index"
 import {
     users,
-    regions,
     locations,
     projectAccess,
     companies,
@@ -38,7 +37,6 @@ async function resetDatabase() {
     await db.delete(clients)
     await db.delete(companies)
     await db.delete(locations)
-    await db.delete(regions)
     await db.delete(users)
 
     console.log("Database reset complete")
@@ -95,63 +93,119 @@ async function importUsers() {
     console.log(`Imported ${importedUsers.length} users`)
 }
 
-async function importRegions() {
-    // Create default regions from Localités
+async function importLocations() {
+    // Use both TreeTable and Localités for complete mapping
+    const treeData = await readJsonFile("TreeTable")
     const locationData = await readJsonFile("Localités")
+
     if (locationData.length === 0) return
 
-    // Extract unique regions from locations with their IDs
-    const uniqueRegions = new Map<string, any>()
-    locationData.forEach((location: any) => {
-        if (location.Canton) {
-            uniqueRegions.set(location.Canton, {
-                name: location.Canton,
-                id: location.CantonID || null, // Capture the ID, might be null
-            })
-        }
+    // Swiss canton mapping
+    const cantonMap = new Map([
+        ["Valais", "VS"],
+        ["Vaud", "VD"],
+        ["Genève", "GE"],
+        ["Neuchâtel", "NE"],
+        ["Fribourg", "FR"],
+        ["Jura", "JU"],
+        ["Berne", "BE"],
+        ["Zürich", "ZH"],
+        ["Lucerne", "LU"],
+        ["Uri", "UR"],
+        ["Schwyz", "SZ"],
+        ["Obwald", "OW"],
+        ["Nidwald", "NW"],
+        ["Glarus", "GL"],
+        ["Zug", "ZG"],
+        ["Soleure", "SO"],
+        ["Bâle-Ville", "BS"],
+        ["Bâle-Campagne", "BL"],
+        ["Schaffhouse", "SH"],
+        ["Appenzell Rhodes-Extérieures", "AR"],
+        ["Appenzell Rhodes-Intérieures", "AI"],
+        ["Saint-Gall", "SG"],
+        ["Grisons", "GR"],
+        ["Argovie", "AG"],
+        ["Thurgovie", "TG"],
+        ["Tessin", "TI"],
+    ])
+
+    // Create a mapping from TreeTable for location details by ID
+    const treeLocationMap = new Map<number, any>()
+    treeData.forEach((item: any) => {
+        treeLocationMap.set(item.ID, {
+            l0: item.L0, // L0 is the country
+            l1: item.L1, // L1 is the region (like Valais, Vaud)
+            l2: item.L2, // L2 is often the Swiss canton
+            l3: item.L3, // L3 is the locality (if exists)
+        })
     })
 
-    // If no regions found, create a default one
-    if (uniqueRegions.size === 0) {
-        console.log("No regions found in data. Creating a default region.")
-        await db.insert(regions).values({
-            id: 1,
-            name: "Default Region",
-        })
-        return
-    }
-
-    let regionId = 1
-    for (const region of uniqueRegions.values()) {
-        await db.insert(regions).values({
-            id: region.id || regionId++, // Use original ID or auto-increment
-            name: region.name,
-        })
-    }
-
-    const importedRegions = await db.select().from(regions)
-    console.log(`Imported ${importedRegions.length} regions`)
-}
-
-async function importLocations() {
-    const locationData = await readJsonFile("Localités")
-    if (locationData.length === 0) return
-
-    // Get all regions first
-    const allRegions = await db.select().from(regions)
-
-    const regionMap = new Map(allRegions.map((r) => [r.name, r.id]))
     for (const rawLocation of locationData) {
-        // Try to get region ID or use default
-        const regionId = regionMap.get(rawLocation.Canton)
-        if (regionId) {
+        // Get location details from TreeTable using IDrégion
+        const treeDetails = treeLocationMap.get(rawLocation.IDrégion)
+
+        if (treeDetails) {
+            let country = "CH" // Default
+            let canton = null
+            let region = null
+            let address = null
+
+            // Handle country mapping
+            if (treeDetails.l0) {
+                country =
+                    treeDetails.l0 === "Suisse"
+                        ? "CH"
+                        : treeDetails.l0 === "France"
+                          ? "FR"
+                          : treeDetails.l0 === "Italie"
+                            ? "IT"
+                            : "CH"
+            }
+
+            // Handle L1 - check if it's a Swiss canton or region
+            if (treeDetails.l1) {
+                const cantonCode = cantonMap.get(treeDetails.l1)
+                if (cantonCode) {
+                    canton = cantonCode
+                } else {
+                    region = treeDetails.l1
+                }
+            }
+
+            // Handle L2 and L3 for address (with line breaks)
+            const addressParts = []
+            if (treeDetails.l2) addressParts.push(treeDetails.l2)
+            if (treeDetails.l3) addressParts.push(treeDetails.l3)
+            if (addressParts.length > 0) {
+                address = addressParts.join("\n")
+            }
+
             const location = {
                 id: rawLocation.IDlocalité,
                 name: rawLocation.Localité,
-                regionId,
+                country,
+                canton,
+                region,
+                address,
             }
 
             await db.insert(locations).values(location)
+        } else {
+            // If no tree details found, create a simple location with just the name
+            const location = {
+                id: rawLocation.IDlocalité,
+                name: rawLocation.Localité,
+                country: "CH", // Default to Switzerland
+                canton: null,
+                region: null,
+                address: null,
+            }
+
+            await db.insert(locations).values(location)
+            console.warn(
+                `Could not find tree details for location ${rawLocation.Localité} with region ID ${rawLocation.IDrégion}`
+            )
         }
     }
 
@@ -381,60 +435,64 @@ async function importActivities() {
     console.log(`Imported ${imported} activities`)
 }
 
+// Create Project access based on who did hours on a project
 async function importProjectAccess() {
-    // LinkACC contains project access information
-    const projectAccessData = await readJsonFile("LinkACC")
-    if (projectAccessData.length === 0) return
+    console.log("Creating project access entries...")
 
-    // Get references to related entities
-    const allUsers = await db.select().from(users)
-    const userMap = new Map(allUsers.map((u) => [u.initials, u.id]))
+    // Single query to get all unique user-project combinations that have activities
+    const userProjectCombinations = await db
+        .select({
+            userId: activities.userId,
+            projectId: activities.projectId,
+        })
+        .from(activities)
+        .groupBy(activities.userId, activities.projectId)
 
-    const allProjects = await db.select().from(projects)
-    const projectMap = new Map(allProjects.map((p) => [p.projectNumber, p.id]))
+    console.log(
+        `Found ${userProjectCombinations.length} unique user-project combinations with activities`
+    )
 
+    // Create project access entries in bulk
+    const accessEntries = userProjectCombinations.map((combination) => ({
+        userId: combination.userId,
+        projectId: combination.projectId,
+        accessLevel: "write" as ProjectAccessLevel,
+    }))
+
+    // Insert in chunks to avoid potential query size limits
+    const chunkSize = 1000
     let imported = 0
 
-    for (const rawAccess of projectAccessData) {
-        // Prefer original IDs when available
-        const userId = rawAccess.CollaborateurID || userMap.get(rawAccess.Initiales)
-        const projectId = rawAccess.MandatID || projectMap.get(rawAccess.No_mandat)
-
-        if (!userId || !projectId) continue
-
-        const access = {
-            userId,
-            projectId,
-            accessLevel: "READ" as ProjectAccessLevel, // Properly typed as ProjectAccessLevel
-        }
-
-        await db.insert(projectAccess).values(access)
-        imported++
+    for (let i = 0; i < accessEntries.length; i += chunkSize) {
+        const chunk = accessEntries.slice(i, i + chunkSize)
+        await db.insert(projectAccess).values(chunk)
+        imported += chunk.length
+        console.log(`Created ${imported} access entries`)
     }
 
-    console.log(`Imported ${imported} project access entries`)
+    console.log(`Created ${imported} access entries`)
 }
 
 async function importActivityRateUsers() {
     // Taux contains rate information for users on different activities
-    const activityRateData = await readJsonFile("Taux")
+    const activityRateData = await readJsonFile("LinkACC")
     if (activityRateData.length === 0) return
 
     // Get references to related entities
     const allUsers = await db.select().from(users)
-    const userMap = new Map(allUsers.map((u) => [u.initials, u.id]))
+    const userMap = new Map(allUsers.map((u) => [u.id, u.id]))
 
     let imported = 0
 
     for (const rawRate of activityRateData) {
         // Prefer original IDs when available
-        const userId = rawRate.CollaborateurID || userMap.get(rawRate.Initiales)
+        const userId = rawRate.IDcollaborateur
 
         if (!userId) continue
 
         const activityRate = {
             userId,
-            activityId: rawRate.ActivitéID || 1, // Use original ID if available
+            activityId: rawRate.IDactivité,
             class: rawRate.Classe as Class, // Properly typed as Class enum
         }
 
@@ -448,7 +506,6 @@ async function importActivityRateUsers() {
 const importFunctions = [
     resetDatabase, // Add database reset as the first function to run
     importUsers,
-    importRegions,
     importLocations,
     importCompanies,
     importClients,

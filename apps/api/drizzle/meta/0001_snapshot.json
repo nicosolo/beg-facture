@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "5d7be337-6cad-41c8-88e1-f3a40d67216e",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "0d9e051c-b8c6-4924-9a2c-f8b395467645",
+  "prevId": "5d7be337-6cad-41c8-88e1-f3a40d67216e",
   "tables": {
     "activities": {
       "name": "activities",
@@ -117,7 +117,30 @@
           "default": "CURRENT_TIMESTAMP"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "activities_user_project_idx": {
+          "name": "activities_user_project_idx",
+          "columns": [
+            "userId",
+            "projectId"
+          ],
+          "isUnique": false
+        },
+        "activities_date_idx": {
+          "name": "activities_date_idx",
+          "columns": [
+            "date"
+          ],
+          "isUnique": false
+        },
+        "activities_billed_idx": {
+          "name": "activities_billed_idx",
+          "columns": [
+            "billed"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "activities_userId_users_id_fk": {
           "name": "activities_userId_users_id_fk",

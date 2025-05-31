@@ -1,12 +1,11 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
-import type { User } from "@beg/types"
-import { loginSchema, type UserResponseSchema } from "@beg/validations"
+import { type UserResponse } from "@beg/validations"
 import { useLogin } from "@/composables/api/useLogin"
 
 export const useAuthStore = defineStore("auth", () => {
     const token = ref<string | null>(localStorage.getItem("auth_token"))
-    const user = ref<UserResponseSchema | null>(null)
+    const user = ref<UserResponse | null>(null)
     const isAuthenticated = ref(!!token.value)
 
     // Create API handler for login endpoint

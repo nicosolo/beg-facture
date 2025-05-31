@@ -1,7 +1,8 @@
-import { loginSchema, type UserResponseSchema } from "@beg/validations"
+import { loginSchema, type UserResponse } from "@beg/validations"
 import { useAPI } from "./useAPI"
+
 export const useLogin = () => {
-    return useAPI<typeof loginSchema, { token: string; user: UserResponseSchema }>(
+    return useAPI<typeof loginSchema, { token: string; user: UserResponse }>(
         "user/login",
         loginSchema
     )

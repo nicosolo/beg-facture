@@ -12,8 +12,8 @@ CMD ["bun", "run", "dev"]
 FROM base AS production
 ENV NODE_ENV=production
 COPY . .
-RUN bun install --production --network-concurrency=5
-
-RUN cd apps/app && bun run build
+RUN bun install --network-concurrency=5
+WORKDIR /app/apps/app
+CMD ["bun", "run", "build"]
 
 

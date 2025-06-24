@@ -66,6 +66,7 @@ services:
         build:
             context: ./provision/nginx
             dockerfile: Dockerfile
+            target: development
         ports:
             - 8084:80
         develop:

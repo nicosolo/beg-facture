@@ -14,8 +14,8 @@ services:
         working_dir: /app/apps/api
         command: bun run start
         restart: always
-
     app:
+        restart: "no"
         build:
             context: .
             target: production
@@ -23,25 +23,24 @@ services:
         environment:
             - NODE_ENV=production
         volumes:
-            - app-static:/app/apps/app/dist
-        restart: always
-
+            - app-dist:/app/apps/app/dist
+        working_dir: /app/apps/app
+        command: ["bun", "run", "build"]
     proxy:
-        restart: "on-failure"
+        restart: always
         container_name: "proxy"
         build:
             context: ./provision/nginx
             dockerfile: Dockerfile
+            target: production
+        depends_on:
+            app:
+                condition: service_completed_successfully
         volumes:
-            - app-static:/var/www/app
+            - app-dist:/var/www/app:ro
             - ./provision/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
         ports:
             - 80:80
-        develop:
-            watch:
-                - action: sync+restart
-                  path: provision/docker/nginx/nginx.dev.conf
-                  target: /etc/nginx/nginx.conf
 
 volumes:
-    app-static:
+    app-dist:

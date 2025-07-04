@@ -3,44 +3,41 @@ import { zValidator } from "@hono/zod-validator"
 import { clientFilterSchema, clientSchema, createPageResponseSchema } from "@beg/validations"
 import { clientRepository } from "../db/repositories/client.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
+import { responseValidator } from "@src/tools/response-validator"
 
 const clientResponseArraySchema = createPageResponseSchema(clientSchema)
 
 export const clientRoutes = new Hono()
     .use("/*", authMiddleware)
-    .get("/", zValidator("query", clientFilterSchema), async (c) => {
-        const filter = c.req.valid("query")
-
-        // Pass pagination parameters directly to the repository
-        const result = await clientRepository.findAll(filter)
-
-        // Validate the response before sending
-        const validatedResponse = clientResponseArraySchema.safeParse(result)
-        if (!validatedResponse.success) {
-            console.error("Response validation failed:", validatedResponse.error)
-            return c.json({ error: "Internal server error" }, 500)
+    .get(
+        "/",
+        zValidator("query", clientFilterSchema),
+        responseValidator({
+            200: clientResponseArraySchema,
+        }),
+        async (c) => {
+            const filter = c.req.valid("query")
+            const result = await clientRepository.findAll(filter)
+            return c.render(result, 200)
         }
+    )
 
-        return c.json(validatedResponse.data)
-    })
+    .get(
+        "/:id",
+        responseValidator({
+            200: clientSchema,
+        }),
+        async (c) => {
+            const id = parseInt(c.req.param("id"))
+            if (isNaN(id)) {
+                return c.json({ error: "Invalid ID" }, 400)
+            }
 
-    .get("/:id", async (c) => {
-        const id = parseInt(c.req.param("id"))
-        if (isNaN(id)) {
-            return c.json({ error: "Invalid ID" }, 400)
+            const client = await clientRepository.findById(id)
+            if (!client) {
+                return c.json({ error: "Client not found" }, 404)
+            }
+
+            return c.render(client, 200)
         }
-
-        const client = await clientRepository.findById(id)
-        if (!client) {
-            return c.json({ error: "Client not found" }, 404)
-        }
-
-        // Validate the response before sending
-        const validatedResponse = clientSchema.safeParse(client)
-        if (!validatedResponse.success) {
-            console.error("Response validation failed:", validatedResponse.error)
-            return c.json({ error: "Internal server error" }, 500)
-        }
-
-        return c.json(validatedResponse.data)
-    })
+    )

@@ -29,6 +29,12 @@ export function useAPI<
             error.value = result.error.message
             return
         }
+        for (const key in result.data) {
+            if (endpoint.includes(`:${key}`)) {
+                endpoint = endpoint.replace(`:${key}`, result.data[key])
+                delete result.data[key]
+            }
+        }
         const response = await (client as any)[endpoint].$get(
             {
                 query: convertToInput(result.data as TFilterInput),
@@ -60,7 +66,12 @@ export function useAPI<
             error.value = result.error.message
             return
         }
-
+        for (const key in result.data) {
+            if (endpoint.includes(`:${key}`)) {
+                endpoint = endpoint.replace(`:${key}`, result.data[key])
+                delete result.data[key]
+            }
+        }
         const response = await (client as any)[endpoint].$post(
             {
                 json: convertToInput(result.data as TFilterInput),

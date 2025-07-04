@@ -1,6 +1,7 @@
 import { Hono } from "hono"
 import { statusRepository } from "../db/repositories/status.repository"
 import { z } from "zod"
+import { responseValidator } from "@src/tools/response-validator"
 
 // Create a schema for the status response
 const statusResponseSchema = z.object({
@@ -9,15 +10,13 @@ const statusResponseSchema = z.object({
     error: z.string().optional(),
 })
 
-export const statusRoutes = new Hono().get("/", async (c) => {
-    const status = await statusRepository.getStatus()
-
-    // Validate the response before sending
-    const validatedResponse = statusResponseSchema.safeParse(status)
-    if (!validatedResponse.success) {
-        console.error("Response validation failed:", validatedResponse.error)
-        return c.json({ status: "error", message: "Internal server error" }, 500)
+export const statusRoutes = new Hono().get(
+    "/",
+    responseValidator({
+        200: statusResponseSchema,
+    }),
+    async (c) => {
+        const status = await statusRepository.getStatus()
+        return c.render(status, 200)
     }
-
-    return c.json(validatedResponse.data)
-})
+)

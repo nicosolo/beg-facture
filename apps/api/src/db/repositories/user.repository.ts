@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm"
 import { db } from "../index"
 import { users } from "../schema"
+import type { UserResponse } from "@beg/validations"
 
 export const userRepository = {
     findByEmail: async (email: string) => {
@@ -26,7 +27,7 @@ export const userRepository = {
         return results[0] || null
     },
 
-    findAll: async () => {
+    findAll: async (): Promise<UserResponse[]> => {
         return await db
             .select({
                 id: users.id,

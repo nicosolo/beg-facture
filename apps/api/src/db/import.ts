@@ -69,6 +69,8 @@ function mapUserData(data: any) {
         password: data.Password || "password123", // Default password
         role: "user" as UserRole, // Properly typed as UserRole
         archived: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
     }
 }
 

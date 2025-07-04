@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 // Base schemas for entities
-export const dateSchema = z.date().or(z.string().transform((str) => new Date(str)))
+export const dateSchema = z.coerce.date()
 export const nullableDateSchema = dateSchema.nullable()
 
 export type DateSchema = z.infer<typeof dateSchema>

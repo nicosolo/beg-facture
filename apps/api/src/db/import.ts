@@ -331,12 +331,15 @@ async function importProjects() {
 
     const allLocations = await db.select().from(locations)
     const locationMap = new Map(allLocations.map((l) => [l.name, l.id]))
+    const allUsers = await db.select().from(users)
+    const userMap = new Map(allUsers.map((u) => [u.initials, u.id]))
 
     for (const rawProject of projectData) {
         const project = {
             id: rawProject.IDmandat,
             projectNumber: rawProject.Mandat,
             name: rawProject["Désignation"],
+            projectManagerId: userMap.get(rawProject.Responsable) || null,
             startDate: rawProject.Date ? new Date(rawProject.Date) : new Date(),
             clientId: rawProject.MandantID || clientMap.get(rawProject.Mandant),
             locationId: rawProject.LocalitéID || locationMap.get(rawProject.Localité),
@@ -345,6 +348,8 @@ async function importProjects() {
             typeId: rawProject.TypeID || typeMap.get(rawProject.Type) || allTypes[0]?.id, // Default to first type
             remark: rawProject.Remarque,
             printFlag: rawProject.FlagImpression === "Oui",
+            createdAt: rawProject.Date ? new Date(rawProject.Date) : new Date(),
+            updatedAt: new Date(),
         }
 
         await db.insert(projects).values(project)

@@ -21,7 +21,7 @@ export const projectRoutes = new Hono()
         }),
         async (c) => {
             const filter = c.req.valid("query")
-
+            console.log(filter)
             const result = await projectRepository.findAll(filter)
 
             return c.render(result as ProjectListResponse, 200)

@@ -71,7 +71,6 @@ export const userRoutes = new Hono()
         }),
         async (c) => {
             const users = await userRepository.findAll()
-            console.log(users)
             return c.render(users as UserResponse[], 200)
         }
     )

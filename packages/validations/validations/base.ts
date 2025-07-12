@@ -12,3 +12,8 @@ export const idParamSchema = z.object({
 })
 
 export type IdParamSchema = z.infer<typeof idParamSchema>
+
+// Class type
+export const classSchema = z.enum(["A", "B", "C", "D", "E", "F", "G", "R", "Z"])
+
+export type ClassSchema = z.infer<typeof classSchema>

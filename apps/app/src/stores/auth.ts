@@ -25,7 +25,7 @@ export const useAuthStore = defineStore("auth", () => {
     // Login function
     async function login(email: string, password: string) {
         try {
-            await postLogin({ email, password })
+            await postLogin({ body: { email, password } })
 
             if (loginError.value) {
                 throw new Error(loginError.value || "Login failed")

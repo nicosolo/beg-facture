@@ -16,8 +16,9 @@
                     <input
                         type="text"
                         id="firstname"
-                        v-model="collaborator.Prénom"
+                        v-model="collaborator.firstName"
                         class="w-full p-2 border border-gray-300 rounded-md"
+                        required
                     />
                 </div>
 
@@ -29,8 +30,23 @@
                     <input
                         type="text"
                         id="lastname"
-                        v-model="collaborator.Nom"
+                        v-model="collaborator.lastName"
                         class="w-full p-2 border border-gray-300 rounded-md"
+                        required
+                    />
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1"
+                        >Email</label
+                    >
+                    <input
+                        type="email"
+                        id="email"
+                        v-model="collaborator.email"
+                        class="w-full p-2 border border-gray-300 rounded-md"
+                        required
                     />
                 </div>
 
@@ -42,9 +58,26 @@
                     <input
                         type="text"
                         id="initials"
-                        v-model="collaborator.Initiales"
+                        v-model="collaborator.initials"
                         class="w-full p-2 border border-gray-300 rounded-md"
+                        required
                     />
+                </div>
+
+                <!-- Rôle -->
+                <div>
+                    <label for="role" class="block text-sm font-medium text-gray-700 mb-1"
+                        >Rôle</label
+                    >
+                    <select
+                        id="role"
+                        v-model="collaborator.role"
+                        class="w-full p-2 border border-gray-300 rounded-md"
+                        required
+                    >
+                        <option value="user">Utilisateur</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
                 </div>
 
                 <!-- Mot de passe -->
@@ -55,9 +88,21 @@
                     <input
                         type="password"
                         id="password"
-                        v-model="collaborator['Mot de passe']"
+                        v-model="collaborator.password"
                         class="w-full p-2 border border-gray-300 rounded-md"
+                        :required="isNewCollaborator"
                     />
+                    <p v-if="!isNewCollaborator" class="text-sm text-gray-500 mt-1">
+                        Laissez vide pour conserver le mot de passe actuel
+                    </p>
+                </div>
+
+                <!-- Archivé -->
+                <div>
+                    <label class="flex items-center">
+                        <input type="checkbox" v-model="collaborator.archived" class="mr-2" />
+                        <span class="text-sm font-medium text-gray-700">Archivé</span>
+                    </label>
                 </div>
             </div>
 
@@ -115,24 +160,25 @@
                 <Button variant="secondary" type="button" :to="{ name: 'collaborator-list' }">
                     Annuler
                 </Button>
-                <Button variant="primary" type="submit"> Enregistrer </Button>
+                <Button variant="primary" type="submit" :disabled="loadingCreate || loadingUpdate">
+                    {{ loadingCreate || loadingUpdate ? "Enregistrement..." : "Enregistrer" }}
+                </Button>
             </div>
         </form>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue"
+import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import Button from "../../components/atoms/Button.vue"
-
-interface Collaborator {
-    IDcollaborateur: number
-    Prénom: string
-    Nom: string
-    Initiales: string
-    "Mot de passe": string
-}
+import {
+    useFetchUser,
+    useFetchUsers,
+    useCreateUser,
+    useUpdateUser,
+} from "../../composables/api/useUser"
+import type { UserCreateInput, UserUpdateInput } from "@beg/validations"
 
 interface Activity {
     IDAGCactivité: number
@@ -153,16 +199,23 @@ const collaboratorId = computed(() =>
 )
 const isNewCollaborator = computed(() => !collaboratorId.value)
 
-// Dummy data for the form
-const collaborator = ref<Collaborator>({
-    IDcollaborateur: collaboratorId.value || 0,
-    Prénom: "",
-    Nom: "",
-    Initiales: "",
-    "Mot de passe": "",
+// API composables
+const { get: getUser, data: userData, loading: loadingUser } = useFetchUser()
+const { post: createUser, loading: loadingCreate } = useCreateUser()
+const { put: updateUser, loading: loadingUpdate } = useUpdateUser()
+
+// Form data
+const collaborator = ref<UserCreateInput | UserUpdateInput>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    initials: "",
+    password: "",
+    role: "user",
+    archived: false,
 })
 
-// Activities data
+// Activities data (keeping as dummy for now since activities API isn't implemented)
 const activities = ref<Activity[]>([
     {
         IDAGCactivité: 1,
@@ -220,32 +273,24 @@ const activities = ref<Activity[]>([
 const selectedActivities = ref<Record<number, boolean>>({})
 const activityClasses = ref<Record<number, string>>({})
 
-// If editing, let's pretend we're loading data
-if (collaboratorId.value) {
-    // Simulating data loading with dummy data
-    collaborator.value = {
-        IDcollaborateur: collaboratorId.value,
-        Prénom: "Jean",
-        Nom: "Dupont",
-        Initiales: "jd",
-        "Mot de passe": "password123",
+// Load user data if editing
+onMounted(async () => {
+    if (collaboratorId.value) {
+        await getUser({ params: { id: collaboratorId.value } })
+
+        if (userData.value) {
+            collaborator.value = {
+                firstName: userData.value.firstName,
+                lastName: userData.value.lastName,
+                email: userData.value.email,
+                initials: userData.value.initials,
+                role: userData.value.role,
+                archived: userData.value.archived,
+                // Don't populate password for security
+            }
+        }
     }
-
-    // Simulating loading activity associations
-    const collaboratorActivities: CollaboratorActivity[] = [
-        { IDcollaborateur: collaboratorId.value, IDactivité: 1, Classe: "C" },
-        { IDcollaborateur: collaboratorId.value, IDactivité: 2, Classe: "D" },
-        { IDcollaborateur: collaboratorId.value, IDactivité: 3, Classe: "C" },
-        { IDcollaborateur: collaboratorId.value, IDactivité: 5, Classe: "C" },
-        { IDcollaborateur: collaboratorId.value, IDactivité: 6, Classe: "D" },
-    ]
-
-    // Set up selected activities and their classes
-    collaboratorActivities.forEach((link) => {
-        selectedActivities.value[link.IDactivité] = true
-        activityClasses.value[link.IDactivité] = link.Classe
-    })
-}
+})
 
 // Initialize default class for all activities
 activities.value.forEach((activity) => {
@@ -254,22 +299,36 @@ activities.value.forEach((activity) => {
     }
 })
 
-const saveCollaborator = () => {
-    // This is just a dummy function that would save the collaborator
-    console.log("Saving collaborator:", collaborator.value)
+const saveCollaborator = async () => {
+    try {
+        if (isNewCollaborator.value) {
+            await createUser(collaborator.value as UserCreateInput)
+        } else if (userData.value?.id) {
+            // Ensure ID is properly set for updates
+            const updateData = {
+                id: collaboratorId.value,
+                ...collaborator.value,
+            } as UserUpdateInput
 
-    // Collect activity associations
-    const activityAssociations = Object.keys(selectedActivities.value)
-        .filter((key) => selectedActivities.value[Number(key)])
-        .map((key) => ({
-            IDcollaborateur: collaborator.value.IDcollaborateur,
-            IDactivité: Number(key),
-            Classe: activityClasses.value[Number(key)],
-        }))
+            console.log("Updating user with data:", updateData)
+            await updateUser({ body: updateData, params: { id: userData.value.id.toString() } })
+        }
 
-    console.log("Activity associations:", activityAssociations)
+        // Collect activity associations (to be implemented when activities API is ready)
+        const activityAssociations = Object.keys(selectedActivities.value)
+            .filter((key) => selectedActivities.value[Number(key)])
+            .map((key) => ({
+                IDcollaborateur: collaboratorId.value || 0,
+                IDactivité: Number(key),
+                Classe: activityClasses.value[Number(key)],
+            }))
 
-    // Redirect to the list page
-    router.push({ name: "collaborator-list" })
+        console.log("Activity associations:", activityAssociations)
+
+        // Redirect to the list page
+        router.push({ name: "collaborator-list" })
+    } catch (error) {
+        console.error("Error saving collaborator:", error)
+    }
 }
 </script>

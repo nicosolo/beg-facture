@@ -4,14 +4,8 @@ import { z } from "zod"
  * Pagination parameters schema
  */
 export const paginationSchema = z.object({
-    page: z
-        .string()
-        .optional()
-        .transform((val) => (val ? parseInt(val) : 1)),
-    limit: z
-        .string()
-        .optional()
-        .transform((val) => (val ? parseInt(val) : 10)),
+    page: z.coerce.number().int().positive().optional().default(1),
+    limit: z.coerce.number().int().positive().optional().default(20),
 })
 
 export const paginationResponseSchema = z.object({

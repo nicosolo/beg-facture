@@ -106,7 +106,7 @@ import TimeEntriesList from "@/components/organisms/TimeEntriesList.vue"
 import { useFormat } from "@/composables/utils/useFormat"
 import type { TimeEntry } from "@/components/organisms/TimeEntriesList.vue"
 import TimeFilterPanel from "@/components/organisms/TimeFilterPanel.vue"
-import { useFetchProject } from "@/composables/api/useFetchProject"
+import { useFetchProject } from "@/composables/api/useProject"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 
 const { t } = useI18n()

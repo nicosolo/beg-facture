@@ -1,6 +1,13 @@
 import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
-import { loginSchema, userResponseSchema, type UserResponse } from "@beg/validations"
+import {
+    loginSchema,
+    userResponseSchema,
+    userCreateSchema,
+    userUpdateSchema,
+    idParamSchema,
+    type UserResponse,
+} from "@beg/validations"
 import { userRepository } from "../db/repositories/user.repository"
 import { comparePassword, generateToken } from "../tools/auth"
 import { authMiddleware } from "../tools/auth-middleware"
@@ -72,5 +79,76 @@ export const userRoutes = new Hono()
         async (c) => {
             const users = await userRepository.findAll()
             return c.render(users as UserResponse[], 200)
+        }
+    )
+
+    // Get user by ID
+    .get(
+        "/:id",
+        zValidator("param", idParamSchema),
+        responseValidator({
+            200: userResponseSchema,
+        }),
+        async (c) => {
+            const { id } = c.req.valid("param")
+            const user = await userRepository.findById(id)
+
+            if (!user) {
+                return c.json({ error: "User not found" }, 404)
+            }
+
+            return c.render(user, 200)
+        }
+    )
+
+    // Create new user
+    .post(
+        "/",
+        zValidator("json", userCreateSchema),
+        responseValidator({
+            201: userResponseSchema,
+        }),
+        async (c) => {
+            const userData = c.req.valid("json")
+
+            // Check if user with this email already exists
+            const existingUser = await userRepository.findByEmail(userData.email)
+            if (existingUser) {
+                return c.json({ error: "User with this email already exists" }, 400)
+            }
+
+            const newUser = await userRepository.create(userData)
+            return c.render(newUser, 201)
+        }
+    )
+
+    // Update user
+    .put(
+        "/:id",
+        zValidator("param", idParamSchema),
+        zValidator("json", userUpdateSchema),
+        responseValidator({
+            200: userResponseSchema,
+        }),
+        async (c) => {
+            const { id } = c.req.valid("param")
+            const userData = c.req.valid("json")
+
+            // Check if user exists
+            const existingUser = await userRepository.findById(id)
+            if (!existingUser) {
+                return c.json({ error: "User not found" }, 404)
+            }
+
+            // Check if email is being changed and if it's already taken
+            if (userData.email && userData.email !== existingUser.email) {
+                const emailExists = await userRepository.findByEmail(userData.email)
+                if (emailExists) {
+                    return c.json({ error: "Email already taken" }, 400)
+                }
+            }
+
+            const updatedUser = await userRepository.update(id, userData)
+            return c.render(updatedUser, 200)
         }
     )

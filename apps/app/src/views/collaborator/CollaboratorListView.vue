@@ -43,7 +43,7 @@ import { ref, onMounted, watch } from "vue"
 import Button from "../../components/atoms/Button.vue"
 import DataTable from "../../components/molecules/DataTable.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
-import { useFetchUsers } from "@/composables/api/useFetchUsers"
+import { useFetchUsers } from "@/composables/api/useUser"
 
 interface Collaborator {
     IDcollaborateur: number

@@ -36,21 +36,6 @@ export const activityFilterSchema = z
 export type ActivityFilter = z.infer<typeof activityFilterSchema>
 export type ActivityFilterInput = z.input<typeof activityFilterSchema>
 
-export function convertActivityFilterToInput(filter: ActivityFilter): ActivityFilterInput {
-    return {
-        projectId: filter.projectId?.toString(),
-        userId: filter.userId?.toString(),
-        taskId: filter.taskId?.toString(),
-        startDate:
-            filter.startDate instanceof Date ? filter.startDate.toISOString() : filter.startDate,
-        endDate: filter.endDate instanceof Date ? filter.endDate.toISOString() : filter.endDate,
-        validationStatus: filter.validationStatus,
-        isTemplate: filter.isTemplate?.toString(),
-        page: filter.page?.toString(),
-        limit: filter.limit?.toString(),
-    }
-}
-
 // Activity response schema with nested objects
 export const activityResponseSchema = z.object({
     id: z.number(),

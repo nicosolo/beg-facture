@@ -17,9 +17,33 @@ export const loginSchema = z.object({
     password: z.string().min(3),
 })
 
+// User creation schema
+export const userCreateSchema = z.object({
+    email: z.string().email(),
+    firstName: z.string().min(1),
+    lastName: z.string().min(1),
+    initials: z.string().min(1),
+    password: z.string().min(6),
+    role: z.enum(["admin", "user"]).default("user"),
+    archived: z.boolean().default(false),
+})
+
+// User update schema (makes most fields optional except id)
+export const userUpdateSchema = z.object({
+    email: z.string().email().optional(),
+    firstName: z.string().min(1).optional(),
+    lastName: z.string().min(1).optional(),
+    initials: z.string().min(1).optional(),
+    password: z.string().min(6).optional(),
+    role: z.enum(["admin", "user"]).optional(),
+    archived: z.boolean().optional(),
+})
+
 export type LoginInput = z.infer<typeof loginSchema>
 export type UserFilter = z.infer<typeof userFilterSchema>
 export type UserFilterInput = z.input<typeof userFilterSchema>
+export type UserCreateInput = z.infer<typeof userCreateSchema>
+export type UserUpdateInput = z.infer<typeof userUpdateSchema>
 
 export function convertUserFilterToInput(filter: UserFilter): UserFilterInput {
     return {
@@ -28,7 +52,7 @@ export function convertUserFilterToInput(filter: UserFilter): UserFilterInput {
 }
 
 export const userResponseSchema = z.object({
-    id: z.number(),
+    id: z.coerce.number(),
     email: z.string().email(),
     firstName: z.string(),
     lastName: z.string(),

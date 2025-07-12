@@ -14,10 +14,10 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue"
 import { useI18n } from "vue-i18n"
-import type { User } from "@beg/types"
 import Select from "../../atoms/Select.vue"
-import { useFetchUser } from "../../../composables/api/useFetchUser"
+import { useFetchUsers } from "../../../composables/api/useUser"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
+import type { UserResponse } from "@beg/validations"
 interface UserSelectProps {
     modelValue: number | undefined
     placeholder?: string
@@ -33,7 +33,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { loading, data: users, get } = useFetchUser()
+const { loading, data: users, get } = useFetchUsers()
 
 const selectedUser = computed({
     get: () => {
@@ -45,7 +45,7 @@ const selectedUser = computed({
 })
 
 // Filter users based on showArchived prop
-const filteredUsers = computed<User[]>(() => {
+const filteredUsers = computed<UserResponse[]>(() => {
     return users.value ? users.value?.filter(() => true) : []
 })
 
@@ -53,7 +53,7 @@ const filteredUsers = computed<User[]>(() => {
 const userOptions = computed(() => {
     return [
         { label: placeholder || t("common.selectUser"), value: "" },
-        ...filteredUsers.value.map((user: User) => ({
+        ...filteredUsers.value.map((user: UserResponse) => ({
             label: `${user.initials}`,
             value: user.id,
         })),

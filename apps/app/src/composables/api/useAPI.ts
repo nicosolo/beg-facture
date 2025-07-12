@@ -4,96 +4,105 @@ import type { ApiRoutes } from "@beg/api"
 import { z } from "zod"
 import { useAuthStore } from "../../stores/auth"
 
-export function useAPI<
-    TFilter extends z.ZodType<any, any, any>,
-    TResponse,
-    TFilterInput extends z.infer<TFilter> = z.infer<TFilter>,
->(
-    endpoint: string,
-    filterSchema: TFilter,
-    convertToInput: (data: TFilterInput) => Record<string, any> = (data) =>
-        data as unknown as Record<string, any>,
-    convertToData: (data: TResponse) => TResponse = (data) => data
-) {
+interface ApiSchemas {
+    query?: z.ZodType<any>
+    body?: z.ZodType<any>
+    params?: z.ZodType<any>
+}
+
+const createRequest = () => {
     const baseUrl = "/api"
-    const loading = ref(false)
-    const error = ref<string | null>(null)
-    const auth = useAuthStore()
+
     const client = hc<ApiRoutes>(baseUrl)
 
-    const data = ref<TResponse | null>(null)
-    const get = async (args: TFilterInput) => {
-        const result = filterSchema.safeParse(convertToInput(args))
-        if (!result.success) {
-            console.error(result)
-            error.value = result.error.message
-            return
+    return async (
+        method: "get" | "post" | "put" | "delete",
+        endpoint: string,
+        schemas?: ApiSchemas,
+        options?: {
+            query?: any
+            body?: any
+            params?: any
         }
-        for (const key in result.data) {
-            if (endpoint.includes(`:${key}`)) {
-                endpoint = endpoint.replace(`:${key}`, result.data[key])
-                delete result.data[key]
+    ) => {
+        const auth = useAuthStore()
+
+        // Validate inputs
+        const validatedQuery =
+            options?.query && schemas?.query ? schemas.query.parse(options.query) : undefined
+
+        const validatedBody =
+            options?.body && schemas?.body ? schemas.body.parse(options.body) : undefined
+        let processedEndpoint = endpoint
+        if (options?.params && schemas?.params) {
+            const paramsResult = schemas.params.safeParse(options.params)
+            if (!paramsResult.success) {
+                throw new Error(paramsResult.error.message)
+            }
+            for (const [key, value] of Object.entries(paramsResult.data)) {
+                processedEndpoint = processedEndpoint.replace(`:${key}`, String(value))
             }
         }
-        const response = await (client as any)[endpoint].$get(
+
+        // Build request
+        const requestConfig: any = {
+            headers: auth.getAuthHeaders(),
+        }
+
+        const response = await (client as any)[processedEndpoint][`$${method}`](
             {
-                query: convertToInput(result.data as TFilterInput),
+                ...(validatedBody ? { json: validatedBody } : {}),
+                ...(validatedQuery ? { query: validatedQuery } : {}),
             },
-            {
-                headers: auth.getAuthHeaders(),
-            }
+            requestConfig
         )
 
         if (!response.ok) {
-            error.value = response.statusText
-            loading.value = false
-            return
+            throw new Error(response.statusText)
         }
 
-        const json = await response.json()
-        if (convertToData) {
-            data.value = convertToData(json)
-        } else {
-            data.value = json
-        }
-        loading.value = false
+        return await response.json()
     }
+}
 
-    const post = async (args: TFilterInput) => {
+export function useGet<
+    TResponse,
+    TSchemas extends {
+        query?: z.ZodType<any>
+        params?: z.ZodType<any>
+    } = {},
+>(
+    endpoint: string,
+    schemas?: {
+        query?: TSchemas["query"]
+        params?: TSchemas["params"]
+    }
+) {
+    const loading = ref(false)
+    const error = ref<string | null>(null)
+    const data = ref<TResponse | null>(null)
+    const request = createRequest()
+
+    type QueryType = TSchemas["query"] extends z.ZodType<any> ? z.input<TSchemas["query"]> : void
+    type ParamsType = TSchemas["params"] extends z.ZodType<any> ? z.input<TSchemas["params"]> : void
+
+    type GetOptions = {} & (QueryType extends void ? {} : { query?: QueryType }) &
+        (ParamsType extends void ? {} : { params?: ParamsType })
+
+    const get = async (options?: GetOptions) => {
         loading.value = true
-        const result = filterSchema.safeParse(args)
-        if (!result.success) {
-            error.value = result.error.message
-            return
-        }
-        for (const key in result.data) {
-            if (endpoint.includes(`:${key}`)) {
-                endpoint = endpoint.replace(`:${key}`, result.data[key])
-                delete result.data[key]
-            }
-        }
-        const response = await (client as any)[endpoint].$post(
-            {
-                json: convertToInput(result.data as TFilterInput),
-            },
-            {
-                headers: auth.getAuthHeaders(),
-            }
-        )
+        error.value = null
 
-        if (!response.ok) {
-            error.value = response.statusText
+        try {
+            const result = await request("get", endpoint, schemas, options)
+            data.value = result as TResponse
+            return result as TResponse
+        } catch (e) {
+            error.value = e instanceof Error ? e.message : "Unknown error"
+            return null
+        } finally {
             loading.value = false
-            return
         }
-
-        const json = await response.json()
-        if (convertToData) {
-            data.value = convertToData(json)
-        } else {
-            data.value = json
-        }
-        loading.value = false
     }
 
     return {
@@ -101,6 +110,143 @@ export function useAPI<
         error,
         data,
         get,
+    }
+}
+
+export function usePost<
+    TResponse,
+    TSchemas extends {
+        body?: z.ZodType<any>
+        params?: z.ZodType<any>
+    } = {},
+>(
+    endpoint: string,
+    schemas?: {
+        body?: TSchemas["body"]
+        params?: TSchemas["params"]
+    }
+) {
+    const loading = ref(false)
+    const error = ref<string | null>(null)
+    const data = ref<TResponse | null>(null)
+    const request = createRequest(useAuthStore())
+
+    type BodyType = TSchemas["body"] extends z.ZodType<any> ? z.input<TSchemas["body"]> : void
+    type ParamsType = TSchemas["params"] extends z.ZodType<any> ? z.input<TSchemas["params"]> : void
+
+    type PostOptions = {} & (BodyType extends void ? {} : { body?: BodyType }) &
+        (ParamsType extends void ? {} : { params?: ParamsType })
+
+    const post = async (options?: PostOptions) => {
+        loading.value = true
+        error.value = null
+
+        try {
+            const result = await request("post", endpoint, schemas, options)
+            data.value = result as TResponse
+            return result as TResponse
+        } catch (e) {
+            error.value = e instanceof Error ? e.message : "Unknown error"
+            return null
+        } finally {
+            loading.value = false
+        }
+    }
+
+    return {
+        loading,
+        error,
+        data,
         post,
+    }
+}
+
+export function usePut<
+    TResponse,
+    TSchemas extends {
+        body?: z.ZodType<any>
+        params?: z.ZodType<any>
+    } = {},
+>(
+    endpoint: string,
+    schemas?: {
+        body?: TSchemas["body"]
+        params?: TSchemas["params"]
+    }
+) {
+    const loading = ref(false)
+    const error = ref<string | null>(null)
+    const data = ref<TResponse | null>(null)
+    const request = createRequest(useAuthStore())
+
+    type BodyType = TSchemas["body"] extends z.ZodType<any> ? z.input<TSchemas["body"]> : void
+    type ParamsType = TSchemas["params"] extends z.ZodType<any> ? z.input<TSchemas["params"]> : void
+
+    type PutOptions = {} & (BodyType extends void ? {} : { body?: BodyType }) &
+        (ParamsType extends void ? {} : { params?: ParamsType })
+
+    const put = async (options?: PutOptions) => {
+        loading.value = true
+        error.value = null
+
+        try {
+            const result = await request("put", endpoint, schemas, options)
+            data.value = result as TResponse
+            return result as TResponse
+        } catch (e) {
+            error.value = e instanceof Error ? e.message : "Unknown error"
+            return null
+        } finally {
+            loading.value = false
+        }
+    }
+
+    return {
+        loading,
+        error,
+        data,
+        put,
+    }
+}
+
+export function useDelete<
+    TResponse,
+    TSchemas extends {
+        params?: z.ZodType<any>
+    } = {},
+>(
+    endpoint: string,
+    schemas?: {
+        params?: TSchemas["params"]
+    }
+) {
+    const loading = ref(false)
+    const error = ref<string | null>(null)
+    const data = ref<TResponse | null>(null)
+    const request = createRequest()
+
+    type ParamsType = TSchemas["params"] extends z.ZodType<any> ? z.input<TSchemas["params"]> : void
+
+    const del = async (options?: ParamsType extends void ? {} : { params?: ParamsType }) => {
+        loading.value = true
+        error.value = null
+
+        try {
+            const result = await request("delete", endpoint, schemas, options)
+            data.value = result as TResponse
+            return result as TResponse
+        } catch (e) {
+            error.value = e instanceof Error ? e.message : "Unknown error"
+            return null
+        } finally {
+            loading.value = false
+        }
+    }
+
+    return {
+        loading,
+        error,
+        data,
+        delete: del,
     }
 }

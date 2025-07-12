@@ -26,7 +26,7 @@
 import { ref, watch, onMounted } from "vue"
 import { useI18n } from "vue-i18n"
 import type { Project, Page } from "@beg/types"
-import { useFetchProjectList } from "@/composables/api/useFetchProjectList"
+import { useFetchProjectList } from "@/composables/api/useProject"
 import ProjectFilterPanel, {
     type ProjectFilterModel,
 } from "@/components/organisms/project/ProjectFilterPanel.vue"
@@ -87,9 +87,11 @@ const debouncedFetch = (() => {
 
 const loadProjects = async () => {
     await fetchProjects({
-        ...filter.value,
-        page: currentPage.value,
-        limit: pageSize.value,
+        query: {
+            ...filter.value,
+            page: currentPage.value,
+            limit: pageSize.value,
+        },
     })
 }
 

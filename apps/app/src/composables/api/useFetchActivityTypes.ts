@@ -1,6 +1,6 @@
 import type { ActivityType } from "@beg/types"
 import { activityFilterSchema } from "@beg/validations"
-import { useAPI } from "./useAPI"
+import { useGet } from "./useAPI"
 import { z } from "zod"
 
 // For now, we'll use a simple schema for activity types
@@ -16,10 +16,5 @@ const activityTypesResponseSchema = z.array(activityTypeSchema)
 
 export function useFetchActivityTypes() {
     // TODO: Update endpoint when activity types endpoint is available
-    return useAPI<z.ZodType<any>, any[]>(
-        "activity/types",
-        z.object({}),
-        (data) => data,
-        (data) => data
-    )
+    return useGet<any[]>("activity/types")
 }

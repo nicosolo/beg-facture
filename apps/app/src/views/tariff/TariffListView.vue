@@ -26,6 +26,15 @@
                     >
                         Modifier
                     </Button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        @click="deleteTariff(item.IDtarif)"
+                        className="text-red-600 hover:text-red-900"
+                        :disabled="deletingRate"
+                    >
+                        Supprimer
+                    </Button>
                 </div>
             </template>
         </DataTable>
@@ -38,7 +47,7 @@ import { ref, onMounted, watch } from "vue"
 import Button from "../../components/atoms/Button.vue"
 import DataTable from "../../components/molecules/DataTable.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
-import { useFetchRates } from "@/composables/api/useFetchRates"
+import { useFetchRates, useDeleteRate } from "@/composables/api/useRate"
 
 interface Tariff {
     IDtarif: number
@@ -49,6 +58,7 @@ interface Tariff {
 
 // API client
 const { get: fetchRates, loading, data: ratesData } = useFetchRates()
+const { delete: deleteRate, loading: deletingRate } = useDeleteRate()
 
 const columns = [
     { key: "IDtarif", label: "ID", width: "w-1/3" as "w-1/3" },
@@ -76,6 +86,18 @@ watch(ratesData, (newData) => {
         }))
     }
 })
+
+// Delete tariff
+const deleteTariff = async (id: number) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce tarif ?')) {
+        try {
+            await deleteRate({ params: { id } })
+            await fetchRates() // Reload data
+        } catch (error) {
+            console.error('Error deleting rate:', error)
+        }
+    }
+}
 
 // Format currency
 const formatCurrency = (value: number): string => {

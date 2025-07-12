@@ -5,13 +5,14 @@ import {
     userCreateSchema,
     userUpdateSchema,
     type UserResponse,
+    type UserDetailResponse,
     type UserCreateInput,
     type UserUpdateInput,
 } from "@beg/validations"
 import { useGet, usePost, usePut, useDelete } from "./useAPI"
 
 export function useFetchUser() {
-    return useGet<UserResponse>("user/:id", {
+    return useGet<UserDetailResponse>("user/:id", {
         params: idParamSchema,
     })
 }

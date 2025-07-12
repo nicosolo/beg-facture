@@ -16,7 +16,7 @@
                         </label>
                         <select
                             id="class"
-                            v-model="tariff.Classe"
+                            v-model="tariff.class"
                             class="w-full p-2 border border-gray-300 rounded-md"
                         >
                             <option value="">Sélectionnez une classe</option>
@@ -34,7 +34,7 @@
                         <input
                             type="number"
                             id="year"
-                            v-model.number="tariff.Année"
+                            v-model.number="tariff.year"
                             min="1990"
                             max="2100"
                             class="w-full p-2 border border-gray-300 rounded-md"
@@ -49,7 +49,7 @@
                         <input
                             type="number"
                             id="tariff"
-                            v-model.number="tariff.Tarif"
+                            v-model.number="tariff.amount"
                             step="5"
                             min="0"
                             class="w-full p-2 border border-gray-300 rounded-md"
@@ -61,7 +61,9 @@
                     <Button variant="secondary" type="button" :to="{ name: 'tariff-list' }">
                         Annuler
                     </Button>
-                    <Button variant="primary" type="submit"> Enregistrer </Button>
+                    <Button variant="primary" type="submit" :disabled="creatingRate || updatingRate || loadingRate"> 
+                        {{ creatingRate || updatingRate ? 'Enregistrement...' : 'Enregistrer' }}
+                    </Button>
                 </div>
             </form>
         </div>
@@ -69,16 +71,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue"
+import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import Button from "../../components/atoms/Button.vue"
-
-interface Tariff {
-    IDtarif: number
-    Classe: string
-    Année: number
-    Tarif: number
-}
+import { useFetchRate, useCreateRate, useUpdateRate } from "@/composables/api/useRate"
 
 const route = useRoute()
 const router = useRouter()
@@ -86,41 +82,65 @@ const tariffId = computed(() => (route.params.id ? parseInt(route.params.id as s
 const isNewTariff = computed(() => !tariffId.value)
 
 // Available classes
-const classes = ["A", "B", "C", "D", "E"]
+const classes = ["A", "B", "C", "D", "E", "F", "G", "R", "Z"]
 
-// Dummy data for the form
-const tariff = ref<Tariff>({
-    IDtarif: tariffId.value || 0,
-    Classe: "",
-    Année: new Date().getFullYear(),
-    Tarif: 0,
+// Rate data
+const tariff = ref<{
+    class: string
+    year: number
+    amount: number
+}>({
+    class: "",
+    year: new Date().getFullYear(),
+    amount: 0,
 })
 
-// If editing, let's pretend we're loading data
-if (tariffId.value) {
-    // Simulating data loading with dummy data
-    const tariffMap: Record<number, Tariff> = {
-        21: { IDtarif: 21, Classe: "A", Année: 2000, Tarif: 175 },
-        30: { IDtarif: 30, Classe: "A", Année: 2001, Tarif: 180 },
-        39: { IDtarif: 39, Classe: "A", Année: 2002, Tarif: 180 },
-        48: { IDtarif: 48, Classe: "A", Année: 2003, Tarif: 180 },
-        57: { IDtarif: 57, Classe: "A", Année: 2004, Tarif: 180 },
-        66: { IDtarif: 66, Classe: "A", Année: 2005, Tarif: 195 },
-        75: { IDtarif: 75, Classe: "A", Année: 2006, Tarif: 195 },
-        84: { IDtarif: 84, Classe: "A", Année: 2007, Tarif: 200 },
-        93: { IDtarif: 93, Classe: "A", Année: 2008, Tarif: 200 },
+// API composables
+const { get: fetchRate, loading: loadingRate } = useFetchRate()
+const { post: createRate, loading: creatingRate } = useCreateRate()
+const { put: updateRate, loading: updatingRate } = useUpdateRate()
+
+// Load existing rate data if editing
+onMounted(async () => {
+    if (tariffId.value) {
+        try {
+            const rateData = await fetchRate({ params: { id: tariffId.value.toString() } })
+            if (rateData) {
+                tariff.value = {
+                    class: rateData.class,
+                    year: rateData.year,
+                    amount: rateData.amount,
+                }
+            }
+        } catch (error) {
+            console.error("Error loading rate:", error)
+        }
     }
+})
 
-    if (tariffId.value in tariffMap) {
-        tariff.value = { ...tariffMap[tariffId.value] }
+const saveTariff = async () => {
+    try {
+        if (isNewTariff.value) {
+            await createRate({
+                body: {
+                    class: tariff.value.class as any,
+                    year: tariff.value.year,
+                    amount: tariff.value.amount,
+                },
+            })
+        } else {
+            await updateRate({
+                params: { id: tariffId.value! },
+                body: {
+                    class: tariff.value.class as any,
+                    year: tariff.value.year,
+                    amount: tariff.value.amount,
+                },
+            })
+        }
+        router.push({ name: "tariff-list" })
+    } catch (error) {
+        console.error("Error saving rate:", error)
     }
-}
-
-const saveTariff = () => {
-    // This is just a dummy function that would save the tariff
-    console.log("Saving tariff:", tariff.value)
-
-    // Redirect to the list page
-    router.push({ name: "tariff-list" })
 }
 </script>

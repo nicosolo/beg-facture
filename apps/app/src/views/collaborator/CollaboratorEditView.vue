@@ -110,7 +110,13 @@
             <div class="mt-8">
                 <h2 class="text-lg font-medium mb-4">Activités associées</h2>
                 <div class="bg-gray-50 p-4 rounded-md">
-                    <div v-if="activities.length === 0" class="text-gray-500">
+                    <div v-if="loadingActivityTypes" class="text-gray-500">
+                        Chargement des types d'activité...
+                    </div>
+                    <div
+                        v-else-if="!activityTypes || activityTypes.length === 0"
+                        class="text-gray-500"
+                    >
                         Aucune activité disponible
                     </div>
                     <div v-else class="space-y-3">
@@ -124,23 +130,24 @@
 
                         <!-- Activity Items -->
                         <div
-                            v-for="activity in activities"
-                            :key="activity.IDAGCactivité"
+                            v-for="activity in activityTypes"
+                            :key="activity.id"
                             class="flex items-center space-x-2"
                         >
                             <input
                                 type="checkbox"
-                                :id="`activity-${activity.IDAGCactivité}`"
-                                v-model="selectedActivities[activity.IDAGCactivité]"
+                                :id="`activity-${activity.id}`"
+                                v-model="selectedActivities[activity.id]"
+                                @change="initializeDefaultClasses()"
                                 class="h-4 w-4 text-indigo-600 border-gray-300 rounded"
                             />
-                            <label :for="`activity-${activity.IDAGCactivité}`" class="flex-grow">
-                                <span class="font-medium">{{ activity.Code }}</span> -
-                                {{ activity.Activité }}
+                            <label :for="`activity-${activity.id}`" class="flex-grow">
+                                <span class="font-medium">{{ activity.code }}</span> -
+                                {{ activity.name }}
                             </label>
                             <select
-                                v-if="selectedActivities[activity.IDAGCactivité]"
-                                v-model="activityClasses[activity.IDAGCactivité]"
+                                v-if="selectedActivities[activity.id]"
+                                v-model="activityClasses[activity.id]"
                                 class="block w-24 pl-3 pr-10 py-1 text-base border-gray-300 sm:text-sm rounded-md"
                             >
                                 <option value="B">B</option>
@@ -178,18 +185,12 @@ import {
     useCreateUser,
     useUpdateUser,
 } from "../../composables/api/useUser"
-import type { UserCreateInput, UserUpdateInput } from "@beg/validations"
+import { useFetchActivityTypes } from "../../composables/api/useActivityType"
+import type { UserCreateInput, UserUpdateInput, ActivityTypeResponse } from "@beg/validations"
 
-interface Activity {
-    IDAGCactivité: number
-    Code: string
-    Activité: string
-}
-
-interface CollaboratorActivity {
-    IDcollaborateur: number
-    IDactivité: number
-    Classe: string
+interface ActivityRate {
+    activityId: number
+    class: string
 }
 
 const route = useRoute()
@@ -203,6 +204,11 @@ const isNewCollaborator = computed(() => !collaboratorId.value)
 const { get: getUser, data: userData, loading: loadingUser } = useFetchUser()
 const { post: createUser, loading: loadingCreate } = useCreateUser()
 const { put: updateUser, loading: loadingUpdate } = useUpdateUser()
+const {
+    get: getActivityTypes,
+    data: activityTypes,
+    loading: loadingActivityTypes,
+} = useFetchActivityTypes()
 
 // Form data
 const collaborator = ref<UserCreateInput | UserUpdateInput>({
@@ -213,68 +219,18 @@ const collaborator = ref<UserCreateInput | UserUpdateInput>({
     password: "",
     role: "user",
     archived: false,
+    activityRates: [],
 })
-
-// Activities data (keeping as dummy for now since activities API isn't implemented)
-const activities = ref<Activity[]>([
-    {
-        IDAGCactivité: 1,
-        Code: "CO",
-        Activité: "Compilation, recherche de documentation",
-    },
-    {
-        IDAGCactivité: 2,
-        Code: "RA",
-        Activité: "Rapport",
-    },
-    {
-        IDAGCactivité: 3,
-        Code: "CA",
-        Activité: "Terrain, cartographie",
-    },
-    {
-        IDAGCactivité: 4,
-        Code: "TT",
-        Activité: "Traitement de données",
-    },
-    {
-        IDAGCactivité: 5,
-        Code: "AS",
-        Activité: "Administration, secrétariat",
-    },
-    {
-        IDAGCactivité: 6,
-        Code: "RS",
-        Activité: "Réunion, séance",
-    },
-    {
-        IDAGCactivité: 7,
-        Code: "LO",
-        Activité: "Laboratoire, ordinateur",
-    },
-    {
-        IDAGCactivité: 8,
-        Code: "TH",
-        Activité: "Tournées hydrogéologiques",
-    },
-    {
-        IDAGCactivité: 9,
-        Code: "CP",
-        Activité: "Bibliothèque",
-    },
-    {
-        IDAGCactivité: 10,
-        Code: "AU",
-        Activité: "Autres",
-    },
-])
 
 // Track selected activities and their classes
 const selectedActivities = ref<Record<number, boolean>>({})
 const activityClasses = ref<Record<number, string>>({})
 
-// Load user data if editing
+// Load user data and activity types
 onMounted(async () => {
+    // Load activity types
+    await getActivityTypes()
+
     if (collaboratorId.value) {
         await getUser({ params: { id: collaboratorId.value } })
 
@@ -286,44 +242,56 @@ onMounted(async () => {
                 initials: userData.value.initials,
                 role: userData.value.role,
                 archived: userData.value.archived,
+                activityRates: userData.value.activityRates || [],
                 // Don't populate password for security
+            }
+
+            // Populate selected activities and classes from existing data
+            if (userData.value.activityRates) {
+                userData.value.activityRates.forEach((rate) => {
+                    selectedActivities.value[rate.activityId] = true
+                    activityClasses.value[rate.activityId] = rate.class
+                })
             }
         }
     }
 })
 
-// Initialize default class for all activities
-activities.value.forEach((activity) => {
-    if (!activityClasses.value[activity.IDAGCactivité]) {
-        activityClasses.value[activity.IDAGCactivité] = "C" // Default class
+// Watch for activity types to initialize default classes
+const initializeDefaultClasses = () => {
+    if (activityTypes.value) {
+        activityTypes.value.forEach((activity) => {
+            if (!activityClasses.value[activity.id]) {
+                activityClasses.value[activity.id] = "C" // Default class
+            }
+        })
     }
-})
+}
 
 const saveCollaborator = async () => {
     try {
-        if (isNewCollaborator.value) {
-            await createUser(collaborator.value as UserCreateInput)
-        } else if (userData.value?.id) {
-            // Ensure ID is properly set for updates
-            const updateData = {
-                id: collaboratorId.value,
-                ...collaborator.value,
-            } as UserUpdateInput
-
-            console.log("Updating user with data:", updateData)
-            await updateUser({ body: updateData, params: { id: userData.value.id.toString() } })
-        }
-
-        // Collect activity associations (to be implemented when activities API is ready)
-        const activityAssociations = Object.keys(selectedActivities.value)
+        // Collect activity rates from selected activities
+        const activityRates = Object.keys(selectedActivities.value)
             .filter((key) => selectedActivities.value[Number(key)])
             .map((key) => ({
-                IDcollaborateur: collaboratorId.value || 0,
-                IDactivité: Number(key),
-                Classe: activityClasses.value[Number(key)],
+                activityId: Number(key),
+                class: activityClasses.value[Number(key)],
             }))
 
-        console.log("Activity associations:", activityAssociations)
+        // Update collaborator data with activity rates
+        const collaboratorData = {
+            ...collaborator.value,
+            activityRates: activityRates,
+        }
+
+        if (isNewCollaborator.value) {
+            await createUser({ body: collaboratorData as UserCreateInput })
+        } else if (userData.value?.id) {
+            await updateUser({
+                body: collaboratorData as UserUpdateInput,
+                params: { id: userData.value.id },
+            })
+        }
 
         // Redirect to the list page
         router.push({ name: "collaborator-list" })

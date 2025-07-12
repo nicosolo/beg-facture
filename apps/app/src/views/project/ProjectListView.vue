@@ -26,7 +26,7 @@
 import { ref, watch, onMounted } from "vue"
 import { useI18n } from "vue-i18n"
 import type { Project, Page } from "@beg/types"
-import { useFetchProject } from "@/composables/api/useFetchProject"
+import { useFetchProjectList } from "@/composables/api/useFetchProjectList"
 import ProjectFilterPanel, {
     type ProjectFilterModel,
 } from "@/components/organisms/project/ProjectFilterPanel.vue"
@@ -38,7 +38,7 @@ import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 const { t } = useI18n()
 
 // API client
-const { get: fetchProjects, loading, data } = useFetchProject()
+const { get: fetchProjects, loading, data } = useFetchProjectList()
 
 // State
 const projects = ref<Project[]>([])

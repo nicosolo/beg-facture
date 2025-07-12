@@ -1,5 +1,6 @@
 <template>
-    <div class="container mx-auto">
+    <LoadingOverlay :loading="loading">
+        <div class="container mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Liste des tarifs</h1>
             <Button variant="primary" :to="{ name: 'tariff-new' }"> Nouveau tarif </Button>
@@ -28,13 +29,16 @@
                 </div>
             </template>
         </DataTable>
-    </div>
+        </div>
+    </LoadingOverlay>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, onMounted, watch } from "vue"
 import Button from "../../components/atoms/Button.vue"
 import DataTable from "../../components/molecules/DataTable.vue"
+import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
+import { useFetchRates } from "@/composables/api/useFetchRates"
 
 interface Tariff {
     IDtarif: number
@@ -42,6 +46,9 @@ interface Tariff {
     Année: number
     Tarif: number
 }
+
+// API client
+const { get: fetchRates, loading, data: ratesData } = useFetchRates()
 
 const columns = [
     { key: "IDtarif", label: "ID", width: "w-1/3" as "w-1/3" },
@@ -51,18 +58,24 @@ const columns = [
     { key: "actions", label: "Actions" },
 ]
 
-// Sample data for tariffs
-const tariffs = ref<Tariff[]>([
-    { IDtarif: 21, Classe: "A", Année: 2000, Tarif: 175 },
-    { IDtarif: 30, Classe: "A", Année: 2001, Tarif: 180 },
-    { IDtarif: 39, Classe: "A", Année: 2002, Tarif: 180 },
-    { IDtarif: 48, Classe: "A", Année: 2003, Tarif: 180 },
-    { IDtarif: 57, Classe: "A", Année: 2004, Tarif: 180 },
-    { IDtarif: 66, Classe: "A", Année: 2005, Tarif: 195 },
-    { IDtarif: 75, Classe: "A", Année: 2006, Tarif: 195 },
-    { IDtarif: 84, Classe: "A", Année: 2007, Tarif: 200 },
-    { IDtarif: 93, Classe: "A", Année: 2008, Tarif: 200 },
-])
+const tariffs = ref<Tariff[]>([])
+
+// Load rates on mount
+onMounted(async () => {
+    await fetchRates({})
+})
+
+// Watch for API data changes
+watch(ratesData, (newData) => {
+    if (newData) {
+        tariffs.value = newData.map(rate => ({
+            IDtarif: rate.id,
+            Classe: rate.class,
+            Année: rate.year,
+            Tarif: rate.amount
+        }))
+    }
+})
 
 // Format currency
 const formatCurrency = (value: number): string => {

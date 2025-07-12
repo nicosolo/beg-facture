@@ -3,97 +3,102 @@
         <h1 class="text-2xl font-bold">{{ $t("projects.preview") }}</h1>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Project Details -->
-        <div class="lg:col-span-1">
-            <div class="bg-white rounded-lg p-6 border border-gray-200">
-                <h2 class="text-lg font-semibold mb-4">{{ $t("projects.details") }}</h2>
+    <LoadingOverlay :loading="loading">
+        <div v-if="project" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Project Details -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4">{{ $t("projects.details") }}</h2>
 
-                <div class="space-y-4">
-                    <div>
-                        <p class="text-sm text-gray-500">{{ $t("projects.mandat") }}</p>
-                        <p class="font-medium">{{ project.Mandat }}</p>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-sm text-gray-500">{{ $t("projects.mandat") }}</p>
+                            <p class="font-medium">{{ project.projectNumber }}</p>
+                        </div>
+
+                        <div>
+                            <p class="text-sm text-gray-500">{{ $t("projects.designation") }}</p>
+                            <p class="font-medium">{{ project.name }}</p>
+                        </div>
+
+                        <div>
+                            <p class="text-sm text-gray-500">{{ $t("projects.date") }}</p>
+                            <p class="font-medium">{{ formatDate(project.startDate) }}</p>
+                        </div>
+
+                        <div v-if="project.client">
+                            <p class="text-sm text-gray-500">{{ $t("projects.client") }}</p>
+                            <p class="font-medium">{{ project.client.name }}</p>
+                        </div>
+
+                        <div v-if="project.projectManager">
+                            <p class="text-sm text-gray-500">{{ $t("projects.responsible") }}</p>
+                            <p class="font-medium">
+                                {{ project.projectManager.firstName }}
+                                {{ project.projectManager.lastName }}
+                            </p>
+                        </div>
+
+                        <div v-if="project.company">
+                            <p class="text-sm text-gray-500">{{ $t("projects.enterprise") }}</p>
+                            <p class="font-medium">{{ project.company.name }}</p>
+                        </div>
+
+                        <div v-if="project.type">
+                            <p class="text-sm text-gray-500">{{ $t("projects.type") }}</p>
+                            <p class="font-medium">{{ project.type.name }}</p>
+                        </div>
+
+                        <div v-if="invoiceAddress">
+                            <p class="text-sm text-gray-500">{{ $t("projects.invoice") }}</p>
+                            <p class="font-medium whitespace-pre-line">{{ invoiceAddress }}</p>
+                        </div>
+
+                        <div v-if="project.remark">
+                            <p class="text-sm text-gray-500">{{ $t("projects.remark") }}</p>
+                            <p class="font-medium whitespace-pre-line">{{ project.remark }}</p>
+                        </div>
                     </div>
 
-                    <div>
-                        <p class="text-sm text-gray-500">{{ $t("projects.designation") }}</p>
-                        <p class="font-medium">{{ project.Désignation }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-sm text-gray-500">{{ $t("projects.date") }}</p>
-                        <p class="font-medium">{{ formatDate(project.Début) }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-sm text-gray-500">{{ $t("projects.client") }}</p>
-                        <p class="font-medium">{{ getClientName(project.IDmandant) }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-sm text-gray-500">{{ $t("projects.responsible") }}</p>
-                        <p class="font-medium">{{ project.Responsable }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-sm text-gray-500">{{ $t("projects.enterprise") }}</p>
-                        <p class="font-medium">{{ getCompanyName(project.IDentreprise) }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-sm text-gray-500">{{ $t("projects.type") }}</p>
-                        <p class="font-medium">{{ getTypeName(project.IDtype) }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-sm text-gray-500">{{ $t("projects.invoice") }}</p>
-                        <p class="font-medium whitespace-pre-line">{{ project.Facture }}</p>
-                    </div>
-
-                    <div v-if="project.Remarque">
-                        <p class="text-sm text-gray-500">{{ $t("projects.remark") }}</p>
-                        <p class="font-medium whitespace-pre-line">{{ project.Remarque }}</p>
+                    <div class="mt-6">
+                        <Button
+                            variant="primary"
+                            :to="{ name: 'project-edit', params: { id: project.id } }"
+                        >
+                            {{ $t("common.edit") }}
+                        </Button>
                     </div>
                 </div>
+            </div>
 
-                <div class="mt-6">
-                    <Button
-                        variant="primary"
-                        :to="{ name: 'project-edit', params: { id: project.IDmandat } }"
-                    >
-                        {{ $t("common.edit") }}
-                    </Button>
+            <!-- Time Entries -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg p-6 border border-gray-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold">{{ $t("timeEntries.title") }}</h2>
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            :to="{ name: 'time-new', query: { projectId: project.id } }"
+                        >
+                            Ajouter des heures
+                        </Button>
+                    </div>
+                    <TimeFilterPanel />
+                    <TimeEntriesList
+                        :timeEntries="timeEntries"
+                        :emptyMessage="$t('timeEntries.empty')"
+                        editRoute="time-new"
+                        :hideColumns="['IDHeure']"
+                    />
                 </div>
             </div>
         </div>
-
-        <!-- Time Entries -->
-        <div class="lg:col-span-2">
-            <div class="bg-white rounded-lg p-6 border border-gray-200">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-semibold">{{ $t("timeEntries.title") }}</h2>
-                    <Button
-                        variant="primary"
-                        size="sm"
-                        :to="{ name: 'time-new', query: { projectId: project.IDmandat } }"
-                    >
-                        Ajouter des heures
-                    </Button>
-                </div>
-                <TimeFilterPanel />
-                <TimeEntriesList
-                    :timeEntries="timeEntries"
-                    :emptyMessage="$t('timeEntries.empty')"
-                    editRoute="time-new"
-                    :hideColumns="['IDHeure']"
-                />
-            </div>
-        </div>
-    </div>
+    </LoadingOverlay>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, computed, onMounted, watch } from "vue"
 import { useRoute } from "vue-router"
 import { useI18n } from "vue-i18n"
 import Button from "@/components/atoms/Button.vue"
@@ -101,121 +106,71 @@ import TimeEntriesList from "@/components/organisms/TimeEntriesList.vue"
 import { useFormat } from "@/composables/utils/useFormat"
 import type { TimeEntry } from "@/components/organisms/TimeEntriesList.vue"
 import TimeFilterPanel from "@/components/organisms/TimeFilterPanel.vue"
+import { useFetchProject } from "@/composables/api/useFetchProject"
+import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 
 const { t } = useI18n()
 const route = useRoute()
 const { formatDuration } = useFormat()
 
+// API client
+const { get: fetchProject, loading, data: projectData } = useFetchProject()
+
 // Format date function
-const formatDate = (dateString: string): string => {
-    if (!dateString) return "-"
+const formatDate = (date: Date | string | null): string => {
+    if (!date) return "-"
     try {
-        // Convert from MM/DD/YY format to DD.MM.YYYY
-        const parts = dateString.split(" ")[0].split("/")
-        if (parts.length !== 3) return dateString
-        const month = parts[0].padStart(2, "0")
-        const day = parts[1].padStart(2, "0")
-        const year = `20${parts[2]}`
+        const dateObj = typeof date === "string" ? new Date(date) : date
+        const day = dateObj.getDate().toString().padStart(2, "0")
+        const month = (dateObj.getMonth() + 1).toString().padStart(2, "0")
+        const year = dateObj.getFullYear()
         return `${day}.${month}.${year}`
     } catch (e) {
-        return dateString
+        return "-"
     }
 }
 
-// Project data (dummy data based on ProjectEditView.vue)
-const project = ref({
-    IDmandat: 101,
-    Mandat: 9591,
-    Début: "03/10/25 00:00:00",
-    Désignation: "Falaise Pont de la Sionne, Sion",
-    IDlocalité: 195,
-    IDmandant: 163,
-    Facture:
-        "Commune de Sion, Travaux publics et Environnement, Rue de Lausanne 23, \nCase postale 2272, 1950 Sion 2",
-    IDingénieur: 217,
-    IDentreprise: 1,
-    IDtype: 43,
-    Responsable: "md",
-    Remarque: "Surveillance de la falaise instable au-dessus du pont de la Sionne",
-    Imprimer: 0,
-    Etat: "-",
+// Get project ID from route
+const projectId = computed(() => parseInt(route.params.id as string))
+
+// Project data from API
+const project = computed(() => {
+    if (!projectData.value) return null
+    return {
+        id: projectData.value.id,
+        projectNumber: projectData.value.projectNumber,
+        name: projectData.value.name,
+        startDate: projectData.value.startDate,
+        remark: projectData.value.remark,
+        client: projectData.value.client,
+        location: projectData.value.location,
+        engineer: projectData.value.engineer,
+        company: projectData.value.company,
+        type: projectData.value.type,
+        projectManager: projectData.value.projectManager,
+        printFlag: projectData.value.printFlag,
+    }
 })
 
-// Helper functions for mapped values
-const getClientName = (id: number): string => {
-    const clients: Record<number, string> = {
-        163: "Commune de Sion",
-    }
-    return clients[id] || `Client #${id}`
-}
+// Get client invoice address (TODO: This should come from a separate API endpoint)
+const invoiceAddress = ref("")
 
-const getCompanyName = (id: number): string => {
-    const companies: Record<number, string> = {
-        1: "Bureau d'Etudes Géologiques SA",
-    }
-    return companies[id] || `Entreprise #${id}`
-}
+// TODO: Fetch time entries from API when endpoint is available
+const timeEntries = ref<TimeEntry[]>([])
 
-const getTypeName = (id: number): string => {
-    const types: Record<number, string> = {
-        43: "Expertise géologique",
+// Load project data on mount
+onMounted(async () => {
+    console.log("projectId", projectId.value)
+    if (projectId.value && !isNaN(projectId.value)) {
+        await fetchProject({ id: projectId.value })
     }
-    return types[id] || `Type #${id}`
-}
+})
 
-// Sample time entries data
-const timeEntries = ref<TimeEntry[]>([
-    {
-        IDHeure: 1001,
-        IDcollaborateur: 9,
-        Date: "2025-03-15",
-        Heures: 4.5,
-        Km: 35,
-        Frais: 0,
-        IDmandat: 101,
-        IDactivité: 6,
-        Remarque: "Réunion initiale avec le client",
-        Facturé: 1,
-        Débours: 0,
-    },
-    {
-        IDHeure: 1002,
-        IDcollaborateur: 22,
-        Date: "2025-03-16",
-        Heures: 6,
-        Km: 0,
-        Frais: 0,
-        IDmandat: 101,
-        IDactivité: 4,
-        Remarque: "Analyse des données existantes",
-        Facturé: 1,
-        Débours: 0,
-    },
-    {
-        IDHeure: 1003,
-        IDcollaborateur: 25,
-        Date: "2025-03-18",
-        Heures: 2.5,
-        Km: 35,
-        Frais: 25,
-        IDmandat: 101,
-        IDactivité: 12,
-        Remarque: "Inspection du site",
-        Facturé: 0,
-        Débours: 0,
-    },
-    {
-        IDHeure: 1004,
-        IDcollaborateur: 9,
-        Date: "2025-03-20",
-        Heures: 3,
-        Km: 0,
-        Frais: 0,
-        IDmandat: 101,
-        IDactivité: 2,
-        Remarque: "Rédaction du rapport préliminaire",
-        Facturé: 0,
-        Débours: 0,
-    },
-])
+// Watch for project data changes
+watch(projectData, (newData) => {
+    if (newData && newData.client) {
+        // TODO: Format invoice address from client data
+        invoiceAddress.value = `${newData.client.name}`
+    }
+})
 </script>

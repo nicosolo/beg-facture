@@ -1,5 +1,6 @@
 <template>
-    <div class="container mx-auto">
+    <LoadingOverlay :loading="loading">
+        <div class="container mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Liste des activités</h1>
             <Button variant="primary" :to="{ name: 'activity-new' }"> Nouvelle activité </Button>
@@ -24,19 +25,28 @@
                 </div>
             </template>
         </DataTable>
-    </div>
+        </div>
+    </LoadingOverlay>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, onMounted } from "vue"
 import Button from "../../components/atoms/Button.vue"
 import DataTable from "../../components/molecules/DataTable.vue"
+import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
+// TODO: Import and use when activity types endpoint is available
+// import { useFetchActivityTypes } from "@/composables/api/useFetchActivityTypes"
 
 interface Activity {
     IDAGCactivité: number
     Code: string
     Activité: string
+    billable?: boolean
 }
+
+// TODO: Use API when endpoint is available
+// const { get: fetchActivityTypes, loading, data } = useFetchActivityTypes()
+const loading = ref(false)
 
 const columns = [
     { key: "IDAGCactivité", label: "ID", width: "w-1/3" as "w-1/3" },
@@ -45,6 +55,8 @@ const columns = [
     { key: "actions", label: "Actions" },
 ]
 
+// TODO: Replace with API data when endpoint is available
+// Currently using static data that matches the legacy system
 const activities = ref<Activity[]>([
     {
         IDAGCactivité: 1,
@@ -97,4 +109,21 @@ const activities = ref<Activity[]>([
         Activité: "Autres",
     },
 ])
+
+// TODO: Load activity types when API endpoint is available
+// onMounted(async () => {
+//     await fetchActivityTypes({})
+// })
+
+// Watch for API data changes
+// watch(data, (newData) => {
+//     if (newData) {
+//         activities.value = newData.map(item => ({
+//             IDAGCactivité: item.id,
+//             Code: item.code,
+//             Activité: item.name,
+//             billable: item.billable
+//         }))
+//     }
+// })
 </script>

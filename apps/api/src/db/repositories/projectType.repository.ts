@@ -1,7 +1,11 @@
 import { eq } from "drizzle-orm"
 import { db } from "../index"
 import { projectTypes } from "../schema"
-import type { ProjectTypeSchema, ProjectTypeCreateInput, ProjectTypeUpdateInput } from "@beg/validations"
+import type {
+    ProjectTypeSchema,
+    ProjectTypeCreateInput,
+    ProjectTypeUpdateInput,
+} from "@beg/validations"
 
 export const projectTypeRepository = {
     findAll: async (): Promise<ProjectTypeSchema[]> => {
@@ -46,6 +50,8 @@ export const projectTypeRepository = {
             .insert(projectTypes)
             .values({
                 name: projectTypeData.name,
+                createdAt: new Date(),
+                updatedAt: new Date(),
             })
             .returning({
                 id: projectTypes.id,
@@ -57,7 +63,10 @@ export const projectTypeRepository = {
         return newProjectType
     },
 
-    update: async (id: number, projectTypeData: Partial<ProjectTypeUpdateInput>): Promise<ProjectTypeSchema> => {
+    update: async (
+        id: number,
+        projectTypeData: Partial<ProjectTypeUpdateInput>
+    ): Promise<ProjectTypeSchema> => {
         const updateData: any = {}
 
         if (projectTypeData.name) updateData.name = projectTypeData.name

@@ -5,5 +5,7 @@ export const timestamps = {
     updatedAt: integer("updatedAt", { mode: "timestamp" })
         .default(sql`CURRENT_TIMESTAMP`)
         .$onUpdate(() => new Date()),
-    createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`CURRENT_TIMESTAMP`),
+    createdAt: integer("createdAt", { mode: "timestamp" })
+        .default(sql`CURRENT_TIMESTAMP`)
+        .$default(() => new Date()),
 }

@@ -236,6 +236,8 @@ async function importProjectTypes() {
         const projectType = {
             id: rawType.IDtype,
             name: rawType.Type,
+            createdAt: new Date(),
+            updatedAt: new Date(),
         }
 
         await db.insert(projectTypes).values(projectType)

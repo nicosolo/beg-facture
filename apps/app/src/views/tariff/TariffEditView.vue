@@ -50,7 +50,6 @@
                             type="number"
                             id="tariff"
                             v-model.number="tariff.amount"
-                            step="5"
                             min="0"
                             class="w-full p-2 border border-gray-300 rounded-md"
                         />
@@ -61,8 +60,12 @@
                     <Button variant="secondary" type="button" :to="{ name: 'tariff-list' }">
                         Annuler
                     </Button>
-                    <Button variant="primary" type="submit" :disabled="creatingRate || updatingRate || loadingRate"> 
-                        {{ creatingRate || updatingRate ? 'Enregistrement...' : 'Enregistrer' }}
+                    <Button
+                        variant="primary"
+                        type="submit"
+                        :disabled="creatingRate || updatingRate || loadingRate"
+                    >
+                        {{ creatingRate || updatingRate ? "Enregistrement..." : "Enregistrer" }}
                     </Button>
                 </div>
             </form>

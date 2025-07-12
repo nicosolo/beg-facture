@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { nullableDateSchema } from "./base"
+import { activityRateUserSchema } from "./activityRateUser"
 
 // Create a schema that parses query string values
 export const userFilterSchema = z.object({
@@ -26,6 +27,7 @@ export const userCreateSchema = z.object({
     password: z.string().min(6),
     role: z.enum(["admin", "user"]).default("user"),
     archived: z.boolean().default(false),
+    activityRates: z.array(activityRateUserSchema).optional(),
 })
 
 // User update schema (makes most fields optional except id)
@@ -37,6 +39,7 @@ export const userUpdateSchema = z.object({
     password: z.string().min(6).optional(),
     role: z.enum(["admin", "user"]).optional(),
     archived: z.boolean().optional(),
+    activityRates: z.array(activityRateUserSchema).optional(),
 })
 
 export type LoginInput = z.infer<typeof loginSchema>
@@ -61,6 +64,21 @@ export const userResponseSchema = z.object({
     archived: z.boolean(),
     createdAt: nullableDateSchema,
     updatedAt: nullableDateSchema,
+    activityRates: z.array(activityRateUserSchema).nullable().optional(),
+})
+
+export const userDetailResponseSchema = z.object({
+    id: z.coerce.number(),
+    email: z.string().email(),
+    firstName: z.string(),
+    lastName: z.string(),
+    initials: z.string(),
+    role: z.enum(["admin", "user"]),
+    archived: z.boolean(),
+    createdAt: nullableDateSchema,
+    updatedAt: nullableDateSchema,
+    activityRates: z.array(activityRateUserSchema).nullable(),
 })
 
 export type UserResponse = z.infer<typeof userResponseSchema>
+export type UserDetailResponse = z.infer<typeof userDetailResponseSchema>

@@ -7,6 +7,7 @@ import {
     userUpdateSchema,
     idParamSchema,
     type UserResponse,
+    userDetailResponseSchema,
 } from "@beg/validations"
 import { userRepository } from "../db/repositories/user.repository"
 import { comparePassword, generateToken } from "../tools/auth"
@@ -87,12 +88,11 @@ export const userRoutes = new Hono()
         "/:id",
         zValidator("param", idParamSchema),
         responseValidator({
-            200: userResponseSchema,
+            200: userDetailResponseSchema,
         }),
         async (c) => {
             const { id } = c.req.valid("param")
             const user = await userRepository.findById(id)
-
             if (!user) {
                 return c.json({ error: "User not found" }, 404)
             }

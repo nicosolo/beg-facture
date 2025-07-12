@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm"
 import { db } from "../index"
 import { users } from "../schema"
-import type { UserResponse, UserCreateInput, UserUpdateInput } from "@beg/validations"
+import type { UserResponse, UserCreateInput, UserUpdateInput, ActivityRateUserFilter } from "@beg/validations"
 import { hashPassword } from "../../tools/auth"
 
 export const userRepository = {
@@ -22,10 +22,15 @@ export const userRepository = {
                 archived: users.archived,
                 createdAt: users.createdAt,
                 updatedAt: users.updatedAt,
+                activityRates: users.activityRates,
             })
             .from(users)
             .where(eq(users.id, id))
-        return results[0] || null
+        
+        const result = results[0]
+        if (!result) return null
+        
+        return result
     },
 
     findAll: async (): Promise<UserResponse[]> => {
@@ -57,6 +62,7 @@ export const userRepository = {
                 password: hashedPassword,
                 role: userData.role,
                 archived: userData.archived,
+                activityRates: userData.activityRates || null,
             })
             .returning({
                 id: users.id,
@@ -68,6 +74,7 @@ export const userRepository = {
                 archived: users.archived,
                 createdAt: users.createdAt,
                 updatedAt: users.updatedAt,
+                activityRates: users.activityRates,
             })
 
         return newUser
@@ -82,6 +89,9 @@ export const userRepository = {
         if (userData.initials) updateData.initials = userData.initials
         if (userData.role) updateData.role = userData.role
         if (userData.archived !== undefined) updateData.archived = userData.archived
+        if (userData.activityRates !== undefined) {
+            updateData.activityRates = userData.activityRates || null
+        }
 
         // Only hash password if it's provided
         if (userData.password) {
@@ -102,6 +112,7 @@ export const userRepository = {
                 archived: users.archived,
                 createdAt: users.createdAt,
                 updatedAt: users.updatedAt,
+                activityRates: users.activityRates,
             })
 
         return updatedUser

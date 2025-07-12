@@ -1,6 +1,7 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core"
 import type { Class, ProjectAccessLevel, UserRole } from "@beg/types"
 import { timestamps } from "./column.helper"
+import type { ActivityRateUserFilter } from "../../../../packages/validations/validations/activityRateUser"
 
 // User table
 export const users = sqliteTable(
@@ -14,6 +15,9 @@ export const users = sqliteTable(
         archived: integer("archived", { mode: "boolean" }).notNull().default(false),
         password: text("password").notNull(),
         role: text("role").$type<UserRole>().notNull(),
+        activityRates: text("activityRates", { mode: "json" })
+            .$type<ActivityRateUserFilter[]>()
+            .default([]),
         ...timestamps,
     },
     (table) => [
@@ -95,21 +99,6 @@ export const rateClasses = sqliteTable(
         class: text("class").$type<Class>().notNull(),
         year: integer("year").notNull(),
         amount: integer("amount").notNull(),
-    },
-    () => []
-)
-
-// ActivityRateUser table
-export const activityRateUsers = sqliteTable(
-    "activity_rate_users",
-    {
-        id: integer("id").primaryKey({ autoIncrement: true }),
-        userId: integer("userId")
-            .notNull()
-            .references(() => users.id),
-        activityId: integer("activityId").notNull(),
-        class: text("class").$type<Class>().notNull(),
-        ...timestamps,
     },
     () => []
 )

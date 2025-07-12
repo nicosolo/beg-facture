@@ -4,6 +4,7 @@ import { userRoutes } from "@src/routes/user"
 import { activityRoutes } from "@src/routes/activity"
 import { activityTypeRoutes } from "@src/routes/activityType"
 import { projectRoutes } from "@src/routes/project"
+import { projectTypeRoutes } from "@src/routes/projectType"
 import { rateRoutes } from "@src/routes/rate"
 import { clientRoutes } from "@src/routes/client"
 import { runMigrations } from "@src/db/migrate"
@@ -28,6 +29,7 @@ const app = new Hono()
     .route("/activity", activityRoutes)
     .route("/activity-type", activityTypeRoutes)
     .route("/project", projectRoutes)
+    .route("/project-type", projectTypeRoutes)
     .route("/rate", rateRoutes)
     .route("/client", clientRoutes)
 

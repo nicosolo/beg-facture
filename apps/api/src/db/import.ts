@@ -8,7 +8,6 @@ import {
     projectTypes,
     engineers,
     rateClasses,
-    activityRateUsers,
     projects,
     activityTypes,
     activities,
@@ -19,6 +18,7 @@ import fs from "fs/promises"
 import path from "path"
 import type { UserRole, Class, ProjectAccessLevel } from "@beg/types"
 import { hashPassword } from "@src/tools/auth"
+import type { ActivityRateUser } from "@beg/validations"
 
 const exportDir = "/app/export-mdb"
 
@@ -27,7 +27,6 @@ async function resetDatabase() {
     console.log("Dropping all existing data...")
 
     await db.delete(activities)
-    await db.delete(activityRateUsers)
     await db.delete(projectAccess)
     await db.delete(projects)
     await db.delete(activityTypes)
@@ -71,28 +70,8 @@ function mapUserData(data: any) {
         archived: false,
         createdAt: new Date(),
         updatedAt: new Date(),
+        activityRates: [] as ActivityRateUser[],
     }
-}
-
-// Similar mapping functions for other tables...
-
-async function importUsers() {
-    const userData = await readJsonFile("Collaborateurs")
-    if (userData.length === 0) return
-
-    for (const rawUser of userData) {
-        const user = mapUserData(rawUser)
-
-        // Hash password if it's not already hashed
-        if (!user.password.startsWith("$2")) {
-            user.password = await hashPassword(user.password)
-        }
-
-        await db.insert(users).values(user)
-    }
-
-    const importedUsers = await db.select().from(users)
-    console.log(`Imported ${importedUsers.length} users`)
 }
 
 async function importLocations() {
@@ -312,6 +291,34 @@ async function importRateClasses() {
     console.log(`Imported ${importedRateClasses.length} rate classes`)
 }
 
+// Similar mapping functions for other tables...
+
+async function importUsers() {
+    const userData = await readJsonFile("Collaborateurs")
+    const activityRateData = await readJsonFile("LinkACC")
+    if (userData.length === 0) return
+
+    for (const rawUser of userData) {
+        const user = mapUserData(rawUser)
+
+        // Hash password if it's not already hashed
+        user.activityRates = activityRateData
+            .filter((rate) => rate.IDcollaborateur.toString() === user.id.toString())
+            .map((rate) => ({
+                activityId: rate.IDactivité,
+                class: rate.Classe as Class,
+            }))
+        if (!user.password.startsWith("$2")) {
+            user.password = await hashPassword(user.password)
+        }
+
+        await db.insert(users).values(user)
+    }
+
+    const importedUsers = await db.select().from(users)
+    console.log(`Imported ${importedUsers.length} users`)
+}
+
 async function importProjects() {
     const projectData = await readJsonFile("Mandats")
     if (projectData.length === 0) return
@@ -480,36 +487,6 @@ async function importProjectAccess() {
     console.log(`Created ${imported} access entries`)
 }
 
-async function importActivityRateUsers() {
-    // Taux contains rate information for users on different activities
-    const activityRateData = await readJsonFile("LinkACC")
-    if (activityRateData.length === 0) return
-
-    // Get references to related entities
-    const allUsers = await db.select().from(users)
-    const userMap = new Map(allUsers.map((u) => [u.id, u.id]))
-
-    let imported = 0
-
-    for (const rawRate of activityRateData) {
-        // Prefer original IDs when available
-        const userId = rawRate.IDcollaborateur
-
-        if (!userId) continue
-
-        const activityRate = {
-            userId,
-            activityId: rawRate.IDactivité,
-            class: rawRate.Classe as Class, // Properly typed as Class enum
-        }
-
-        await db.insert(activityRateUsers).values(activityRate)
-        imported++
-    }
-
-    console.log(`Imported ${imported} activity rate users`)
-}
-
 const importFunctions = [
     resetDatabase, // Add database reset as the first function to run
     importUsers,
@@ -523,7 +500,6 @@ const importFunctions = [
     importActivityTypes,
     importActivities,
     importProjectAccess,
-    importActivityRateUsers,
 ]
 
 for (const importFunction of importFunctions) {

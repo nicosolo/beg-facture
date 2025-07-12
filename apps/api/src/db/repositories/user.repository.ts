@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm"
 import { db } from "../index"
 import { users } from "../schema"
-import type { UserResponse, UserCreateInput, UserUpdateInput, ActivityRateUserFilter } from "@beg/validations"
+import type { UserResponse, UserCreateInput, UserUpdateInput } from "@beg/validations"
 import { hashPassword } from "../../tools/auth"
 
 export const userRepository = {
@@ -26,10 +26,10 @@ export const userRepository = {
             })
             .from(users)
             .where(eq(users.id, id))
-        
+
         const result = results[0]
         if (!result) return null
-        
+
         return result
     },
 

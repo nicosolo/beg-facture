@@ -6,5 +6,5 @@ export const activityRateUserSchema = z.object({
     class: z.string(),
 })
 
-export type ActivityRateUserFilter = z.infer<typeof activityRateUserSchema>
-export type ActivityRateUserFilterInput = z.input<typeof activityRateUserSchema>
+export type ActivityRateUser = z.infer<typeof activityRateUserSchema>
+export type ActivityRateUserInput = z.input<typeof activityRateUserSchema>

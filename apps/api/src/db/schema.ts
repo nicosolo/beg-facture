@@ -1,7 +1,7 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core"
 import type { Class, ProjectAccessLevel, UserRole } from "@beg/types"
 import { timestamps } from "./column.helper"
-import type { ActivityRateUserFilter } from "../../../../packages/validations/validations/activityRateUser"
+import type { ActivityRateUser } from "@beg/validations"
 
 // User table
 export const users = sqliteTable(
@@ -16,7 +16,7 @@ export const users = sqliteTable(
         password: text("password").notNull(),
         role: text("role").$type<UserRole>().notNull(),
         activityRates: text("activityRates", { mode: "json" })
-            .$type<ActivityRateUserFilter[]>()
+            .$type<ActivityRateUser[]>()
             .default([]),
         ...timestamps,
     },

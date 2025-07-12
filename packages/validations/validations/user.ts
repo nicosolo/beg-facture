@@ -64,7 +64,6 @@ export const userResponseSchema = z.object({
     archived: z.boolean(),
     createdAt: nullableDateSchema,
     updatedAt: nullableDateSchema,
-    activityRates: z.array(activityRateUserSchema).nullable().optional(),
 })
 
 export const userDetailResponseSchema = z.object({

@@ -375,7 +375,9 @@ async function importActivityTypes() {
             id: rawActivityType.IDactivité,
             name: rawActivityType.Activité,
             code: rawActivityType.Code || rawActivityType.Activité.substring(0, 3).toUpperCase(),
-            billable: rawActivityType.Facturable === "Oui",
+            billable: rawActivityType.Activité === "Non facturable" ? false : true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
         }
 
         await db.insert(activityTypes).values(activityType)

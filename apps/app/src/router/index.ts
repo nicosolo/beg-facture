@@ -5,8 +5,6 @@ import EditInvoiceView from "@/views/invoice/EditInvoiceView.vue"
 import PreviewInvoiceView from "@/views/invoice/PreviewInvoiceView.vue"
 import CollaboratorListView from "../views/collaborator/CollaboratorListView.vue"
 import CollaboratorEditView from "../views/collaborator/CollaboratorEditView.vue"
-import ActivityListView from "../views/activity/ActivityListView.vue"
-import ActivityEditView from "../views/activity/ActivityEditView.vue"
 import TimeListView from "../views/time/TimeListView.vue"
 import TimeEditView from "../views/time/TimeEditView.vue"
 import TariffListView from "../views/tariff/TariffListView.vue"
@@ -14,6 +12,8 @@ import TariffEditView from "../views/tariff/TariffEditView.vue"
 import ProjectEditView from "../views/project/ProjectEditView.vue"
 import ProjectTypeListView from "../views/projectType/ProjectTypeListView.vue"
 import ProjectPreviewView from "../views/project/ProjectPreviewView.vue"
+import ActivityTypeListView from "../views/activityType/ActivityTypeListView.vue"
+import ActivityTypeEditView from "../views/activityType/ActivityTypeEditView.vue"
 import LoginView from "../views/LoginView.vue"
 import { useAuthStore } from "../stores/auth"
 
@@ -105,21 +105,22 @@ const router = createRouter({
         {
             path: "/activity/new",
             name: "activity-new",
-            component: ActivityEditView,
+            component: ActivityTypeEditView,
             meta: { requiresAuth: true },
         },
         {
             path: "/activity/:id/edit",
             name: "activity-edit",
-            component: ActivityEditView,
+            component: ActivityTypeEditView,
             meta: { requiresAuth: true },
         },
         {
             path: "/activity",
             name: "activity-list",
-            component: ActivityListView,
+            component: ActivityTypeListView,
             meta: { requiresAuth: true },
         },
+
         // Time entry routes
         {
             path: "/time/new",

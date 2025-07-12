@@ -2,6 +2,7 @@ import { Hono } from "hono"
 import { statusRoutes } from "@src/routes/status"
 import { userRoutes } from "@src/routes/user"
 import { activityRoutes } from "@src/routes/activity"
+import { activityTypeRoutes } from "@src/routes/activityType"
 import { projectRoutes } from "@src/routes/project"
 import { rateRoutes } from "@src/routes/rate"
 import { clientRoutes } from "@src/routes/client"
@@ -25,6 +26,7 @@ const app = new Hono()
     .route("/user", userRoutes)
     .route("/status", statusRoutes)
     .route("/activity", activityRoutes)
+    .route("/activity-type", activityTypeRoutes)
     .route("/project", projectRoutes)
     .route("/rate", rateRoutes)
     .route("/client", clientRoutes)

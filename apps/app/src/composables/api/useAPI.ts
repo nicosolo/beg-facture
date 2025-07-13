@@ -3,6 +3,7 @@ import { hc } from "hono/client"
 import type { ApiRoutes } from "@beg/api"
 import { z } from "zod"
 import { useAuthStore } from "../../stores/auth"
+import { parseApiError } from "@/utils/api-error"
 
 interface ApiSchemas {
     query?: z.ZodType<any>
@@ -58,7 +59,16 @@ const createRequest = () => {
         )
 
         if (!response.ok) {
-            throw new Error(response.statusText)
+            // Parse the error using our standardized error handler
+            const apiError = await parseApiError(response)
+            
+            // For auth errors, clear the auth state
+            if (apiError.isAuthError()) {
+                const authStore = useAuthStore()
+                authStore.logout()
+            }
+            
+            throw apiError
         }
 
         return await response.json()
@@ -99,7 +109,7 @@ export function useGet<
             return result as TResponse
         } catch (e) {
             error.value = e instanceof Error ? e.message : "Unknown error"
-            return null
+            throw e
         } finally {
             loading.value = false
         }
@@ -129,7 +139,7 @@ export function usePost<
     const loading = ref(false)
     const error = ref<string | null>(null)
     const data = ref<TResponse | null>(null)
-    const request = createRequest(useAuthStore())
+    const request = createRequest()
 
     type BodyType = TSchemas["body"] extends z.ZodType<any> ? z.input<TSchemas["body"]> : void
     type ParamsType = TSchemas["params"] extends z.ZodType<any> ? z.input<TSchemas["params"]> : void
@@ -147,7 +157,7 @@ export function usePost<
             return result as TResponse
         } catch (e) {
             error.value = e instanceof Error ? e.message : "Unknown error"
-            return null
+            throw e
         } finally {
             loading.value = false
         }
@@ -177,7 +187,7 @@ export function usePut<
     const loading = ref(false)
     const error = ref<string | null>(null)
     const data = ref<TResponse | null>(null)
-    const request = createRequest(useAuthStore())
+    const request = createRequest()
 
     type BodyType = TSchemas["body"] extends z.ZodType<any> ? z.input<TSchemas["body"]> : void
     type ParamsType = TSchemas["params"] extends z.ZodType<any> ? z.input<TSchemas["params"]> : void
@@ -195,7 +205,7 @@ export function usePut<
             return result as TResponse
         } catch (e) {
             error.value = e instanceof Error ? e.message : "Unknown error"
-            return null
+            throw e
         } finally {
             loading.value = false
         }
@@ -237,7 +247,7 @@ export function useDelete<
             return result as TResponse
         } catch (e) {
             error.value = e instanceof Error ? e.message : "Unknown error"
-            return null
+            throw new Error(error.value)
         } finally {
             loading.value = false
         }

@@ -120,12 +120,38 @@ export default {
         page: "Page",
     },
     errors: {
+        // General errors
         general: "Une erreur est survenue",
         notFound: "Page non trouvée",
         unauthorized: "Non autorisé",
         required: "Ce champ est requis",
         invalid: "Ce champ est invalide",
         networkError: "Erreur de connexion au serveur",
+        
+        // Error codes from API
+        UNAUTHORIZED: "Vous n'êtes pas autorisé à effectuer cette action",
+        FORBIDDEN: "Accès interdit",
+        INVALID_CREDENTIALS: "Identifiants invalides",
+        TOKEN_EXPIRED: "Votre session a expiré. Veuillez vous reconnecter",
+        NOT_FOUND: "Élément non trouvé",
+        ALREADY_EXISTS: "Cet élément existe déjà",
+        VALIDATION_ERROR: "Erreur de validation",
+        INVALID_INPUT: "Données saisies invalides",
+        MISSING_REQUIRED_FIELD: "Champ obligatoire manquant",
+        INVALID_FORMAT: "Format invalide",
+        DUPLICATE_ENTRY: "Cette entrée existe déjà",
+        CONSTRAINT_VIOLATION: "Violation de contrainte",
+        OPERATION_NOT_ALLOWED: "Opération non autorisée",
+        INTERNAL_ERROR: "Erreur interne du serveur",
+        DATABASE_ERROR: "Erreur de base de données",
+        EXTERNAL_SERVICE_ERROR: "Erreur de service externe",
+        RATE_LIMIT_EXCEEDED: "Trop de requêtes. Veuillez réessayer plus tard",
+        UNKNOWN_ERROR: "Erreur inconnue",
+        
+        // Error messages with placeholders
+        DUPLICATE_ENTRY_DETAIL: "Le champ '{field}' contient une valeur qui existe déjà",
+        VALIDATION_ERROR_DETAIL: "Erreurs de validation: {details}",
+        INVALID_FIELD: "Ce champ est invalide",
     },
     validation: {
         required: "Ce champ est requis",

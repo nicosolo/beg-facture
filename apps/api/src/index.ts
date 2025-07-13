@@ -12,6 +12,7 @@ import { PORT, DB_FILE_PATH } from "@src/config"
 import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 import { existsSync } from "node:fs"
+import { errorHandler } from "@src/tools/error-handler"
 
 // Ensure SQLite database directory exists
 const dbDir = dirname(DB_FILE_PATH)
@@ -24,6 +25,7 @@ if (!existsSync(dbDir)) {
 await runMigrations()
 
 const app = new Hono()
+    .onError(errorHandler)
     .route("/user", userRoutes)
     .route("/status", statusRoutes)
     .route("/activity", activityRoutes)

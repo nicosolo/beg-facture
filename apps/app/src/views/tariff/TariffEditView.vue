@@ -12,7 +12,11 @@
                 <div class="flex">
                     <div class="flex-shrink-0">
                         <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            <path
+                                fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clip-rule="evenodd"
+                            />
                         </svg>
                     </div>
                     <div class="ml-3">
@@ -22,9 +26,17 @@
                     </div>
                     <div class="ml-auto pl-3">
                         <div class="-mx-1.5 -my-1.5">
-                            <button @click="clearError" type="button" class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100">
+                            <button
+                                @click="clearError"
+                                type="button"
+                                class="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100"
+                            >
                                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                        clip-rule="evenodd"
+                                    />
                                 </svg>
                             </button>
                         </div>
@@ -101,11 +113,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { useI18n } from "vue-i18n"
 import Button from "../../components/atoms/Button.vue"
 import { useFetchRate, useCreateRate, useUpdateRate } from "@/composables/api/useRate"
+import { ApiError } from "@/utils/api-error"
+import { ErrorCode } from "@beg/validations"
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const tariffId = computed(() => (route.params.id ? parseInt(route.params.id as string) : null))
 const isNewTariff = computed(() => !tariffId.value)
 
@@ -156,20 +172,20 @@ const clearError = () => {
 const saveTariff = async () => {
     // Clear any previous error
     clearError()
-    
+
     // Basic validation
     if (!tariff.value.class) {
-        errorMessage.value = "Veuillez sélectionner une classe."
+        errorMessage.value = t("validation.required")
         return
     }
-    
+
     if (!tariff.value.year || tariff.value.year < 1990 || tariff.value.year > 2100) {
-        errorMessage.value = "Veuillez saisir une année valide (1990-2100)."
+        errorMessage.value = t("validation.min", { min: 1990 }) + " - " + t("validation.max", { max: 2100 })
         return
     }
-    
+
     if (!tariff.value.amount || tariff.value.amount <= 0) {
-        errorMessage.value = "Veuillez saisir un montant valide."
+        errorMessage.value = t("validation.min", { min: 0 })
         return
     }
 
@@ -192,22 +208,20 @@ const saveTariff = async () => {
                 },
             })
         }
+
         router.push({ name: "tariff-list" })
     } catch (error: any) {
         console.error("Error saving rate:", error)
         
-        // Handle specific API errors
-        if (error?.response?.data?.error) {
-            const apiError = error.response.data.error
-            if (apiError.includes("already exists")) {
+        // Handle our standardized API errors
+        if (error instanceof ApiError) {
+            if (error.is(ErrorCode.DUPLICATE_ENTRY)) {
                 errorMessage.value = `Un tarif pour la classe ${tariff.value.class} et l'année ${tariff.value.year} existe déjà.`
             } else {
-                errorMessage.value = apiError
+                errorMessage.value = error.getLocalizedMessage(t)
             }
-        } else if (error?.message) {
-            errorMessage.value = `Erreur lors de l'enregistrement: ${error.message}`
         } else {
-            errorMessage.value = "Une erreur inattendue s'est produite lors de l'enregistrement."
+            errorMessage.value = t("errors.general")
         }
     }
 }

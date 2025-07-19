@@ -11,14 +11,16 @@
                 </template>
             </FormField>
 
-            <!-- <SelectField
+            <SelectField
+                :options="[
+                    { label: $t('common.no'), value: false },
+                    { label: $t('common.yes'), value: true },
+                ]"
                 :label="$t('projects.filters.includeArchived')"
-                v-model="filterData.archived"
+                v-model="filterData.includeArchived"
                 @update:model-value="emitChange"
             >
-                <option :value="false">{{ $t("common.no") }}</option>
-                <option :value="true">{{ $t("common.yes") }}</option>
-            </SelectField> -->
+            </SelectField>
 
             <div class="form-group">
                 <Label>{{ $t("projects.filters.sortBy") }}</Label>
@@ -67,7 +69,30 @@
             </div>
             <div class="form-group">
                 <Label>{{ $t("projects.filters.hasUnbilledTime") }}</Label>
-                <Checkbox v-model="filterData.hasUnbilledTime" @update:model-value="emitChange" />
+                <Checkbox
+                    v-model="filterData.hasUnbilledTime"
+                    @update:model-value="emitChange"
+                    :true-value="true"
+                    :false-value="false"
+                />
+            </div>
+            <div class="form-group">
+                <Label>{{ $t("projects.filters.includeArchived") }}</Label>
+                <Checkbox
+                    v-model="filterData.includeArchived"
+                    @update:model-value="emitChange"
+                    :true-value="true"
+                    :false-value="false"
+                />
+            </div>
+            <div class="form-group">
+                <Label>{{ $t("projects.filters.includeEnded") }}</Label>
+                <Checkbox
+                    v-model="filterData.includeEnded"
+                    @update:model-value="emitChange"
+                    :true-value="true"
+                    :false-value="false"
+                />
             </div>
         </div>
 
@@ -90,6 +115,7 @@ import UserSelect from "../../organisms/user/UserSelect.vue"
 import type { ProjectFilter } from "@beg/validations"
 import Checkbox from "@/components/atoms/Checkbox.vue"
 import Input from "@/components/atoms/Input.vue"
+import SelectField from "@/components/molecules/SelectField.vue"
 
 export type ProjectFilterModel = Omit<ProjectFilter, "page" | "limit" | "accountId">
 
@@ -110,13 +136,14 @@ const emit = defineEmits<{
 // Create reactive copy of the filter
 const filterData = reactive<ProjectFilterProps["filter"]>({
     name: filter.name,
-    archived: filter.archived,
+    includeArchived: filter.includeArchived,
+    includeEnded: filter.includeEnded,
     sortBy: filter.sortBy,
     sortOrder: filter.sortOrder,
     fromDate: filter.fromDate,
     toDate: filter.toDate,
     referentUserId: filter.referentUserId || undefined,
-    hasUnbilledTime: filter.hasUnbilledTime,
+    hasUnbilledTime: filter.hasUnbilledTime || false,
 })
 
 // Watch for external filter changes
@@ -124,7 +151,8 @@ watch(
     () => filter,
     (newFilter) => {
         filterData.name = newFilter.name
-        filterData.archived = newFilter.archived
+        filterData.includeArchived = newFilter.includeArchived
+        filterData.includeEnded = newFilter.includeEnded
         filterData.sortBy = newFilter.sortBy
         filterData.sortOrder = newFilter.sortOrder
         filterData.fromDate = newFilter.fromDate
@@ -149,13 +177,14 @@ const emitInputChange = () => {
 // Reset filters
 const resetFilters = () => {
     filterData.name = ""
-    filterData.archived = false
+    filterData.includeArchived = false
+    filterData.includeEnded = false
     filterData.sortBy = "name"
     filterData.sortOrder = "asc"
     filterData.fromDate = undefined
     filterData.toDate = undefined
     filterData.referentUserId = undefined
-
+    filterData.hasUnbilledTime = false
     emitChange()
 }
 </script>

@@ -7,7 +7,6 @@ export const projectAccessLevelSchema = z.enum(["read", "write"])
 export const projectFilterSchema = z
     .object({
         name: z.string().optional(),
-        archived: booleanSchema.optional().default(false),
         referentUserId: z.coerce.number().optional(),
         fromDate: z.coerce.date().optional(),
         toDate: z.coerce.date().optional(),
@@ -16,8 +15,9 @@ export const projectFilterSchema = z
             .optional()
             .default("name"),
         sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
-        hasUnbilledTime: booleanSchema.optional().default(true),
-        ended: booleanSchema.optional().nullable(),
+        hasUnbilledTime: booleanSchema.optional().default(false),
+        includeArchived: booleanSchema.optional().default(false),
+        includeEnded: booleanSchema.optional().default(false),
     })
     .merge(paginationSchema)
 

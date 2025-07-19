@@ -12,9 +12,57 @@
                     :class="[
                         'px-3 py-3 text-sm font-medium text-gray-500 tracking-wider divide-y divide-gray-200',
                         getWidth(column),
+                        column.sortKey && 'cursor-pointer hover:bg-gray-100 transition-colors',
                     ]"
+                    @click="column.sortKey && handleSort(column)"
                 >
-                    {{ column.label }}
+                    <div class="flex items-center space-x-1">
+                        <span>{{ column.label }}</span>
+                        <span v-if="column.sortKey" class="ml-auto">
+                            <svg
+                                v-if="!sort || sort.key !== (column.sortKey || column.key)"
+                                class="w-4 h-4 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                                />
+                            </svg>
+                            <svg
+                                v-else-if="sort.direction === 'asc'"
+                                class="w-4 h-4 text-gray-700"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+                                />
+                            </svg>
+                            <svg
+                                v-else
+                                class="w-4 h-4 text-gray-700"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"
+                                />
+                            </svg>
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -81,12 +129,15 @@
 </template>
 
 <script setup lang="ts">
+import type { Ref } from "vue"
+
 interface Column {
     key: string
     label: string
     nowrap?: boolean
     width?: "w-1/2" | "w-2/3" | "w-2/4" | "w-1/3"
     actions?: boolean
+    sortKey?: string
 }
 
 interface Props {
@@ -95,14 +146,18 @@ interface Props {
     itemKey?: string
     emptyMessage?: string
     showFooter?: boolean
+    sort?: { key: string; direction: "asc" | "desc" }
 }
-
+const emit = defineEmits<{
+    (e: "sort-change", sort: { key: string; direction: "asc" | "desc" }): void
+}>()
 const {
     items,
     columns,
     itemKey,
     emptyMessage = "No items found",
     showFooter = false,
+    sort,
 } = defineProps<Props>()
 
 const getWidth = (column: Column) => {
@@ -133,5 +188,25 @@ const getItemValue = (item: any, column: Column): string => {
     }
 
     return String(value)
+}
+
+// Handle column header click for sorting
+const handleSort = (column: Column) => {
+    if (!sort || !column.sortKey) return
+
+    const sortKey = column.sortKey || column.key
+
+    // Toggle direction if clicking the same column, otherwise default to asc
+    if (sort.key === sortKey) {
+        emit("sort-change", {
+            key: sortKey,
+            direction: sort.direction === "asc" ? "desc" : "asc",
+        })
+    } else {
+        emit("sort-change", {
+            key: sortKey,
+            direction: "asc",
+        })
+    }
 }
 </script>

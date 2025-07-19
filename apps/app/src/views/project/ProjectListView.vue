@@ -7,7 +7,7 @@
         @filter-input-change="debouncedFetch"
     />
     <LoadingOverlay :loading="loading">
-        <ProjectTable :projects="projects" />
+        <ProjectTable :projects="projects" :sort="sort" @sort-change="handleSortChange" />
 
         <Pagination
             v-if="projects.length > 0 || totalItems > 0"
@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue"
+import { ref, watch, onMounted, computed } from "vue"
 import { useI18n } from "vue-i18n"
 import { useFetchProjectList } from "@/composables/api/useProject"
 import ProjectFilterPanel, {
@@ -32,7 +32,7 @@ import ProjectFilterPanel, {
 import ProjectTable from "@/components/organisms/project/ProjectTable.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
-import type { PageResponse, ProjectResponse } from "@beg/validations"
+import type { PageResponse, ProjectFilter, ProjectResponse } from "@beg/validations"
 
 // Initialize i18n
 const { t } = useI18n()
@@ -59,6 +59,20 @@ const filter = ref<ProjectFilterModel>({
     hasUnbilledTime: true,
 })
 
+const sort = computed(() => ({
+    key: filter.value.sortBy,
+    direction: filter.value.sortOrder,
+}))
+
+const handleSortChange = (sort: {
+    key: ProjectFilter["sortBy"] | string
+    direction: ProjectFilter["sortOrder"] | "asc" | "desc"
+}) => {
+    filter.value.sortBy = sort.key as ProjectFilter["sortBy"]
+    filter.value.sortOrder = sort.direction as ProjectFilter["sortOrder"]
+    loadProjects()
+}
+
 // Watch for API data changes
 watch(
     data,
@@ -73,7 +87,6 @@ watch(
     { deep: true }
 )
 
-// Methods
 const debouncedFetch = (() => {
     let timeout: ReturnType<typeof setTimeout> | null = null
     return () => {
@@ -118,6 +131,17 @@ watch(pageSize, (newValue) => {
     currentPage.value = 1
     loadProjects()
 })
+// Watch for page size changes
+watch(
+    filter,
+    (newValue) => {
+        currentPage.value = 1
+        loadProjects()
+    },
+    {
+        deep: true,
+    }
+)
 
 // Initial load
 onMounted(() => {

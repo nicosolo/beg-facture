@@ -3,6 +3,8 @@
         :items="projects"
         :columns="columns"
         itemKey="id"
+        :sort="sort"
+        @sort-change="handleSortChange"
         :emptyMessage="$t('projects.noProjectsFound')"
     >
         <template #cell:unBilledDuration="{ item }">
@@ -64,42 +66,57 @@ import DataTable from "@/components/molecules/DataTable.vue"
 import Button from "@/components/atoms/Button.vue"
 import { useI18n } from "vue-i18n"
 import { useFormat } from "@/composables/utils/useFormat"
-import { ref } from "vue"
-import type { ProjectResponse } from "@beg/validations"
+import { ref, type Ref } from "vue"
+import type { ProjectFilter, ProjectResponse } from "@beg/validations"
 
 interface Props {
     projects: ProjectResponse[]
+    sort: { key: ProjectFilter["sortBy"]; direction: ProjectFilter["sortOrder"] }
+}
+
+const emit = defineEmits<{
+    (e: "sort-change", sort: { key: string; direction: "asc" | "desc" }): void
+}>()
+
+const handleSortChange = (sort: { key: string; direction: "asc" | "desc" }) => {
+    console.log("handleSortChange", sort)
+    emit("sort-change", sort)
 }
 
 const { t } = useI18n()
 
-const { projects } = defineProps<Props>()
+const { projects, sort } = defineProps<Props>()
 
 const columns = ref([
     {
         key: "name",
         label: t("projects.name"),
         width: "w-1/3" as const,
+        sortable: true,
     },
 
     {
         key: "unBilledDuration",
         label: t("projects.unBilledDuration"),
         nowrap: true,
+        sortable: true,
     },
     {
         key: "totalDuration",
         label: t("projects.totalDuration"),
         nowrap: true,
+        sortKey: "totalDuration",
     },
     {
         key: "firstActivityDate",
         label: t("projects.firstActivity"),
         nowrap: true,
+        sortKey: "firstActivityDate",
     },
     {
         key: "lastActivityDate",
         label: t("projects.lastActivity"),
+        sortKey: "lastActivityDate",
     },
 
     {

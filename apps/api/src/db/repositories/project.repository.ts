@@ -22,14 +22,14 @@ export const projectRepository = {
             page = 1,
             limit = 10,
             name,
-            archived = null,
+            includeArchived = false,
             referentUserId,
             fromDate,
             toDate,
             sortBy = "name",
             sortOrder = "asc",
             hasUnbilledTime = undefined,
-            ended = null,
+            includeEnded = false,
         } = filters || {}
         const offset = (page - 1) * limit
 
@@ -61,13 +61,12 @@ export const projectRepository = {
         }
 
         // Ended filter
-        if (archived !== null && archived !== undefined) {
-            console.log("archived", archived)
-            whereConditions.push(eq(projects.archived, archived))
+        if (!includeArchived) {
+            whereConditions.push(eq(projects.archived, false))
         }
 
-        if (ended !== null && ended !== undefined) {
-            whereConditions.push(eq(projects.ended, ended))
+        if (!includeEnded) {
+            whereConditions.push(eq(projects.ended, false))
         }
         console.log("hasUnbilledTime", hasUnbilledTime)
         if (hasUnbilledTime === true) {

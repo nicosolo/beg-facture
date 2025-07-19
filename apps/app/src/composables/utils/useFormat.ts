@@ -1,11 +1,11 @@
 export const useFormat = () => {
-    const formatCurrency = (amount: number, showCurrency = false) => {
-        return new Intl.NumberFormat("ch-FR", {
-            style: showCurrency ? "currency" : "decimal",
-            currency: showCurrency ? "CHF" : undefined,
+    const formatCurrency = (amount: number, showCurrency = true) => {
+        return `${new Intl.NumberFormat("ch-FR", {
+            currency: "CHF",
             maximumFractionDigits: 2,
             minimumFractionDigits: 2,
-        }).format(amount)
+            signDisplay: "never",
+        }).format(amount)}${showCurrency ? ".-" : ""}`
     }
 
     const formatPercentage = (percentage: number) => {
@@ -42,5 +42,5 @@ export const useFormat = () => {
         return new Date(date).toLocaleDateString()
     }
 
-    return { formatCurrency, formatPercentage, formatDuration, formatDate }
+    return { formatCurrency, formatPercentage, formatDuration, formatDate, formatNumber }
 }

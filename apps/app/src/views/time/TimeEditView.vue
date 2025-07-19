@@ -2,7 +2,7 @@
     <div class="container mx-auto py-8">
         <div class="mb-6">
             <h1 class="text-2xl font-bold">
-                {{ isNewEntry ? "Nouvelle entrée d'heures" : "Modifier entrée d'heures" }}
+                {{ isNewEntry ? $t('time.new') : $t('common.edit') }}
             </h1>
         </div>
 
@@ -10,13 +10,17 @@
         <div class="bg-white rounded-lg p-6 mb-4 border border-gray-200">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div class="mb-4 md:mb-0 md:mr-6 flex-1">
-                    <Label class="text-lg font-medium text-gray-700 mb-1">Mandat</Label>
-                    <div class="w-full border-gray-300 rounded-md bg-gray-50">
-                        {{ projectId }}
-                    </div>
+                    <Label class="text-lg font-medium text-gray-700 mb-1">{{ $t('projects.title') }}</Label>
+                    <Select
+                        v-model="activity.projectId"
+                        :loading="loadingProjects"
+                        :options="projectOptions"
+                        :disabled="!isNewEntry"
+                        class="w-full"
+                    />
                 </div>
                 <div class="flex-1">
-                    <Label class="text-lg font-medium text-gray-700 mb-1">Date</Label>
+                    <Label class="text-lg font-medium text-gray-700 mb-1">{{ $t('time.columns.date') }}</Label>
                     <input
                         type="date"
                         id="date"
@@ -24,66 +28,66 @@
                         class="w-full p-2 border border-gray-300 rounded-md"
                     />
                 </div>
-                <!-- Collaborateur (disabled) -->
-                <div class="flex-1">
-                    <Label for="collaborator" class="block text-sm font-medium text-gray-700 mb-1">
-                        Collaborateur
+                <!-- User (disabled for non-admin) -->
+                <div class="flex-1" v-if="isAdmin">
+                    <Label for="user" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ $t('time.columns.user') }}
                     </Label>
-                    <select
-                        id="collaborator"
-                        v-model="timeEntry.IDcollaborateur"
-                        class="w-full p-2 border border-gray-300 rounded-md bg-gray-100"
-                        disabled
-                    >
-                        <option v-for="(name, id) in collaborators" :key="id" :value="Number(id)">
-                            {{ name }}
-                        </option>
-                    </select>
+                    <Select
+                        v-model="activity.userId"
+                        :loading="loadingUsers"
+                        :options="userOptions"
+                        class="w-full"
+                    />
+                </div>
+                <div class="flex-1" v-else>
+                    <Label class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ $t('time.columns.user') }}
+                    </Label>
+                    <div class="w-full p-2 border border-gray-300 rounded-md bg-gray-100">
+                        {{ currentUserName }}
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="bg-white rounded-lg p-6 border border-gray-200">
-            <form @submit.prevent="saveTimeEntry">
+            <form @submit.prevent="saveActivity">
                 <!-- Hours, Km, Fees section -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                     <div>
-                        <label for="activity" class="block text-sm font-medium text-gray-700 mb-1">
-                            Activité
+                        <label for="activityType" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ $t('time.columns.activityType') }}
                         </label>
-                        <select
-                            id="activity"
-                            v-model="timeEntry.IDactivité"
-                            class="w-full p-2 border border-gray-300 rounded-md"
-                        >
-                            <option value="">Sélectionnez une activité</option>
-                            <option v-for="(name, id) in activities" :key="id" :value="Number(id)">
-                                {{ name }}
-                            </option>
-                        </select>
+                        <Select
+                            v-model="activity.activityTypeId"
+                            :loading="loadingActivityTypes"
+                            :options="activityTypeOptions"
+                            class="w-full"
+                        />
                     </div>
                     <div class="flex-1">
-                        <label for="hours" class="block text-sm font-medium text-gray-700 mb-1">
-                            Heures
+                        <label for="duration" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ $t('time.columns.duration') }} (minutes)
                         </label>
                         <input
                             type="number"
-                            id="hours"
-                            v-model.number="timeEntry.Heures"
-                            step="0.5"
+                            id="duration"
+                            v-model.number="activity.duration"
+                            step="15"
                             min="0"
                             class="w-full p-2 border border-gray-300 rounded-md"
                         />
                     </div>
 
                     <div>
-                        <label for="km" class="block text-sm font-medium text-gray-700 mb-1">
-                            Km
+                        <label for="kilometers" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ $t('time.columns.kilometers') }}
                         </label>
                         <input
                             type="number"
-                            id="km"
-                            v-model.number="timeEntry.Km"
+                            id="kilometers"
+                            v-model.number="activity.kilometers"
                             min="0"
                             class="w-full p-2 border border-gray-300 rounded-md"
                         />
@@ -91,12 +95,12 @@
 
                     <div>
                         <label for="expenses" class="block text-sm font-medium text-gray-700 mb-1">
-                            Frais
+                            {{ $t('time.columns.expenses') }} (CHF)
                         </label>
                         <input
                             type="number"
                             id="expenses"
-                            v-model.number="timeEntry.Frais"
+                            v-model.number="activity.expenses"
                             step="0.01"
                             min="0"
                             class="w-full p-2 border border-gray-300 rounded-md"
@@ -107,40 +111,40 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Activité -->
 
-                    <!-- Facturé - only show if not a new entry -->
+                    <!-- Billed - only show if not a new entry -->
                     <div v-if="!isNewEntry" class="flex items-center mt-4">
                         <input
                             type="checkbox"
-                            id="invoiced"
-                            v-model="isInvoiced"
+                            id="billed"
+                            v-model="activity.billed"
                             class="h-4 w-4 text-indigo-600 border-gray-300 rounded"
                         />
-                        <label for="invoiced" class="ml-2 block text-sm text-gray-700">
-                            Facturé
+                        <label for="billed" class="ml-2 block text-sm text-gray-700">
+                            {{ $t('time.status.billed') }}
                         </label>
                     </div>
 
-                    <!-- Débours -->
+                    <!-- Disbursement -->
                     <div class="flex items-center mt-4">
                         <input
                             type="checkbox"
                             id="disbursement"
-                            v-model="isDisbursement"
+                            v-model="activity.disbursement"
                             class="h-4 w-4 text-indigo-600 border-gray-300 rounded"
                         />
                         <label for="disbursement" class="ml-2 block text-sm text-gray-700">
-                            Débours
+                            {{ $t('time.status.disbursement') }}
                         </label>
                     </div>
 
-                    <!-- Remarque -->
+                    <!-- Description -->
                     <div class="md:col-span-2">
-                        <label for="comment" class="block text-sm font-medium text-gray-700 mb-1">
-                            Remarque
+                        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ $t('time.columns.description') }}
                         </label>
                         <textarea
-                            id="comment"
-                            v-model="timeEntry.Remarque"
+                            id="description"
+                            v-model="activity.description"
                             rows="3"
                             class="w-full p-2 border border-gray-300 rounded-md"
                         ></textarea>
@@ -149,9 +153,15 @@
 
                 <div class="mt-8 flex justify-end space-x-3">
                     <Button variant="secondary" type="button" :to="{ name: 'time-list' }">
-                        Annuler
+                        {{ $t('common.cancel') }}
                     </Button>
-                    <Button variant="primary" type="submit"> Enregistrer </Button>
+                    <Button
+                        variant="primary"
+                        type="submit"
+                        :disabled="creatingActivity || updatingActivity || loadingActivity"
+                    >
+                        {{ creatingActivity || updatingActivity ? $t('common.loading') : $t('common.save') }}
+                    </Button>
                 </div>
             </form>
         </div>
@@ -159,164 +169,191 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue"
+import { ref, computed, onMounted, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { useI18n } from "vue-i18n"
 import Button from "../../components/atoms/Button.vue"
-
-interface TimeEntry {
-    IDHeure: number
-    IDcollaborateur: number
-    Date: string
-    Heures: number
-    Km: number
-    Frais: number
-    IDmandat: number
-    IDactivité: number
-    Remarque: string
-    Facturé: number
-    Débours: number
-}
+import Label from "@/components/atoms/Label.vue"
+import Select from "@/components/atoms/Select.vue"
+import { useFetchActivity, useCreateActivity, useUpdateActivity } from "@/composables/api/useActivity"
+import { useFetchProjectList } from "@/composables/api/useProject"
+import { useFetchUsers } from "@/composables/api/useUser"
+import { useFetchActivityTypes } from "@/composables/api/useActivityType"
+import { useAuthStore } from "@/stores/auth"
+import { ApiError } from "@/utils/api-error"
+import { ErrorCode } from "@beg/validations"
+import type { ActivityCreateInput, ActivityUpdateInput } from "@beg/validations"
 
 const route = useRoute()
 const router = useRouter()
-const entryId = computed(() => (route.params.id ? parseInt(route.params.id as string) : null))
-const isNewEntry = computed(() => !entryId.value)
-const projectId = computed(() => {
-    return route.query.projectId
+const { t } = useI18n()
+const authStore = useAuthStore()
+
+const activityId = computed(() => (route.params.id ? parseInt(route.params.id as string) : null))
+const isNewEntry = computed(() => !activityId.value)
+const projectIdFromQuery = computed(() => route.query.projectId ? Number(route.query.projectId) : undefined)
+
+// User info
+const currentUser = computed(() => authStore.user)
+const isAdmin = computed(() => currentUser.value?.role === 'admin')
+const currentUserName = computed(() => 
+    currentUser.value ? `${currentUser.value.firstName} ${currentUser.value.lastName}` : ''
+)
+
+// Activity data
+const activity = ref<ActivityCreateInput>({
+    projectId: projectIdFromQuery.value || 0,
+    activityTypeId: 0,
+    date: new Date(),
+    duration: 0,
+    kilometers: 0,
+    expenses: 0,
+    description: "",
+    billed: false,
+    disbursement: false,
+    userId: currentUser.value?.id,
 })
 
-// Mock current user ID (assuming this would come from an auth store in real app)
-const currentUserId = ref<number>(22) // This would be the logged in user's ID
+// Error handling
+const errorMessage = ref<string | null>(null)
 
-// Dummy data for the form
-const timeEntry = ref<TimeEntry>({
-    IDHeure: entryId.value || 0,
-    IDcollaborateur: currentUserId.value, // Set to current user
-    Date: new Date().toISOString(),
-    Heures: 0,
-    Km: 0,
-    Frais: 0,
-    IDmandat: 0,
-    IDactivité: 0,
-    Remarque: "",
-    Facturé: 0,
-    Débours: 0,
+// API composables
+const { get: fetchActivity, loading: loadingActivity } = useFetchActivity()
+const { post: createActivity, loading: creatingActivity } = useCreateActivity()
+const { put: updateActivity, loading: updatingActivity } = useUpdateActivity()
+const { get: fetchProjects, loading: loadingProjects, data: projectsData } = useFetchProjectList()
+const { get: fetchUsers, loading: loadingUsers, data: usersData } = useFetchUsers()
+const { get: fetchActivityTypes, loading: loadingActivityTypes, data: activityTypesData } = useFetchActivityTypes()
+
+// Options for dropdowns
+const projectOptions = ref<Array<{ label: string; value: number }>>([])
+const userOptions = ref<Array<{ label: string; value: number }>>([])
+const activityTypeOptions = ref<Array<{ label: string; value: number }>>([])
+
+// Watch for data changes and update options
+watch(projectsData, (newData) => {
+    if (newData) {
+        projectOptions.value = newData.data.map((project) => ({
+            label: `${project.projectNumber} - ${project.name}`,
+            value: project.id,
+        }))
+    }
 })
 
-// Set project ID from query param for new entries
-if (isNewEntry.value) {
-    timeEntry.value.IDmandat = Number(projectId.value)
-}
-
-// Mock data for collaborators and activities for display purposes
-const collaborators: Record<number, string> = {
-    9: "Michael Digout",
-    22: "Jérémie Pralong",
-    25: "Jacques Bechet",
-}
-
-// Mock project names
-const projects: Record<number, string> = {
-    1502: "Project Alpha",
-    3875: "Project Beta",
-    3701: "Project Gamma",
-}
-
-// Get project name for display
-const projectName = "Project Alpha"
-
-const activities: Record<number, string> = {
-    2: "Rapport",
-    4: "Traitement de données",
-    6: "Réunion, séance",
-    12: "Autre activité",
-}
-
-// Convert numeric values to checkbox values
-const isInvoiced = computed({
-    get: () => !!timeEntry.value.Facturé,
-    set: (value: boolean) => {
-        timeEntry.value.Facturé = value ? 1 : 0
-    },
+watch(usersData, (newData) => {
+    if (newData) {
+        userOptions.value = newData.map((user: any) => ({
+            label: `${user.firstName} ${user.lastName}`,
+            value: user.id,
+        }))
+    }
 })
 
-const isDisbursement = computed({
-    get: () => !!timeEntry.value.Débours,
-    set: (value: boolean) => {
-        timeEntry.value.Débours = value ? 1 : 0
-    },
+watch(activityTypesData, (newData) => {
+    if (newData) {
+        activityTypeOptions.value = newData.map((activityType) => ({
+            label: activityType.name,
+            value: activityType.id,
+        }))
+    }
 })
+
+// Clear error
+const clearError = () => {
+    errorMessage.value = null
+}
 
 // Handle date formatting
 const formattedDate = computed({
     get: () => {
         try {
-            const date = new Date(timeEntry.value.Date)
-            return date.toISOString().split("T")[0]
+            return activity.value.date.toISOString().split("T")[0]
         } catch (e) {
             return new Date().toISOString().split("T")[0]
         }
     },
     set: (value: string) => {
-        timeEntry.value.Date = new Date(value).toISOString()
+        activity.value.date = new Date(value)
     },
 })
 
-// If editing, let's pretend we're loading data
-if (entryId.value) {
-    // Simulating data loading with dummy data
-    const timeEntryMap: Record<number, TimeEntry> = {
-        1: {
-            IDHeure: 1,
-            IDcollaborateur: 22,
-            Date: "08/07/12 00:00:00",
-            Heures: 0.5,
-            Km: 0,
-            Frais: 0,
-            IDmandat: 1502,
-            IDactivité: 4,
-            Remarque: "divers beg",
-            Facturé: 0,
-            Débours: 1,
-        },
-        2: {
-            IDHeure: 2,
-            IDcollaborateur: 25,
-            Date: "02/23/12 00:00:00",
-            Heures: 7.5,
-            Km: 0,
-            Frais: 0,
-            IDmandat: 3875,
-            IDactivité: 2,
-            Remarque: "carte phénomènes",
-            Facturé: 1,
-            Débours: 1,
-        },
-        3: {
-            IDHeure: 3,
-            IDcollaborateur: 25,
-            Date: "02/23/12 00:00:00",
-            Heures: 1,
-            Km: 0,
-            Frais: 0,
-            IDmandat: 3701,
-            IDactivité: 2,
-            Remarque: "carte intensioté LTO",
-            Facturé: 1,
-            Débours: 1,
-        },
-    }
+// Load existing activity data if editing
+const loadActivityData = async () => {
+    if (!activityId.value) return
 
-    if (entryId.value in timeEntryMap) {
-        timeEntry.value = { ...timeEntryMap[entryId.value] }
+    try {
+        const response = await fetchActivity({
+            params: { id: activityId.value },
+        })
+
+        if (response) {
+            activity.value = {
+                projectId: response.project?.id || 0,
+                activityTypeId: response.activityType?.id || 0,
+                date: new Date(response.date),
+                duration: response.duration,
+                kilometers: response.kilometers,
+                expenses: response.expenses,
+                description: response.description || "",
+                billed: response.billed,
+                disbursement: response.disbursement,
+                userId: response.user?.id,
+            }
+        }
+    } catch (error) {
+        if (error instanceof ApiError) {
+            errorMessage.value = t(`errors.${error.code}`)
+        } else {
+            errorMessage.value = t('errors.general')
+        }
     }
 }
 
-const saveTimeEntry = () => {
-    // This is just a dummy function that would save the time entry
-    console.log("Saving time entry:", timeEntry.value)
+const saveActivity = async () => {
+    errorMessage.value = null
 
-    // Redirect to the list page
-    router.push({ name: "time-list" })
+    try {
+        const activityData: ActivityCreateInput | ActivityUpdateInput = {
+            ...activity.value,
+            userId: isAdmin.value && activity.value.userId ? activity.value.userId : undefined,
+        }
+
+        if (isNewEntry.value) {
+            await createActivity({
+                body: activityData as ActivityCreateInput,
+            })
+        } else {
+            await updateActivity({
+                params: { id: activityId.value! },
+                body: activityData as ActivityUpdateInput,
+            })
+        }
+
+        // Redirect to the list page
+        router.push({ name: 'time-list' })
+    } catch (error) {
+        if (error instanceof ApiError) {
+            if (error.code === ErrorCode.DUPLICATE_ENTRY) {
+                errorMessage.value = t('errors.DUPLICATE_ENTRY')
+            } else {
+                errorMessage.value = t(`errors.${error.code}`)
+            }
+        } else {
+            errorMessage.value = t('errors.general')
+        }
+    }
 }
+
+// Load data on mount
+onMounted(async () => {
+    await Promise.all([
+        fetchProjects({ query: { page: 1, limit: 100, includeArchived: false, includeEnded: false } }),
+        fetchActivityTypes(),
+        isAdmin.value ? fetchUsers() : Promise.resolve(),
+    ])
+
+    if (!isNewEntry.value) {
+        await loadActivityData()
+    }
+})
 </script>

@@ -1,7 +1,12 @@
 import type { Context } from "hono"
 import { HTTPException } from "hono/http-exception"
 import type { StatusCode } from "hono/utils/http-status"
-import { ErrorCode, createApiError, type ErrorCodeType, type ValidationErrorDetail } from "@beg/validations"
+import {
+    ErrorCode,
+    createApiError,
+    type ErrorCodeType,
+    type ValidationErrorDetail,
+} from "@beg/validations"
 import { ZodError } from "zod"
 
 export class ApiException extends HTTPException {
@@ -17,27 +22,15 @@ export class ApiException extends HTTPException {
 
 // Helper functions to throw standardized errors
 export function throwNotFound(resource: string): never {
-    throw new ApiException(
-        404,
-        ErrorCode.NOT_FOUND,
-        `${resource} not found`
-    )
+    throw new ApiException(404, ErrorCode.NOT_FOUND, `${resource} not found`)
 }
 
 export function throwUnauthorized(message = "Unauthorized"): never {
-    throw new ApiException(
-        401,
-        ErrorCode.UNAUTHORIZED,
-        message
-    )
+    throw new ApiException(401, ErrorCode.UNAUTHORIZED, message)
 }
 
 export function throwForbidden(message = "Forbidden"): never {
-    throw new ApiException(
-        403,
-        ErrorCode.FORBIDDEN,
-        message
-    )
+    throw new ApiException(403, ErrorCode.FORBIDDEN, message)
 }
 
 export function throwDuplicateEntry(resource: string, field: string, value: string): never {
@@ -50,25 +43,23 @@ export function throwDuplicateEntry(resource: string, field: string, value: stri
 }
 
 export function throwValidationError(message: string, details?: ValidationErrorDetail[]): never {
-    throw new ApiException(
-        400,
-        ErrorCode.VALIDATION_ERROR,
-        message,
-        details
-    )
+    throw new ApiException(400, ErrorCode.VALIDATION_ERROR, message, details)
+}
+
+export function throwResponseValidationError(
+    message: string,
+    details?: ValidationErrorDetail[]
+): never {
+    throw new ApiException(400, ErrorCode.RESPONSE_VALIDATION_ERROR, message, details)
 }
 
 export function throwInternalError(message = "Internal server error"): never {
-    throw new ApiException(
-        500,
-        ErrorCode.INTERNAL_ERROR,
-        message
-    )
+    throw new ApiException(500, ErrorCode.INTERNAL_ERROR, message)
 }
 
 // Convert Zod errors to our format
 export function parseZodError(error: ZodError): ValidationErrorDetail[] {
-    return error.errors.map(err => ({
+    return error.errors.map((err) => ({
         field: err.path.join("."),
         message: err.message,
         code: err.code,
@@ -81,12 +72,8 @@ export async function errorHandler(err: Error, c: Context) {
 
     // Handle our custom API exceptions
     if (err instanceof ApiException) {
-        const errorResponse = createApiError(
-            err.errorCode,
-            err.message,
-            err.details
-        )
-        
+        const errorResponse = createApiError(err.errorCode, err.message, err.details)
+
         return c.json(errorResponse, err.statusCode as any)
     }
 
@@ -97,25 +84,19 @@ export async function errorHandler(err: Error, c: Context) {
             "Validation failed",
             parseZodError(err)
         )
-        
+
         return c.json(errorResponse, 400)
     }
 
     // Handle Hono HTTP exceptions
     if (err instanceof HTTPException) {
-        const errorResponse = createApiError(
-            ErrorCode.UNKNOWN_ERROR,
-            err.message
-        )
-        
+        const errorResponse = createApiError(ErrorCode.UNKNOWN_ERROR, err.message)
+
         return c.json(errorResponse, err.status as any)
     }
 
     // Default error
-    const errorResponse = createApiError(
-        ErrorCode.INTERNAL_ERROR,
-        "An unexpected error occurred"
-    )
-    
+    const errorResponse = createApiError(ErrorCode.INTERNAL_ERROR, "An unexpected error occurred")
+
     return c.json(errorResponse, 500)
 }

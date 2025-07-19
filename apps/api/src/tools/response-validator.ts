@@ -3,6 +3,7 @@ import { createMiddleware } from "hono/factory"
 import { HTTPException } from "hono/http-exception"
 import type { StatusCode } from "hono/utils/http-status"
 import { ZodSchema } from "zod"
+import { throwResponseValidationError, throwValidationError } from "./error-handler"
 
 declare module "hono" {
     interface ContextRenderer {
@@ -18,19 +19,19 @@ export const responseValidator = (params: Params) =>
             for (const [code, schema] of Object.entries(params)) {
                 if (status.toString() === code) {
                     const result = schema.safeParse(data)
+
                     if (!result.success) {
-                        throw new HTTPException(500, {
-                            res:
-                                process.env.NODE_ENV === "development"
-                                    ? c.json(
-                                          {
-                                              message: "Validation response error",
-                                              error: result.error.flatten(),
-                                          },
-                                          500
-                                      )
-                                    : c.json({ message: "Validation response error" }, 500),
+                        const fieldErrors = result.error.flatten().fieldErrors
+                        const errors = Object.keys(fieldErrors).flatMap((key) => {
+                            const keyErrors = fieldErrors[key as keyof typeof fieldErrors]
+                            if (!keyErrors) return []
+                            return keyErrors.map((error: string) => ({
+                                field: key,
+                                message: error,
+                                code: undefined,
+                            }))
                         })
+                        throwResponseValidationError("Validation response error", errors)
                     }
                     return c.json(result.data)
                 }

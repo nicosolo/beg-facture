@@ -1,7 +1,7 @@
 import { and, eq, sql, desc, asc, gte, lte, or } from "drizzle-orm"
 import { db } from "../index"
 import { activities, activityTypes, projects, users, projectAccess } from "../schema"
-import type { ActivityFilter, ActivityCreateInput, ActivityUpdateInput } from "@beg/validations"
+import type { ActivityFilter } from "@beg/validations"
 import type { Variables } from "@src/types/global"
 
 // Helper function to update project dates and duration
@@ -181,12 +181,40 @@ export const activityRepository = {
             : countQuery)
         const totalPages = Math.ceil(count / limit)
 
+        // Calculate totals for all filtered activities (without pagination)
+        const totalsQuery = db
+            .select({
+                totalDuration: sql<number>`COALESCE(SUM(${activities.duration}), 0)`,
+                totalKilometers: sql<number>`COALESCE(SUM(${activities.kilometers}), 0)`,
+                totalExpenses: sql<number>`COALESCE(SUM(${activities.expenses}), 0)`,
+            })
+            .from(activities)
+            .leftJoin(projects, eq(activities.projectId, projects.id))
+
+        if (user.role !== "admin") {
+            totalsQuery.innerJoin(
+                projectAccess,
+                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+            )
+        }
+
+        const [totalsResult] = await (whereConditions.length > 0
+            ? totalsQuery.where(and(...whereConditions))
+            : totalsQuery)
+
+        const totals = {
+            duration: Number(totalsResult.totalDuration),
+            kilometers: Number(totalsResult.totalKilometers),
+            expenses: Number(totalsResult.totalExpenses),
+        }
+
         return {
             data,
             total: count,
             page,
             limit,
             totalPages,
+            totals,
         }
     },
 

@@ -7,35 +7,38 @@ export const ErrorCode = {
     FORBIDDEN: "FORBIDDEN",
     INVALID_CREDENTIALS: "INVALID_CREDENTIALS",
     TOKEN_EXPIRED: "TOKEN_EXPIRED",
-    
+
     // Resource errors
     NOT_FOUND: "NOT_FOUND",
     ALREADY_EXISTS: "ALREADY_EXISTS",
-    
+
     // Validation errors
     VALIDATION_ERROR: "VALIDATION_ERROR",
     INVALID_INPUT: "INVALID_INPUT",
     MISSING_REQUIRED_FIELD: "MISSING_REQUIRED_FIELD",
     INVALID_FORMAT: "INVALID_FORMAT",
-    
+
     // Business logic errors
     DUPLICATE_ENTRY: "DUPLICATE_ENTRY",
     CONSTRAINT_VIOLATION: "CONSTRAINT_VIOLATION",
     OPERATION_NOT_ALLOWED: "OPERATION_NOT_ALLOWED",
-    
+
     // Server errors
     INTERNAL_ERROR: "INTERNAL_ERROR",
     DATABASE_ERROR: "DATABASE_ERROR",
     EXTERNAL_SERVICE_ERROR: "EXTERNAL_SERVICE_ERROR",
-    
+
     // Rate limiting
     RATE_LIMIT_EXCEEDED: "RATE_LIMIT_EXCEEDED",
-    
+
     // Unknown
     UNKNOWN_ERROR: "UNKNOWN_ERROR",
+
+    // Response validation errors
+    RESPONSE_VALIDATION_ERROR: "RESPONSE_VALIDATION_ERROR",
 } as const
 
-export type ErrorCodeType = typeof ErrorCode[keyof typeof ErrorCode]
+export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode]
 
 // Error code schema
 export const errorCodeSchema = z.enum([
@@ -57,6 +60,7 @@ export const errorCodeSchema = z.enum([
     ErrorCode.EXTERNAL_SERVICE_ERROR,
     ErrorCode.RATE_LIMIT_EXCEEDED,
     ErrorCode.UNKNOWN_ERROR,
+    ErrorCode.RESPONSE_VALIDATION_ERROR,
 ])
 
 // Validation error details

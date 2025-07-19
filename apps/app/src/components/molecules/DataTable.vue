@@ -5,16 +5,18 @@
         </div>
         <div v-else>
             <!-- Header row (visible only on desktop) -->
-            <div class="hidden md:flex bg-gray-50 divide-y divide-gray-200 w-full gap-2">
+            <div
+                class="hidden md:grid bg-gray-50 border-b border-gray-200"
+                :style="{ gridTemplateColumns }"
+            >
                 <div
                     v-for="column in columns"
                     :key="column.key"
                     :class="[
-                        'px-3 py-3 text-sm font-medium text-gray-500 tracking-wider divide-y divide-gray-200',
-                        getWidth(column),
+                        'px-3 py-3 text-sm font-medium text-gray-500 tracking-wider border-r border-gray-200 last:border-r-0',
                         column.sortKey && 'cursor-pointer hover:bg-gray-100 transition-colors',
                     ]"
-                    @click="column.sortKey && handleSort(column)"
+                    @click="handleSort(column)"
                 >
                     <div class="flex items-center space-x-1">
                         <span>{{ column.label }}</span>
@@ -73,21 +75,21 @@
                     :key="getItemKey(item, index)"
                     class="hover:bg-gray-100"
                 >
-                    <div class="flex flex-col md:flex-row gap-2">
+                    <div class="flex flex-col md:hidden">
+                        <!-- Mobile view keeps existing layout -->
                         <div
                             v-for="column in columns"
                             :key="column.key"
-                            :class="[getWidth(column)]"
+                            class="border-b border-gray-200 last:border-b-0"
                         >
-                            <div :class="['flex flex-row md:flex-col sm:w-full']">
+                            <div class="flex">
                                 <div
                                     v-if="!column.actions"
-                                    class="md:hidden px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2"
+                                    class="px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2"
                                 >
                                     {{ column.label }}
                                 </div>
-
-                                <div :class="['md:px-3 py-2 md:py-2', 'w-full w-1/']">
+                                <div class="px-3 py-2 flex-1">
                                     <slot
                                         :name="`cell:${column.key}`"
                                         :item="item"
@@ -99,28 +101,47 @@
                             </div>
                         </div>
                     </div>
+                    <div class="hidden md:grid" :style="{ gridTemplateColumns }">
+                        <div
+                            v-for="column in columns"
+                            :key="column.key"
+                            class="px-3 py-2 border-r border-gray-200 last:border-r-0"
+                        >
+                            <slot :name="`cell:${column.key}`" :item="item" :column="column">
+                                {{ getItemValue(item, column) }}
+                            </slot>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Footer row with totals -->
             <div v-if="showFooter" class="border-t-2 border-gray-300 bg-gray-50">
-                <div class="flex flex-col md:flex-row gap-2">
+                <!-- Mobile footer -->
+                <div class="flex flex-col md:hidden">
+                    <div
+                        v-for="column in columns"
+                        :key="`total-mobile-${column.key}`"
+                        class="flex border-b border-gray-200 last:border-b-0"
+                    >
+                        <div
+                            class="px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2"
+                        >
+                            {{ column.label }}
+                        </div>
+                        <div class="px-3 py-2 font-medium flex-1">
+                            <slot :name="`total:${column.key}`" :column="column"> </slot>
+                        </div>
+                    </div>
+                </div>
+                <!-- Desktop footer with grid -->
+                <div class="hidden md:grid" :style="{ gridTemplateColumns }">
                     <div
                         v-for="column in columns"
                         :key="`total-${column.key}`"
-                        :class="[getWidth(column)]"
+                        class="px-3 py-2 font-medium border-r border-gray-200 last:border-r-0"
                     >
-                        <div :class="['flex flex-row md:flex-col sm:w-full']">
-                            <div
-                                class="md:hidden px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2"
-                            >
-                                {{ column.label }}
-                            </div>
-
-                            <div :class="['md:px-3 py-2 md:py-2 font-medium', 'w-full w-1/']">
-                                <slot :name="`total:${column.key}`" :column="column"> </slot>
-                            </div>
-                        </div>
+                        <slot :name="`total:${column.key}`" :column="column"> </slot>
                     </div>
                 </div>
             </div>
@@ -129,13 +150,25 @@
 </template>
 
 <script setup lang="ts">
-import type { Ref } from "vue"
-
-interface Column {
+import { computed } from "vue"
+export interface Column {
     key: string
     label: string
     nowrap?: boolean
-    width?: "w-1/2" | "w-2/3" | "w-2/4" | "w-1/3"
+    width?:
+        | "w-1/2"
+        | "w-2/3"
+        | "w-2/4"
+        | "w-1/3"
+        | "w-1/4"
+        | "w-1/5"
+        | "w-1/6"
+        | "w-1/12"
+        | "w-2/4"
+        | "w-2/5"
+        | "w-2/6"
+        | "w-2/12"
+        | string
     actions?: boolean
     sortKey?: string
 }
@@ -161,16 +194,49 @@ const {
 } = defineProps<Props>()
 
 const getWidth = (column: Column) => {
-    return column.width
-        ? column.width === "w-1/2"
-            ? "md:w-1/2"
-            : column.width === "w-2/3"
-              ? "md:w-2/3"
-              : column.width === "w-2/4"
-                ? "md:w-2/4"
-                : "md:w-1/3"
-        : "md:flex-1"
+    if (!column.width) {
+        return "flex-1"
+    }
+
+    // If it's already a flex class, return as is
+    if (column.width.startsWith("flex-")) {
+        return ` md:${column.width}`
+    }
+
+    // For fixed width classes (w-20, w-24, etc.), add responsive prefix
+    return `md:${column.width}`
 }
+
+// Generate grid template columns based on column widths
+const gridTemplateColumns = computed(() => {
+    return columns
+        .map((col) => {
+            if (!col.width) return "1fr"
+
+            // Convert Tailwind width classes to CSS values
+            const widthMap: Record<string, string> = {
+                "w-1/2": "50%",
+                "w-2/3": "66.66%",
+                "w-2/4": "50%",
+                "w-1/3": "33.33%",
+                "w-1/4": "25%",
+                "w-1/5": "20%",
+                "w-1/6": "16.66%",
+                "w-1/12": "8.33%",
+                "w-2/5": "40%",
+                "w-2/6": "33.33%",
+                "w-48": "12rem",
+                "flex-1": "1fr",
+            }
+
+            return widthMap[col.width] || col.width
+        })
+        .join(" ")
+})
+
+const gridClasses = computed(() => {
+    return `hidden md:grid gap-0`
+})
 // Get a unique key for each item
 const getItemKey = (item: any, index: number): string | number => {
     if (itemKey && item[itemKey] !== undefined) {
@@ -195,7 +261,6 @@ const handleSort = (column: Column) => {
     if (!sort || !column.sortKey) return
 
     const sortKey = column.sortKey || column.key
-
     // Toggle direction if clicking the same column, otherwise default to asc
     if (sort.key === sortKey) {
         emit("sort-change", {

@@ -17,6 +17,8 @@ export default {
         next: "Suivant",
         previous: "Précédent",
         notAvailable: "N/D",
+        all: "Tous",
+        resetFilters: "Réinitialiser les filtres",
     },
     navigation: {
         home: "Accueil",
@@ -127,7 +129,7 @@ export default {
         required: "Ce champ est requis",
         invalid: "Ce champ est invalide",
         networkError: "Erreur de connexion au serveur",
-        
+
         // Error codes from API
         UNAUTHORIZED: "Vous n'êtes pas autorisé à effectuer cette action",
         FORBIDDEN: "Accès interdit",
@@ -147,7 +149,7 @@ export default {
         EXTERNAL_SERVICE_ERROR: "Erreur de service externe",
         RATE_LIMIT_EXCEEDED: "Trop de requêtes. Veuillez réessayer plus tard",
         UNKNOWN_ERROR: "Erreur inconnue",
-        
+
         // Error messages with placeholders
         DUPLICATE_ENTRY_DETAIL: "Le champ '{field}' contient une valeur qui existe déjà",
         VALIDATION_ERROR_DETAIL: "Erreurs de validation: {details}",
@@ -164,5 +166,36 @@ export default {
         url: "L'URL n'est pas valide",
         number: "La valeur doit être un nombre",
         integer: "La valeur doit être un nombre entier",
+    },
+    time: {
+        title: "Gestion des heures",
+        new: "Nouvelle entrée",
+        columns: {
+            date: "Date",
+            user: "Collaborateur",
+            project: "Projet",
+            activityType: "Activité",
+            duration: "Durée",
+            kilometers: "Kilomètres",
+            expenses: "Frais",
+            description: "Description",
+            status: "Statut",
+        },
+        filters: {
+            user: "Collaborateur",
+            project: "Projet",
+            activityType: "Activité",
+            fromDate: "Date de début",
+            toDate: "Date de fin",
+            billingStatus: "Statut de facturation",
+            billed: "Facturé",
+            unbilled: "Non facturé",
+            disbursement: "Débours",
+        },
+        status: {
+            billed: "Facturé",
+            unbilled: "Non facturé",
+            disbursement: "Débours",
+        },
     },
 }

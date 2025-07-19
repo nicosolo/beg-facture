@@ -91,7 +91,7 @@ const columns = ref([
     {
         key: "name",
         label: t("projects.name"),
-        width: "w-1/3" as const,
+        width: "w-1/3",
         sortable: true,
     },
 
@@ -124,7 +124,7 @@ const columns = ref([
         label: t("projects.actions"),
         nowrap: false,
         actions: true,
-        width: "w-1/3" as const,
+        width: "w-1/3",
     },
 ])
 

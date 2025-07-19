@@ -50,7 +50,8 @@ const pageSize = ref(20)
 // Filter state
 const filter = ref<ProjectFilterModel>({
     name: "",
-    archived: false,
+    includeArchived: false,
+    includeEnded: false,
     sortBy: "lastActivityDate",
     sortOrder: "desc",
     fromDate: undefined,

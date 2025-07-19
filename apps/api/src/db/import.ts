@@ -451,13 +451,15 @@ async function importActivities() {
                 projectId,
                 activityTypeId,
                 date: activityDate,
-                duration: (parseFloat(rawActivity.Heures) || 0) * 60,
+                duration: Math.round((parseFloat(rawActivity.Heures) || 0) * 60),
                 kilometers: parseInt(rawActivity.Km) || 0,
                 expenses: parseFloat(rawActivity.Frais) || 0,
                 rate: parseFloat(rawActivity.Tarif) || 0,
                 description: rawActivity.Remarque,
                 billed: rawActivity.Facturé === 1,
                 disbursement: rawActivity.Débours === 1,
+                createdAt: activityDate,
+                updatedAt: activityDate,
             }
 
             chunkActivities.push(activity)

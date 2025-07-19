@@ -8,19 +8,17 @@ import {
     activityUpdateSchema,
     idParamSchema,
     createPageResponseSchema,
-    type ClassSchema,
+    activityListResponse,
 } from "@beg/validations"
 import { activityRepository } from "../db/repositories/activity.repository"
 import { projectRepository } from "../db/repositories/project.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
-import { throwDuplicateEntry, throwNotFound, throwValidationError } from "@src/tools/error-handler"
+import { throwNotFound, throwValidationError } from "@src/tools/error-handler"
 import type { Variables } from "@src/types/global"
 import { activityTypeRepository } from "@src/db/repositories/activityType.repository"
 import { rateRepository } from "@src/db/repositories/rate.repository"
 import { userRepository } from "@src/db/repositories/user.repository"
-
-const activityResponseArraySchema = createPageResponseSchema(activityResponseSchema)
 
 export const activityRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
@@ -28,7 +26,7 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
         "/",
         zValidator("query", activityFilterSchema),
         responseValidator({
-            200: activityResponseArraySchema,
+            200: activityListResponse,
         }),
         async (c) => {
             const filter = c.req.valid("query")

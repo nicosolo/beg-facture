@@ -1,138 +1,144 @@
 <template>
-    <div class="container mx-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">Liste des heures</h1>
-            <Button variant="primary" :to="{ name: 'time-new' }"> Nouvelle entrée </Button>
-        </div>
+    <h1 class="text-2xl font-bold mb-6">{{ $t("time.title") }}</h1>
 
-        <!-- Filter Panel -->
-        <TimeFilterPanel v-model="filters" @reset="onFilterReset" />
-
-        <!-- Time Entries List -->
+    <TimeFilterPanel
+        v-model:filter="filter"
+        @filter-change="loadActivities"
+        @filter-input-change="debouncedFetch"
+    />
+    <LoadingOverlay :loading="loading">
         <TimeEntriesList
-            :timeEntries="timeEntries"
+            :activities="activities"
+            :totals="totals"
+            :sort="sort"
             empty-message="Aucune entrée d'heure trouvée"
             editRoute="time-edit"
+            @sort-change="handleSortChange"
         />
-    </div>
+
+        <Pagination
+            v-if="activities.length > 0 || totalItems > 0"
+            :current-page="currentPage"
+            :total-pages="totalPages"
+            :total-items="totalItems"
+            :page-size="pageSize"
+            @prev="prevPage"
+            @next="nextPage"
+            @go-to="goToPage"
+        />
+    </LoadingOverlay>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
-import Button from "../../components/atoms/Button.vue"
+import { ref, watch, onMounted, computed } from "vue"
+import { useFetchActivityList } from "@/composables/api/useActivity"
+import TimeFilterPanel, {
+    type TimeFilterModel,
+} from "../../components/organisms/TimeFilterPanel.vue"
 import TimeEntriesList from "../../components/organisms/TimeEntriesList.vue"
-import TimeFilterPanel from "../../components/organisms/TimeFilterPanel.vue"
-import type { TimeEntry } from "../../components/organisms/TimeEntriesList.vue"
-import type { TimeFilters } from "../../components/organisms/TimeFilterPanel.vue"
+import Pagination from "@/components/organisms/Pagination.vue"
+import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
+import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@beg/validations"
 
-// Initialize filters
-const filters = ref<TimeFilters>({
-    collaborateur: "",
-    project: "",
-    activity: "",
-    dateFrom: undefined,
-    dateTo: undefined,
-    status: "",
+// API client
+const { get: fetchActivities, loading, data } = useFetchActivityList()
+
+// State
+const activities = ref<ActivityResponse[]>([])
+const totalItems = ref(0)
+const totalPages = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(20)
+const totals = ref<{ duration: number; kilometers: number; expenses: number } | undefined>()
+
+// Filter state
+const filter = ref<TimeFilterModel>({
+    userId: undefined,
+    projectId: undefined,
+    activityTypeId: undefined,
+    fromDate: undefined,
+    toDate: undefined,
+    includeBilled: false,
+    includeUnbilled: true,
+    includeDisbursement: false,
+    sortBy: "date",
+    sortOrder: "desc",
 })
 
-// Sample data for time entries
-const timeEntries = ref<TimeEntry[]>([
-    {
-        IDHeure: 1,
-        IDcollaborateur: 22,
-        Date: "08/07/12 00:00:00",
-        Heures: 0.5,
-        Km: 0,
-        Frais: 0,
-        IDmandat: 1502,
-        IDactivité: 4,
-        Remarque: "divers beg",
-        Facturé: 0,
-        Débours: 1,
-    },
-    {
-        IDHeure: 2,
-        IDcollaborateur: 25,
-        Date: "02/23/12 00:00:00",
-        Heures: 7.5,
-        Km: 0,
-        Frais: 0,
-        IDmandat: 3875,
-        IDactivité: 2,
-        Remarque: "carte phénomènes",
-        Facturé: 1,
-        Débours: 1,
-    },
-    {
-        IDHeure: 3,
-        IDcollaborateur: 25,
-        Date: "02/23/12 00:00:00",
-        Heures: 1,
-        Km: 0,
-        Frais: 0,
-        IDmandat: 3701,
-        IDactivité: 2,
-        Remarque: "carte intensioté LTO",
-        Facturé: 1,
-        Débours: 1,
-    },
-    {
-        IDHeure: 4,
-        IDcollaborateur: 25,
-        Date: "02/24/12 00:00:00",
-        Heures: 11,
-        Km: 70,
-        Frais: 0,
-        IDmandat: 3485,
-        IDactivité: 6,
-        Remarque: "jaugeage fluo",
-        Facturé: 1,
-        Débours: 1,
-    },
-    {
-        IDHeure: 5,
-        IDcollaborateur: 25,
-        Date: "02/27/12 00:00:00",
-        Heures: 9,
-        Km: 0,
-        Frais: 0,
-        IDmandat: 3875,
-        IDactivité: 12,
-        Remarque: "carte phénomène et périmètres d'études",
-        Facturé: 1,
-        Débours: 1,
-    },
-    {
-        IDHeure: 6,
-        IDcollaborateur: 25,
-        Date: "02/28/12 00:00:00",
-        Heures: 8.5,
-        Km: 0,
-        Frais: 0,
-        IDmandat: 3875,
-        IDactivité: 2,
-        Remarque: "carte phénomène tassement",
-        Facturé: 1,
-        Débours: 1,
-    },
-    {
-        IDHeure: 7,
-        IDcollaborateur: 9,
-        Date: "08/06/12 00:00:00",
-        Heures: 0.5,
-        Km: 0,
-        Frais: 0,
-        IDmandat: 4205,
-        IDactivité: 12,
-        Remarque: "trajectographie",
-        Facturé: 1,
-        Débours: 1,
-    },
-])
+const sort = computed(() => ({
+    key: filter.value.sortBy,
+    direction: filter.value.sortOrder,
+}))
 
-// Handle filter reset
-const onFilterReset = () => {
-    // Additional logic if needed when filters are reset
-    // For now, it's handled by the TimeFilterPanel component
+const handleSortChange = (sort: {
+    key: ActivityFilter["sortBy"] | string
+    direction: ActivityFilter["sortOrder"] | "asc" | "desc"
+}) => {
+    filter.value.sortBy = sort.key as ActivityFilter["sortBy"]
+    filter.value.sortOrder = sort.direction as ActivityFilter["sortOrder"]
+    loadActivities()
 }
+
+// Watch for API data changes
+watch(
+    data,
+    (newData) => {
+        if (newData) {
+            const pageData = newData as unknown as ActivityListResponse
+            activities.value = pageData.data
+            totalItems.value = pageData.total
+            totalPages.value = pageData.totalPages
+            totals.value = pageData.totals
+        }
+    },
+    { deep: true }
+)
+
+const debouncedFetch = (() => {
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    return () => {
+        if (timeout) clearTimeout(timeout)
+        timeout = setTimeout(() => {
+            loadActivities()
+            timeout = null
+        }, 300)
+    }
+})()
+
+const loadActivities = async () => {
+    const params: ActivityFilter = {
+        page: currentPage.value,
+        limit: pageSize.value,
+        ...filter.value,
+    }
+
+    await fetchActivities({
+        query: params,
+    })
+}
+
+// Pagination handlers
+const prevPage = () => {
+    if (currentPage.value > 1) {
+        currentPage.value--
+        loadActivities()
+    }
+}
+
+const nextPage = () => {
+    if (currentPage.value < totalPages.value) {
+        currentPage.value++
+        loadActivities()
+    }
+}
+
+const goToPage = (page: number) => {
+    currentPage.value = page
+    loadActivities()
+}
+
+// Load initial data
+onMounted(() => {
+    loadActivities()
+})
 </script>

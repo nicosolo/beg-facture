@@ -1,135 +1,225 @@
 <template>
     <div class="bg-white p-4 border border-gray-200 rounded-lg mb-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Collaborateur Filter -->
+            <!-- User Filter -->
             <div class="form-group">
-                <Label>Collaborateur</Label>
+                <Label>{{ $t("time.filters.user") }}</Label>
                 <Select
-                    v-model="collaborateur"
+                    v-model="localFilter.userId"
+                    :loading="loadingUsers"
                     :options="[
-                        { label: 'Tous les collaborateurs', value: '' },
-                        { label: 'Michael Digout', value: '9' },
-                        { label: 'Jérémie Pralong', value: '22' },
-                        { label: 'Jacques Bechet', value: '25' },
+                        { label: $t('common.all'), value: null },
+                        ...userOptions,
                     ]"
+                    @update:modelValue="handleFilterChange"
                 ></Select>
             </div>
 
             <!-- Project Filter -->
             <div class="form-group">
-                <Label>Projet</Label>
+                <Label>{{ $t("time.filters.project") }}</Label>
                 <Select
-                    v-model="project"
+                    v-model="localFilter.projectId"
+                    :loading="loadingProjects"
                     :options="[
-                        { label: 'Tous les projets', value: '' },
-                        { label: 'Projet BEG', value: '1502' },
-                        { label: 'Jaugeage fluo', value: '3485' },
-                        { label: 'Carte intensité', value: '3701' },
-                        { label: 'Carte phénomènes', value: '3875' },
-                        { label: 'Trajectographie', value: '4205' },
+                        { label: $t('common.all'), value: null },
+                        ...projectOptions,
                     ]"
+                    @update:modelValue="handleFilterChange"
                 ></Select>
             </div>
 
-            <!-- Activity Filter -->
+            <!-- Activity Type Filter -->
             <div class="form-group">
-                <Label>Activité</Label>
+                <Label>{{ $t("time.filters.activityType") }}</Label>
                 <Select
-                    v-model="activity"
+                    v-model="localFilter.activityTypeId"
+                    :loading="loadingActivityTypes"
                     :options="[
-                        { label: 'Toutes les activités', value: '' },
-                        { label: 'Rapport', value: '2' },
-                        { label: 'Traitement de données', value: '4' },
-                        { label: 'Réunion, séance', value: '6' },
-                        { label: 'Autre activité', value: '12' },
+                        { label: $t('common.all'), value: null },
+                        ...activityTypeOptions,
                     ]"
+                    @update:modelValue="handleFilterChange"
                 ></Select>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             <!-- Date From -->
-            <DateField label="Date de début" v-model="dateFrom" />
+            <DateField
+                :label="$t('time.filters.fromDate')"
+                v-model="localFilter.fromDate"
+                @update:modelValue="handleFilterChange"
+            />
 
             <!-- Date To -->
-            <DateField label="Date de fin" v-model="dateTo" />
+            <DateField
+                :label="$t('time.filters.toDate')"
+                v-model="localFilter.toDate"
+                @update:modelValue="handleFilterChange"
+            />
 
-            <!-- Invoice Status -->
+            <!-- Billing Status -->
             <div class="form-group">
-                <Label>Statut de facturation</Label>
-                <Select
-                    v-model="status"
-                    :options="[
-                        { label: 'Tous', value: '' },
-                        { label: 'Facturé', value: '1' },
-                        { label: 'Non facturé', value: '0' },
-                    ]"
-                ></Select>
+                <Label>{{ $t("time.filters.billingStatus") }}</Label>
+                <div class="space-y-2">
+                    <label class="flex items-center">
+                        <input
+                            type="checkbox"
+                            v-model="localFilter.includeBilled"
+                            @change="handleFilterChange"
+                            class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
+                        />
+                        {{ $t("time.filters.billed") }}
+                    </label>
+                    <label class="flex items-center">
+                        <input
+                            type="checkbox"
+                            v-model="localFilter.includeUnbilled"
+                            @change="handleFilterChange"
+                            class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
+                        />
+                        {{ $t("time.filters.unbilled") }}
+                    </label>
+                    <label class="flex items-center">
+                        <input
+                            type="checkbox"
+                            v-model="localFilter.includeDisbursement"
+                            @change="handleFilterChange"
+                            class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
+                        />
+                        {{ $t("time.filters.disbursement") }}
+                    </label>
+                </div>
             </div>
         </div>
 
         <div class="flex mt-4">
-            <Button @click="resetFilters" variant="secondary"> Réinitialiser les filtres </Button>
+            <Button @click="resetFilters" variant="secondary">
+                {{ $t("common.resetFilters") }}
+            </Button>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue"
+import { ref, watch, onMounted } from "vue"
+import { useI18n } from "vue-i18n"
 import Label from "../atoms/Label.vue"
 import Select from "../atoms/Select.vue"
 import Button from "../atoms/Button.vue"
 import DateField from "../molecules/DateField.vue"
+import { useFetchUsers } from "@/composables/api/useUser"
+import { useFetchProjectList } from "@/composables/api/useProject"
+import { useFetchActivityTypes } from "@/composables/api/useActivityType"
+import type { ActivityFilter } from "@beg/validations"
 
-export interface TimeFilters {
-    collaborateur: string
-    project: string
-    activity: string
-    dateFrom?: Date
-    dateTo?: Date
-    status: string
+export interface TimeFilterModel {
+    userId?: number
+    projectId?: number
+    activityTypeId?: number
+    fromDate?: Date
+    toDate?: Date
+    includeBilled: boolean
+    includeUnbilled: boolean
+    includeDisbursement: boolean
+    sortBy: ActivityFilter["sortBy"]
+    sortOrder: ActivityFilter["sortOrder"]
 }
 
+// For backwards compatibility, keep the old interface name as an alias
+export type TimeFilters = TimeFilterModel
+
 interface Props {
-    modelValue?: TimeFilters
+    filter: TimeFilterModel
 }
 
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-    (e: "update:modelValue", value: TimeFilters): void
-    (e: "reset"): void
+    "update:filter": [value: TimeFilterModel]
+    "filter-change": []
+    "filter-input-change": []
 }>()
 
-// Internal state for filters
-const collaborateur = ref(props.modelValue?.collaborateur || "")
-const project = ref(props.modelValue?.project || "")
-const activity = ref(props.modelValue?.activity || "")
-const dateFrom = ref<Date | undefined>(props.modelValue?.dateFrom)
-const dateTo = ref<Date | undefined>(props.modelValue?.dateTo)
-const status = ref(props.modelValue?.status || "")
+// Local filter state
+const localFilter = ref<TimeFilterModel>({ ...props.filter })
 
-// Watch for changes in filters and emit update
-watch([collaborateur, project, activity, dateFrom, dateTo, status], () => {
-    const filters: TimeFilters = {
-        collaborateur: collaborateur.value,
-        project: project.value,
-        activity: activity.value,
-        dateFrom: dateFrom.value,
-        dateTo: dateTo.value,
-        status: status.value,
+// Fetch data for dropdowns
+const { get: fetchUsers, loading: loadingUsers, data: usersData } = useFetchUsers()
+const { get: fetchProjects, loading: loadingProjects, data: projectsData } = useFetchProjectList()
+const { get: fetchActivityTypes, loading: loadingActivityTypes, data: activityTypesData } = useFetchActivityTypes()
+
+const userOptions = ref<Array<{ label: string; value: number }>>([])
+const projectOptions = ref<Array<{ label: string; value: number }>>([])
+const activityTypeOptions = ref<Array<{ label: string; value: number }>>([])
+
+// Watch for data changes and update options
+watch(usersData, (newData) => {
+    if (newData) {
+        userOptions.value = newData.map((user: any) => ({
+            label: `${user.firstName} ${user.lastName}`,
+            value: user.id,
+        }))
     }
-    emit("update:modelValue", filters)
 })
 
-// Reset filters function
-const resetFilters = () => {
-    collaborateur.value = ""
-    project.value = ""
-    activity.value = ""
-    dateFrom.value = undefined
-    dateTo.value = undefined
-    status.value = ""
-    emit("reset")
+watch(projectsData, (newData) => {
+    if (newData) {
+        projectOptions.value = newData.data.map((project) => ({
+            label: `${project.projectNumber} - ${project.name}`,
+            value: project.id,
+        }))
+    }
+})
+
+watch(activityTypesData, (newData) => {
+    if (newData) {
+        activityTypeOptions.value = newData.map((activityType) => ({
+            label: activityType.name,
+            value: activityType.id,
+        }))
+    }
+})
+
+// Watch for prop changes
+watch(
+    () => props.filter,
+    (newFilter) => {
+        localFilter.value = { ...newFilter }
+    },
+    { deep: true }
+)
+
+// Handle filter changes
+const handleFilterChange = () => {
+    emit("update:filter", { ...localFilter.value })
+    emit("filter-change")
 }
+
+// Reset filters
+const resetFilters = () => {
+    localFilter.value = {
+        userId: undefined,
+        projectId: undefined,
+        activityTypeId: undefined,
+        fromDate: undefined,
+        toDate: undefined,
+        includeBilled: false,
+        includeUnbilled: true,
+        includeDisbursement: false,
+        sortBy: "date",
+        sortOrder: "desc",
+    }
+    handleFilterChange()
+}
+
+// Load data on mount
+onMounted(async () => {
+    await Promise.all([
+        fetchUsers(),
+        fetchProjects({ query: { page: 1, limit: 100, includeArchived: false, includeEnded: false } }),
+        fetchActivityTypes(),
+    ])
+})
 </script>

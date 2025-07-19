@@ -60,16 +60,16 @@
 </template>
 
 <script setup lang="ts">
-import type { Project } from "@beg/types"
 import Badge from "@/components/atoms/Badge.vue"
 import DataTable from "@/components/molecules/DataTable.vue"
 import Button from "@/components/atoms/Button.vue"
 import { useI18n } from "vue-i18n"
 import { useFormat } from "@/composables/utils/useFormat"
 import { ref } from "vue"
+import type { ProjectResponse } from "@beg/validations"
 
 interface Props {
-    projects: Project[]
+    projects: ProjectResponse[]
 }
 
 const { t } = useI18n()

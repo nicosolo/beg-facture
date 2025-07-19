@@ -1,4 +1,3 @@
-import type { Page, Project } from "@beg/types"
 import {
     idParamSchema,
     projectFilterSchema,

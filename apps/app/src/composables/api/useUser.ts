@@ -1,4 +1,3 @@
-import type { User } from "@beg/types"
 import {
     idParamSchema,
     userFilterSchema,
@@ -6,8 +5,6 @@ import {
     userUpdateSchema,
     type UserResponse,
     type UserDetailResponse,
-    type UserCreateInput,
-    type UserUpdateInput,
 } from "@beg/validations"
 import { useGet, usePost, usePut, useDelete } from "./useAPI"
 

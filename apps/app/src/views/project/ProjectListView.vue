@@ -25,7 +25,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue"
 import { useI18n } from "vue-i18n"
-import type { Project, Page } from "@beg/types"
 import { useFetchProjectList } from "@/composables/api/useProject"
 import ProjectFilterPanel, {
     type ProjectFilterModel,
@@ -33,6 +32,7 @@ import ProjectFilterPanel, {
 import ProjectTable from "@/components/organisms/project/ProjectTable.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
+import type { PageResponse, ProjectResponse } from "@beg/validations"
 
 // Initialize i18n
 const { t } = useI18n()
@@ -41,7 +41,7 @@ const { t } = useI18n()
 const { get: fetchProjects, loading, data } = useFetchProjectList()
 
 // State
-const projects = ref<Project[]>([])
+const projects = ref<ProjectResponse[]>([])
 const totalItems = ref(0)
 const totalPages = ref(0)
 const currentPage = ref(1)
@@ -64,7 +64,7 @@ watch(
     data,
     (newData) => {
         if (newData) {
-            const pageData = newData as unknown as Page<Project>
+            const pageData = newData as unknown as PageResponse<ProjectResponse>
             projects.value = pageData.data
             totalItems.value = pageData.total
             totalPages.value = pageData.totalPages

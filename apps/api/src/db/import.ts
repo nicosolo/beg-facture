@@ -16,9 +16,8 @@ import bcrypt from "bcrypt"
 import { eq, and } from "drizzle-orm"
 import fs from "fs/promises"
 import path from "path"
-import type { UserRole, Class, ProjectAccessLevel } from "@beg/types"
 import { hashPassword } from "@src/tools/auth"
-import type { ActivityRateUser } from "@beg/validations"
+import type { ActivityRateUser, ClassSchema, ProjectAccessLevel, UserRole } from "@beg/validations"
 
 const exportDir = "/app/export-mdb"
 
@@ -279,7 +278,7 @@ async function importRateClasses() {
             if (tarif.Classe === className) {
                 const rateClass = {
                     id: tarif.IDtarif,
-                    class: className as Class, // Properly typed as Class enum
+                    class: className as ClassSchema, // Properly typed as Class enum
                     year: tarif.Année || new Date().getFullYear(),
                     amount: parseFloat(tarif.Tarif) || 0,
                 }
@@ -308,7 +307,7 @@ async function importUsers() {
             .filter((rate) => rate.IDcollaborateur.toString() === user.id.toString())
             .map((rate) => ({
                 activityId: rate.IDactivité,
-                class: rate.Classe as Class,
+                class: rate.Classe as ClassSchema,
             }))
         if (!user.password.startsWith("$2")) {
             user.password = await hashPassword(user.password)

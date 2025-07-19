@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { users } from "../db/schema"
-import type { User } from "@beg/types"
 import { JWT_SECRET } from "../config"
 import type { StringValue } from "ms"
+import type { UserRole } from "@beg/validations"
 // This should be in environment variables in a production app
 const SALT_ROUNDS = 10
 
@@ -31,9 +31,9 @@ export const generateToken = (
 
 export const verifyToken = (
     token: string
-): { id: number; email: string; role: User["role"] } | null => {
+): { id: number; email: string; role: UserRole } | null => {
     try {
-        return jwt.verify(token, JWT_SECRET) as { id: number; email: string; role: User["role"] }
+        return jwt.verify(token, JWT_SECRET) as { id: number; email: string; role: UserRole }
     } catch (error) {
         return null
     }

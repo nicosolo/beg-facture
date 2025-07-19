@@ -1,5 +1,5 @@
 import type { Context, MiddlewareHandler, Next } from "hono"
-import type { UserRole } from "@beg/types"
+import type { UserRole } from "@beg/validations"
 
 export const roleMiddleware = (requiredRole: UserRole): MiddlewareHandler => {
     return async (c: Context, next: Next) => {

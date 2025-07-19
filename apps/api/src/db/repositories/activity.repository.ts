@@ -1,7 +1,8 @@
-import { and, eq, sql, desc, asc } from "drizzle-orm"
+import { and, eq, sql, desc, asc, gte, lte, or } from "drizzle-orm"
 import { db } from "../index"
-import { activities, activityTypes, projects, users } from "../schema"
+import { activities, activityTypes, projects, users, projectAccess } from "../schema"
 import type { ActivityFilter, ActivityCreateInput, ActivityUpdateInput } from "@beg/validations"
+import type { Variables } from "@src/types/global"
 
 // Helper function to update project dates and duration
 export async function updateProjectActivityDates(projectId: number) {
@@ -50,18 +51,146 @@ export async function updateProjectActivityDates(projectId: number) {
 }
 
 export const activityRepository = {
-    findAll: async (filter: ActivityFilter) => {
-        const { page = 1, limit = 10, userId, projectId, startDate, endDate } = filter
+    findAll: async (user: Variables["user"], filter: ActivityFilter) => {
+        const {
+            page = 1,
+            limit = 10,
+            userId,
+            projectId,
+            fromDate,
+            toDate,
+            sortBy = "date",
+            sortOrder = "asc",
+            includeBilled = false,
+            includeDisbursement = false,
+            includeUnbilled = false,
+            activityTypeId,
+            invoiceId,
+        } = filter
         const offset = (page - 1) * limit
 
         // Build where conditions
         const whereConditions = []
         if (userId) whereConditions.push(eq(activities.userId, userId))
         if (projectId) whereConditions.push(eq(activities.projectId, projectId))
-        if (startDate) whereConditions.push(sql`${activities.date} >= ${startDate}`)
-        if (endDate) whereConditions.push(sql`${activities.date} <= ${endDate}`)
+        if (fromDate) whereConditions.push(gte(activities.date, fromDate))
+        if (toDate) whereConditions.push(lte(activities.date, toDate))
+        if (activityTypeId) whereConditions.push(eq(activities.activityTypeId, activityTypeId))
+        if (invoiceId) whereConditions.push(eq(activities.invoiceId, invoiceId))
+
+        // Billing status filters
+        const billingConditions = []
+        if (includeBilled) billingConditions.push(eq(activities.billed, true))
+        if (includeUnbilled) billingConditions.push(eq(activities.billed, false))
+        if (includeDisbursement) billingConditions.push(eq(activities.disbursement, true))
+
+        // If any billing conditions are specified, add them as OR conditions
+        if (billingConditions.length > 0) {
+            whereConditions.push(or(...billingConditions))
+        }
+
+        // Determine sort column
+        const sortColumn = (() => {
+            switch (sortBy) {
+                case "date":
+                    return activities.date
+                case "duration":
+                    return activities.duration
+                case "kilometers":
+                    return activities.kilometers
+                case "expenses":
+                    return activities.expenses
+                case "rate":
+                    return activities.rate
+                default:
+                    return activities.date
+            }
+        })()
+
+        const sortDirection = sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn)
 
         // Query with conditions
+        const baseQuery = db
+            .select({
+                id: activities.id,
+                date: activities.date,
+                duration: activities.duration,
+                kilometers: activities.kilometers,
+                expenses: activities.expenses,
+                rate: activities.rate,
+                description: activities.description,
+                billed: activities.billed,
+                disbursement: activities.disbursement,
+                createdAt: activities.createdAt,
+                updatedAt: activities.updatedAt,
+                invoiceId: activities.invoiceId,
+                user: {
+                    id: users.id,
+                    firstName: users.firstName,
+                    lastName: users.lastName,
+                    initials: users.initials,
+                },
+                project: {
+                    id: projects.id,
+                    name: projects.name,
+                    projectNumber: projects.projectNumber,
+                },
+                activityType: {
+                    id: activityTypes.id,
+                    name: activityTypes.name,
+                    code: activityTypes.code,
+                    billable: activityTypes.billable,
+                },
+            })
+            .from(activities)
+            .leftJoin(users, eq(activities.userId, users.id))
+            .leftJoin(projects, eq(activities.projectId, projects.id))
+            .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
+
+        // Add project access filtering for non-admin users
+        if (user.role !== "admin") {
+            baseQuery.innerJoin(
+                projectAccess,
+                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+            )
+        }
+
+        const data = await (whereConditions.length > 0
+            ? baseQuery
+                  .where(and(...whereConditions))
+                  .orderBy(sortDirection)
+                  .limit(limit)
+                  .offset(offset)
+            : baseQuery.orderBy(sortDirection).limit(limit).offset(offset))
+
+        // Count total with same filters and access control
+        const countQuery = db
+            .select({ count: sql<number>`count(*)` })
+            .from(activities)
+            .leftJoin(projects, eq(activities.projectId, projects.id))
+
+        if (user.role !== "admin") {
+            countQuery.innerJoin(
+                projectAccess,
+                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+            )
+        }
+
+        const [{ count }] = await (whereConditions.length > 0
+            ? countQuery.where(and(...whereConditions))
+            : countQuery)
+        const totalPages = Math.ceil(count / limit)
+
+        return {
+            data,
+            total: count,
+            page,
+            limit,
+            totalPages,
+        }
+    },
+
+    findById: async (id: number, user: Variables["user"]) => {
         const query = db
             .select({
                 id: activities.id,
@@ -75,6 +204,7 @@ export const activityRepository = {
                 disbursement: activities.disbursement,
                 createdAt: activities.createdAt,
                 updatedAt: activities.updatedAt,
+                invoiceId: activities.invoiceId,
                 user: {
                     id: users.id,
                     firstName: users.firstName,
@@ -97,67 +227,16 @@ export const activityRepository = {
             .leftJoin(users, eq(activities.userId, users.id))
             .leftJoin(projects, eq(activities.projectId, projects.id))
             .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
-            .where(whereConditions.length ? and(...whereConditions) : undefined)
-            .limit(limit)
-            .offset(offset)
 
-        const data = await query
-
-        // Count total
-        const countQuery = db
-            .select({ count: sql<number>`count(*)` })
-            .from(activities)
-            .where(whereConditions.length ? and(...whereConditions) : undefined)
-
-        const [{ count }] = await countQuery
-        const totalPages = Math.ceil(count / limit)
-
-        return {
-            data,
-            total: count,
-            page,
-            limit,
-            totalPages,
+        // Add project access filtering for non-admin users
+        if (user.role !== "admin") {
+            query.innerJoin(
+                projectAccess,
+                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+            )
         }
-    },
 
-    findById: async (id: number) => {
-        const result = await db
-            .select({
-                id: activities.id,
-                date: activities.date,
-                duration: activities.duration,
-                kilometers: activities.kilometers,
-                expenses: activities.expenses,
-                rate: activities.rate,
-                description: activities.description,
-                billed: activities.billed,
-                disbursement: activities.disbursement,
-                createdAt: activities.createdAt,
-                updatedAt: activities.updatedAt,
-                user: {
-                    id: users.id,
-                    firstName: users.firstName,
-                    lastName: users.lastName,
-                    initials: users.initials,
-                },
-                project: {
-                    id: projects.id,
-                    name: projects.name,
-                    projectNumber: projects.projectNumber,
-                },
-                activityType: {
-                    id: activityTypes.id,
-                    name: activityTypes.name,
-                    code: activityTypes.code,
-                    billable: activityTypes.billable,
-                },
-            })
-            .from(activities)
-            .leftJoin(users, eq(activities.userId, users.id))
-            .leftJoin(projects, eq(activities.projectId, projects.id))
-            .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
-            .where(eq(activities.id, id))
+        const result = await query.where(eq(activities.id, id))
 
         return result[0] || null
     },
@@ -169,10 +248,15 @@ export const activityRepository = {
         await updateProjectActivityDates(data.projectId)
 
         // Return the created activity with relations
-        return activityRepository.findById(newActivity.id)
+        // Note: For create, we assume the user has access since they're creating it
+        // The access check will be enforced when reading
+        return activityRepository.findById(newActivity.id, {
+            id: 0,
+            role: "admin",
+        } as Variables["user"])
     },
 
-    update: async (id: number, data: ActivityUpdateInput) => {
+    update: async (id: number, data: Partial<typeof activities.$inferInsert>) => {
         // Get the old project ID before updating
         const [oldActivity] = await db
             .select({ projectId: activities.projectId })
@@ -202,7 +286,8 @@ export const activityRepository = {
             }
         }
 
-        return activityRepository.findById(id)
+        // For update, use admin access to bypass filtering since we already checked access
+        return activityRepository.findById(id, { id: 0, role: "admin" } as Variables["user"])
     },
 
     delete: async (id: number) => {

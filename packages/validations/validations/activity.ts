@@ -1,35 +1,24 @@
 import { z } from "zod"
 import { createPageResponseSchema, paginationSchema } from "./pagination"
-import { dateSchema, nullableDateSchema } from "./base"
+import { booleanSchema, dateSchema, nullableDateSchema } from "./base"
 
 // Create a schema that parses query string values
 export const activityFilterSchema = z
     .object({
-        projectId: z.string().transform((val) => parseInt(val)),
-        userId: z
-            .string()
-            .transform((val) => parseInt(val))
-            .optional(),
-        taskId: z
-            .string()
-            .transform((val) => parseInt(val))
-            .optional(),
-        startDate: z
-            .string()
+        projectId: z.coerce.number().optional(),
+        userId: z.coerce.number().optional(),
+        fromDate: z.coerce.date().optional(),
+        toDate: z.coerce.date().optional(),
+        sortBy: z
+            .enum(["date", "duration", "kilometers", "expenses", "rate"])
             .optional()
-            .or(z.string().transform((str) => (str ? new Date(str) : new Date()))),
-        endDate: z
-            .string()
-            .optional()
-            .or(z.string().transform((str) => (str ? new Date(str) : new Date()))),
-        validationStatus: z.string().optional(),
-        isTemplate: z
-            .string()
-            .transform(
-                (val) =>
-                    val.toString().toLowerCase() === "true" || val.toString().toLowerCase() === "1"
-            )
-            .optional(),
+            .default("date"),
+        sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
+        includeBilled: booleanSchema.optional().default(false),
+        includeDisbursement: booleanSchema.optional().default(false),
+        includeUnbilled: booleanSchema.optional().default(false),
+        activityTypeId: z.coerce.number().optional(),
+        invoiceId: z.coerce.number().optional(),
     })
     .merge(paginationSchema)
 
@@ -46,6 +35,7 @@ export const activityCreateSchema = z.object({
     description: z.string(),
     billed: z.boolean(),
     disbursement: z.boolean(),
+    userId: z.number().optional(),
 })
 
 export type ActivityCreateInput = z.infer<typeof activityCreateSchema>

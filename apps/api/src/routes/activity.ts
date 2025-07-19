@@ -8,12 +8,17 @@ import {
     activityUpdateSchema,
     idParamSchema,
     createPageResponseSchema,
+    type ClassSchema,
 } from "@beg/validations"
 import { activityRepository } from "../db/repositories/activity.repository"
+import { projectRepository } from "../db/repositories/project.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
-import { throwNotFound } from "@src/tools/error-handler"
+import { throwDuplicateEntry, throwNotFound, throwValidationError } from "@src/tools/error-handler"
 import type { Variables } from "@src/types/global"
+import { activityTypeRepository } from "@src/db/repositories/activityType.repository"
+import { rateRepository } from "@src/db/repositories/rate.repository"
+import { userRepository } from "@src/db/repositories/user.repository"
 
 const activityResponseArraySchema = createPageResponseSchema(activityResponseSchema)
 
@@ -27,7 +32,8 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
         }),
         async (c) => {
             const filter = c.req.valid("query")
-            const result = await activityRepository.findAll(filter)
+            const user = c.get("user")
+            const result = await activityRepository.findAll(user, filter)
             return c.render(result, 200)
         }
     )
@@ -42,7 +48,8 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 return c.json({ error: "Invalid ID" }, 400)
             }
 
-            const activity = await activityRepository.findById(id)
+            const user = c.get("user")
+            const activity = await activityRepository.findById(id, user)
             if (!activity) {
                 return c.json({ error: "Activity not found" }, 404)
             }
@@ -62,16 +69,53 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
             const activityData = c.req.valid("json")
             const user = c.get("user")
 
+            // Check if user has access to the project
+            const project = await projectRepository.findById(activityData.projectId ?? 0, user)
+            if (!project) {
+                return c.json({ error: "Project not found or access denied" }, 404)
+            }
+            const activityType = await activityTypeRepository.findById(activityData.activityTypeId)
+            if (!activityType) {
+                throwValidationError("Activity type not found", [
+                    { field: "activityTypeId", message: "Activity type not found" },
+                ])
+            }
+            const userId =
+                user.role === "admin" && activityData.userId ? activityData.userId : user.id
+            const userData = await userRepository.findById(userId)
+            if (!userData) {
+                throwValidationError("User not found", [
+                    { field: "userId", message: "User not found" },
+                ])
+            }
+
+            const userClass = userData.activityRates?.find(
+                (rate) => rate.class === activityType.code
+            )
+            if (!userClass) {
+                throwValidationError("User class not found", [
+                    { field: "userId", message: "User class not found" },
+                ])
+            }
+
+            const activityRate = await rateRepository.findByClassAndYear(
+                userClass.class,
+                project.startDate.getFullYear()
+            )
+
             // Add the current user's ID to the activity data
             const newActivity = await activityRepository.create({
-                ...activityData,
-                userId: user.id,
-                kilometers: 0,
-                expenses: 0,
-                rate: 0,
-                disbursement: false,
-                billed: false,
-                description: "",
+                activityTypeId: activityData.activityTypeId,
+                projectId: activityData.projectId,
+                date: activityData.date,
+                duration: activityData.duration,
+                userId: userId,
+                kilometers: activityData.kilometers ?? 0,
+                expenses: activityData.expenses ?? 0,
+                rate: activityRate.amount,
+                disbursement: activityData.disbursement ?? false,
+                billed: activityData.billed ?? false,
+                description: activityData.description ?? "",
                 createdAt: new Date(),
                 updatedAt: new Date(),
             })
@@ -96,7 +140,66 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
             const { id } = c.req.valid("param")
             const activityData = c.req.valid("json")
 
-            const updatedActivity = await activityRepository.update(id, activityData)
+            const user = c.get("user")
+
+            // First check if the user has access to this activity
+            const existingActivity = await activityRepository.findById(id, user)
+            if (!existingActivity) {
+                throwNotFound("Activity")
+            }
+            const userId = activityData.userId
+                ? user.role === "admin"
+                    ? activityData.userId
+                    : user.id
+                : (existingActivity.user?.id ?? 0)
+            let rate = existingActivity.rate
+            if (
+                activityData.activityTypeId &&
+                existingActivity.activityType?.id !== activityData.activityTypeId
+            ) {
+                const project = await projectRepository.findById(
+                    activityData.projectId || existingActivity.project?.id || 0,
+                    user
+                )
+                if (!project) {
+                    throwNotFound("Project")
+                }
+                const activityType = await activityTypeRepository.findById(
+                    activityData.activityTypeId
+                )
+                if (!activityType) {
+                    throwValidationError("Activity type not found", [
+                        { field: "activityTypeId", message: "Activity type not found" },
+                    ])
+                }
+                const userData = await userRepository.findById(userId)
+                if (!userData) {
+                    throwValidationError("User not found", [
+                        { field: "userId", message: "User not found" },
+                    ])
+                }
+
+                const userClass = userData.activityRates?.find(
+                    (rate) => rate.class === activityType.code
+                )
+                if (!userClass) {
+                    throwValidationError("User class not found", [
+                        { field: "userId", message: "User class not found" },
+                    ])
+                }
+
+                const activityRate = await rateRepository.findByClassAndYear(
+                    userClass.class,
+                    project.startDate.getFullYear()
+                )
+                rate = activityRate.amount
+            }
+
+            const updatedActivity = await activityRepository.update(id, {
+                ...activityData,
+                rate: rate,
+                userId: userId,
+            })
 
             if (!updatedActivity) {
                 throwNotFound("Activity")
@@ -109,6 +212,13 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
     // Delete activity
     .delete("/:id", zValidator("param", idParamSchema), async (c) => {
         const { id } = c.req.valid("param")
+        const user = c.get("user")
+
+        // First check if the user has access to this activity
+        const existingActivity = await activityRepository.findById(id, user)
+        if (!existingActivity) {
+            throwNotFound("Activity")
+        }
 
         const deleted = await activityRepository.delete(id)
 

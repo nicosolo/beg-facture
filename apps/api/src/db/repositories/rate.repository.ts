@@ -6,6 +6,7 @@ import type {
     RateClassCreateInput,
     RateClassUpdateInput,
     ClassSchema,
+    ActivityRateUser,
 } from "@beg/validations"
 
 export const rateRepository = {

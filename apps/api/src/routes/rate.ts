@@ -13,10 +13,11 @@ import { z } from "zod"
 import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import { throwNotFound, throwDuplicateEntry } from "@src/tools/error-handler"
+import type { Variables } from "@src/types/global"
 
-export const rateRoutes = new Hono()
+export const rateRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
-    
+
     // Get all rates
     .get(
         "/",
@@ -28,7 +29,7 @@ export const rateRoutes = new Hono()
             return c.render(rates as RateClassSchema[], 200)
         }
     )
-    
+
     // Get rate by ID
     .get(
         "/:id",
@@ -47,7 +48,7 @@ export const rateRoutes = new Hono()
             return c.render(rate, 200)
         }
     )
-    
+
     // Create new rate
     .post(
         "/",
@@ -59,7 +60,10 @@ export const rateRoutes = new Hono()
             const rateData = c.req.valid("json")
 
             // Check if rate with this class and year already exists
-            const existingRate = await rateRepository.findByClassAndYear(rateData.class, rateData.year)
+            const existingRate = await rateRepository.findByClassAndYear(
+                rateData.class,
+                rateData.year
+            )
             if (existingRate) {
                 throwDuplicateEntry("Rate", "class/year", `${rateData.class}/${rateData.year}`)
             }
@@ -68,7 +72,7 @@ export const rateRoutes = new Hono()
             return c.render(newRate, 201)
         }
     )
-    
+
     // Update rate
     .put(
         "/:id",
@@ -91,7 +95,10 @@ export const rateRoutes = new Hono()
             if (rateData.class || rateData.year) {
                 const checkClass = rateData.class || existingRate.class
                 const checkYear = rateData.year || existingRate.year
-                const conflictingRate = await rateRepository.findByClassAndYear(checkClass, checkYear)
+                const conflictingRate = await rateRepository.findByClassAndYear(
+                    checkClass,
+                    checkYear
+                )
                 if (conflictingRate && conflictingRate.id !== id) {
                     throwDuplicateEntry("Rate", "class/year", `${checkClass}/${checkYear}`)
                 }
@@ -101,25 +108,21 @@ export const rateRoutes = new Hono()
             return c.render(updatedRate, 200)
         }
     )
-    
+
     // Delete rate
-    .delete(
-        "/:id",
-        zValidator("param", idParamSchema),
-        async (c) => {
-            const { id } = c.req.valid("param")
+    .delete("/:id", zValidator("param", idParamSchema), async (c) => {
+        const { id } = c.req.valid("param")
 
-            // Check if rate exists
-            const existingRate = await rateRepository.findById(id)
-            if (!existingRate) {
-                throwNotFound("Rate")
-            }
-
-            await rateRepository.delete(id)
-            return c.json({ message: "Rate deleted successfully" }, 200)
+        // Check if rate exists
+        const existingRate = await rateRepository.findById(id)
+        if (!existingRate) {
+            throwNotFound("Rate")
         }
-    )
-    
+
+        await rateRepository.delete(id)
+        return c.json({ message: "Rate deleted successfully" }, 200)
+    })
+
     // Legacy endpoint: Get rate by class and year
     .get(
         "/:class/:year",

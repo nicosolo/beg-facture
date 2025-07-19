@@ -11,9 +11,10 @@ import {
 import { activityTypeRepository } from "../db/repositories/activityType.repository"
 import { authMiddleware } from "../tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
+import type { Variables } from "@src/types/global"
 
 // Create the app and apply auth middleware to all routes
-export const activityTypeRoutes = new Hono()
+export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
 
     // Get all activity types
@@ -58,7 +59,9 @@ export const activityTypeRoutes = new Hono()
             const activityTypeData = c.req.valid("json")
 
             // Check if activity type with this code already exists
-            const existingActivityType = await activityTypeRepository.findByCode(activityTypeData.code)
+            const existingActivityType = await activityTypeRepository.findByCode(
+                activityTypeData.code
+            )
             if (existingActivityType) {
                 return c.json({ error: "Activity type with this code already exists" }, 400)
             }

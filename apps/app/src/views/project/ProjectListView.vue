@@ -55,7 +55,7 @@ const filter = ref<ProjectFilterModel>({
     sortOrder: "desc",
     fromDate: undefined,
     toDate: undefined,
-    referentUserId: 25,
+    referentUserId: undefined,
     hasUnbilledTime: true,
 })
 

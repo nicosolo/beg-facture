@@ -9,10 +9,11 @@ import {
 import { activityRepository } from "../db/repositories/activity.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
+import type { Variables } from "@src/types/global"
 
 const activityResponseArraySchema = createPageResponseSchema(activityResponseSchema)
 
-export const activityRoutes = new Hono()
+export const activityRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
     .get(
         "/",

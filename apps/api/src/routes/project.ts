@@ -10,8 +10,9 @@ import {
 import { projectRepository } from "../db/repositories/project.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
+import type { Variables } from "@src/types/global"
 
-export const projectRoutes = new Hono()
+export const projectRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
     .get(
         "/",
@@ -21,6 +22,7 @@ export const projectRoutes = new Hono()
         }),
         async (c) => {
             const filter = c.req.valid("query")
+            const user = c.get("user")
             console.log(filter)
             const result = await projectRepository.findAll(filter)
 

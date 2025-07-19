@@ -12,6 +12,8 @@ export const userFilterSchema = z.object({
         .optional(),
 })
 
+export const userRoleSchema = z.enum(["admin", "user"])
+
 // Login schema for authentication
 export const loginSchema = z.object({
     email: z.string().email(),
@@ -81,3 +83,4 @@ export const userDetailResponseSchema = z.object({
 
 export type UserResponse = z.infer<typeof userResponseSchema>
 export type UserDetailResponse = z.infer<typeof userDetailResponseSchema>
+export type UserRole = z.infer<typeof userRoleSchema>

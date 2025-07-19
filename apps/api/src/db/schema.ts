@@ -1,7 +1,7 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core"
-import type { Class, ProjectAccessLevel, UserRole } from "@beg/types"
+
 import { timestamps } from "./column.helper"
-import type { ActivityRateUser } from "@beg/validations"
+import type { ActivityRateUser, ClassSchema, ProjectAccessLevel, UserRole } from "@beg/validations"
 
 // User table
 export const users = sqliteTable(
@@ -96,7 +96,7 @@ export const rateClasses = sqliteTable(
     "rate_classes",
     {
         id: integer("id").primaryKey({ autoIncrement: true }),
-        class: text("class").$type<Class>().notNull(),
+        class: text("class").$type<ClassSchema>().notNull(),
         year: integer("year").notNull(),
         amount: integer("amount").notNull(),
     },

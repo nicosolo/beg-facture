@@ -2,6 +2,7 @@ import { z } from "zod"
 import { paginationSchema, createPageResponseSchema } from "./pagination"
 import { dateSchema, nullableDateSchema } from "./base"
 
+export const projectAccessLevelSchema = z.enum(["read", "write"])
 // Update schema to match activity filter schema pattern
 export const projectFilterSchema = z
     .object({
@@ -75,3 +76,5 @@ export type ProjectResponse = z.infer<typeof projectResponseSchema>
 export const projectListResponse = createPageResponseSchema(projectResponseSchema)
 
 export type ProjectListResponse = z.infer<typeof projectListResponse>
+
+export type ProjectAccessLevel = z.infer<typeof projectAccessLevelSchema>

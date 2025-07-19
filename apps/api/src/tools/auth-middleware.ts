@@ -1,8 +1,12 @@
 import type { Context, MiddlewareHandler, Next } from "hono"
 import { verifyToken } from "./auth"
 import { userRepository } from "../db/repositories/user.repository"
+import type { Variables } from "@src/types/global"
 
-export const authMiddleware: MiddlewareHandler = async (c: Context, next: Next) => {
+export const authMiddleware: MiddlewareHandler<{ Variables: Variables }> = async (
+    c: Context<{ Variables: Variables }>,
+    next: Next
+) => {
     const authHeader = c.req.header("Authorization")
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -27,6 +31,7 @@ export const authMiddleware: MiddlewareHandler = async (c: Context, next: Next) 
     c.set("user", {
         id: user.id,
         email: user.email,
+        name: `${user.firstName} ${user.lastName}`,
         role: user.role,
         firstName: user.firstName,
         lastName: user.lastName,

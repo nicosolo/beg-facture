@@ -14,6 +14,7 @@ import { comparePassword, generateToken } from "../tools/auth"
 import { authMiddleware } from "../tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import { z } from "zod"
+import type { Variables } from "@src/types/global"
 
 // Define login response schema
 const loginResponseSchema = z.object({
@@ -31,7 +32,7 @@ const loginResponseSchema = z.object({
 const usersArrayResponseSchema = z.array(userResponseSchema)
 
 // Create the app and apply auth middleware to routes that need it
-export const userRoutes = new Hono()
+export const userRoutes = new Hono<{ Variables: Variables }>()
     .post(
         "/login",
         zValidator("json", loginSchema),

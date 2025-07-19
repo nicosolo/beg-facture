@@ -65,7 +65,7 @@ function mapUserData(data: any) {
         firstName: data.Prénom,
         lastName: data.Nom,
         initials: data.Initiales,
-        password: data.Password || "password123", // Default password
+        password: data["Mot de passe"] || "password123", // Default password
         role: "user" as UserRole, // Properly typed as UserRole
         archived: false,
         createdAt: new Date(),

@@ -4,10 +4,11 @@ import { clientFilterSchema, clientSchema, createPageResponseSchema } from "@beg
 import { clientRepository } from "../db/repositories/client.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
+import type { Variables } from "@src/types/global"
 
 const clientResponseArraySchema = createPageResponseSchema(clientSchema)
 
-export const clientRoutes = new Hono()
+export const clientRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
     .get(
         "/",

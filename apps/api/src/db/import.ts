@@ -18,8 +18,39 @@ import fs from "fs/promises"
 import path from "path"
 import { hashPassword } from "@src/tools/auth"
 import type { ActivityRateUser, ClassSchema, ProjectAccessLevel, UserRole } from "@beg/validations"
+import { updateProjectActivityDates } from "./repositories/activity.repository"
 
 const exportDir = "/app/export-mdb"
+
+// Parse date in format "MM/DD/YY HH:mm:ss"
+// The dates from Access are in local time (UTC+1 or UTC+2 depending on DST)
+// We need to store them as UTC to avoid date shifting issues
+function parseAccessDate(dateString: string): Date {
+    if (!dateString) return new Date()
+
+    // Parse "MM/DD/YY HH:mm:ss" format
+    const parts = dateString.split(" ")
+    if (parts.length !== 2) return new Date()
+
+    const [datePart, timePart] = parts
+    const [month, day, year] = datePart.split("/")
+    const [hours, minutes, seconds] = timePart.split(":")
+
+    // Convert 2-digit year to 4-digit year (assume 20xx for years 00-30, 19xx for years 31-99)
+    const fullYear = parseInt(year) <= 30 ? 2000 + parseInt(year) : 1900 + parseInt(year)
+
+    // Create date in local time (this interprets the string as local time)
+    const utcDate = new Date(
+        fullYear,
+        parseInt(month) - 1, // Month is 0-indexed
+        parseInt(day),
+        parseInt(hours) + 2,
+        parseInt(minutes),
+        parseInt(seconds)
+    )
+
+    return utcDate
+}
 
 // Drop all existing data before import
 async function resetDatabase() {
@@ -343,12 +374,13 @@ async function importProjects() {
     const userMap = new Map(allUsers.map((u) => [u.initials, u.id]))
 
     for (const rawProject of projectData) {
+        console.log(rawProject.Début ? parseAccessDate(rawProject.Début) : new Date())
         const project = {
             id: rawProject.IDmandat,
             projectNumber: rawProject.Mandat,
             name: rawProject["Désignation"],
             projectManagerId: userMap.get(rawProject.Responsable) || null,
-            startDate: rawProject.Date ? new Date(rawProject.Date) : new Date(),
+            startDate: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
             clientId: rawProject.MandantID || clientMap.get(rawProject.Mandant),
             locationId: rawProject.LocalitéID || locationMap.get(rawProject.Localité),
             engineerId: rawProject.IngénieurID || engineerMap.get(rawProject.Ingénieur),
@@ -356,8 +388,9 @@ async function importProjects() {
             typeId: rawProject.TypeID || typeMap.get(rawProject.Type) || allTypes[0]?.id, // Default to first type
             remark: rawProject.Remarque,
             printFlag: rawProject.FlagImpression === "Oui",
-            createdAt: rawProject.Date ? new Date(rawProject.Date) : new Date(),
+            createdAt: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
             updatedAt: new Date(),
+            ended: rawProject.Etat === "Terminé",
         }
 
         await db.insert(projects).values(project)
@@ -406,26 +439,10 @@ async function importActivities() {
             const activityTypeId = rawActivity.IDactivité
             if (!userId || !projectId || !activityTypeId) continue
 
-            // Parse date in format "08/07/12 00:00:00" (DD/MM/YY)
+            // Parse date in format "08/07/12 00:00:00" (DD/MM/YY HH:MM:SS)
             let activityDate = new Date()
             if (rawActivity.Date) {
-                // Check if the date matches the pattern DD/MM/YY HH:MM:SS
-                const datePattern = /^(\d{2})\/(\d{2})\/(\d{2}).*$/
-                const match = String(rawActivity.Date).match(datePattern)
-
-                if (match) {
-                    // Convert parts to numbers (day, month, year)
-                    const month = parseInt(match[1], 10) - 1
-                    const day = parseInt(match[2], 10)
-                    let year = parseInt(match[3], 10)
-                    // Handle 2-digit year (20xx if < 50, 19xx if >= 50)
-                    year = year < 50 ? 2000 + year : 1900 + year
-
-                    activityDate = new Date(year, month, day)
-                } else {
-                    // Fallback to standard parsing for other formats
-                    activityDate = new Date(rawActivity.Date)
-                }
+                activityDate = parseAccessDate(rawActivity.Date)
             }
 
             const activity = {
@@ -439,8 +456,8 @@ async function importActivities() {
                 expenses: parseFloat(rawActivity.Frais) || 0,
                 rate: parseFloat(rawActivity.Tarif) || 0,
                 description: rawActivity.Remarque,
-                billed: rawActivity.Facturé === "Oui",
-                disbursement: rawActivity.Débours === "Oui",
+                billed: rawActivity.Facturé === 1,
+                disbursement: rawActivity.Débours === 1,
             }
 
             chunkActivities.push(activity)
@@ -450,6 +467,16 @@ async function importActivities() {
     }
 
     console.log(`Imported ${imported} activities`)
+
+    // Update all project dates after bulk import
+    console.log("Updating project activity dates...")
+    const allProjects = await db.select({ id: projects.id }).from(projects)
+
+    for (const project of allProjects) {
+        await updateProjectActivityDates(project.id)
+    }
+
+    console.log("Project activity dates updated")
 }
 
 // Create Project access based on who did hours on a project
@@ -475,6 +502,8 @@ async function importProjectAccess() {
         projectId: combination.projectId,
         accessLevel: "write" as ProjectAccessLevel,
     }))
+
+    console.log(accessEntries)
 
     // Insert in chunks to avoid potential query size limits
     const chunkSize = 1000

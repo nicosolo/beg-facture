@@ -44,15 +44,7 @@ BEG Facture is a fullstack invoicing application built with modern web technolog
 
 ### Prerequisites
 
-- Bun installed globally
 - Docker and Docker Compose (for containerized development)
-
-### Installation
-
-```bash
-# Install all dependencies
-bun install
-```
 
 ### Running the Application
 
@@ -60,14 +52,6 @@ bun install
 # Development with Docker Compose (recommended)
 bun run dev
 
-# Or run individual apps:
-# API
-cd apps/api
-bun run dev
-
-# Frontend
-cd apps/app
-bun run dev
 ```
 
 ## API (Backend)

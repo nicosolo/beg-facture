@@ -36,6 +36,24 @@ export const activityFilterSchema = z
 export type ActivityFilter = z.infer<typeof activityFilterSchema>
 export type ActivityFilterInput = z.input<typeof activityFilterSchema>
 
+export const activityCreateSchema = z.object({
+    projectId: z.number(),
+    activityTypeId: z.number(),
+    date: dateSchema,
+    duration: z.number(),
+    kilometers: z.number(),
+    expenses: z.number(),
+    description: z.string(),
+    billed: z.boolean(),
+    disbursement: z.boolean(),
+})
+
+export type ActivityCreateInput = z.infer<typeof activityCreateSchema>
+
+export const activityUpdateSchema = activityCreateSchema.partial()
+
+export type ActivityUpdateInput = z.infer<typeof activityUpdateSchema>
+
 // Activity response schema with nested objects
 export const activityResponseSchema = z.object({
     id: z.number(),

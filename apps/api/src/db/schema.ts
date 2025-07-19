@@ -121,6 +121,13 @@ export const projects = sqliteTable(
         remark: text("remark"),
         projectManagerId: integer("projectManagerId").references(() => users.id),
         printFlag: integer("printFlag", { mode: "boolean" }).default(false),
+        firstActivityDate: integer("firstActivityDate", { mode: "timestamp" }),
+        lastActivityDate: integer("lastActivityDate", { mode: "timestamp" }),
+        totalDuration: integer("totalDuration").default(0),
+        unBilledDuration: integer("unBilledDuration").default(0),
+        unBilledDisbursementDuration: integer("unBilledDisbursementDuration").default(0),
+        ended: integer("ended", { mode: "boolean" }).default(false),
+        archived: integer("archived", { mode: "boolean" }).default(false),
         ...timestamps,
     },
     (table) => [
@@ -140,6 +147,16 @@ export const projects = sqliteTable(
         index("projects_engineer_idx").on(table.engineerId),
         index("projects_company_idx").on(table.companyId),
         index("projects_type_idx").on(table.typeId),
+        index("projects_first_activity_date_idx").on(table.firstActivityDate),
+        index("projects_last_activity_date_idx").on(table.lastActivityDate),
+        index("projects_total_duration_idx").on(table.totalDuration),
+        index("projects_archived_idx").on(table.archived),
+        index("projects_ended_idx").on(table.ended),
+        index("projects_un_billed_duration_idx").on(table.unBilledDuration),
+        index("projects_un_billed_disbursement_duration_idx").on(
+            table.unBilledDisbursementDuration
+        ),
+        index("projects_project_manager_idx").on(table.projectManagerId),
     ]
 )
 

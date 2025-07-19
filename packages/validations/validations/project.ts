@@ -1,13 +1,13 @@
 import { z } from "zod"
 import { paginationSchema, createPageResponseSchema } from "./pagination"
-import { dateSchema, nullableDateSchema } from "./base"
+import { booleanSchema, dateSchema, nullableDateSchema } from "./base"
 
 export const projectAccessLevelSchema = z.enum(["read", "write"])
 // Update schema to match activity filter schema pattern
 export const projectFilterSchema = z
     .object({
         name: z.string().optional(),
-        archived: z.coerce.boolean().optional().default(false),
+        archived: booleanSchema.optional().default(false),
         referentUserId: z.coerce.number().optional(),
         fromDate: z.coerce.date().optional(),
         toDate: z.coerce.date().optional(),
@@ -16,7 +16,8 @@ export const projectFilterSchema = z
             .optional()
             .default("name"),
         sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
-        hasUnbilledTime: z.coerce.boolean().optional().default(true),
+        hasUnbilledTime: booleanSchema.optional().default(true),
+        ended: booleanSchema.optional().nullable(),
     })
     .merge(paginationSchema)
 
@@ -69,6 +70,12 @@ export const projectResponseSchema = z.object({
             initials: z.string(),
         })
         .nullable(),
+    firstActivityDate: nullableDateSchema,
+    lastActivityDate: nullableDateSchema,
+    totalDuration: z.number().nullable(),
+    unBilledDuration: z.number().nullable(),
+    unBilledDisbursementDuration: z.number().nullable(),
+    ended: z.boolean().nullable(),
 })
 
 export type ProjectResponse = z.infer<typeof projectResponseSchema>

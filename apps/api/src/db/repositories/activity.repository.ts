@@ -1,7 +1,53 @@
-import { and, eq, sql } from "drizzle-orm"
+import { and, eq, sql, desc, asc } from "drizzle-orm"
 import { db } from "../index"
 import { activities, activityTypes, projects, users } from "../schema"
-import type { ActivityFilter } from "@beg/validations"
+import type { ActivityFilter, ActivityCreateInput, ActivityUpdateInput } from "@beg/validations"
+
+// Helper function to update project dates and duration
+export async function updateProjectActivityDates(projectId: number) {
+    // Get the earliest and latest activity dates, and sum of durations for this project
+    const result = await db
+        .select({
+            firstDate: sql<number>`MIN(${activities.date})`,
+            lastDate: sql<number>`MAX(${activities.date})`,
+            totalDuration: sql<number>`COALESCE(SUM(${activities.duration}), 0)`,
+        })
+        .from(activities)
+        .where(eq(activities.projectId, projectId))
+
+    const { firstDate, lastDate, totalDuration } = result[0]
+
+    const resultUnbilled = await db
+        .select({
+            unbilledDuration: sql<number>`COALESCE(SUM(${activities.duration}), 0)`,
+        })
+        .from(activities)
+        .where(and(eq(activities.billed, false), eq(activities.projectId, projectId)))
+
+    const { unbilledDuration } = resultUnbilled[0]
+
+    const resultUnbilledDisbursement = await db
+        .select({
+            unbilledDisbursementDuration: sql<number>`COALESCE(SUM(${activities.duration}), 0)`,
+        })
+        .from(activities)
+        .where(and(eq(activities.disbursement, true), eq(activities.projectId, projectId)))
+
+    const { unbilledDisbursementDuration } = resultUnbilledDisbursement[0]
+
+    // Update the project with the calculated values
+    await db
+        .update(projects)
+        .set({
+            firstActivityDate: firstDate ? new Date(firstDate * 1000) : null,
+            lastActivityDate: lastDate ? new Date(lastDate * 1000) : null,
+            totalDuration: Math.round(totalDuration || 0),
+            unBilledDuration: Math.round(unbilledDuration || 0),
+            unBilledDisbursementDuration: Math.round(unbilledDisbursementDuration || 0),
+            updatedAt: new Date(),
+        })
+        .where(eq(projects.id, projectId))
+}
 
 export const activityRepository = {
     findAll: async (filter: ActivityFilter) => {
@@ -114,5 +160,68 @@ export const activityRepository = {
             .where(eq(activities.id, id))
 
         return result[0] || null
+    },
+
+    create: async (data: typeof activities.$inferInsert) => {
+        const [newActivity] = await db.insert(activities).values(data).returning()
+
+        // Update project dates after creating activity
+        await updateProjectActivityDates(data.projectId)
+
+        // Return the created activity with relations
+        return activityRepository.findById(newActivity.id)
+    },
+
+    update: async (id: number, data: ActivityUpdateInput) => {
+        // Get the old project ID before updating
+        const [oldActivity] = await db
+            .select({ projectId: activities.projectId })
+            .from(activities)
+            .where(eq(activities.id, id))
+
+        if (!oldActivity) {
+            return null
+        }
+
+        const [updatedActivity] = await db
+            .update(activities)
+            .set({
+                ...data,
+                updatedAt: new Date(),
+            })
+            .where(eq(activities.id, id))
+            .returning()
+
+        if (updatedActivity) {
+            // Update project dates after updating activity
+            await updateProjectActivityDates(updatedActivity.projectId)
+
+            // If the project was changed, update the old project too
+            if (data.projectId && data.projectId !== oldActivity.projectId) {
+                await updateProjectActivityDates(oldActivity.projectId)
+            }
+        }
+
+        return activityRepository.findById(id)
+    },
+
+    delete: async (id: number) => {
+        // Get the activity to know which project to update
+        const [activityToDelete] = await db
+            .select({ projectId: activities.projectId })
+            .from(activities)
+            .where(eq(activities.id, id))
+
+        if (!activityToDelete) {
+            return false
+        }
+
+        // Delete the activity
+        await db.delete(activities).where(eq(activities.id, id))
+
+        // Update project dates after deleting activity
+        await updateProjectActivityDates(activityToDelete.projectId)
+
+        return true
     },
 }

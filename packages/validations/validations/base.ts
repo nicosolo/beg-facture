@@ -3,7 +3,12 @@ import { z } from "zod"
 // Base schemas for entities
 export const dateSchema = z.coerce.date()
 export const nullableDateSchema = dateSchema.nullable()
-
+export const booleanSchema = z.union([
+    z.boolean(),
+    z.string().transform((val) => val === "true"),
+    z.literal("").transform(() => false),
+    z.null(),
+])
 export type DateSchema = z.infer<typeof dateSchema>
 export type NullableDateSchema = z.infer<typeof nullableDateSchema>
 // ID parameter schema

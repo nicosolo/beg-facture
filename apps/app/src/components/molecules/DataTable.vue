@@ -33,6 +33,7 @@
                         >
                             <div :class="['flex flex-row md:flex-col sm:w-full']">
                                 <div
+                                    v-if="!column.actions"
                                     class="md:hidden px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2"
                                 >
                                     {{ column.label }}
@@ -85,6 +86,7 @@ interface Column {
     label: string
     nowrap?: boolean
     width?: "w-1/2" | "w-2/3" | "w-2/4" | "w-1/3"
+    actions?: boolean
 }
 
 interface Props {

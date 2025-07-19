@@ -60,7 +60,6 @@
 </template>
 
 <script setup lang="ts">
-import Badge from "@/components/atoms/Badge.vue"
 import DataTable from "@/components/molecules/DataTable.vue"
 import Button from "@/components/atoms/Button.vue"
 import { useI18n } from "vue-i18n"
@@ -80,7 +79,7 @@ const columns = ref([
     {
         key: "name",
         label: t("projects.name"),
-        width: "w-1/3",
+        width: "w-1/3" as const,
     },
 
     {
@@ -107,15 +106,10 @@ const columns = ref([
         key: "actions",
         label: t("projects.actions"),
         nowrap: false,
-        width: "w-1/3" as "w-1/3",
+        actions: true,
+        width: "w-1/3" as const,
     },
 ])
 
-// Formatting helpers
-const formatDate = (date: Date | null | undefined) => {
-    if (!date) return t("common.notAvailable")
-    return new Date(date).toLocaleDateString()
-}
-
-const { formatDuration } = useFormat()
+const { formatDuration, formatDate } = useFormat()
 </script>

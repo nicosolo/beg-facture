@@ -8,28 +8,28 @@ import {
     locations,
     projectTypes,
     users,
-    activities,
+    projectAccess,
 } from "../schema"
-import type {
-    Pagination,
-    ProjectFilter,
-    ProjectListResponse,
-    ProjectResponse,
-} from "@beg/validations"
+import type { ProjectFilter, ProjectListResponse, ProjectResponse } from "@beg/validations"
+import type { Variables } from "@src/types/global"
 
 export const projectRepository = {
-    findAll: async (filters?: ProjectFilter): Promise<ProjectListResponse> => {
+    findAll: async (
+        user: Variables["user"],
+        filters?: ProjectFilter
+    ): Promise<ProjectListResponse> => {
         const {
             page = 1,
             limit = 10,
             name,
-            archived = false,
+            archived = null,
             referentUserId,
             fromDate,
             toDate,
             sortBy = "name",
             sortOrder = "asc",
-            hasUnbilledTime = true,
+            hasUnbilledTime = undefined,
+            ended = null,
         } = filters || {}
         const offset = (page - 1) * limit
 
@@ -60,32 +60,18 @@ export const projectRepository = {
             whereConditions.push(lte(projects.startDate, toDate))
         }
 
-        // Handle hasUnbilledTime filter by getting project IDs first
-        if (hasUnbilledTime !== undefined) {
-            const unbilledProjects = await db
-                .selectDistinct({ projectId: activities.projectId })
-                .from(activities)
-                .where(eq(activities.billed, false))
+        // Ended filter
+        if (archived !== null && archived !== undefined) {
+            console.log("archived", archived)
+            whereConditions.push(eq(projects.archived, archived))
+        }
 
-            const projectIdsWithUnbilledTime = unbilledProjects.map((p) => p.projectId)
-
-            if (hasUnbilledTime) {
-                // Only include projects that have unbilled activities
-                if (projectIdsWithUnbilledTime.length > 0) {
-                    whereConditions.push(inArray(projects.id, projectIdsWithUnbilledTime))
-                } else {
-                    // No projects have unbilled time, return empty result
-                    whereConditions.push(eq(projects.id, -1)) // Impossible condition
-                }
-            } else {
-                // Only include projects that have no unbilled activities
-                if (projectIdsWithUnbilledTime.length > 0) {
-                    whereConditions.push(
-                        sql`${projects.id} NOT IN (${projectIdsWithUnbilledTime.join(",")})`
-                    )
-                }
-                // If no projects have unbilled time, include all projects (no additional filter needed)
-            }
+        if (ended !== null && ended !== undefined) {
+            whereConditions.push(eq(projects.ended, ended))
+        }
+        console.log("hasUnbilledTime", hasUnbilledTime)
+        if (hasUnbilledTime === true) {
+            whereConditions.push(gt(projects.unBilledDuration, 0))
         }
 
         // Note: archived filter is not implemented as projects table doesn't have archived field
@@ -99,13 +85,13 @@ export const projectRepository = {
                 case "unBilledDuration":
                     // For unbilled duration, we'll sort by project name as fallback
                     // since calculating unbilled duration requires complex aggregation
-                    return projects.name
+                    return projects.unBilledDuration
                 case "firstActivityDate":
                     // Sort by project start date as approximation for first activity
-                    return projects.startDate
+                    return projects.firstActivityDate
                 case "lastActivityDate":
                     // Sort by project updated date as approximation for last activity
-                    return projects.updatedAt
+                    return projects.lastActivityDate
                 default:
                     return projects.name
             }
@@ -124,6 +110,12 @@ export const projectRepository = {
                 printFlag: projects.printFlag,
                 createdAt: projects.createdAt,
                 updatedAt: projects.updatedAt,
+                firstActivityDate: projects.firstActivityDate,
+                lastActivityDate: projects.lastActivityDate,
+                totalDuration: projects.totalDuration,
+                unBilledDuration: projects.unBilledDuration,
+                unBilledDisbursementDuration: projects.unBilledDisbursementDuration,
+                ended: projects.ended,
                 location: {
                     id: locations.id,
                     name: locations.name,
@@ -152,6 +144,7 @@ export const projectRepository = {
                 },
             })
             .from(projects)
+
             .leftJoin(locations, eq(projects.locationId, locations.id))
             .leftJoin(clients, eq(projects.clientId, clients.id))
             .leftJoin(engineers, eq(projects.engineerId, engineers.id))
@@ -159,19 +152,32 @@ export const projectRepository = {
             .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
             .leftJoin(users, eq(projects.projectManagerId, users.id))
 
+        if (user.role !== "admin") {
+            baseQuery.innerJoin(
+                projectAccess,
+                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+            )
+        }
         // Execute query with conditional where clause
-        const data = await (
+        const data =
             whereConditions.length > 0
-                ? baseQuery
+                ? await baseQuery
                       .where(and(...whereConditions))
                       .orderBy(sortDirection)
                       .limit(limit)
                       .offset(offset)
-                : baseQuery.orderBy(sortDirection).limit(limit).offset(offset)
-        ).execute()
+                      .execute()
+                : await baseQuery.orderBy(sortDirection).limit(limit).offset(offset).execute()
 
         // Count total with same filters (excluding pagination)
         const countQuery = db.select({ count: sql<number>`count(*)` }).from(projects)
+
+        if (user.role !== "admin") {
+            countQuery.innerJoin(
+                projectAccess,
+                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+            )
+        }
 
         const [{ count }] = await (
             whereConditions.length > 0 ? countQuery.where(and(...whereConditions)) : countQuery
@@ -188,8 +194,8 @@ export const projectRepository = {
         }
     },
 
-    findById: async (id: number): Promise<ProjectResponse | null> => {
-        const results = await db
+    findById: async (id: number, user: Variables["user"]): Promise<ProjectResponse | null> => {
+        const query = db
             .select({
                 id: projects.id,
                 projectNumber: projects.projectNumber,
@@ -199,6 +205,12 @@ export const projectRepository = {
                 printFlag: projects.printFlag,
                 createdAt: projects.createdAt,
                 updatedAt: projects.updatedAt,
+                firstActivityDate: projects.firstActivityDate,
+                lastActivityDate: projects.lastActivityDate,
+                totalDuration: projects.totalDuration,
+                unBilledDuration: projects.unBilledDuration,
+                unBilledDisbursementDuration: projects.unBilledDisbursementDuration,
+                ended: projects.ended,
                 location: {
                     id: locations.id,
                     name: locations.name,
@@ -233,10 +245,17 @@ export const projectRepository = {
             .leftJoin(companies, eq(projects.companyId, companies.id))
             .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
             .leftJoin(users, eq(projects.projectManagerId, users.id))
-            .where(eq(projects.id, id))
 
+        if (user.role !== "admin") {
+            query.innerJoin(
+                projectAccess,
+                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+            )
+        }
+
+        const results = await query.where(and(eq(projects.id, id))).execute()
         if (!results[0]) return null
 
-        return results[0]
+        return results[0] as ProjectResponse
     },
 }

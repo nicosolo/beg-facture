@@ -23,13 +23,11 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const filter = c.req.valid("query")
             const user = c.get("user")
-            console.log(filter)
-            const result = await projectRepository.findAll(filter)
+            const result = await projectRepository.findAll(user, filter)
 
             return c.render(result as ProjectListResponse, 200)
         }
     )
-
     .get(
         "/:id",
         responseValidator({
@@ -41,7 +39,9 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
                 return c.json({ error: "Invalid ID" }, 400)
             }
 
-            const project = await projectRepository.findById(id)
+            const user = c.get("user")
+
+            const project = await projectRepository.findById(id, user)
             if (!project) {
                 return c.json({ error: "Project not found" }, 404)
             }

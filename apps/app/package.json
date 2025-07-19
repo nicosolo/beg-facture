@@ -9,7 +9,6 @@
     },
     "dependencies": {
         "@beg/api": "workspace:*",
-        "@beg/types": "workspace:*",
         "@beg/validations": "workspace:*",
         "@heroicons/vue": "^2.2.0",
         "@tailwindcss/vite": "^4.0.15",

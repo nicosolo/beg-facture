@@ -1,8 +1,12 @@
 import { and, eq } from "drizzle-orm"
 import { db } from "../index"
 import { rateClasses } from "../schema"
-import type { Class } from "@beg/types"
-import type { RateClassSchema, RateClassCreateInput, RateClassUpdateInput } from "@beg/validations"
+import type {
+    RateClassSchema,
+    RateClassCreateInput,
+    RateClassUpdateInput,
+    ClassSchema,
+} from "@beg/validations"
 
 export const rateRepository = {
     findAll: async (): Promise<RateClassSchema[]> => {
@@ -29,7 +33,7 @@ export const rateRepository = {
         return results[0] || null
     },
 
-    findByClassAndYear: async (classType: Class, year: number) => {
+    findByClassAndYear: async (classType: ClassSchema, year: number) => {
         const results = await db
             .select({
                 id: rateClasses.id,
@@ -60,7 +64,10 @@ export const rateRepository = {
         return newRate
     },
 
-    update: async (id: number, rateData: Partial<RateClassUpdateInput>): Promise<RateClassSchema> => {
+    update: async (
+        id: number,
+        rateData: Partial<RateClassUpdateInput>
+    ): Promise<RateClassSchema> => {
         const updateData: any = {}
 
         if (rateData.class) updateData.class = rateData.class

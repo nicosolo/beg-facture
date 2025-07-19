@@ -16,7 +16,6 @@
         "db:seed": "bun run src/db/seed.ts"
     },
     "dependencies": {
-        "@beg/types": "workspace:*",
         "@beg/validations": "workspace:*",
         "@hono/zod-validator": "^0.4.3",
         "@libsql/client": "^0.15.6",

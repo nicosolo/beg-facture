@@ -1,4 +1,3 @@
-import type { User } from "@beg/types"
 import { odysDb } from "../db/odsy"
 
 export const describeTables = async (): Promise<void> => {

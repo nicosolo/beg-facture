@@ -14,7 +14,9 @@ export function useFetchActivity() {
         {
             params: typeof idParamSchema
         }
-    >("activity/:id")
+    >("activity/:id", {
+        params: idParamSchema,
+    })
 }
 
 export function useFetchActivityList() {

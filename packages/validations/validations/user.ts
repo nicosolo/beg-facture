@@ -38,7 +38,7 @@ export const userUpdateSchema = z.object({
     firstName: z.string().min(1).optional(),
     lastName: z.string().min(1).optional(),
     initials: z.string().min(1).optional(),
-    password: z.string().min(6).optional(),
+    password: z.string().min(6).optional().nullable(),
     role: z.enum(["admin", "user"]).optional(),
     archived: z.boolean().optional(),
     activityRates: z.array(activityRateUserSchema).optional(),

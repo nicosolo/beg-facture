@@ -90,6 +90,7 @@
                         id="password"
                         v-model="collaborator.password"
                         class="w-full p-2 border border-gray-300 rounded-md"
+                        :minlength="8"
                         :required="isNewCollaborator"
                     />
                     <p v-if="!isNewCollaborator" class="text-sm text-gray-500 mt-1">

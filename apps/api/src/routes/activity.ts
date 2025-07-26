@@ -88,7 +88,7 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
             }
 
             const userClass = userData.activityRates?.find(
-                (rate) => rate.class === activityType.code
+                (rate) => rate.activityId === activityType.id
             )
             if (!userClass) {
                 throwValidationError("User class not found", [
@@ -176,9 +176,8 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                         { field: "userId", message: "User not found" },
                     ])
                 }
-
                 const userClass = userData.activityRates?.find(
-                    (rate) => rate.class === activityType.code
+                    (rate) => rate.activityId === activityType.id
                 )
                 if (!userClass) {
                     throwValidationError("User class not found", [

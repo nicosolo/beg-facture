@@ -20,6 +20,8 @@ export default {
         all: "Tous",
         resetFilters: "Réinitialiser les filtres",
         noResults: "Aucun résultat trouvé",
+        hours: "heures",
+        minutes: "min",
     },
     navigation: {
         home: "Accueil",

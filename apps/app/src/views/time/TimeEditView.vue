@@ -7,14 +7,18 @@
         </div>
 
         <!-- Project and Date header section -->
-        <LoadingOverlay :loading="loadingProjects || loadingActivityTypes || loadingUsers">
+        <LoadingOverlay :loading="loadingActivityTypes || loadingUsers">
             <div class="bg-white rounded-lg p-6 mb-4 border border-gray-200">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div class="mb-4 md:mb-0 md:mr-6 flex-1">
                         <Label class="text-lg font-medium text-gray-700 mb-1">{{
                             $t("projects.title")
                         }}</Label>
-                        <ProjectSelect v-if="isNewEntry" :value="`${projectName}`" class="w-full" />
+                        <ProjectSelect
+                            v-if="isNewEntry && !route.query.projectId"
+                            :value="`${projectName}`"
+                            class="w-full"
+                        />
                         <ProjectSelect
                             v-else-if="activity.projectId"
                             v-model="activity.projectId"
@@ -55,7 +59,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="bg-white rounded-lg p-6 border border-gray-200">
                 <form @submit.prevent="saveActivity">
                     <!-- Hours, Km, Fees section -->
@@ -79,16 +82,9 @@
                                 for="duration"
                                 class="block text-sm font-medium text-gray-700 mb-1"
                             >
-                                {{ $t("time.columns.duration") }} (minutes)
+                                {{ $t("time.columns.duration") }}
                             </label>
-                            <input
-                                type="number"
-                                id="duration"
-                                v-model.number="activity.duration"
-                                step="15"
-                                min="0"
-                                class="w-full p-2 border border-gray-300 rounded-md"
-                            />
+                            <DurationInput v-model="activity.duration" :step="15" />
                         </div>
 
                         <div>
@@ -213,6 +209,7 @@ import { ApiError } from "@/utils/api-error"
 import { ErrorCode } from "@beg/validations"
 import type { ActivityCreateInput, ActivityUpdateInput } from "@beg/validations"
 import ProjectSelect from "@/components/molecules/ProjectSelect.vue"
+import DurationInput from "@/components/molecules/DurationInput.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 
 const route = useRoute()
@@ -254,7 +251,6 @@ const errorMessage = ref<string | null>(null)
 const { get: fetchActivity, loading: loadingActivity } = useFetchActivity()
 const { post: createActivity, loading: creatingActivity } = useCreateActivity()
 const { put: updateActivity, loading: updatingActivity } = useUpdateActivity()
-const { get: fetchProjects, loading: loadingProjects, data: projectsData } = useFetchProjectList()
 const { get: fetchUsers, loading: loadingUsers, data: usersData } = useFetchUsers()
 const {
     get: fetchActivityTypes,
@@ -263,19 +259,10 @@ const {
 } = useFetchActivityTypes()
 
 // Options for dropdowns
-const projectOptions = ref<Array<{ label: string; value: number }>>([])
 const userOptions = ref<Array<{ label: string; value: number }>>([])
 const activityTypeOptions = ref<Array<{ label: string; value: number }>>([])
 const projectName = ref<string | null>(null)
 // Watch for data changes and update options
-watch(projectsData, (newData) => {
-    if (newData) {
-        projectOptions.value = newData.data.map((project) => ({
-            label: `${project.projectNumber} - ${project.name}`,
-            value: project.id,
-        }))
-    }
-})
 
 watch(usersData, (newData) => {
     if (newData) {
@@ -289,16 +276,11 @@ watch(usersData, (newData) => {
 watch(activityTypesData, (newData) => {
     if (newData) {
         activityTypeOptions.value = newData.map((activityType) => ({
-            label: activityType.name,
+            label: `${activityType.code} - ${activityType.name}`,
             value: activityType.id,
         }))
     }
 })
-
-// Clear error
-const clearError = () => {
-    errorMessage.value = null
-}
 
 // Handle date formatting
 const formattedDate = computed({
@@ -384,13 +366,7 @@ const saveActivity = async () => {
 
 // Load data on mount
 onMounted(async () => {
-    await Promise.all([
-        fetchProjects({
-            query: { page: 1, limit: 100, includeArchived: false, includeEnded: false },
-        }),
-        fetchActivityTypes(),
-        isAdmin.value ? fetchUsers() : Promise.resolve(),
-    ])
+    await Promise.all([fetchActivityTypes(), fetchUsers()])
 
     if (!isNewEntry.value) {
         await loadActivityData()

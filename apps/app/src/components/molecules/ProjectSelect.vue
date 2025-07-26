@@ -7,6 +7,7 @@
             @input="handleInput"
             @focus="showDropdown = true"
             @blur="handleBlur"
+            @keydown="handleKeyDown"
             :ref="(el) => (inputRef = el as HTMLInputElement)"
             :class="[
                 'w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
@@ -16,26 +17,7 @@
 
         <!-- Loading spinner -->
         <div v-if="loading" class="absolute right-2 top-1/2 transform -translate-y-1/2">
-            <svg
-                class="animate-spin h-5 w-5 text-gray-400"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-            >
-                <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                ></circle>
-                <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-            </svg>
+            <LoadingSpinner size="md" color="gray" />
         </div>
 
         <!-- Dropdown -->
@@ -48,7 +30,7 @@
                 v-if="searchTerm.length >= 2 && projects.length === 0 && !loading"
                 class="px-3 py-2 text-gray-500"
             >
-                {{ $t("common.noResults", "No results found") }}
+                {{ $t("common.noResults") }}
             </div>
 
             <!-- Type to search message -->
@@ -56,15 +38,19 @@
                 v-else-if="searchTerm.length < 2 && !selectedProjectName"
                 class="px-3 py-2 text-gray-500"
             >
-                {{ $t("projects.typeToSearch", "Type at least 2 characters to search") }}
+                {{ $t("projects.typeToSearch") }}
             </div>
 
             <!-- Project options -->
             <button
-                v-for="project in projects"
+                v-for="(project, index) in projects"
                 :key="project.id"
                 @mousedown.prevent="selectProject(project)"
-                class="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                @mouseenter="focusedIndex = index"
+                :class="[
+                    'w-full px-3 py-2 text-left focus:outline-none',
+                    focusedIndex === index ? 'bg-gray-100' : 'hover:bg-gray-100',
+                ]"
             >
                 <div class="font-medium">{{ project.projectNumber }} - {{ project.name }}</div>
                 <div v-if="project.ended" class="text-sm text-gray-500">
@@ -79,6 +65,7 @@
 import { ref, watch, onMounted } from "vue"
 import { useFetchProjectList, useFetchProject } from "@/composables/api/useProject"
 import { debounce } from "@/utils/debounce"
+import LoadingSpinner from "@/components/atoms/LoadingSpinner.vue"
 import type { ProjectResponse } from "@beg/validations"
 
 interface Props {
@@ -99,6 +86,7 @@ const showDropdown = ref(false)
 const projects = ref<ProjectResponse[]>([])
 const selectedProjectName = ref("")
 const loading = ref(false)
+const focusedIndex = ref(0)
 
 // API composables
 const { get: fetchProjectList } = useFetchProjectList()
@@ -119,13 +107,14 @@ const searchProjects = async (search: string) => {
             query: {
                 name: search,
                 page: 1,
-                limit: 10,
-                includeArchived: true,
-                includeEnded: true,
+                limit: 30,
+                includeArchived: false,
+                includeEnded: false,
             },
         })
         if (response) {
             projects.value = response.data
+            focusedIndex.value = 0 // Reset focus to first item
             // Auto-select if only one project is returned
             if (response.data.length === 1) {
                 selectProject(response.data[0])
@@ -148,7 +137,41 @@ const handleInput = () => {
     if (props.modelValue) {
         emit("update:modelValue", undefined)
     }
+    focusedIndex.value = 0
     debouncedSearch(searchTerm.value)
+}
+
+// Handle keyboard navigation
+const handleKeyDown = (event: KeyboardEvent) => {
+    switch (event.key) {
+        case "ArrowDown":
+            event.preventDefault()
+            if (!showDropdown.value && searchTerm.value.length >= 2) {
+                showDropdown.value = true
+            } else if (projects.value.length > 0) {
+                focusedIndex.value = Math.min(focusedIndex.value + 1, projects.value.length - 1)
+            }
+            break
+        case "ArrowUp":
+            event.preventDefault()
+            if (showDropdown.value && projects.value.length > 0) {
+                focusedIndex.value = Math.max(focusedIndex.value - 1, 0)
+            }
+            break
+        case "Enter":
+            event.preventDefault()
+            if (showDropdown.value && projects.value[focusedIndex.value]) {
+                selectProject(projects.value[focusedIndex.value])
+            }
+            break
+        case "Escape":
+            event.preventDefault()
+            if (showDropdown.value) {
+                showDropdown.value = false
+                focusedIndex.value = 0
+            }
+            break
+    }
 }
 
 // Handle blur
@@ -156,18 +179,21 @@ const handleBlur = () => {
     // Delay to allow click on dropdown items
     setTimeout(() => {
         showDropdown.value = false
+        focusedIndex.value = 0
     }, 200)
 }
 
 // Select project
 const selectProject = (project: ProjectResponse) => {
     selectedProjectName.value = `${project.projectNumber} - ${project.name}`
+    console.log("selectedProjectName", selectedProjectName.value)
     searchTerm.value = selectedProjectName.value
     emit("update:modelValue", project.id)
     console.log("inputRef", inputRef.value)
     inputRef.value?.blur()
     showDropdown.value = false
     projects.value = []
+    focusedIndex.value = 0
 }
 
 // Load initial project if modelValue is set
@@ -196,8 +222,8 @@ const loadInitialProject = async () => {
 watch(
     () => props.modelValue,
     (newValue) => {
+        console.log("newValue", newValue)
         if (!newValue) {
-            searchTerm.value = ""
             selectedProjectName.value = ""
             projects.value = []
         }

@@ -183,7 +183,7 @@ const handleFilterChange = () => {
 const resetFilters = () => {
     localFilter.value = {
         userId: undefined,
-        projectId: undefined,
+        projectId: localFilter.value.projectId || undefined,
         activityTypeId: undefined,
         fromDate: undefined,
         toDate: undefined,

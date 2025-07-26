@@ -2,6 +2,7 @@
     <select
         :value="modelValue ?? ''"
         :disabled="disabled"
+        :required="required"
         :class="[
             'w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
             disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white',
@@ -9,7 +10,7 @@
         ]"
         @change="handleChange"
     >
-        <option v-for="option in options" :key="String(option.value)" :value="option.value ?? ''">
+        <option v-for="option in options" :key="String(option.value)" :value="option.value ?? ''" :disabled="required && option.value === ''">
             {{ option.label }}
         </option>
     </select>
@@ -26,9 +27,10 @@ interface SelectProps {
     disabled?: boolean
     className?: string
     options: SelectOption[]
+    required?: boolean
 }
 
-const { modelValue, disabled, className, options } = defineProps<SelectProps>()
+const { modelValue, disabled, className, options, required } = defineProps<SelectProps>()
 
 const emit = defineEmits<{
     (e: "update:modelValue", value: string | number | boolean | null): void

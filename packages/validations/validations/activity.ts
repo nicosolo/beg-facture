@@ -85,11 +85,13 @@ export const activityResponseSchema = z.object({
 export type ActivityResponse = z.infer<typeof activityResponseSchema>
 
 export const activityListResponse = createPageResponseSchema(activityResponseSchema).extend({
-    totals: z.object({
-        duration: z.number(),
-        kilometers: z.number(),
-        expenses: z.number(),
-    }).optional(),
+    totals: z
+        .object({
+            duration: z.number(),
+            kilometers: z.number(),
+            expenses: z.number(),
+        })
+        .optional(),
 })
 
 export type ActivityListResponse = z.infer<typeof activityListResponse>

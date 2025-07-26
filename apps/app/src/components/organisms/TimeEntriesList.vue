@@ -51,7 +51,7 @@
                         <Button
                             variant="ghost"
                             size="sm"
-                            :to="{ name: editRoute, params: { id: item.id } }"
+                            @click="$emit('edit', item.id)"
                             className="text-indigo-600 hover:text-indigo-900"
                         >
                             {{ $t("common.edit") }}
@@ -102,6 +102,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
     "sort-change": [sort: { key: string; direction: "asc" | "desc" }]
+    "edit": [activityId: number]
 }>()
 
 const defaultColumns: Column[] = [

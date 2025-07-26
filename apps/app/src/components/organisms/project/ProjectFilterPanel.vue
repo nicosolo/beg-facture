@@ -11,17 +11,6 @@
                 </template>
             </FormField>
 
-            <SelectField
-                :options="[
-                    { label: $t('common.no'), value: false },
-                    { label: $t('common.yes'), value: true },
-                ]"
-                :label="$t('projects.filters.includeArchived')"
-                v-model="filterData.includeArchived"
-                @update:model-value="emitChange"
-            >
-            </SelectField>
-
             <div class="form-group">
                 <Label>{{ $t("projects.filters.sortBy") }}</Label>
                 <div class="flex gap-2">
@@ -45,6 +34,14 @@
                     ></Select>
                 </div>
             </div>
+            <div class="form-group">
+                <Label>{{ $t("projects.filters.referentUser") }}</Label>
+                <UserSelect
+                    v-model="filterData.referentUserId"
+                    :placeholder="$t('projects.filters.selectReferentUser')"
+                    @update:model-value="emitChange"
+                />
+            </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             <DateField
@@ -60,39 +57,26 @@
             />
 
             <div class="form-group">
-                <Label>{{ $t("projects.filters.referentUser") }}</Label>
-                <UserSelect
-                    v-model="filterData.referentUserId"
-                    :placeholder="$t('projects.filters.selectReferentUser')"
-                    @update:model-value="emitChange"
-                />
-            </div>
-            <div class="form-group">
-                <Label>{{ $t("projects.filters.hasUnbilledTime") }}</Label>
-                <Checkbox
-                    v-model="filterData.hasUnbilledTime"
-                    @update:model-value="emitChange"
-                    :true-value="true"
-                    :false-value="false"
-                />
-            </div>
-            <div class="form-group">
-                <Label>{{ $t("projects.filters.includeArchived") }}</Label>
-                <Checkbox
-                    v-model="filterData.includeArchived"
-                    @update:model-value="emitChange"
-                    :true-value="true"
-                    :false-value="false"
-                />
-            </div>
-            <div class="form-group">
-                <Label>{{ $t("projects.filters.includeEnded") }}</Label>
-                <Checkbox
-                    v-model="filterData.includeEnded"
-                    @update:model-value="emitChange"
-                    :true-value="true"
-                    :false-value="false"
-                />
+                <div class="space-y-2">
+                    <Checkbox
+                        v-model="filterData.hasUnbilledTime"
+                        @update:model-value="emitChange"
+                        :label="$t('projects.filters.hasUnbilledTime')"
+                        id="hasUnbilledTime"
+                    />
+                    <Checkbox
+                        v-model="filterData.includeArchived"
+                        @update:model-value="emitChange"
+                        :label="$t('projects.filters.includeArchived')"
+                        id="includeArchived"
+                    />
+                    <Checkbox
+                        v-model="filterData.includeEnded"
+                        @update:model-value="emitChange"
+                        :label="$t('projects.filters.includeEnded')"
+                        id="includeEnded"
+                    />
+                </div>
             </div>
         </div>
 
@@ -115,7 +99,6 @@ import UserSelect from "../../organisms/user/UserSelect.vue"
 import type { ProjectFilter } from "@beg/validations"
 import Checkbox from "@/components/atoms/Checkbox.vue"
 import Input from "@/components/atoms/Input.vue"
-import SelectField from "@/components/molecules/SelectField.vue"
 
 export type ProjectFilterModel = Omit<ProjectFilter, "page" | "limit" | "accountId">
 

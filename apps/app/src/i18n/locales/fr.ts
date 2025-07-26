@@ -111,6 +111,7 @@ export default {
             referentUser: "Responsable",
             selectReferentUser: "Sélectionner un responsable",
         },
+        options: "Options",
         status: {
             all: "Tous",
             active: "Actif",

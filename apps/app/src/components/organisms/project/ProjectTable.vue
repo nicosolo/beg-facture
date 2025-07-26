@@ -34,7 +34,7 @@
         <template #cell:actions="{ item }">
             <div class="flex flex-row sm:flex-col md:flex-row gap-2">
                 <Button
-                    :to="{ name: 'time-new', query: { projectId: item.id } }"
+                    @click="$emit('add-hours', item.id)"
                     variant="secondary"
                     class="whitespace-nowrap inline-block w-fit"
                 >
@@ -66,7 +66,7 @@ import DataTable from "@/components/molecules/DataTable.vue"
 import Button from "@/components/atoms/Button.vue"
 import { useI18n } from "vue-i18n"
 import { useFormat } from "@/composables/utils/useFormat"
-import { ref, type Ref } from "vue"
+import { ref } from "vue"
 import type { ProjectFilter, ProjectResponse } from "@beg/validations"
 
 interface Props {
@@ -76,6 +76,7 @@ interface Props {
 
 const emit = defineEmits<{
     (e: "sort-change", sort: { key: string; direction: "asc" | "desc" }): void
+    (e: "add-hours", projectId: number): void
 }>()
 
 const handleSortChange = (sort: { key: string; direction: "asc" | "desc" }) => {

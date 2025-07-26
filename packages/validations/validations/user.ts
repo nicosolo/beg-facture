@@ -1,15 +1,10 @@
 import { z } from "zod"
 import { nullableDateSchema } from "./base"
 import { activityRateUserSchema } from "./activityRateUser"
-
+import { booleanSchema } from "./base"
 // Create a schema that parses query string values
 export const userFilterSchema = z.object({
-    active: z
-        .string()
-        .transform(
-            (val) => val.toString().toLowerCase() === "true" || val.toString().toLowerCase() === "1"
-        )
-        .optional(),
+    active: booleanSchema.optional(),
 })
 
 export const userRoleSchema = z.enum(["admin", "user"])
@@ -52,7 +47,7 @@ export type UserUpdateInput = z.infer<typeof userUpdateSchema>
 
 export function convertUserFilterToInput(filter: UserFilter): UserFilterInput {
     return {
-        active: filter.active?.toString(),
+        active: filter.active,
     }
 }
 

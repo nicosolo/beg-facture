@@ -9,11 +9,11 @@
                 aria-modal="true"
             >
                 <div
-                    class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+                    class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block"
                 >
                     <!-- Background overlay -->
                     <div
-                        class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                        class="fixed inset-0 bg-gray-500/50 transition-opacity"
                         aria-hidden="true"
                         @click="closeDialog"
                     ></div>
@@ -26,13 +26,15 @@
                     >
 
                     <div
-                        class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+                        :class="[
+                            'inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:w-full',
+                            sizeClasses,
+                        ]"
                         @click.stop
                     >
-                        <!-- Header -->
-                        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="bg-white p-4">
                             <div class="sm:flex sm:items-start">
-                                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <div class="mt-3 text-left w-full">
                                     <h3
                                         class="text-lg leading-6 font-medium text-gray-900"
                                         id="modal-title"
@@ -44,11 +46,11 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Footer -->
-                        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                            <slot name="footer"></slot>
+                            <!-- Footer -->
+                            <div class="bg-gray-50 pt-6 flex flex-row-reverse">
+                                <slot name="footer"></slot>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -58,15 +60,30 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from "vue"
+import { watch, computed } from "vue"
 
 interface Props {
     modelValue: boolean
     title: string
+    size?: "sm" | "md" | "lg" | "xl" | "full"
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+    size: "lg",
+})
 const emit = defineEmits(["update:modelValue"])
+
+// Compute size classes based on the size prop
+const sizeClasses = computed(() => {
+    const sizes = {
+        sm: "sm:max-w-md",
+        md: "sm:max-w-lg",
+        lg: "sm:max-w-3xl",
+        xl: "sm:max-w-5xl",
+        full: "sm:max-w-full sm:mx-4",
+    }
+    return sizes[props.size] || sizes.lg
+})
 
 const closeDialog = () => {
     emit("update:modelValue", false)

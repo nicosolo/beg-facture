@@ -9,6 +9,7 @@
                 min="0"
                 max="999"
                 :disabled="disabled"
+                :required="required && !modelValue"
                 :class="[
                     'w-full px-3 py-2 text-center border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
                     disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white',
@@ -73,12 +74,14 @@ interface Props {
     modelValue?: number // Duration in minutes
     disabled?: boolean
     step?: number // Step size in minutes for increment/decrement
+    required?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
     modelValue: 0,
     disabled: false,
-    step: 15
+    step: 15,
+    required: false
 })
 
 const emit = defineEmits<{

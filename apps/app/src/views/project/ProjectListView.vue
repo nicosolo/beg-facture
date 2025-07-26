@@ -7,7 +7,12 @@
         @filter-input-change="debouncedFetch"
     />
     <LoadingOverlay :loading="loading">
-        <ProjectTable :projects="projects" :sort="sort" @sort-change="handleSortChange" />
+        <ProjectTable
+            :projects="projects"
+            :sort="sort"
+            @sort-change="handleSortChange"
+            @add-hours="openTimeEntryModal"
+        />
 
         <Pagination
             v-if="projects.length > 0 || totalItems > 0"
@@ -20,6 +25,13 @@
             @go-to="goToPage"
         />
     </LoadingOverlay>
+
+    <!-- Time Entry Modal -->
+    <TimeEntryModal
+        v-model="showTimeEntryModal"
+        :project-id="selectedProjectId"
+        @saved="onTimeEntrySaved"
+    />
 </template>
 
 <script setup lang="ts">
@@ -32,6 +44,7 @@ import ProjectFilterPanel, {
 import ProjectTable from "@/components/organisms/project/ProjectTable.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
+import TimeEntryModal from "@/components/organisms/TimeEntryModal.vue"
 import type { PageResponse, ProjectFilter, ProjectResponse } from "@beg/validations"
 
 // Initialize i18n
@@ -47,6 +60,10 @@ const totalPages = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(20)
 
+// Modal state
+const showTimeEntryModal = ref(false)
+const selectedProjectId = ref<number | null>(null)
+
 // Filter state
 const filter = ref<ProjectFilterModel>({
     name: "",
@@ -57,7 +74,7 @@ const filter = ref<ProjectFilterModel>({
     fromDate: undefined,
     toDate: undefined,
     referentUserId: undefined,
-    hasUnbilledTime: true,
+    hasUnbilledTime: false,
 })
 
 const sort = computed(() => ({
@@ -148,4 +165,15 @@ watch(
 onMounted(() => {
     loadProjects()
 })
+
+// Modal handlers
+const openTimeEntryModal = (projectId: number) => {
+    selectedProjectId.value = projectId
+    showTimeEntryModal.value = true
+}
+
+const onTimeEntrySaved = () => {
+    // Reload projects to update the unbilled hours
+    loadProjects()
+}
 </script>

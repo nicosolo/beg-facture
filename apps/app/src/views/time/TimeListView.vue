@@ -12,8 +12,8 @@
             :totals="totals"
             :sort="sort"
             empty-message="Aucune entrée d'heure trouvée"
-            editRoute="time-edit"
             @sort-change="handleSortChange"
+            @edit="openEditModal"
         />
 
         <Pagination
@@ -27,6 +27,13 @@
             @go-to="goToPage"
         />
     </LoadingOverlay>
+    
+    <!-- Time Entry Modal -->
+    <TimeEntryModal
+        v-model="showTimeEntryModal"
+        :activity-id="selectedActivityId"
+        @saved="onTimeEntrySaved"
+    />
 </template>
 
 <script setup lang="ts">
@@ -39,6 +46,7 @@ import TimeFilterPanel, {
 import TimeEntriesList from "../../components/organisms/TimeEntriesList.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
+import TimeEntryModal from "@/components/organisms/TimeEntryModal.vue"
 import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@beg/validations"
 import { useRoute } from "vue-router"
 
@@ -53,6 +61,10 @@ const currentPage = ref(1)
 const pageSize = ref(20)
 const totals = ref<{ duration: number; kilometers: number; expenses: number } | undefined>()
 const route = useRoute()
+
+// Modal state
+const showTimeEntryModal = ref(false)
+const selectedActivityId = ref<number | null>(null)
 // Filter state
 const filter = ref<TimeFilterModel>({
     userId: undefined,
@@ -134,4 +146,15 @@ const goToPage = (page: number) => {
 onMounted(() => {
     loadActivities()
 })
+
+// Modal handlers
+const openEditModal = (activityId: number) => {
+    selectedActivityId.value = activityId
+    showTimeEntryModal.value = true
+}
+
+const onTimeEntrySaved = () => {
+    // Reload activities to update the list
+    loadActivities()
+}
 </script>

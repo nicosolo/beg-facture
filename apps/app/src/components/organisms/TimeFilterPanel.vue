@@ -102,6 +102,7 @@ import ProjectSelect from "../molecules/ProjectSelect.vue"
 import { useFetchUsers } from "@/composables/api/useUser"
 import { useFetchActivityTypes } from "@/composables/api/useActivityType"
 import type { ActivityFilter } from "@beg/validations"
+import { debounce } from "@/utils/debounce"
 
 export interface TimeFilterModel {
     userId?: number
@@ -127,8 +128,6 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
     "update:filter": [value: TimeFilterModel]
-    "filter-change": []
-    "filter-input-change": []
 }>()
 
 // Local filter state
@@ -176,7 +175,6 @@ watch(
 // Handle filter changes
 const handleFilterChange = () => {
     emit("update:filter", { ...localFilter.value })
-    emit("filter-change")
 }
 
 // Reset filters

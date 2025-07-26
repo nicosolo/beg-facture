@@ -1,11 +1,7 @@
 <template>
     <h1 class="text-2xl font-bold mb-6">{{ $t("projects.title") }}</h1>
 
-    <ProjectFilterPanel
-        v-model:filter="filter"
-        @filter-change="loadProjects"
-        @filter-input-change="debouncedFetch"
-    />
+    <ProjectFilterPanel v-model:filter="filter" />
     <LoadingOverlay :loading="loading">
         <ProjectTable
             :projects="projects"
@@ -104,17 +100,6 @@ watch(
     },
     { deep: true }
 )
-
-const debouncedFetch = (() => {
-    let timeout: ReturnType<typeof setTimeout> | null = null
-    return () => {
-        if (timeout) clearTimeout(timeout)
-        timeout = setTimeout(() => {
-            loadProjects()
-            timeout = null
-        }, 300)
-    }
-})()
 
 const loadProjects = async () => {
     await fetchProjects({

@@ -99,6 +99,7 @@ import UserSelect from "../../organisms/user/UserSelect.vue"
 import type { ProjectFilter } from "@beg/validations"
 import Checkbox from "@/components/atoms/Checkbox.vue"
 import Input from "@/components/atoms/Input.vue"
+import { debounce } from "@/utils/debounce"
 
 export type ProjectFilterModel = Omit<ProjectFilter, "page" | "limit" | "accountId">
 
@@ -113,7 +114,6 @@ const { filter } = defineProps<ProjectFilterProps>()
 const emit = defineEmits<{
     (e: "update:filter", filter: ProjectFilterProps["filter"]): void
     (e: "filter-change"): void
-    (e: "filter-input-change"): void
 }>()
 
 // Create reactive copy of the filter
@@ -146,15 +146,18 @@ watch(
     { deep: true }
 )
 
+// Create debounced filter change for text input
+const debouncedFilterChange = debounce(() => {
+    emit("update:filter", { ...filterData })
+}, 300)
+
 // Emit methods
 const emitChange = () => {
     emit("update:filter", { ...filterData })
-    emit("filter-change")
 }
 
 const emitInputChange = () => {
-    emit("update:filter", { ...filterData })
-    emit("filter-input-change")
+    debouncedFilterChange()
 }
 
 // Reset filters

@@ -1,11 +1,7 @@
 <template>
     <h1 class="text-2xl font-bold mb-6">{{ $t("time.title") }}</h1>
 
-    <TimeFilterPanel
-        v-model:filter="filter"
-        @filter-change="loadActivities"
-        @filter-input-change="debouncedFetch"
-    />
+    <TimeFilterPanel v-model:filter="filter" />
     <LoadingOverlay :loading="loading">
         <TimeEntriesList
             :activities="activities"
@@ -27,7 +23,7 @@
             @go-to="goToPage"
         />
     </LoadingOverlay>
-    
+
     <!-- Time Entry Modal -->
     <TimeEntryModal
         v-model="showTimeEntryModal"
@@ -39,7 +35,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from "vue"
 import { useFetchActivityList } from "@/composables/api/useActivity"
-import { debounce } from "@/utils/debounce"
 import TimeFilterPanel, {
     type TimeFilterModel,
 } from "../../components/organisms/TimeFilterPanel.vue"
@@ -107,6 +102,15 @@ watch(
     },
     { deep: true }
 )
+watch(
+    filter,
+    (newData) => {
+        if (newData) {
+            loadActivities()
+        }
+    },
+    { deep: true }
+)
 
 const loadActivities = async () => {
     const params: ActivityFilter = {
@@ -119,8 +123,6 @@ const loadActivities = async () => {
         query: params,
     })
 }
-
-const debouncedFetch = debounce(loadActivities, 300)
 
 // Pagination handlers
 const prevPage = () => {

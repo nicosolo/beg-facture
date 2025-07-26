@@ -5,7 +5,7 @@
                 <template #input>
                     <Input
                         v-model="filterData.name"
-                        :placeholder="$t('projects.filters.searchByName')"
+                        :placeholder="$t('projects.filters.searchByNameAndNumber')"
                         @update:model-value="emitInputChange"
                     />
                 </template>
@@ -38,7 +38,7 @@
                 <Label>{{ $t("projects.filters.referentUser") }}</Label>
                 <UserSelect
                     v-model="filterData.referentUserId"
-                    :placeholder="$t('projects.filters.selectReferentUser')"
+                    :placeholder="$t('shared.selectReferentUser')"
                     @update:model-value="emitChange"
                 />
             </div>

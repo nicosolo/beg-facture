@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue"
+import { ref, watch, onMounted, nextTick } from "vue"
 import { useFetchProjectList, useFetchProject } from "@/composables/api/useProject"
 import { debounce } from "@/utils/debounce"
 import LoadingSpinner from "@/components/atoms/LoadingSpinner.vue"
@@ -132,10 +132,12 @@ const searchProjects = async (search: string) => {
 const debouncedSearch = debounce(searchProjects, 100)
 
 // Handle input
-const handleInput = () => {
+const handleInput = async (e: InputEvent) => {
     selectedProjectName.value = ""
     if (props.modelValue) {
         emit("update:modelValue", undefined)
+        await nextTick()
+        searchTerm.value = e.data || ""
     }
     focusedIndex.value = 0
     debouncedSearch(searchTerm.value)
@@ -225,6 +227,7 @@ watch(
         console.log("newValue", newValue)
         if (!newValue) {
             selectedProjectName.value = ""
+            searchTerm.value = ""
             projects.value = []
         }
     }

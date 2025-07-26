@@ -51,6 +51,9 @@ export default {
         bothFieldsRequired: "Veuillez saisir votre email et mot de passe",
         loginError: "Une erreur est survenue lors de la connexion",
     },
+    shared: {
+        selectReferentUser: "Sélectionner un responsable",
+    },
     projects: {
         title: "Mandats",
         list: "Liste des projets",
@@ -76,7 +79,6 @@ export default {
         billingMandate: "Mandat de facturation",
         order: "Ordre",
         referentUser: "Responsable",
-        selectReferentUser: "Sélectionner un responsable",
         archived: "Archivé",
         generateDocument: "Générer document",
         validateActivityWithOverage: "Valider activité avec dépassement",
@@ -109,7 +111,6 @@ export default {
             hasUnbilledTime: "Avec heures non facturées",
             searchByNameAndNumber: "Rechercher par numéro ou nom",
             referentUser: "Responsable",
-            selectReferentUser: "Sélectionner un responsable",
         },
         options: "Options",
         status: {

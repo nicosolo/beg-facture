@@ -129,15 +129,16 @@ const filteredUsers = computed<UserResponse[]>(() => {
 })
 
 // Handle input
-const handleInput = (e: InputEvent) => {
+const handleInput = async (e: InputEvent) => {
     selectedUserName.value = ""
     focusedIndex.value = 0
     showDropdown.value = true
 
     // Clear the modelValue when user starts typing
     if (props.modelValue) {
-        searchTerm.value = e.data || ""
         emit("update:modelValue", undefined)
+        await nextTick()
+        searchTerm.value = e.data || ""
     }
 }
 
@@ -215,9 +216,10 @@ const loadInitialUser = () => {
 // Watch for modelValue changes
 watch(
     () => props.modelValue,
-    async (newValue, oldValue) => {
+    async (newValue) => {
         if (!newValue) {
             selectedUserName.value = ""
+            searchTerm.value = ""
         } else {
             loadInitialUser()
         }

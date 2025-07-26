@@ -120,12 +120,8 @@ import { ref, computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
 import Button from "@/components/atoms/Button.vue"
-import Label from "@/components/atoms/Label.vue"
-import Checkbox from "@/components/atoms/Checkbox.vue"
 import FormField from "@/components/molecules/FormField.vue"
-import UserSelect from "@/components/organisms/user/UserSelect.vue"
 import Input from "@/components/atoms/Input.vue"
-import InputNumber from "@/components/atoms/InputNumber.vue"
 import Select from "@/components/atoms/Select.vue"
 
 const { t } = useI18n()

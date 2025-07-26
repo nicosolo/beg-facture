@@ -3,13 +3,12 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- User Filter -->
             <div class="form-group">
-                <Label>{{ $t("time.filters.user") }}</Label>
-                <Select
+                <Label>{{ $t("shared.selectReferentUser") }}</Label>
+                <UserSelect
                     v-model="localFilter.userId"
-                    :loading="loadingUsers"
-                    :options="[{ label: $t('common.all'), value: null }, ...userOptions]"
+                    :placeholder="$t('shared.selectReferentUser')"
                     @update:modelValue="handleFilterChange"
-                ></Select>
+                />
             </div>
 
             <!-- Project Filter -->
@@ -102,6 +101,7 @@ import ProjectSelect from "../molecules/ProjectSelect.vue"
 import { useFetchUsers } from "@/composables/api/useUser"
 import { useFetchActivityTypes } from "@/composables/api/useActivityType"
 import type { ActivityFilter } from "@beg/validations"
+import UserSelect from "./user/UserSelect.vue"
 
 export interface TimeFilterModel {
     userId?: number

@@ -54,7 +54,7 @@ const activities = ref<ActivityResponse[]>([])
 const totalItems = ref(0)
 const totalPages = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(20)
+const pageSize = ref(100)
 const totals = ref<{ duration: number; kilometers: number; expenses: number } | undefined>()
 const route = useRoute()
 
@@ -69,7 +69,7 @@ const filter = ref<TimeFilterModel>({
     fromDate: undefined,
     toDate: undefined,
     includeBilled: false,
-    includeUnbilled: true,
+    includeUnbilled: false,
     includeDisbursement: false,
     sortBy: "date",
     sortOrder: "desc",

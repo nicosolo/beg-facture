@@ -9,7 +9,7 @@
     >
         <template #cell:name="{ item }">
             <div>
-                <span class="font-medium mr-2">{{ item.projectNumber }}</span>
+                <span class="text-md font-medium mr-2">{{ item.projectNumber }}</span>
                 <span class="text-sm text-gray-600">{{ item.name }}</span>
             </div>
         </template>
@@ -43,7 +43,8 @@
                 <Button
                     @click="$emit('add-hours', item.id)"
                     variant="secondary"
-                    class="whitespace-nowrap inline-block w-fit"
+                    size="sm"
+                    class="whitespace-nowrap w-fit"
                 >
                     Ajouter des heures
                 </Button>
@@ -51,7 +52,8 @@
                 <Button
                     :to="{ name: 'time-list', query: { projectId: item.id } }"
                     variant="ghost"
-                    class="whitespace-nowrap inline-block w-fit"
+                    size="sm"
+                    class="whitespace-nowrap w-fit"
                 >
                     Heures
                 </Button>
@@ -59,7 +61,8 @@
                 <Button
                     :to="{ name: 'project-view', params: { id: item.id } }"
                     variant="primary"
-                    class="whitespace-nowrap inline-block w-fit"
+                    size="sm"
+                    class="whitespace-nowrap w-fit"
                 >
                     Voir
                 </Button>

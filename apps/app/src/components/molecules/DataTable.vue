@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white rounded-md shadow overflow-hidden">
+    <div class="bg-white rounded-md shadow">
         <div v-if="items.length === 0" class="p-8 text-center">
             <p class="text-gray-500">{{ emptyMessage }}</p>
         </div>
@@ -18,51 +18,10 @@
                     ]"
                     @click="handleSort(column)"
                 >
-                    <div class="flex items-center space-x-1">
-                        <span>{{ column.label }}</span>
-                        <span v-if="column.sortKey" class="ml-auto">
-                            <svg
-                                v-if="!sort || sort.key !== (column.sortKey || column.key)"
-                                class="w-4 h-4 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-                                />
-                            </svg>
-                            <svg
-                                v-else-if="sort.direction === 'asc'"
-                                class="w-4 h-4 text-gray-700"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
-                                />
-                            </svg>
-                            <svg
-                                v-else
-                                class="w-4 h-4 text-gray-700"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"
-                                />
-                            </svg>
+                    <div class="flex items-center space-x-2 min-w-0">
+                        <span class="truncate">{{ column.label }}</span>
+                        <span v-if="column.sortKey" class="ml-auto flex-shrink-0">
+                            <SortIcon :direction="getSortDirection(column)" />
                         </span>
                     </div>
                 </div>
@@ -75,9 +34,9 @@
                     :key="getItemKey(item, index)"
                     :class="[
                         'cursor-pointer transition-colors',
-                        selectedRows?.has(getItemKey(item, index)) 
-                            ? 'bg-blue-100 hover:bg-blue-200' 
-                            : 'hover:bg-gray-100'
+                        selectedRows?.has(getItemKey(item, index))
+                            ? 'bg-blue-100 hover:bg-blue-200'
+                            : 'hover:bg-gray-100',
                     ]"
                     @click="handleRowClick(item, index, $event)"
                     @mousedown="handleMouseDown($event)"
@@ -91,12 +50,18 @@
                         >
                             <div class="flex">
                                 <div
-                                    v-if="!column.actions"
+                                    v-if="!column.actions && !column.fullWidth"
                                     class="px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider w-1/2"
                                 >
                                     {{ column.label }}
                                 </div>
                                 <div class="px-3 py-2 flex-1">
+                                    <div
+                                        v-if="column.fullWidth"
+                                        class="text-xs font-medium text-gray-500 uppercase tracking-wider -mx-1"
+                                    >
+                                        {{ column.label }}
+                                    </div>
                                     <slot
                                         :name="`cell:${column.key}`"
                                         :item="item"
@@ -112,10 +77,19 @@
                         <div
                             v-for="column in columns"
                             :key="column.key"
-                            class="px-3 py-2 border-r border-gray-200 last:border-r-0"
+                            :class="[
+                                'px-2 py-0.5 border-r border-gray-200 last:border-r-0 overflow-hidden',
+                            ]"
                         >
                             <slot :name="`cell:${column.key}`" :item="item" :column="column">
-                                {{ getItemValue(item, column) }}
+                                <TruncateWithTooltip
+                                    :content="getItemValue(item, column)"
+                                    v-if="column.tooltip"
+                                    :placement="column.tooltipPlacement || 'left'"
+                                />
+                                <span v-else>
+                                    {{ getItemValue(item, column) }}
+                                </span>
                             </slot>
                         </div>
                     </div>
@@ -123,7 +97,7 @@
             </div>
 
             <!-- Footer row with totals -->
-            <div v-if="showFooter" class="border-t-2 border-gray-300 bg-gray-50">
+            <div v-if="showFooter" class="border-t-3 border-gray-300 bg-gray-50">
                 <!-- Mobile footer -->
                 <div class="flex flex-col md:hidden">
                     <div
@@ -158,6 +132,8 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
+import SortIcon from "../atoms/SortIcon.vue"
+import TruncateWithTooltip from "../atoms/TruncateWithTooltip.vue"
 export interface Column {
     key: string
     label: string
@@ -177,7 +153,10 @@ export interface Column {
         | "w-2/12"
         | string
     actions?: boolean
+    fullWidth?: boolean
     sortKey?: string
+    tooltip?: boolean
+    tooltipPlacement?: "top" | "bottom" | "left" | "right"
 }
 
 interface Props {
@@ -202,7 +181,6 @@ const {
     sort,
     selectedRows,
 } = defineProps<Props>()
-
 
 // Generate grid template columns based on column widths
 const gridTemplateColumns = computed(() => {
@@ -284,5 +262,15 @@ const handleMouseDown = (event: MouseEvent) => {
     if (event.shiftKey) {
         event.preventDefault()
     }
+}
+
+// Get sort direction for a column
+const getSortDirection = (column: Column): "asc" | "desc" | "none" => {
+    if (!sort || !column.sortKey) return "none"
+
+    const sortKey = column.sortKey || column.key
+    if (sort.key !== sortKey) return "none"
+
+    return sort.direction
 }
 </script>

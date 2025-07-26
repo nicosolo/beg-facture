@@ -122,7 +122,7 @@ const isExpanded = (itemName: string): boolean => {
                 class="flex-1 transition-all duration-300 p-4 w-full"
                 :class="{ 'lg:mr-64': isSidebarOpen && !isLoginPage }"
             >
-                <div class="container mx-auto">
+                <div class="container mx-auto md:max-w-full md:px-4">
                     <RouterView />
                 </div>
             </main>

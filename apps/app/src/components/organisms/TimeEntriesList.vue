@@ -57,10 +57,16 @@
             </template>
 
             <template #cell:project="{ item }">
-                <div class="flex flex-col">
-                    <span class="font-medium">{{ item.project?.projectNumber }}</span>
-                    <span class="text-sm text-gray-600">{{ item.project?.name }}</span>
-                </div>
+                <TruncateWithTooltip
+                    :content="item.project?.name"
+                    placement="right"
+                    :disabled="item.project?.name.length < 20"
+                >
+                    <span class="font-medium mr-2">{{ item.project?.projectNumber }}</span>
+                    <span class="text-sm text-gray-600">{{
+                        truncateText(item.project?.name, 20)
+                    }}</span>
+                </TruncateWithTooltip>
             </template>
 
             <template #cell:activityType="{ item }">
@@ -132,6 +138,8 @@ import Button from "../atoms/Button.vue"
 import { useFormat } from "@/composables/utils/useFormat"
 import { useUpdateActivity } from "@/composables/api/useActivity"
 import type { ActivityResponse } from "@beg/validations"
+import { truncateText } from "@/utils/text"
+import TruncateWithTooltip from "../atoms/TruncateWithTooltip.vue"
 
 const { formatDuration, formatDate, formatNumber, formatCurrency } = useFormat()
 const { t } = useI18n()
@@ -169,21 +177,21 @@ const lastClickedIndex = ref<number | null>(null)
 
 const defaultColumns: Column[] = [
     { key: "date", label: t("time.columns.date"), sortKey: "date", width: "7rem" },
-    { key: "user", label: t("time.columns.user"), width: "7rem" },
-    { key: "project", label: t("time.columns.project"), width: "7rem" },
+    { key: "user", label: t("time.columns.user"), width: "3rem" },
+    { key: "project", label: t("time.columns.project"), width: "11rem" },
     { key: "activityType", label: t("time.columns.activityType"), width: "7rem" },
     { key: "duration", label: t("time.columns.duration"), sortKey: "duration", width: "7rem" },
     {
         key: "kilometers",
         label: t("time.columns.kilometers"),
         sortKey: "kilometers",
-        width: "4rem",
+        width: "7rem",
     },
-    { key: "expenses", label: t("time.columns.expenses"), sortKey: "expenses", width: "4rem" },
-    { key: "description", label: t("time.columns.description") },
+    { key: "expenses", label: t("time.columns.expenses"), sortKey: "expenses", width: "6rem" },
+    { key: "description", label: t("time.columns.description"), tooltip: true, fullWidth: true },
     { key: "billed", label: t("time.columns.billed"), width: "4rem" },
     { key: "disbursement", label: t("time.columns.disbursement"), width: "4rem" },
-    { key: "actions", label: t("common.actions"), actions: true, width: "4rem" },
+    { key: "actions", label: t("common.actions"), actions: true, width: "5rem" },
 ]
 
 const columns = computed(() => {

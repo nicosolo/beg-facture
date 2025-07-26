@@ -4,7 +4,7 @@
         :type="to ? undefined : type"
         :to="to"
         :class="[
-            'rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2',
+            'rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer leading-none block',
             variantClasses,
             sizeClasses,
             disabled ? 'cursor-not-allowed opacity-60' : '',
@@ -57,9 +57,9 @@ const variantClasses = (() => {
 const sizeClasses = (() => {
     switch (size) {
         case "xs":
-            return "text-xs px-1.5 py-1"
+            return "text-sm px-1.5 py-1"
         case "sm":
-            return "text-sm px-2 py-1"
+            return "text-sm px-3 py-1.5"
         case "lg":
             return "text-base px-6 py-3"
         default:

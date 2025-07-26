@@ -54,7 +54,7 @@ const projects = ref<ProjectResponse[]>([])
 const totalItems = ref(0)
 const totalPages = ref(0)
 const currentPage = ref(1)
-const pageSize = ref(20)
+const pageSize = ref(100)
 
 // Modal state
 const showTimeEntryModal = ref(false)

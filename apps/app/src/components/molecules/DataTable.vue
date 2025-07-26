@@ -73,7 +73,14 @@
                 <div
                     v-for="(item, index) in items"
                     :key="getItemKey(item, index)"
-                    class="hover:bg-gray-100"
+                    :class="[
+                        'cursor-pointer transition-colors',
+                        selectedRows?.has(getItemKey(item, index)) 
+                            ? 'bg-blue-100 hover:bg-blue-200' 
+                            : 'hover:bg-gray-100'
+                    ]"
+                    @click="handleRowClick(item, index, $event)"
+                    @mousedown="handleMouseDown($event)"
                 >
                     <div class="flex flex-col md:hidden">
                         <!-- Mobile view keeps existing layout -->
@@ -180,9 +187,11 @@ interface Props {
     emptyMessage?: string
     showFooter?: boolean
     sort?: { key: string; direction: "asc" | "desc" }
+    selectedRows?: Set<string | number>
 }
 const emit = defineEmits<{
     (e: "sort-change", sort: { key: string; direction: "asc" | "desc" }): void
+    (e: "row-click", item: any, index: number, event: MouseEvent): void
 }>()
 const {
     items,
@@ -191,21 +200,9 @@ const {
     emptyMessage = "No items found",
     showFooter = false,
     sort,
+    selectedRows,
 } = defineProps<Props>()
 
-const getWidth = (column: Column) => {
-    if (!column.width) {
-        return "flex-1"
-    }
-
-    // If it's already a flex class, return as is
-    if (column.width.startsWith("flex-")) {
-        return ` md:${column.width}`
-    }
-
-    // For fixed width classes (w-20, w-24, etc.), add responsive prefix
-    return `md:${column.width}`
-}
 
 // Generate grid template columns based on column widths
 const gridTemplateColumns = computed(() => {
@@ -234,9 +231,6 @@ const gridTemplateColumns = computed(() => {
         .join(" ")
 })
 
-const gridClasses = computed(() => {
-    return `hidden md:grid gap-0`
-})
 // Get a unique key for each item
 const getItemKey = (item: any, index: number): string | number => {
     if (itemKey && item[itemKey] !== undefined) {
@@ -272,6 +266,23 @@ const handleSort = (column: Column) => {
             key: sortKey,
             direction: "asc",
         })
+    }
+}
+
+// Handle row click
+const handleRowClick = (item: any, index: number, event: MouseEvent) => {
+    // Ignore click if user has selected text
+    if (window.getSelection()?.toString()) {
+        return
+    }
+    emit("row-click", item, index, event)
+}
+
+// Handle mousedown to prevent text selection on shift+click
+const handleMouseDown = (event: MouseEvent) => {
+    // Only prevent text selection when shift key is pressed
+    if (event.shiftKey) {
+        event.preventDefault()
     }
 }
 </script>

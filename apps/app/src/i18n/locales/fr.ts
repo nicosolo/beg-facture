@@ -22,6 +22,8 @@ export default {
         noResults: "Aucun résultat trouvé",
         hours: "heures",
         minutes: "min",
+        itemsSelected: "{count} élément(s) sélectionné(s)",
+        clearSelection: "Effacer la sélection",
     },
     navigation: {
         home: "Accueil",
@@ -188,6 +190,8 @@ export default {
             expenses: "Frais",
             description: "Description",
             status: "Statut",
+            billed: "Facturé",
+            disbursement: "Débours",
         },
         filters: {
             user: "Collaborateur",
@@ -204,6 +208,12 @@ export default {
             billed: "Facturé",
             unbilled: "Non facturé",
             disbursement: "Débours",
+        },
+        actions: {
+            markAsBilled: "Marquer comme facturé",
+            markAsUnbilled: "Marquer comme non facturé",
+            markAsDisbursement: "Marquer comme débours",
+            unmarkAsDisbursement: "Retirer le débours",
         },
     },
 }

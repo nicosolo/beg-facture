@@ -1,5 +1,46 @@
 <template>
     <div>
+        <!-- Bulk actions bar -->
+        <div
+            v-if="selectedRows.size > 0"
+            class="bg-blue-100 border border-blue-300 rounded-lg p-4 mb-4 shadow-sm"
+        >
+            <div class="flex items-center justify-between">
+                <span class="text-sm text-blue-700">
+                    {{ $t("common.itemsSelected", { count: selectedRows.size }) }}
+                </span>
+                <div class="flex gap-2">
+                    <Button @click="updateSelectedRows('billed', true)" variant="primary" size="sm">
+                        {{ $t("time.actions.markAsBilled") }}
+                    </Button>
+                    <Button
+                        @click="updateSelectedRows('billed', false)"
+                        variant="secondary"
+                        size="sm"
+                    >
+                        {{ $t("time.actions.markAsUnbilled") }}
+                    </Button>
+                    <Button
+                        @click="updateSelectedRows('disbursement', true)"
+                        variant="secondary"
+                        size="sm"
+                    >
+                        {{ $t("time.actions.markAsDisbursement") }}
+                    </Button>
+                    <Button
+                        @click="updateSelectedRows('disbursement', false)"
+                        variant="secondary"
+                        size="sm"
+                    >
+                        {{ $t("time.actions.unmarkAsDisbursement") }}
+                    </Button>
+                    <Button @click="clearSelection" variant="ghost" size="sm">
+                        {{ $t("common.clearSelection") }}
+                    </Button>
+                </div>
+            </div>
+        </div>
+
         <DataTable
             showFooter
             :items="activities"
@@ -8,6 +49,8 @@
             :empty-message="emptyMessage"
             :sort="sort"
             @sort-change="handleSort"
+            @row-click="handleRowClick"
+            :selected-rows="selectedRows"
         >
             <template #cell:user="{ item }">
                 {{ item.user ? `${item.user.initials}` : "-" }}
@@ -36,13 +79,24 @@
                 {{ formatCurrency(item.expenses) }}
             </template>
 
-            <template #cell:status="{ item }">
-                <Badge :variant="item.billed ? 'success' : 'warning'">
-                    {{ item.billed ? $t("time.status.billed") : $t("time.status.unbilled") }}
-                </Badge>
-                <Badge v-if="item.disbursement" variant="info" class="ml-1">
-                    {{ $t("time.status.disbursement") }}
-                </Badge>
+            <template #cell:billed="{ item }">
+                <input
+                    type="checkbox"
+                    :checked="item.billed"
+                    @change="updateBilledStatus(item.id, !item.billed)"
+                    @click.stop
+                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                />
+            </template>
+
+            <template #cell:disbursement="{ item }">
+                <input
+                    type="checkbox"
+                    :checked="item.disbursement"
+                    @change="updateDisbursementStatus(item.id, !item.disbursement)"
+                    @click.stop
+                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                />
             </template>
 
             <template #cell:actions="{ item }">
@@ -71,12 +125,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import { useI18n } from "vue-i18n"
 import DataTable, { type Column } from "../molecules/DataTable.vue"
-import Badge from "../atoms/Badge.vue"
 import Button from "../atoms/Button.vue"
 import { useFormat } from "@/composables/utils/useFormat"
+import { useUpdateActivity } from "@/composables/api/useActivity"
 import type { ActivityResponse } from "@beg/validations"
 
 const { formatDuration, formatDate, formatNumber, formatCurrency } = useFormat()
@@ -102,8 +156,16 @@ const props = defineProps<Props>()
 
 const emit = defineEmits<{
     "sort-change": [sort: { key: string; direction: "asc" | "desc" }]
-    "edit": [activityId: number]
+    edit: [activityId: number]
+    "activities-updated": []
 }>()
+
+// API composables
+const updateActivityApi = useUpdateActivity()
+
+// Selection state
+const selectedRows = ref<Set<number>>(new Set())
+const lastClickedIndex = ref<number | null>(null)
 
 const defaultColumns: Column[] = [
     { key: "date", label: t("time.columns.date"), sortKey: "date", width: "7rem" },
@@ -119,7 +181,8 @@ const defaultColumns: Column[] = [
     },
     { key: "expenses", label: t("time.columns.expenses"), sortKey: "expenses", width: "4rem" },
     { key: "description", label: t("time.columns.description") },
-    { key: "status", label: t("time.columns.status"), width: "4rem" },
+    { key: "billed", label: t("time.columns.billed"), width: "4rem" },
+    { key: "disbursement", label: t("time.columns.disbursement"), width: "4rem" },
     { key: "actions", label: t("common.actions"), actions: true, width: "4rem" },
 ]
 
@@ -135,4 +198,90 @@ const handleSort = ({ key, direction }: { key: string; direction: "asc" | "desc"
     console.log(key, direction)
     emit("sort-change", { key, direction })
 }
+
+// Handle row click for selection
+const handleRowClick = (item: ActivityResponse, index: number, event: MouseEvent) => {
+    const newSelection = new Set(selectedRows.value)
+
+    if (event.shiftKey && lastClickedIndex.value !== null) {
+        // Shift+click: select range
+        const start = Math.min(lastClickedIndex.value, index)
+        const end = Math.max(lastClickedIndex.value, index)
+
+        for (let i = start; i <= end; i++) {
+            if (props.activities[i]) {
+                newSelection.add(props.activities[i].id)
+            }
+        }
+    } else if (event.ctrlKey || event.metaKey) {
+        // Ctrl/Cmd+click: toggle single selection
+        if (newSelection.has(item.id)) {
+            newSelection.delete(item.id)
+        } else {
+            newSelection.add(item.id)
+        }
+    } else {
+        // Regular click: select only this row
+        newSelection.clear()
+        newSelection.add(item.id)
+    }
+
+    selectedRows.value = newSelection
+    lastClickedIndex.value = index
+}
+
+// Update billed status
+const updateBilledStatus = async (activityId: number, billed: boolean) => {
+    try {
+        await updateActivityApi.put({
+            params: { id: activityId },
+            body: { billed },
+        })
+        emit("activities-updated")
+    } catch (error) {
+        console.error("Error updating billed status:", error)
+    }
+}
+
+// Update disbursement status
+const updateDisbursementStatus = async (activityId: number, disbursement: boolean) => {
+    try {
+        await updateActivityApi.put({
+            params: { id: activityId },
+            body: { disbursement },
+        })
+        emit("activities-updated")
+    } catch (error) {
+        console.error("Error updating disbursement status:", error)
+    }
+}
+
+// Bulk update selected rows
+const updateSelectedRows = async (field: "billed" | "disbursement", value: boolean) => {
+    const promises = Array.from(selectedRows.value).map((id) =>
+        updateActivityApi.put({
+            params: { id },
+            body: { [field]: value },
+        })
+    )
+
+    try {
+        await Promise.all(promises)
+        emit("activities-updated")
+        clearSelection()
+    } catch (error) {
+        console.error(`Error updating ${field} status:`, error)
+    }
+}
+
+// Clear selection
+const clearSelection = () => {
+    selectedRows.value = new Set()
+}
+
+// Expose bulk update method for parent components
+defineExpose({
+    updateSelectedRows,
+    selectedRows,
+})
 </script>

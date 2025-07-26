@@ -10,6 +10,7 @@
             empty-message="Aucune entrée d'heure trouvée"
             @sort-change="handleSortChange"
             @edit="openEditModal"
+            @activities-updated="loadActivities"
         />
 
         <Pagination

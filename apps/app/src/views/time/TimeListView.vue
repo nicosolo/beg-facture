@@ -32,6 +32,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from "vue"
 import { useFetchActivityList } from "@/composables/api/useActivity"
+import { debounce } from "@/utils/debounce"
 import TimeFilterPanel, {
     type TimeFilterModel,
 } from "../../components/organisms/TimeFilterPanel.vue"
@@ -39,6 +40,7 @@ import TimeEntriesList from "../../components/organisms/TimeEntriesList.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@beg/validations"
+import { useRoute } from "vue-router"
 
 // API client
 const { get: fetchActivities, loading, data } = useFetchActivityList()
@@ -50,11 +52,11 @@ const totalPages = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(20)
 const totals = ref<{ duration: number; kilometers: number; expenses: number } | undefined>()
-
+const route = useRoute()
 // Filter state
 const filter = ref<TimeFilterModel>({
     userId: undefined,
-    projectId: undefined,
+    projectId: (route.query.projectId as unknown as number) || undefined,
     activityTypeId: undefined,
     fromDate: undefined,
     toDate: undefined,
@@ -94,17 +96,6 @@ watch(
     { deep: true }
 )
 
-const debouncedFetch = (() => {
-    let timeout: ReturnType<typeof setTimeout> | null = null
-    return () => {
-        if (timeout) clearTimeout(timeout)
-        timeout = setTimeout(() => {
-            loadActivities()
-            timeout = null
-        }, 300)
-    }
-})()
-
 const loadActivities = async () => {
     const params: ActivityFilter = {
         page: currentPage.value,
@@ -116,6 +107,8 @@ const loadActivities = async () => {
         query: params,
     })
 }
+
+const debouncedFetch = debounce(loadActivities, 300)
 
 // Pagination handlers
 const prevPage = () => {

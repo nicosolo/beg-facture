@@ -19,6 +19,7 @@ export default {
         notAvailable: "N/D",
         all: "Tous",
         resetFilters: "Réinitialiser les filtres",
+        noResults: "Aucun résultat trouvé",
     },
     navigation: {
         home: "Accueil",
@@ -88,6 +89,7 @@ export default {
         lastActivity: "Dernière activité",
         actions: "Actions",
         noProjectsFound: "Aucun projet trouvé correspondant à vos critères.",
+        typeToSearch: "Tapez au moins 2 caractères pour rechercher",
         filters: {
             title: "Filtres",
             status: "Statut",
@@ -101,7 +103,9 @@ export default {
             fromDate: "Date de début",
             toDate: "Date de fin",
             includeArchived: "Inclure les archivés",
-            searchByName: "Rechercher par nom",
+            includeEnded: "Inclure les terminés",
+            hasUnbilledTime: "Avec heures non facturées",
+            searchByNameAndNumber: "Rechercher par numéro ou nom",
             referentUser: "Responsable",
             selectReferentUser: "Sélectionner un responsable",
         },

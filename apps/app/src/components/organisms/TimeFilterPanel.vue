@@ -7,10 +7,7 @@
                 <Select
                     v-model="localFilter.userId"
                     :loading="loadingUsers"
-                    :options="[
-                        { label: $t('common.all'), value: null },
-                        ...userOptions,
-                    ]"
+                    :options="[{ label: $t('common.all'), value: null }, ...userOptions]"
                     @update:modelValue="handleFilterChange"
                 ></Select>
             </div>
@@ -18,15 +15,11 @@
             <!-- Project Filter -->
             <div class="form-group">
                 <Label>{{ $t("time.filters.project") }}</Label>
-                <Select
+                <ProjectSelect
                     v-model="localFilter.projectId"
-                    :loading="loadingProjects"
-                    :options="[
-                        { label: $t('common.all'), value: null },
-                        ...projectOptions,
-                    ]"
+                    :placeholder="$t('projects.filters.searchByNameAndNumber')"
                     @update:modelValue="handleFilterChange"
-                ></Select>
+                />
             </div>
 
             <!-- Activity Type Filter -->
@@ -35,10 +28,7 @@
                 <Select
                     v-model="localFilter.activityTypeId"
                     :loading="loadingActivityTypes"
-                    :options="[
-                        { label: $t('common.all'), value: null },
-                        ...activityTypeOptions,
-                    ]"
+                    :options="[{ label: $t('common.all'), value: null }, ...activityTypeOptions]"
                     @update:modelValue="handleFilterChange"
                 ></Select>
             </div>
@@ -104,13 +94,12 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue"
-import { useI18n } from "vue-i18n"
 import Label from "../atoms/Label.vue"
 import Select from "../atoms/Select.vue"
 import Button from "../atoms/Button.vue"
 import DateField from "../molecules/DateField.vue"
+import ProjectSelect from "../molecules/ProjectSelect.vue"
 import { useFetchUsers } from "@/composables/api/useUser"
-import { useFetchProjectList } from "@/composables/api/useProject"
 import { useFetchActivityTypes } from "@/composables/api/useActivityType"
 import type { ActivityFilter } from "@beg/validations"
 
@@ -147,11 +136,13 @@ const localFilter = ref<TimeFilterModel>({ ...props.filter })
 
 // Fetch data for dropdowns
 const { get: fetchUsers, loading: loadingUsers, data: usersData } = useFetchUsers()
-const { get: fetchProjects, loading: loadingProjects, data: projectsData } = useFetchProjectList()
-const { get: fetchActivityTypes, loading: loadingActivityTypes, data: activityTypesData } = useFetchActivityTypes()
+const {
+    get: fetchActivityTypes,
+    loading: loadingActivityTypes,
+    data: activityTypesData,
+} = useFetchActivityTypes()
 
 const userOptions = ref<Array<{ label: string; value: number }>>([])
-const projectOptions = ref<Array<{ label: string; value: number }>>([])
 const activityTypeOptions = ref<Array<{ label: string; value: number }>>([])
 
 // Watch for data changes and update options
@@ -160,15 +151,6 @@ watch(usersData, (newData) => {
         userOptions.value = newData.map((user: any) => ({
             label: `${user.firstName} ${user.lastName}`,
             value: user.id,
-        }))
-    }
-})
-
-watch(projectsData, (newData) => {
-    if (newData) {
-        projectOptions.value = newData.data.map((project) => ({
-            label: `${project.projectNumber} - ${project.name}`,
-            value: project.id,
         }))
     }
 })
@@ -216,10 +198,6 @@ const resetFilters = () => {
 
 // Load data on mount
 onMounted(async () => {
-    await Promise.all([
-        fetchUsers(),
-        fetchProjects({ query: { page: 1, limit: 100, includeArchived: false, includeEnded: false } }),
-        fetchActivityTypes(),
-    ])
+    await Promise.all([fetchUsers(), fetchActivityTypes()])
 })
 </script>

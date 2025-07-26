@@ -61,13 +61,13 @@ const createRequest = () => {
         if (!response.ok) {
             // Parse the error using our standardized error handler
             const apiError = await parseApiError(response)
-            
+
             // For auth errors, clear the auth state
             if (apiError.isAuthError()) {
                 const authStore = useAuthStore()
                 authStore.logout()
             }
-            
+
             throw apiError
         }
 

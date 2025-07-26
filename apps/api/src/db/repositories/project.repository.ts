@@ -40,8 +40,8 @@ export const projectRepository = {
         if (name && name.trim()) {
             whereConditions.push(
                 or(
-                    like(projects.name, `%${name.trim()}%`),
-                    like(projects.projectNumber, `${name.trim()}%`)
+                    like(projects.name, `%${name.split(" ").join("%")}%`),
+                    like(projects.projectNumber, `${name.split(" ").join("%")}%`)
                 )
             )
         }
@@ -68,7 +68,6 @@ export const projectRepository = {
         if (!includeEnded) {
             whereConditions.push(eq(projects.ended, false))
         }
-        console.log("hasUnbilledTime", hasUnbilledTime)
         if (hasUnbilledTime === true) {
             whereConditions.push(gt(projects.unBilledDuration, 0))
         }
@@ -96,7 +95,20 @@ export const projectRepository = {
             }
         })()
 
+        // Create custom sort order to prioritize projectNumber matches when searching by name
+        const sortExpressions = []
+
+        // If searching by name, add priority sort for projectNumber matches
+        if (name && name.trim()) {
+            const searchPattern = `${name.trim()}%`
+            sortExpressions.push(
+                sql`CASE WHEN ${projects.projectNumber} LIKE ${searchPattern} THEN 0 ELSE 1 END`
+            )
+        }
+
+        // Add the main sort column
         const sortDirection = sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn)
+        sortExpressions.push(sortDirection)
 
         // Build the main query in a single chain
         const baseQuery = db
@@ -162,11 +174,15 @@ export const projectRepository = {
             whereConditions.length > 0
                 ? await baseQuery
                       .where(and(...whereConditions))
-                      .orderBy(sortDirection)
+                      .orderBy(...sortExpressions)
                       .limit(limit)
                       .offset(offset)
                       .execute()
-                : await baseQuery.orderBy(sortDirection).limit(limit).offset(offset).execute()
+                : await baseQuery
+                      .orderBy(...sortExpressions)
+                      .limit(limit)
+                      .offset(offset)
+                      .execute()
 
         // Count total with same filters (excluding pagination)
         const countQuery = db.select({ count: sql<number>`count(*)` }).from(projects)

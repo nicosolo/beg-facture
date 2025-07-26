@@ -34,7 +34,7 @@
         <template #cell:actions="{ item }">
             <div class="flex flex-row sm:flex-col md:flex-row gap-2">
                 <Button
-                    :to="{ name: 'time-new', query: { projectId: item.name } }"
+                    :to="{ name: 'time-new', query: { projectId: item.id } }"
                     variant="secondary"
                     class="whitespace-nowrap inline-block w-fit"
                 >
@@ -42,7 +42,7 @@
                 </Button>
 
                 <Button
-                    :to="{ name: 'time-list', query: { projectId: item.name } }"
+                    :to="{ name: 'time-list', query: { projectId: item.id } }"
                     variant="ghost"
                     class="whitespace-nowrap inline-block w-fit"
                 >

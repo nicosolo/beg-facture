@@ -12,7 +12,9 @@ export function useFetchProject() {
         {
             params: typeof idParamSchema
         }
-    >("project/:id")
+    >("project/:id", {
+        params: idParamSchema,
+    })
 }
 
 export function useFetchProjectList() {

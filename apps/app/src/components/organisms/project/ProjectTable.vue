@@ -7,6 +7,13 @@
         @sort-change="handleSortChange"
         :emptyMessage="$t('projects.noProjectsFound')"
     >
+        <template #cell:name="{ item }">
+            <div>
+                <span class="font-medium mr-2">{{ item.projectNumber }}</span>
+                <span class="text-sm text-gray-600">{{ item.name }}</span>
+            </div>
+        </template>
+
         <template #cell:unBilledDuration="{ item }">
             <div class="text-sm text-gray-900">
                 {{ formatDuration(item.unBilledDuration) }}

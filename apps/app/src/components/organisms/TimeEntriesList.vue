@@ -140,9 +140,11 @@ import { useUpdateActivity } from "@/composables/api/useActivity"
 import type { ActivityResponse } from "@beg/validations"
 import { truncateText } from "@/utils/text"
 import TruncateWithTooltip from "../atoms/TruncateWithTooltip.vue"
+import { useAlert } from "@/composables/utils/useAlert"
 
 const { formatDuration, formatDate, formatNumber, formatCurrency } = useFormat()
 const { t } = useI18n()
+const { successAlert, errorAlert } = useAlert()
 
 interface Props {
     activities: ActivityResponse[]
@@ -246,8 +248,10 @@ const updateBilledStatus = async (activityId: number, billed: boolean) => {
             body: { billed },
         })
         emit("activities-updated")
+        successAlert(billed ? t("time.alerts.markedAsBilled") : t("time.alerts.markedAsUnbilled"))
     } catch (error) {
         console.error("Error updating billed status:", error)
+        errorAlert(t("time.alerts.updateError"))
     }
 }
 
@@ -259,8 +263,14 @@ const updateDisbursementStatus = async (activityId: number, disbursement: boolea
             body: { disbursement },
         })
         emit("activities-updated")
+        successAlert(
+            disbursement
+                ? t("time.alerts.markedAsDisbursement")
+                : t("time.alerts.unmarkedAsDisbursement")
+        )
     } catch (error) {
         console.error("Error updating disbursement status:", error)
+        errorAlert(t("time.alerts.updateError"))
     }
 }
 
@@ -276,9 +286,26 @@ const updateSelectedRows = async (field: "billed" | "disbursement", value: boole
     try {
         await Promise.all(promises)
         emit("activities-updated")
+        const count = selectedRows.value.size
         clearSelection()
+
+        // Show appropriate success message based on field and value
+        if (field === "billed") {
+            successAlert(
+                value
+                    ? t("time.alerts.bulkMarkedAsBilled", { count })
+                    : t("time.alerts.bulkMarkedAsUnbilled", { count })
+            )
+        } else {
+            successAlert(
+                value
+                    ? t("time.alerts.bulkMarkedAsDisbursement", { count })
+                    : t("time.alerts.bulkUnmarkedAsDisbursement", { count })
+            )
+        }
     } catch (error) {
         console.error(`Error updating ${field} status:`, error)
+        errorAlert(t("time.alerts.bulkUpdateError"))
     }
 }
 

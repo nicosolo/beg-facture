@@ -4,9 +4,12 @@ import { useI18n } from "vue-i18n"
 import { ref, computed } from "vue"
 import { Bars3Icon, XMarkIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/vue/24/outline"
 import { useAuthStore } from "./stores/auth"
+import { useAlert } from "./composables/utils/useAlert"
+import Snackbar from "./components/atoms/Snackbar.vue"
 
 const { t } = useI18n()
 const isSidebarOpen = ref(false)
+const { alerts, removeAlert } = useAlert()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
@@ -245,5 +248,22 @@ const isExpanded = (itemName: string): boolean => {
             @click="toggleSidebar"
             class="fixed inset-y-0 left-0 right-64 z-10 lg:hidden"
         ></div>
+
+        <!-- Global Snackbar Container -->
+        <div
+            aria-live="assertive"
+            class="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6 z-50"
+        >
+            <div class="flex w-full flex-col items-center space-y-4 sm:items-end">
+                <Snackbar
+                    v-for="alert in alerts"
+                    :key="alert.id"
+                    :visible="alert.visible"
+                    :message="alert.message"
+                    :type="alert.type"
+                    @close="removeAlert(alert.id)"
+                />
+            </div>
+        </div>
     </div>
 </template>

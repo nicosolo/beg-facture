@@ -215,5 +215,17 @@ export default {
             markAsDisbursement: "Marquer comme débours",
             unmarkAsDisbursement: "Retirer le débours",
         },
+        alerts: {
+            markedAsBilled: "Marqué comme facturé",
+            markedAsUnbilled: "Marqué comme non facturé",
+            markedAsDisbursement: "Marqué comme débours",
+            unmarkedAsDisbursement: "Débours retiré",
+            bulkMarkedAsBilled: "{count} élément(s) marqué(s) comme facturé(s)",
+            bulkMarkedAsUnbilled: "{count} élément(s) marqué(s) comme non facturé(s)",
+            bulkMarkedAsDisbursement: "{count} élément(s) marqué(s) comme débours",
+            bulkUnmarkedAsDisbursement: "{count} débours retiré(s)",
+            updateError: "Erreur lors de la mise à jour",
+            bulkUpdateError: "Erreur lors de la mise à jour en masse",
+        },
     },
 }

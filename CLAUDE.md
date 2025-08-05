@@ -48,10 +48,17 @@ BEG Facture is a fullstack invoicing application built with modern web technolog
 
 ### Running the Application
 
-```bash
-# Development with Docker Compose (recommended)
-bun run dev
+All development should be done using Docker Compose:
 
+```bash
+# Start all services with hot reload
+docker compose up --watch
+
+# Run in detached mode
+docker compose up -d --watch
+
+# Stop all services
+docker compose down
 ```
 
 ## API (Backend)
@@ -65,12 +72,15 @@ The API is built with Hono and provides RESTful endpoints for:
 - Rates and invoicing
 - Status tracking
 
-### Key Scripts
+### Key Commands
 
-- `bun run dev` - Start development server with hot reload
-- `bun run db:generate` - Generate database migrations
-- `bun run db:migrate` - Run database migrations
-- `bun run db:seed` - Seed the database with initial data
+Run all commands through Docker Compose:
+
+- `docker compose exec api bun run dev` - Start API development server
+- `docker compose exec api bun run db:generate` - Generate database migrations
+- `docker compose exec api bun run db:migrate` - Run database migrations
+- `docker compose exec api bun run db:seed` - Seed the database with initial data
+- `docker compose exec api bun run build` - Build API for production
 
 ### Authentication
 
@@ -85,11 +95,13 @@ The frontend is a Vue 3 SPA with:
 - Type-safe API client
 - Internationalization support (French)
 
-### Key Scripts
+### Key Commands
 
-- `bun run dev` - Start Vite dev server
-- `bun run build` - Build for production
-- `bun run preview` - Preview production build
+Run all commands through Docker Compose:
+
+- `docker compose exec app bun run dev` - Start Vite dev server
+- `docker compose exec app bun run build` - Build for production
+- `docker compose exec app bun run preview` - Preview production build
 
 ### IDE Setup
 
@@ -120,7 +132,32 @@ The project uses Docker Compose for development:
 - `compose.yml` - Development configuration
 - `compose.prod.yml` - Production configuration
 
-Run with: `docker compose up --watch`
+### Available Services
+
+- **api**: Backend API running on port 4983
+- **app**: Frontend Vue application (accessed via proxy)
+- **proxy**: Nginx proxy running on port 8084 (main entry point)
+
+### Accessing the Application
+
+- Main application: http://localhost:8084
+- API direct access: http://localhost:4983
+
+### Common Docker Compose Commands
+
+```bash
+# View logs
+docker compose logs -f [service_name]
+
+# Restart a specific service
+docker compose restart [service_name]
+
+# Rebuild services
+docker compose build
+
+# Execute commands in a running container
+docker compose exec [service_name] [command]
+```
 
 ## Legacy System
 
@@ -147,3 +184,20 @@ When making changes:
 ## Instructions
 
 - Exclusively use english for all communication.
+- **IMPORTANT**: Always use Docker Compose commands instead of running Bun directly
+- All development commands should be executed inside the containers using `docker compose exec`
+- The application runs in containers with automatic hot reload via Docker Compose watch mode
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+
+## Docker Compose Usage
+
+- **ALWAYS** use `docker compose exec [service] [command]` instead of running commands directly
+- **NEVER** run `bun` commands directly in the host system
+- **ALWAYS** check if services are running with `docker compose ps` before executing commands
+- For database operations, use: `docker compose exec api bun run db:[command]`
+- For build operations, use: `docker compose exec [api|app] bun run build`

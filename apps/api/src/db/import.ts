@@ -11,6 +11,7 @@ import {
     projects,
     activityTypes,
     activities,
+    invoices,
 } from "./schema"
 import bcrypt from "bcrypt"
 import { eq, and } from "drizzle-orm"
@@ -67,6 +68,7 @@ async function resetDatabase() {
     await db.delete(companies)
     await db.delete(locations)
     await db.delete(users)
+    await db.delete(invoices)
 
     console.log("Database reset complete")
 }
@@ -374,7 +376,6 @@ async function importProjects() {
     const userMap = new Map(allUsers.map((u) => [u.initials, u.id]))
 
     for (const rawProject of projectData) {
-        console.log(rawProject.Début ? parseAccessDate(rawProject.Début) : new Date())
         const project = {
             id: rawProject.IDmandat,
             projectNumber: rawProject.Mandat,

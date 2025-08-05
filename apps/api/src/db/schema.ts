@@ -220,7 +220,7 @@ export const activities = sqliteTable(
             .references(() => activityTypes.id),
         description: text("description"),
         billed: integer("billed", { mode: "boolean" }).notNull().default(false),
-        invoiceId: integer("invoiceId"),
+        invoiceId: integer("invoiceId").references(() => invoices.id),
         disbursement: integer("disbursement", { mode: "boolean" }).notNull().default(false),
         ...timestamps,
     },
@@ -233,5 +233,144 @@ export const activities = sqliteTable(
         index("activities_billed_idx").on(table.billed),
         // Composite index for project billing queries (optimizes hasUnbilledTime filter)
         index("activities_project_billed_idx").on(table.projectId, table.billed),
+        // Index for invoice queries
+        index("activities_invoice_idx").on(table.invoiceId),
+    ]
+)
+
+// Invoice table
+export const invoices = sqliteTable(
+    "invoices",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        projectId: integer("projectId")
+            .notNull()
+            .references(() => projects.id),
+        invoiceNumber: text("invoiceNumber").notNull().unique(),
+        reference: text("reference").notNull(),
+        type: text("type").notNull().default("Facture"),
+        billingMode: text("billingMode").notNull().default("accordingToData"),
+        status: text("status")
+            .$type<"draft" | "sent" | "paid" | "overdue" | "cancelled">()
+            .notNull()
+            .default("draft"),
+        issueDate: integer("issueDate", { mode: "timestamp" }).notNull(),
+        dueDate: integer("dueDate", { mode: "timestamp" }),
+        periodStart: integer("periodStart", { mode: "timestamp" }).notNull(),
+        periodEnd: integer("periodEnd", { mode: "timestamp" }).notNull(),
+        clientId: integer("clientId")
+            .notNull()
+            .references(() => clients.id),
+        recipientName: text("recipientName").notNull(),
+        recipientAddress: text("recipientAddress").notNull(),
+        description: text("description").notNull(),
+        // Fee totals
+        feesBase: integer("feesBase").notNull().default(0),
+        feesAdjusted: integer("feesAdjusted").notNull().default(0),
+        feesTotal: integer("feesTotal").notNull().default(0),
+        feesOthers: integer("feesOthers").notNull().default(0),
+        feesFinalTotal: integer("feesFinalTotal").notNull().default(0),
+        feesMultiplicationFactor: integer("feesMultiplicationFactor").notNull().default(100), // stored as percentage
+        feesDiscountPercentage: integer("feesDiscountPercentage"),
+        feesDiscountAmount: integer("feesDiscountAmount"),
+        // Expense totals
+        expensesTravelBase: integer("expensesTravelBase").notNull().default(0),
+        expensesTravelAdjusted: integer("expensesTravelAdjusted").notNull().default(0),
+        expensesTravelRate: integer("expensesTravelRate").notNull().default(65), // stored as percentage
+        expensesTravelAmount: integer("expensesTravelAmount").notNull().default(0),
+        expensesOtherBase: integer("expensesOtherBase").notNull().default(0),
+        expensesOtherAmount: integer("expensesOtherAmount").notNull().default(0),
+        expensesTotal: integer("expensesTotal").notNull().default(0),
+        expensesThirdPartyAmount: integer("expensesThirdPartyAmount").notNull().default(0),
+        expensesPackagePercentage: integer("expensesPackagePercentage"),
+        expensesPackageAmount: integer("expensesPackageAmount"),
+        expensesTotalExpenses: integer("expensesTotalExpenses").notNull().default(0),
+        // Final totals
+        totalHT: integer("totalHT").notNull().default(0),
+        vatRate: integer("vatRate").notNull().default(800), // stored as basis points (8.00% = 800)
+        vatAmount: integer("vatAmount").notNull().default(0),
+        totalTTC: integer("totalTTC").notNull().default(0),
+        // Remarks
+        otherServices: text("otherServices").default(""),
+        remarksOtherServices: text("remarksOtherServices").default(""),
+        remarksTravelExpenses: text("remarksTravelExpenses").default(""),
+        remarksExpenses: text("remarksExpenses").default(""),
+        remarksThirdPartyExpenses: text("remarksThirdPartyExpenses").default(""),
+        ...timestamps,
+    },
+    (table) => [
+        // Index for invoice number lookups
+        index("invoices_invoice_number_idx").on(table.invoiceNumber),
+        // Index for project queries
+        index("invoices_project_idx").on(table.projectId),
+        // Index for client queries
+        index("invoices_client_idx").on(table.clientId),
+        // Index for status queries
+        index("invoices_status_idx").on(table.status),
+        // Index for date queries
+        index("invoices_issue_date_idx").on(table.issueDate),
+        // Composite index for listing invoices by project and status
+        index("invoices_project_status_idx").on(table.projectId, table.status),
+    ]
+)
+
+// Invoice rate details table
+export const invoiceRates = sqliteTable(
+    "invoice_rates",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        invoiceId: integer("invoiceId")
+            .notNull()
+            .references(() => invoices.id, { onDelete: "cascade" }),
+        rateClass: text("rateClass").notNull(),
+        baseMinutes: integer("baseMinutes").notNull().default(0),
+        adjustedMinutes: integer("adjustedMinutes").notNull().default(0),
+        hourlyRate: integer("hourlyRate").notNull().default(0),
+        amount: integer("amount").notNull().default(0),
+        ...timestamps,
+    },
+    (table) => [
+        // Index for invoice queries
+        index("invoice_rates_invoice_idx").on(table.invoiceId),
+    ]
+)
+
+// Invoice offers table
+export const invoiceOffers = sqliteTable(
+    "invoice_offers",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        invoiceId: integer("invoiceId")
+            .notNull()
+            .references(() => invoices.id, { onDelete: "cascade" }),
+        file: text("file").notNull().default(""),
+        date: integer("date", { mode: "timestamp" }).notNull(),
+        amount: integer("amount").notNull().default(0),
+        remark: text("remark").default(""),
+        ...timestamps,
+    },
+    (table) => [
+        // Index for invoice queries
+        index("invoice_offers_invoice_idx").on(table.invoiceId),
+    ]
+)
+
+// Invoice adjudications table
+export const invoiceAdjudications = sqliteTable(
+    "invoice_adjudications",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        invoiceId: integer("invoiceId")
+            .notNull()
+            .references(() => invoices.id, { onDelete: "cascade" }),
+        file: text("file").notNull().default(""),
+        date: integer("date", { mode: "timestamp" }).notNull(),
+        amount: integer("amount").notNull().default(0),
+        remark: text("remark").default(""),
+        ...timestamps,
+    },
+    (table) => [
+        // Index for invoice queries
+        index("invoice_adjudications_invoice_idx").on(table.invoiceId),
     ]
 )

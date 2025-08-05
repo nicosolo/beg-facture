@@ -87,9 +87,15 @@
                     class="w-full p-2 border border-gray-300 rounded"
                     v-model="invoice.billingMode"
                 >
-                    <option value="selon données présentes">selon données présentes</option>
-                    <option value="selon facture annexée">selon facture annexée</option>
-                    <option value="au forfait (voir notes)">au forfait (voir notes)</option>
+                    <option :value="BILLING_MODE_KEYS.ACCORDING_TO_DATA">
+                        {{ BILLING_MODE_LABELS[BILLING_MODE_KEYS.ACCORDING_TO_DATA] }}
+                    </option>
+                    <option :value="BILLING_MODE_KEYS.ACCORDING_TO_INVOICE">
+                        {{ BILLING_MODE_LABELS[BILLING_MODE_KEYS.ACCORDING_TO_INVOICE] }}
+                    </option>
+                    <option :value="BILLING_MODE_KEYS.FIXED_PRICE">
+                        {{ BILLING_MODE_LABELS[BILLING_MODE_KEYS.FIXED_PRICE] }}
+                    </option>
                 </select>
             </div>
 
@@ -258,7 +264,7 @@
 </template>
 
 <script setup lang="ts">
-import { type Invoice } from "@beg/validations"
+import { type Invoice, BILLING_MODE_KEYS, BILLING_MODE_LABELS } from "@beg/validations"
 import { computed } from "vue"
 
 const { invoice } = defineProps<{

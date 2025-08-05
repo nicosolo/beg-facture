@@ -43,7 +43,7 @@
                         <td class="info1 font-bold pr-8 text-right w-[4cm] border border-gray-300">
                             Tarif
                         </td>
-                        <td class="info2 border border-gray-300">{{ invoice.billingMode }}</td>
+                        <td class="info2 border border-gray-300">{{ billingModeLabel }}</td>
                     </tr>
                     <tr>
                         <td class="info1 font-bold pr-8 text-right w-[4cm] border border-gray-300">
@@ -253,7 +253,7 @@
 
 <script setup lang="ts">
 import { defineProps, computed } from "vue"
-import type { Invoice } from "@beg/validations"
+import { type Invoice, BILLING_MODE_LABELS } from "@beg/validations"
 import { useFormat } from "@/composables/utils/useFormat"
 
 interface InvoiceProps {
@@ -261,13 +261,7 @@ interface InvoiceProps {
 }
 
 const props = defineProps<InvoiceProps>()
-const { formatCurrency, formatDuration } = useFormat()
-
-const formatDate = (date: Date | string | undefined): string => {
-    if (!date) return ""
-    const d = date instanceof Date ? date : new Date(date)
-    return d.toLocaleDateString("fr-CH", { day: "2-digit", month: "2-digit", year: "numeric" })
-}
+const { formatCurrency, formatDuration, formatDate } = useFormat()
 
 const formattedDescription = computed(() => {
     // Replace line breaks with <br> tags for HTML rendering
@@ -277,6 +271,13 @@ const formattedDescription = computed(() => {
 const filteredRates = computed(() => {
     // Only show rates with hours > 0
     return props.invoice.fees.rates.filter((rate) => rate.adjusted > 0)
+})
+
+const billingModeLabel = computed(() => {
+    return (
+        BILLING_MODE_LABELS[props.invoice.billingMode as keyof typeof BILLING_MODE_LABELS] ||
+        props.invoice.billingMode
+    )
 })
 
 const printInvoice = () => {

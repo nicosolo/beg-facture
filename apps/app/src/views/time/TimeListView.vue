@@ -36,10 +36,8 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from "vue"
 import { useFetchActivityList } from "@/composables/api/useActivity"
-import TimeFilterPanel, {
-    type TimeFilterModel,
-} from "../../components/organisms/TimeFilterPanel.vue"
-import TimeEntriesList from "../../components/organisms/TimeEntriesList.vue"
+import TimeFilterPanel, { type TimeFilterModel } from "@/components/organisms/TimeFilterPanel.vue"
+import TimeEntriesList from "@/components/organisms/TimeEntriesList.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import TimeEntryModal from "@/components/organisms/TimeEntryModal.vue"

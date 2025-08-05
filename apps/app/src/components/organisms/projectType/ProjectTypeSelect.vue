@@ -2,7 +2,7 @@
     <AutocompleteSelect
         :model-value="modelValue"
         mode="async"
-        :items="projectTypes"
+        :items="projectTypes || []"
         :loading="loading"
         :fetch-function="fetchProjectTypes"
         :display-field="(type: ProjectTypeSchema) => type.name"

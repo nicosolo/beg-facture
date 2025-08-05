@@ -108,6 +108,6 @@ interface FormLayoutProps {
 }
 
 withDefaults(defineProps<FormLayoutProps>(), {
-    loading: false
+    loading: false,
 })
 </script>

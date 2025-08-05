@@ -208,7 +208,7 @@ import { useAuthStore } from "@/stores/auth"
 import { ApiError } from "@/utils/api-error"
 import { ErrorCode } from "@beg/validations"
 import type { ActivityCreateInput, ActivityUpdateInput } from "@beg/validations"
-import ProjectSelect from "@/components/molecules/ProjectSelect.vue"
+import ProjectSelect from "@/components/organisms/project/ProjectSelect.vue"
 import DurationInput from "@/components/molecules/DurationInput.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 

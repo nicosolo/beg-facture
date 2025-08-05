@@ -146,7 +146,7 @@ import Dialog from "@/components/molecules/Dialog.vue"
 import Button from "@/components/atoms/Button.vue"
 import Label from "@/components/atoms/Label.vue"
 import Select from "@/components/atoms/Select.vue"
-import ProjectSelect from "@/components/molecules/ProjectSelect.vue"
+import ProjectSelect from "@/components/organisms/project/ProjectSelect.vue"
 import DurationInput from "@/components/molecules/DurationInput.vue"
 import {
     useFetchActivity,

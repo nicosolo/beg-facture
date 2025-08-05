@@ -506,8 +506,6 @@ async function importProjectAccess() {
         accessLevel: "write" as ProjectAccessLevel,
     }))
 
-    console.log(accessEntries)
-
     // Insert in chunks to avoid potential query size limits
     const chunkSize = 1000
     let imported = 0

@@ -48,7 +48,7 @@
                             </div>
 
                             <!-- Footer -->
-                            <div class="bg-gray-50 pt-6 flex flex-row-reverse">
+                            <div class="bg-gray-50 pt-6 flex flex-row-reverse gap-2">
                                 <slot name="footer"></slot>
                             </div>
                         </div>

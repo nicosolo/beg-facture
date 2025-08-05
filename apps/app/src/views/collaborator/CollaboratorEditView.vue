@@ -5,7 +5,7 @@
         </h1>
     </div>
 
-    <div class="bg-white shadow-md rounded-lg p-6">
+    <Card>
         <form @submit.prevent="saveCollaborator">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Prénom -->
@@ -173,13 +173,13 @@
                 </Button>
             </div>
         </form>
-    </div>
+    </Card>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import Button from "../../components/atoms/Button.vue"
+import Button from "@/components/atoms/Button.vue"
 import {
     useFetchUser,
     useFetchUsers,
@@ -188,6 +188,7 @@ import {
 } from "../../composables/api/useUser"
 import { useFetchActivityTypes } from "../../composables/api/useActivityType"
 import type { UserCreateInput, UserUpdateInput, ActivityTypeResponse } from "@beg/validations"
+import Card from "@/components/atoms/Card.vue"
 
 interface ActivityRate {
     activityId: number

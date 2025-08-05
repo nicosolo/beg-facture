@@ -19,18 +19,16 @@
                 <template #cell:actions="{ item }">
                     <div class="flex justify-end gap-2">
                         <Button
-                            variant="ghost"
+                            variant="ghost-primary"
                             size="sm"
                             :to="{ name: 'tariff-edit', params: { id: item.id } }"
-                            className="text-indigo-600 hover:text-indigo-900"
                         >
                             Modifier
                         </Button>
                         <Button
-                            variant="ghost"
+                            variant="ghost-danger"
                             size="sm"
                             @click="deleteTariff(item.id)"
-                            className="text-red-600 hover:text-red-900"
                             :disabled="deletingRate"
                         >
                             Supprimer

@@ -59,9 +59,8 @@ async function handleLogin() {
                     <label for="email">{{ t("auth.email") }}</label>
                     <input
                         id="email"
-                        type="email"
                         v-model="email"
-                        :placeholder="t('auth.enterEmail')"
+                        :placeholder="t('auth.enterEmailOrInitials')"
                         required
                         class="focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
                     />

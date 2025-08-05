@@ -21,13 +21,12 @@
                 <template #cell:actions="{ item }">
                     <div class="flex justify-end gap-2">
                         <Button
-                            variant="ghost"
+                            variant="ghost-primary"
                             size="sm"
                             :to="{
                                 name: 'collaborator-edit',
                                 params: { id: item.id },
                             }"
-                            className="text-indigo-600 hover:text-indigo-900"
                         >
                             Modifier
                         </Button>

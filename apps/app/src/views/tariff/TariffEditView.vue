@@ -6,7 +6,7 @@
             </h1>
         </div>
 
-        <div class="bg-white shadow-md rounded-lg p-6">
+        <Card>
             <!-- Error Message -->
             <div v-if="errorMessage" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
                 <div class="flex">
@@ -106,7 +106,7 @@
                     </Button>
                 </div>
             </form>
-        </div>
+        </Card>
     </div>
 </template>
 
@@ -118,6 +118,7 @@ import Button from "../../components/atoms/Button.vue"
 import { useFetchRate, useCreateRate, useUpdateRate } from "@/composables/api/useRate"
 import { ApiError } from "@/utils/api-error"
 import { ErrorCode } from "@beg/validations"
+import Card from "@/components/atoms/Card.vue"
 
 const route = useRoute()
 const router = useRouter()
@@ -180,7 +181,8 @@ const saveTariff = async () => {
     }
 
     if (!tariff.value.year || tariff.value.year < 1990 || tariff.value.year > 2100) {
-        errorMessage.value = t("validation.min", { min: 1990 }) + " - " + t("validation.max", { max: 2100 })
+        errorMessage.value =
+            t("validation.min", { min: 1990 }) + " - " + t("validation.max", { max: 2100 })
         return
     }
 
@@ -212,7 +214,7 @@ const saveTariff = async () => {
         router.push({ name: "tariff-list" })
     } catch (error: any) {
         console.error("Error saving rate:", error)
-        
+
         // Handle our standardized API errors
         if (error instanceof ApiError) {
             if (error.is(ErrorCode.DUPLICATE_ENTRY)) {

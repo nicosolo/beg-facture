@@ -8,6 +8,7 @@ import { projectTypeRoutes } from "@src/routes/projectType"
 import { rateRoutes } from "@src/routes/rate"
 import { clientRoutes } from "@src/routes/client"
 import { invoiceRoutes } from "@src/routes/invoice"
+import { locationRoutes } from "@src/routes/location"
 import { runMigrations } from "@src/db/migrate"
 import { PORT, DB_FILE_PATH } from "@src/config"
 import { mkdir } from "node:fs/promises"
@@ -36,6 +37,7 @@ const app = new Hono()
     .route("/rate", rateRoutes)
     .route("/client", clientRoutes)
     .route("/invoice", invoiceRoutes)
+    .route("/location", locationRoutes)
 
 export type ApiRoutes = typeof app
 

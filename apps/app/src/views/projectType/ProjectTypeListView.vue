@@ -15,15 +15,14 @@
                 <template #cell:actions="{ item }">
                     <div class="flex justify-end gap-2">
                         <Button
-                            variant="ghost"
+                            variant="ghost-primary"
                             size="sm"
                             :to="{ name: 'project-type-edit', params: { id: item.id } }"
-                            className="text-indigo-600 hover:text-indigo-900"
                         >
                             Modifier
                         </Button>
                         <Button
-                            variant="ghost"
+                            variant="ghost-danger"
                             size="sm"
                             @click="confirmDelete(item)"
                             className="text-red-600 hover:text-red-900"
@@ -35,7 +34,6 @@
                 </template>
             </DataTable>
         </div>
-
 
         <!-- Delete Confirmation Dialog -->
         <Dialog v-model="showDeleteDialog" title="Confirmer la suppression">
@@ -51,7 +49,7 @@
                     @click="deleteProjectType"
                     :disabled="deletingProjectType"
                 >
-                    {{ deletingProjectType ? 'Suppression...' : 'Supprimer' }}
+                    {{ deletingProjectType ? "Suppression..." : "Supprimer" }}
                 </Button>
                 <Button variant="secondary" @click="showDeleteDialog = false"> Annuler </Button>
             </template>
@@ -114,7 +112,7 @@ const deleteProjectType = async () => {
         await fetchProjectTypes({}) // Reload data
         showDeleteDialog.value = false
     } catch (error) {
-        console.error('Error deleting project type:', error)
+        console.error("Error deleting project type:", error)
     }
 }
 </script>

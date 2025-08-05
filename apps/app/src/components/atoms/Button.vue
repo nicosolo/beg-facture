@@ -4,7 +4,7 @@
         :type="to ? undefined : type"
         :to="to"
         :class="[
-            'rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer leading-none block',
+            'rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block',
             variantClasses,
             sizeClasses,
             disabled ? 'cursor-not-allowed opacity-60' : '',
@@ -22,7 +22,14 @@ import type { RouteLocationRaw } from "vue-router"
 
 interface Props {
     type?: "button" | "submit" | "reset"
-    variant?: "primary" | "secondary" | "danger" | "ghost" | "custom"
+    variant?:
+        | "primary"
+        | "secondary"
+        | "danger"
+        | "ghost"
+        | "custom"
+        | "ghost-danger"
+        | "ghost-primary"
     size?: "xs" | "sm" | "md" | "lg"
     disabled?: boolean
     className?: string
@@ -46,6 +53,10 @@ const variantClasses = (() => {
             return "bg-red-600 hover:bg-red-700 text-white"
         case "ghost":
             return "bg-transparent hover:bg-gray-100 text-gray-700"
+        case "ghost-primary":
+            return "hover:bg-indigo-200 text-indigo-700"
+        case "ghost-danger":
+            return "hover:bg-red-100 text-red-600"
         case "custom":
             return ""
         default:

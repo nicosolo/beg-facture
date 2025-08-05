@@ -21,3 +21,9 @@ export type IdParamSchema = z.infer<typeof idParamSchema>
 export const classSchema = z.enum(["A", "B", "C", "D", "E", "F", "G", "R", "Z"])
 
 export type ClassSchema = z.infer<typeof classSchema>
+
+export const successSchema = z.object({
+    success: z.boolean(),
+})
+
+export type SuccessResponse = z.infer<typeof successSchema>

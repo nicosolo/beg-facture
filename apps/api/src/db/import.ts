@@ -18,7 +18,13 @@ import { eq, and } from "drizzle-orm"
 import fs from "fs/promises"
 import path from "path"
 import { hashPassword } from "@src/tools/auth"
-import type { ActivityRateUser, ClassSchema, ProjectAccessLevel, UserRole } from "@beg/validations"
+import type {
+    ActivityRateUser,
+    ClassSchema,
+    CompanySchema,
+    ProjectAccessLevel,
+    UserRole,
+} from "@beg/validations"
 import { updateProjectActivityDates } from "./repositories/activity.repository"
 
 const exportDir = "/app/export-mdb"
@@ -89,7 +95,7 @@ async function readJsonFile(filename: string) {
 }
 
 // Map French names to DB table structure
-function mapUserData(data: any) {
+function mapUserData(data: any): typeof users.$inferInsert {
     // Use original ID if available
     return {
         id: data.IDcollaborateur || undefined, // Use original ID if available
@@ -98,7 +104,7 @@ function mapUserData(data: any) {
         lastName: data.Nom,
         initials: data.Initiales,
         password: data["Mot de passe"] || "password123", // Default password
-        role: "user" as UserRole, // Properly typed as UserRole
+        role: (data.Initiales === "fp" ? "admin" : "user") as UserRole, // Properly typed as UserRole
         archived: false,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -201,7 +207,9 @@ async function importLocations() {
                 canton,
                 region,
                 address,
-            }
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            } satisfies typeof locations.$inferInsert
 
             await db.insert(locations).values(location)
         } else {
@@ -209,11 +217,13 @@ async function importLocations() {
             const location = {
                 id: rawLocation.IDlocalité,
                 name: rawLocation.Localité,
-                country: "CH", // Default to Switzerland
-                canton: null,
-                region: null,
-                address: null,
-            }
+                country: "CH" as const, // Default to Switzerland
+                canton: undefined,
+                region: undefined,
+                address: undefined,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            } satisfies typeof locations.$inferInsert
 
             await db.insert(locations).values(location)
             console.warn(
@@ -234,7 +244,9 @@ async function importCompanies() {
         const company = {
             id: rawCompany.IDentreprise,
             name: rawCompany.Entreprise,
-        }
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        } as CompanySchema
 
         await db.insert(companies).values(company)
     }
@@ -251,7 +263,9 @@ async function importClients() {
         const client = {
             id: rawClient.IDmandant,
             name: rawClient.Mandant,
-        }
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        } satisfies typeof clients.$inferInsert
 
         await db.insert(clients).values(client)
     }
@@ -270,7 +284,7 @@ async function importProjectTypes() {
             name: rawType.Type,
             createdAt: new Date(),
             updatedAt: new Date(),
-        }
+        } satisfies typeof projectTypes.$inferInsert
 
         await db.insert(projectTypes).values(projectType)
     }
@@ -287,7 +301,9 @@ async function importEngineers() {
         const engineer = {
             id: rawEngineer.IDingénieur,
             name: rawEngineer.Ingénieur,
-        }
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        } satisfies typeof engineers.$inferInsert
 
         await db.insert(engineers).values(engineer)
     }
@@ -314,7 +330,7 @@ async function importRateClasses() {
                     class: className as ClassSchema, // Properly typed as Class enum
                     year: tarif.Année || new Date().getFullYear(),
                     amount: parseFloat(tarif.Tarif) || 0,
-                }
+                } satisfies typeof rateClasses.$inferInsert
 
                 await db.insert(rateClasses).values(rateClass)
             }
@@ -337,7 +353,7 @@ async function importUsers() {
 
         // Hash password if it's not already hashed
         user.activityRates = activityRateData
-            .filter((rate) => rate.IDcollaborateur.toString() === user.id.toString())
+            .filter((rate) => rate.IDcollaborateur.toString() === user?.id?.toString())
             .map((rate) => ({
                 activityId: rate.IDactivité,
                 class: rate.Classe as ClassSchema,
@@ -392,7 +408,7 @@ async function importProjects() {
             createdAt: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
             updatedAt: new Date(),
             ended: rawProject.Etat === "Terminé",
-        }
+        } satisfies typeof projects.$inferInsert
 
         await db.insert(projects).values(project)
     }
@@ -413,7 +429,7 @@ async function importActivityTypes() {
             billable: rawActivityType.Activité === "Non facturable" ? false : true,
             createdAt: new Date(),
             updatedAt: new Date(),
-        }
+        } satisfies typeof activityTypes.$inferInsert
 
         await db.insert(activityTypes).values(activityType)
     }
@@ -461,7 +477,7 @@ async function importActivities() {
                 disbursement: rawActivity.Débours === 1,
                 createdAt: activityDate,
                 updatedAt: activityDate,
-            }
+            } satisfies typeof activities.$inferInsert
 
             chunkActivities.push(activity)
             imported++
@@ -519,7 +535,6 @@ async function importProjectAccess() {
 
     console.log(`Created ${imported} access entries`)
 }
-
 const importFunctions = [
     resetDatabase, // Add database reset as the first function to run
     importUsers,
@@ -534,7 +549,6 @@ const importFunctions = [
     importActivities,
     importProjectAccess,
 ]
-
 for (const importFunction of importFunctions) {
     console.log(`Running ${importFunction.name}`)
     const start = Date.now()

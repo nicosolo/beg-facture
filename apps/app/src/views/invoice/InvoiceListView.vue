@@ -36,27 +36,16 @@
 
             <template #cell:actions="{ item }">
                 <div class="flex justify-end gap-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        :to="`/invoice/${item.id}/preview`"
-                        className="text-blue-600 hover:text-blue-900"
-                    >
+                    <Button variant="primary" size="sm" :to="`/invoice/${item.id}/preview`">
                         Voir
                     </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        :to="`/invoice/${item.id}/edit`"
-                        className="text-indigo-600 hover:text-indigo-900"
-                    >
+                    <Button variant="ghost-primary" size="sm" :to="`/invoice/${item.id}/edit`">
                         Modifier
                     </Button>
                     <Button
-                        variant="ghost"
+                        variant="ghost-danger"
                         size="sm"
                         @click="handleDelete(item.id)"
-                        className="text-red-600 hover:text-red-900"
                         :disabled="deleteLoading"
                     >
                         Supprimer

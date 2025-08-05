@@ -1,39 +1,13 @@
+import { z } from "zod"
+import { paginationSchema } from "./pagination.js"
+
 // Country and canton constants for location selection
 
 export const COUNTRIES = {
     CH: "Switzerland",
     FR: "France",
-    DE: "Germany",
     IT: "Italy",
-    AT: "Austria",
-    ES: "Spain",
-    GB: "United Kingdom",
-    US: "United States",
-    CA: "Canada",
-    BE: "Belgium",
-    NL: "Netherlands",
-    LU: "Luxembourg",
-    PT: "Portugal",
-    PL: "Poland",
-    CZ: "Czech Republic",
-    SK: "Slovakia",
-    HU: "Hungary",
-    RO: "Romania",
-    BG: "Bulgaria",
-    GR: "Greece",
-    SE: "Sweden",
-    NO: "Norway",
-    DK: "Denmark",
-    FI: "Finland",
-    IE: "Ireland",
-    AU: "Australia",
-    NZ: "New Zealand",
-    JP: "Japan",
-    CN: "China",
-    IN: "India",
-    BR: "Brazil",
-    MX: "Mexico",
-    AR: "Argentina",
+    DE: "Germany",
 } as const
 
 export const SWISS_CANTONS = {
@@ -67,3 +41,49 @@ export const SWISS_CANTONS = {
 
 export type CountryCode = keyof typeof COUNTRIES
 export type CantonCode = keyof typeof SWISS_CANTONS
+
+// Location validation schemas
+
+export const locationSchema = z.object({
+    id: z.number(),
+    name: z.string().min(1),
+    country: z
+        .enum(Object.keys(COUNTRIES) as [CountryCode, ...CountryCode[]])
+        .optional()
+        .nullable(),
+    canton: z
+        .enum(Object.keys(SWISS_CANTONS) as [CantonCode, ...CantonCode[]])
+        .optional()
+        .nullable(),
+    region: z.string().optional().nullable(),
+    address: z.string().optional().nullable(),
+    createdAt: z.date().optional().nullable(),
+    updatedAt: z.date().optional().nullable(),
+})
+
+// Base schema without id and timestamps
+export const locationCreateSchema = locationSchema.omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+})
+
+// Update schema - partial of base schema, then add validation
+export const locationUpdateSchema = locationCreateSchema.partial()
+
+export const locationFilterSchema = paginationSchema.extend({
+    name: z.string().optional(),
+    country: z.enum(Object.keys(COUNTRIES) as [CountryCode, ...CountryCode[]]).optional(),
+    canton: z.enum(Object.keys(SWISS_CANTONS) as [CantonCode, ...CantonCode[]]).optional(),
+    sortBy: z
+        .enum(["name", "country", "canton", "createdAt", "updatedAt"])
+        .optional()
+        .default("name"),
+    sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
+})
+
+// TypeScript types
+export type Location = z.infer<typeof locationSchema>
+export type LocationCreate = z.infer<typeof locationCreateSchema>
+export type LocationUpdate = z.infer<typeof locationUpdateSchema>
+export type LocationFilter = z.infer<typeof locationFilterSchema>

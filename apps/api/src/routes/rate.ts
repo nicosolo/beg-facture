@@ -14,6 +14,7 @@ import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import { throwNotFound, throwDuplicateEntry } from "@src/tools/error-handler"
 import type { Variables } from "@src/types/global"
+import { roleMiddleware } from "@src/tools/role-middleware"
 
 export const rateRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
@@ -52,6 +53,7 @@ export const rateRoutes = new Hono<{ Variables: Variables }>()
     // Create new rate
     .post(
         "/",
+        roleMiddleware("admin"),
         zValidator("json", rateClassCreateSchema),
         responseValidator({
             201: rateClassSchema,
@@ -76,6 +78,7 @@ export const rateRoutes = new Hono<{ Variables: Variables }>()
     // Update rate
     .put(
         "/:id",
+        roleMiddleware("admin"),
         zValidator("param", idParamSchema),
         zValidator("json", rateClassUpdateSchema),
         responseValidator({
@@ -110,7 +113,7 @@ export const rateRoutes = new Hono<{ Variables: Variables }>()
     )
 
     // Delete rate
-    .delete("/:id", zValidator("param", idParamSchema), async (c) => {
+    .delete("/:id", roleMiddleware("admin"), zValidator("param", idParamSchema), async (c) => {
         const { id } = c.req.valid("param")
 
         // Check if rate exists

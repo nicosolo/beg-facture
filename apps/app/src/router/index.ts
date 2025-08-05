@@ -15,6 +15,8 @@ import ProjectTypeEditView from "../views/projectType/ProjectTypeEditView.vue"
 import ProjectPreviewView from "../views/project/ProjectPreviewView.vue"
 import ActivityTypeListView from "../views/activityType/ActivityTypeListView.vue"
 import ActivityTypeEditView from "../views/activityType/ActivityTypeEditView.vue"
+import LocationListView from "../views/location/LocationListView.vue"
+import LocationEditView from "../views/location/LocationEditView.vue"
 import LoginView from "../views/LoginView.vue"
 import { useAuthStore } from "../stores/auth"
 
@@ -172,6 +174,25 @@ const router = createRouter({
             component: TariffListView,
             meta: { requiresAuth: true },
         },
+        // Location routes
+        {
+            path: "/location",
+            name: "location-list",
+            component: LocationListView,
+            meta: { requiresAuth: false }, // Public access
+        },
+        {
+            path: "/location/new",
+            name: "location-new",
+            component: LocationEditView,
+            meta: { requiresAuth: true, requiresAdmin: true },
+        },
+        {
+            path: "/location/:id/edit",
+            name: "location-edit",
+            component: LocationEditView,
+            meta: { requiresAuth: true, requiresAdmin: true },
+        },
     ],
 })
 
@@ -179,10 +200,14 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     const authStore = useAuthStore()
     const requiresAuth = to.meta.requiresAuth !== false // Default to requiring auth
+    const requiresAdmin = to.meta.requiresAdmin === true
 
     if (requiresAuth && !authStore.isAuthenticated) {
         // Redirect to login if authentication is required but user is not authenticated
         next({ name: "login" })
+    } else if (requiresAdmin && authStore.user?.role !== 'admin') {
+        // Redirect to home if admin role is required but user is not admin
+        next({ name: "home" })
     } else {
         // Continue to the requested route
         next()

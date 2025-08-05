@@ -12,6 +12,7 @@ import { activityTypeRepository } from "../db/repositories/activityType.reposito
 import { authMiddleware } from "../tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import type { Variables } from "@src/types/global"
+import { roleMiddleware } from "@src/tools/role-middleware"
 
 // Create the app and apply auth middleware to all routes
 export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
@@ -51,6 +52,7 @@ export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
     // Create new activity type
     .post(
         "/",
+        roleMiddleware("admin"),
         zValidator("json", activityTypeCreateSchema),
         responseValidator({
             201: activityTypeResponseSchema,
@@ -74,6 +76,7 @@ export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
     // Update activity type
     .put(
         "/:id",
+        roleMiddleware("admin"),
         zValidator("param", idParamSchema),
         zValidator("json", activityTypeUpdateSchema),
         responseValidator({

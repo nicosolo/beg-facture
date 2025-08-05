@@ -8,6 +8,7 @@ import {
     idParamSchema,
     type UserResponse,
     userDetailResponseSchema,
+    loginResponseSchema,
 } from "@beg/validations"
 import { userRepository } from "../db/repositories/user.repository"
 import { comparePassword, generateToken } from "../tools/auth"
@@ -15,18 +16,7 @@ import { authMiddleware } from "../tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import { z } from "zod"
 import type { Variables } from "@src/types/global"
-
-// Define login response schema
-const loginResponseSchema = z.object({
-    token: z.string(),
-    user: z.object({
-        id: z.number(),
-        email: z.string().email(),
-        firstName: z.string(),
-        lastName: z.string(),
-        role: z.enum(["admin", "user"]),
-    }),
-})
+import { roleMiddleware } from "@src/tools/role-middleware"
 
 // Define users array response schema
 const usersArrayResponseSchema = z.array(userResponseSchema)
@@ -42,7 +32,8 @@ export const userRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const { email, password } = c.req.valid("json")
 
-            const user = await userRepository.findByEmail(email)
+            const user = await userRepository.findByEmailOrInitials(email)
+            console.log(user)
             if (!user) {
                 return c.json({ error: "Invalid credentials" }, 401)
             }
@@ -64,7 +55,11 @@ export const userRoutes = new Hono<{ Variables: Variables }>()
                         firstName: user.firstName,
                         lastName: user.lastName,
                         role: user.role,
-                    },
+                        initials: user.initials,
+                        archived: user.archived,
+                        createdAt: user.createdAt,
+                        updatedAt: user.updatedAt,
+                    } as UserResponse,
                 },
                 200
             )
@@ -105,6 +100,7 @@ export const userRoutes = new Hono<{ Variables: Variables }>()
     // Create new user
     .post(
         "/",
+        roleMiddleware("admin"),
         zValidator("json", userCreateSchema),
         responseValidator({
             201: userResponseSchema,
@@ -126,6 +122,7 @@ export const userRoutes = new Hono<{ Variables: Variables }>()
     // Update user
     .put(
         "/:id",
+        roleMiddleware("admin"),
         zValidator("param", idParamSchema),
         zValidator("json", userUpdateSchema),
         responseValidator({

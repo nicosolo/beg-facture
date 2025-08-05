@@ -34,7 +34,7 @@
                     >
                         {{ $t("time.actions.unmarkAsDisbursement") }}
                     </Button>
-                    <Button @click="clearSelection" variant="ghost" size="sm">
+                    <Button @click="clearSelection" variant="ghost-primary" size="sm">
                         {{ $t("common.clearSelection") }}
                     </Button>
                 </div>
@@ -108,12 +108,7 @@
             <template #cell:actions="{ item }">
                 <div class="flex justify-end gap-2">
                     <slot name="actions" :item="item">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            @click="$emit('edit', item.id)"
-                            className="text-indigo-600 hover:text-indigo-900"
-                        >
+                        <Button variant="ghost-primary" size="sm" @click="$emit('edit', item.id)">
                             {{ $t("common.edit") }}
                         </Button>
                     </slot>

@@ -1,9 +1,22 @@
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm"
 import { db } from "../index"
-import { invoices, invoiceRates, invoiceOffers, invoiceAdjudications, projects, clients } from "../schema"
-import type { InvoiceCreateInput, InvoiceUpdateInput, InvoiceFilter, UserResponse } from "@beg/validations"
+import {
+    invoices,
+    invoiceRates,
+    invoiceOffers,
+    invoiceAdjudications,
+    projects,
+    clients,
+} from "../schema"
+import type {
+    InvoiceCreateInput,
+    InvoiceUpdateInput,
+    InvoiceFilter,
+    UserResponse,
+} from "@beg/validations"
 type User = UserResponse
 import { projectRepository } from "./project.repository"
+import type { Variables } from "@src/types/global"
 
 export const invoiceRepository = {
     async findAll(user: User, filter: InvoiceFilter) {
@@ -13,7 +26,7 @@ export const invoiceRepository = {
         if (user.role !== "admin") {
             // Get all projects the user has access to
             const userProjects = await projectRepository.findAll(user, {})
-            const projectIds = userProjects.data.map(p => p.id)
+            const projectIds = userProjects.data.map((p) => p.id)
             if (projectIds.length === 0) {
                 return {
                     data: [],
@@ -114,27 +127,29 @@ export const invoiceRepository = {
                         startDate: row.invoice.periodStart,
                         endDate: row.invoice.periodEnd,
                     },
-                    client: row.client ? {
-                        id: row.client.id,
-                        name: row.client.name,
-                        address: "", // Client address not in schema, would need to add
-                    } : {
-                        id: row.invoice.clientId,
-                        name: "",
-                        address: "",
-                    },
+                    client: row.client
+                        ? {
+                              id: row.client.id,
+                              name: row.client.name,
+                              address: "", // Client address not in schema, would need to add
+                          }
+                        : {
+                              id: row.invoice.clientId,
+                              name: "",
+                              address: "",
+                          },
                     recipient: {
                         name: row.invoice.recipientName,
                         address: row.invoice.recipientAddress,
                     },
                     description: row.invoice.description,
-                    offers: offers.map(o => ({
+                    offers: offers.map((o) => ({
                         file: o.file,
                         date: o.date,
                         amount: o.amount / 100, // Convert from cents
                         remark: o.remark || "",
                     })),
-                    adjudications: adjudications.map(a => ({
+                    adjudications: adjudications.map((a) => ({
                         file: a.file,
                         date: a.date,
                         amount: a.amount / 100, // Convert from cents
@@ -148,10 +163,14 @@ export const invoiceRepository = {
                         finalTotal: row.invoice.feesFinalTotal / 100,
                         multiplicationFactor: row.invoice.feesMultiplicationFactor / 100,
                         discount: {
-                            percentage: row.invoice.feesDiscountPercentage ? row.invoice.feesDiscountPercentage / 100 : null,
-                            amount: row.invoice.feesDiscountAmount ? row.invoice.feesDiscountAmount / 100 : null,
+                            percentage: row.invoice.feesDiscountPercentage
+                                ? row.invoice.feesDiscountPercentage / 100
+                                : null,
+                            amount: row.invoice.feesDiscountAmount
+                                ? row.invoice.feesDiscountAmount / 100
+                                : null,
                         },
-                        rates: rates.map(r => ({
+                        rates: rates.map((r) => ({
                             rateClass: r.rateClass,
                             base: r.baseMinutes / 60, // Convert minutes to hours
                             adjusted: r.adjustedMinutes / 60,
@@ -175,8 +194,12 @@ export const invoiceRepository = {
                             amount: row.invoice.expensesThirdPartyAmount / 100,
                         },
                         package: {
-                            percentage: row.invoice.expensesPackagePercentage ? row.invoice.expensesPackagePercentage / 100 : null,
-                            amount: row.invoice.expensesPackageAmount ? row.invoice.expensesPackageAmount / 100 : null,
+                            percentage: row.invoice.expensesPackagePercentage
+                                ? row.invoice.expensesPackagePercentage / 100
+                                : null,
+                            amount: row.invoice.expensesPackageAmount
+                                ? row.invoice.expensesPackageAmount / 100
+                                : null,
                         },
                         totalExpenses: row.invoice.expensesTotalExpenses / 100,
                     },
@@ -197,11 +220,13 @@ export const invoiceRepository = {
                     },
                     createdAt: row.invoice.createdAt,
                     updatedAt: row.invoice.updatedAt,
-                    project: row.project ? {
-                        id: row.project.id,
-                        name: row.project.name,
-                        projectNumber: row.project.projectNumber,
-                    } : null,
+                    project: row.project
+                        ? {
+                              id: row.project.id,
+                              name: row.project.name,
+                              projectNumber: row.project.projectNumber,
+                          }
+                        : null,
                 }
             })
         )
@@ -243,15 +268,9 @@ export const invoiceRepository = {
         }
 
         // Get related data
-        const rates = await db
-            .select()
-            .from(invoiceRates)
-            .where(eq(invoiceRates.invoiceId, id))
+        const rates = await db.select().from(invoiceRates).where(eq(invoiceRates.invoiceId, id))
 
-        const offers = await db
-            .select()
-            .from(invoiceOffers)
-            .where(eq(invoiceOffers.invoiceId, id))
+        const offers = await db.select().from(invoiceOffers).where(eq(invoiceOffers.invoiceId, id))
 
         const adjudications = await db
             .select()
@@ -270,27 +289,29 @@ export const invoiceRepository = {
                 startDate: row.invoice.periodStart,
                 endDate: row.invoice.periodEnd,
             },
-            client: row.client ? {
-                id: row.client.id,
-                name: row.client.name,
-                address: "",
-            } : {
-                id: row.invoice.clientId,
-                name: "",
-                address: "",
-            },
+            client: row.client
+                ? {
+                      id: row.client.id,
+                      name: row.client.name,
+                      address: "",
+                  }
+                : {
+                      id: row.invoice.clientId,
+                      name: "",
+                      address: "",
+                  },
             recipient: {
                 name: row.invoice.recipientName,
                 address: row.invoice.recipientAddress,
             },
             description: row.invoice.description,
-            offers: offers.map(o => ({
+            offers: offers.map((o) => ({
                 file: o.file,
                 date: o.date,
                 amount: o.amount / 100,
                 remark: o.remark || "",
             })),
-            adjudications: adjudications.map(a => ({
+            adjudications: adjudications.map((a) => ({
                 file: a.file,
                 date: a.date,
                 amount: a.amount / 100,
@@ -304,10 +325,14 @@ export const invoiceRepository = {
                 finalTotal: row.invoice.feesFinalTotal / 100,
                 multiplicationFactor: row.invoice.feesMultiplicationFactor / 100,
                 discount: {
-                    percentage: row.invoice.feesDiscountPercentage ? row.invoice.feesDiscountPercentage / 100 : null,
-                    amount: row.invoice.feesDiscountAmount ? row.invoice.feesDiscountAmount / 100 : null,
+                    percentage: row.invoice.feesDiscountPercentage
+                        ? row.invoice.feesDiscountPercentage / 100
+                        : null,
+                    amount: row.invoice.feesDiscountAmount
+                        ? row.invoice.feesDiscountAmount / 100
+                        : null,
                 },
-                rates: rates.map(r => ({
+                rates: rates.map((r) => ({
                     rateClass: r.rateClass,
                     base: r.baseMinutes / 60,
                     adjusted: r.adjustedMinutes / 60,
@@ -331,8 +356,12 @@ export const invoiceRepository = {
                     amount: row.invoice.expensesThirdPartyAmount / 100,
                 },
                 package: {
-                    percentage: row.invoice.expensesPackagePercentage ? row.invoice.expensesPackagePercentage / 100 : null,
-                    amount: row.invoice.expensesPackageAmount ? row.invoice.expensesPackageAmount / 100 : null,
+                    percentage: row.invoice.expensesPackagePercentage
+                        ? row.invoice.expensesPackagePercentage / 100
+                        : null,
+                    amount: row.invoice.expensesPackageAmount
+                        ? row.invoice.expensesPackageAmount / 100
+                        : null,
                 },
                 totalExpenses: row.invoice.expensesTotalExpenses / 100,
             },
@@ -353,15 +382,17 @@ export const invoiceRepository = {
             },
             createdAt: row.invoice.createdAt,
             updatedAt: row.invoice.updatedAt,
-            project: row.project ? {
-                id: row.project.id,
-                name: row.project.name,
-                projectNumber: row.project.projectNumber,
-            } : null,
+            project: row.project
+                ? {
+                      id: row.project.id,
+                      name: row.project.name,
+                      projectNumber: row.project.projectNumber,
+                  }
+                : null,
         }
     },
 
-    async create(data: InvoiceCreateInput, user: User) {
+    async create(data: InvoiceCreateInput, user: Variables["user"]) {
         // Check project access
         const project = await projectRepository.findById(data.projectId, user)
         if (!project) {
@@ -371,58 +402,69 @@ export const invoiceRepository = {
         // Start transaction
         return await db.transaction(async (tx) => {
             // Create invoice
-            const [invoice] = await tx.insert(invoices).values({
-                projectId: data.projectId,
-                invoiceNumber: data.invoiceNumber,
-                reference: data.reference,
-                type: data.type,
-                billingMode: data.billingMode,
-                status: data.status,
-                issueDate: data.issueDate,
-                dueDate: data.dueDate,
-                periodStart: data.period.startDate,
-                periodEnd: data.period.endDate,
-                clientId: data.client.id,
-                recipientName: data.recipient.name,
-                recipientAddress: data.recipient.address,
-                description: data.description,
-                // Convert to cents for storage
-                feesBase: Math.round(data.fees.base * 100),
-                feesAdjusted: Math.round(data.fees.adjusted * 100),
-                feesTotal: Math.round(data.fees.total * 100),
-                feesOthers: Math.round(data.fees.others * 100),
-                feesFinalTotal: Math.round(data.fees.finalTotal * 100),
-                feesMultiplicationFactor: Math.round(data.fees.multiplicationFactor * 100),
-                feesDiscountPercentage: data.fees.discount?.percentage ? Math.round(data.fees.discount.percentage * 100) : null,
-                feesDiscountAmount: data.fees.discount?.amount ? Math.round(data.fees.discount.amount * 100) : null,
-                expensesTravelBase: Math.round(data.expenses.travel.base * 100),
-                expensesTravelAdjusted: Math.round(data.expenses.travel.adjusted * 100),
-                expensesTravelRate: Math.round(data.expenses.travel.rate * 100),
-                expensesTravelAmount: Math.round(data.expenses.travel.amount * 100),
-                expensesOtherBase: Math.round(data.expenses.other.base * 100),
-                expensesOtherAmount: Math.round(data.expenses.other.amount * 100),
-                expensesTotal: Math.round(data.expenses.total * 100),
-                expensesThirdPartyAmount: Math.round(data.expenses.thirdParty.amount * 100),
-                expensesPackagePercentage: data.expenses.package?.percentage ? Math.round(data.expenses.package.percentage * 100) : null,
-                expensesPackageAmount: data.expenses.package?.amount ? Math.round(data.expenses.package.amount * 100) : null,
-                expensesTotalExpenses: Math.round(data.expenses.totalExpenses * 100),
-                totalHT: Math.round(data.totals.ht * 100),
-                vatRate: Math.round(data.totals.vat.rate * 100),
-                vatAmount: Math.round(data.totals.vat.amount * 100),
-                totalTTC: Math.round(data.totals.ttc * 100),
-                otherServices: data.otherServices,
-                remarksOtherServices: data.remarks.otherServices,
-                remarksTravelExpenses: data.remarks.travelExpenses,
-                remarksExpenses: data.remarks.expenses,
-                remarksThirdPartyExpenses: data.remarks.thirdPartyExpenses,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            }).returning()
+            const [invoice] = await tx
+                .insert(invoices)
+                .values({
+                    projectId: data.projectId,
+                    invoiceNumber: data.invoiceNumber,
+                    reference: data.reference,
+                    type: data.type,
+                    billingMode: data.billingMode,
+                    status: data.status,
+                    issueDate: data.issueDate,
+                    dueDate: data.dueDate,
+                    periodStart: data.period.startDate,
+                    periodEnd: data.period.endDate,
+                    clientId: data.client.id,
+                    recipientName: data.recipient.name,
+                    recipientAddress: data.recipient.address,
+                    description: data.description,
+                    // Convert to cents for storage
+                    feesBase: Math.round(data.fees.base * 100),
+                    feesAdjusted: Math.round(data.fees.adjusted * 100),
+                    feesTotal: Math.round(data.fees.total * 100),
+                    feesOthers: Math.round(data.fees.others * 100),
+                    feesFinalTotal: Math.round(data.fees.finalTotal * 100),
+                    feesMultiplicationFactor: Math.round(data.fees.multiplicationFactor * 100),
+                    feesDiscountPercentage: data.fees.discount?.percentage
+                        ? Math.round(data.fees.discount.percentage * 100)
+                        : null,
+                    feesDiscountAmount: data.fees.discount?.amount
+                        ? Math.round(data.fees.discount.amount * 100)
+                        : null,
+                    expensesTravelBase: Math.round(data.expenses.travel.base * 100),
+                    expensesTravelAdjusted: Math.round(data.expenses.travel.adjusted * 100),
+                    expensesTravelRate: Math.round(data.expenses.travel.rate * 100),
+                    expensesTravelAmount: Math.round(data.expenses.travel.amount * 100),
+                    expensesOtherBase: Math.round(data.expenses.other.base * 100),
+                    expensesOtherAmount: Math.round(data.expenses.other.amount * 100),
+                    expensesTotal: Math.round(data.expenses.total * 100),
+                    expensesThirdPartyAmount: Math.round(data.expenses.thirdParty.amount * 100),
+                    expensesPackagePercentage: data.expenses.package?.percentage
+                        ? Math.round(data.expenses.package.percentage * 100)
+                        : null,
+                    expensesPackageAmount: data.expenses.package?.amount
+                        ? Math.round(data.expenses.package.amount * 100)
+                        : null,
+                    expensesTotalExpenses: Math.round(data.expenses.totalExpenses * 100),
+                    totalHT: Math.round(data.totals.ht * 100),
+                    vatRate: Math.round(data.totals.vat.rate * 100),
+                    vatAmount: Math.round(data.totals.vat.amount * 100),
+                    totalTTC: Math.round(data.totals.ttc * 100),
+                    otherServices: data.otherServices,
+                    remarksOtherServices: data.remarks.otherServices,
+                    remarksTravelExpenses: data.remarks.travelExpenses,
+                    remarksExpenses: data.remarks.expenses,
+                    remarksThirdPartyExpenses: data.remarks.thirdPartyExpenses,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                })
+                .returning()
 
             // Create rates
             if (data.fees.rates.length > 0) {
                 await tx.insert(invoiceRates).values(
-                    data.fees.rates.map(rate => ({
+                    data.fees.rates.map((rate) => ({
                         invoiceId: invoice.id,
                         rateClass: rate.rateClass,
                         baseMinutes: Math.round(rate.base * 60), // Convert hours to minutes
@@ -438,13 +480,12 @@ export const invoiceRepository = {
             // Create offers
             if (data.offers.length > 0) {
                 await tx.insert(invoiceOffers).values(
-                    data.offers.map(offer => ({
+                    data.offers.map((offer) => ({
                         invoiceId: invoice.id,
                         file: offer.file,
                         date: offer.date,
                         amount: Math.round(offer.amount * 100),
                         remark: offer.remark,
-                        createdAt: new Date(),
                         updatedAt: new Date(),
                     }))
                 )
@@ -453,7 +494,7 @@ export const invoiceRepository = {
             // Create adjudications
             if (data.adjudications.length > 0) {
                 await tx.insert(invoiceAdjudications).values(
-                    data.adjudications.map(adj => ({
+                    data.adjudications.map((adj) => ({
                         invoiceId: invoice.id,
                         file: adj.file,
                         date: adj.date,
@@ -495,27 +536,42 @@ export const invoiceRepository = {
             if (data.otherServices !== undefined) updateData.otherServices = data.otherServices
 
             if (data.period) {
-                if (data.period.startDate !== undefined) updateData.periodStart = data.period.startDate
+                if (data.period.startDate !== undefined)
+                    updateData.periodStart = data.period.startDate
                 if (data.period.endDate !== undefined) updateData.periodEnd = data.period.endDate
             }
 
             if (data.client?.id !== undefined) updateData.clientId = data.client.id
 
             if (data.recipient) {
-                if (data.recipient.name !== undefined) updateData.recipientName = data.recipient.name
-                if (data.recipient.address !== undefined) updateData.recipientAddress = data.recipient.address
+                if (data.recipient.name !== undefined)
+                    updateData.recipientName = data.recipient.name
+                if (data.recipient.address !== undefined)
+                    updateData.recipientAddress = data.recipient.address
             }
 
             if (data.fees) {
-                if (data.fees.base !== undefined) updateData.feesBase = Math.round(data.fees.base * 100)
-                if (data.fees.adjusted !== undefined) updateData.feesAdjusted = Math.round(data.fees.adjusted * 100)
-                if (data.fees.total !== undefined) updateData.feesTotal = Math.round(data.fees.total * 100)
-                if (data.fees.others !== undefined) updateData.feesOthers = Math.round(data.fees.others * 100)
-                if (data.fees.finalTotal !== undefined) updateData.feesFinalTotal = Math.round(data.fees.finalTotal * 100)
-                if (data.fees.multiplicationFactor !== undefined) updateData.feesMultiplicationFactor = Math.round(data.fees.multiplicationFactor * 100)
+                if (data.fees.base !== undefined)
+                    updateData.feesBase = Math.round(data.fees.base * 100)
+                if (data.fees.adjusted !== undefined)
+                    updateData.feesAdjusted = Math.round(data.fees.adjusted * 100)
+                if (data.fees.total !== undefined)
+                    updateData.feesTotal = Math.round(data.fees.total * 100)
+                if (data.fees.others !== undefined)
+                    updateData.feesOthers = Math.round(data.fees.others * 100)
+                if (data.fees.finalTotal !== undefined)
+                    updateData.feesFinalTotal = Math.round(data.fees.finalTotal * 100)
+                if (data.fees.multiplicationFactor !== undefined)
+                    updateData.feesMultiplicationFactor = Math.round(
+                        data.fees.multiplicationFactor * 100
+                    )
                 if (data.fees.discount) {
-                    updateData.feesDiscountPercentage = data.fees.discount.percentage ? Math.round(data.fees.discount.percentage * 100) : null
-                    updateData.feesDiscountAmount = data.fees.discount.amount ? Math.round(data.fees.discount.amount * 100) : null
+                    updateData.feesDiscountPercentage = data.fees.discount.percentage
+                        ? Math.round(data.fees.discount.percentage * 100)
+                        : null
+                    updateData.feesDiscountAmount = data.fees.discount.amount
+                        ? Math.round(data.fees.discount.amount * 100)
+                        : null
                 }
 
                 // Update rates if provided
@@ -525,7 +581,7 @@ export const invoiceRepository = {
                     // Insert new rates
                     if (data.fees.rates.length > 0) {
                         await tx.insert(invoiceRates).values(
-                            data.fees.rates.map(rate => ({
+                            data.fees.rates.map((rate) => ({
                                 invoiceId: id,
                                 rateClass: rate.rateClass,
                                 baseMinutes: Math.round(rate.base * 60),
@@ -542,38 +598,67 @@ export const invoiceRepository = {
 
             if (data.expenses) {
                 if (data.expenses.travel) {
-                    if (data.expenses.travel.base !== undefined) updateData.expensesTravelBase = Math.round(data.expenses.travel.base * 100)
-                    if (data.expenses.travel.adjusted !== undefined) updateData.expensesTravelAdjusted = Math.round(data.expenses.travel.adjusted * 100)
-                    if (data.expenses.travel.rate !== undefined) updateData.expensesTravelRate = Math.round(data.expenses.travel.rate * 100)
-                    if (data.expenses.travel.amount !== undefined) updateData.expensesTravelAmount = Math.round(data.expenses.travel.amount * 100)
+                    if (data.expenses.travel.base !== undefined)
+                        updateData.expensesTravelBase = Math.round(data.expenses.travel.base * 100)
+                    if (data.expenses.travel.adjusted !== undefined)
+                        updateData.expensesTravelAdjusted = Math.round(
+                            data.expenses.travel.adjusted * 100
+                        )
+                    if (data.expenses.travel.rate !== undefined)
+                        updateData.expensesTravelRate = Math.round(data.expenses.travel.rate * 100)
+                    if (data.expenses.travel.amount !== undefined)
+                        updateData.expensesTravelAmount = Math.round(
+                            data.expenses.travel.amount * 100
+                        )
                 }
                 if (data.expenses.other) {
-                    if (data.expenses.other.base !== undefined) updateData.expensesOtherBase = Math.round(data.expenses.other.base * 100)
-                    if (data.expenses.other.amount !== undefined) updateData.expensesOtherAmount = Math.round(data.expenses.other.amount * 100)
+                    if (data.expenses.other.base !== undefined)
+                        updateData.expensesOtherBase = Math.round(data.expenses.other.base * 100)
+                    if (data.expenses.other.amount !== undefined)
+                        updateData.expensesOtherAmount = Math.round(
+                            data.expenses.other.amount * 100
+                        )
                 }
-                if (data.expenses.total !== undefined) updateData.expensesTotal = Math.round(data.expenses.total * 100)
-                if (data.expenses.thirdParty?.amount !== undefined) updateData.expensesThirdPartyAmount = Math.round(data.expenses.thirdParty.amount * 100)
+                if (data.expenses.total !== undefined)
+                    updateData.expensesTotal = Math.round(data.expenses.total * 100)
+                if (data.expenses.thirdParty?.amount !== undefined)
+                    updateData.expensesThirdPartyAmount = Math.round(
+                        data.expenses.thirdParty.amount * 100
+                    )
                 if (data.expenses.package) {
-                    updateData.expensesPackagePercentage = data.expenses.package.percentage ? Math.round(data.expenses.package.percentage * 100) : null
-                    updateData.expensesPackageAmount = data.expenses.package.amount ? Math.round(data.expenses.package.amount * 100) : null
+                    updateData.expensesPackagePercentage = data.expenses.package.percentage
+                        ? Math.round(data.expenses.package.percentage * 100)
+                        : null
+                    updateData.expensesPackageAmount = data.expenses.package.amount
+                        ? Math.round(data.expenses.package.amount * 100)
+                        : null
                 }
-                if (data.expenses.totalExpenses !== undefined) updateData.expensesTotalExpenses = Math.round(data.expenses.totalExpenses * 100)
+                if (data.expenses.totalExpenses !== undefined)
+                    updateData.expensesTotalExpenses = Math.round(data.expenses.totalExpenses * 100)
             }
 
             if (data.totals) {
-                if (data.totals.ht !== undefined) updateData.totalHT = Math.round(data.totals.ht * 100)
+                if (data.totals.ht !== undefined)
+                    updateData.totalHT = Math.round(data.totals.ht * 100)
                 if (data.totals.vat) {
-                    if (data.totals.vat.rate !== undefined) updateData.vatRate = Math.round(data.totals.vat.rate * 100)
-                    if (data.totals.vat.amount !== undefined) updateData.vatAmount = Math.round(data.totals.vat.amount * 100)
+                    if (data.totals.vat.rate !== undefined)
+                        updateData.vatRate = Math.round(data.totals.vat.rate * 100)
+                    if (data.totals.vat.amount !== undefined)
+                        updateData.vatAmount = Math.round(data.totals.vat.amount * 100)
                 }
-                if (data.totals.ttc !== undefined) updateData.totalTTC = Math.round(data.totals.ttc * 100)
+                if (data.totals.ttc !== undefined)
+                    updateData.totalTTC = Math.round(data.totals.ttc * 100)
             }
 
             if (data.remarks) {
-                if (data.remarks.otherServices !== undefined) updateData.remarksOtherServices = data.remarks.otherServices
-                if (data.remarks.travelExpenses !== undefined) updateData.remarksTravelExpenses = data.remarks.travelExpenses
-                if (data.remarks.expenses !== undefined) updateData.remarksExpenses = data.remarks.expenses
-                if (data.remarks.thirdPartyExpenses !== undefined) updateData.remarksThirdPartyExpenses = data.remarks.thirdPartyExpenses
+                if (data.remarks.otherServices !== undefined)
+                    updateData.remarksOtherServices = data.remarks.otherServices
+                if (data.remarks.travelExpenses !== undefined)
+                    updateData.remarksTravelExpenses = data.remarks.travelExpenses
+                if (data.remarks.expenses !== undefined)
+                    updateData.remarksExpenses = data.remarks.expenses
+                if (data.remarks.thirdPartyExpenses !== undefined)
+                    updateData.remarksThirdPartyExpenses = data.remarks.thirdPartyExpenses
             }
 
             // Update invoice
@@ -584,7 +669,7 @@ export const invoiceRepository = {
                 await tx.delete(invoiceOffers).where(eq(invoiceOffers.invoiceId, id))
                 if (data.offers.length > 0) {
                     await tx.insert(invoiceOffers).values(
-                        data.offers.map(offer => ({
+                        data.offers.map((offer) => ({
                             invoiceId: id,
                             file: offer.file,
                             date: offer.date,
@@ -602,7 +687,7 @@ export const invoiceRepository = {
                 await tx.delete(invoiceAdjudications).where(eq(invoiceAdjudications.invoiceId, id))
                 if (data.adjudications.length > 0) {
                     await tx.insert(invoiceAdjudications).values(
-                        data.adjudications.map(adj => ({
+                        data.adjudications.map((adj) => ({
                             invoiceId: id,
                             file: adj.file,
                             date: adj.date,

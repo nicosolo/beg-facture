@@ -1,0 +1,234 @@
+<template>
+    <LoadingOverlay :loading="loading">
+        <div class="container mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold">{{ $t("location.title") }}</h1>
+                <Button v-if="isAdmin" variant="primary" :to="{ name: 'location-new' }">
+                    {{ $t("location.new") }}
+                </Button>
+            </div>
+
+            <!-- Filters -->
+            <Card class="mb-6 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Input
+                        v-model="filters.name"
+                        :placeholder="$t('common.searchByName')"
+                        @update:model-value="debouncedFetch"
+                    />
+
+                    <CountrySelect
+                        v-model="filters.country"
+                        :placeholder="$t('location.selectCountry')"
+                        @update:model-value="() => fetchLocations(true)"
+                    />
+
+                    <CantonSelect
+                        v-if="filters.country === 'CH' || !filters.country"
+                        v-model="filters.canton"
+                        :placeholder="$t('location.selectCanton')"
+                        @update:model-value="() => fetchLocations(true)"
+                    />
+                </div>
+            </Card>
+
+            <DataTable
+                :items="locations"
+                :columns="columns"
+                item-key="id"
+                :empty-message="$t('location.empty')"
+            >
+                <template #cell:country="{ item }">
+                    {{ COUNTRIES[item.country as keyof typeof COUNTRIES] }}
+                </template>
+
+                <template #cell:canton="{ item }">
+                    {{
+                        item.canton ? SWISS_CANTONS[item.canton as keyof typeof SWISS_CANTONS] : "-"
+                    }}
+                </template>
+
+                <template #cell:actions="{ item }">
+                    <div v-if="isAdmin" class="flex justify-end gap-2">
+                        <Button
+                            variant="ghost-primary"
+                            size="sm"
+                            :to="{ name: 'location-edit', params: { id: item.id } }"
+                        >
+                            {{ $t("common.edit") }}
+                        </Button>
+                        <Button
+                            size="sm"
+                            @click="confirmDelete(item)"
+                            :disabled="deleting"
+                            variant="ghost-danger"
+                        >
+                            {{ $t("common.delete") }}
+                        </Button>
+                    </div>
+                </template>
+            </DataTable>
+
+            <!-- Pagination -->
+            <div v-if="locationData && locationData.totalPages > 1" class="mt-6">
+                <Pagination
+                    :current-page="currentPage"
+                    :total-pages="locationData.totalPages"
+                    :total-items="locationData.total"
+                    :page-size="locationData.limit"
+                    @prev="locationData.page > 1 && currentPage--"
+                    @next="locationData.page < locationData.totalPages && currentPage++"
+                    @go-to="(page) => (currentPage = page)"
+                />
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Dialog -->
+        <Dialog v-model="showDeleteDialog" :title="$t('common.confirmDelete')">
+            <p class="text-sm text-gray-500">
+                {{ $t("location.deleteConfirm", { name: currentLocation?.name }) }}
+            </p>
+
+            <template #footer>
+                <Button
+                    variant="primary"
+                    class="ml-3 bg-red-600 hover:bg-red-700"
+                    @click="deleteLocation"
+                    :disabled="deleting"
+                >
+                    {{ deleting ? $t("common.deleting") : $t("common.delete") }}
+                </Button>
+                <Button variant="secondary" @click="showDeleteDialog = false">
+                    {{ $t("common.cancel") }}
+                </Button>
+            </template>
+        </Dialog>
+    </LoadingOverlay>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted, watch } from "vue"
+import { useI18n } from "vue-i18n"
+import Button from "@/components/atoms/Button.vue"
+import Input from "@/components/atoms/Input.vue"
+import CountrySelect from "@/components/atoms/CountrySelect.vue"
+import CantonSelect from "@/components/atoms/CantonSelect.vue"
+import DataTable from "@/components/molecules/DataTable.vue"
+import Dialog from "@/components/molecules/Dialog.vue"
+import Pagination from "@/components/organisms/Pagination.vue"
+import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
+import { useFetchLocationList, useDeleteLocation } from "@/composables/api/useLocation"
+import { useAuthStore } from "@/stores/auth"
+import { COUNTRIES, SWISS_CANTONS, type Location, type LocationFilter } from "@beg/validations"
+import Card from "@/components/atoms/Card.vue"
+import { useAlert } from "@/composables/utils/useAlert"
+
+const { t } = useI18n()
+const authStore = useAuthStore()
+const { successAlert, errorAlert } = useAlert()
+// Check if user is admin
+const isAdmin = computed(() => authStore.user?.role === "admin")
+
+// Table columns
+const columns = computed(() => {
+    const baseColumns = [
+        { key: "name", label: t("location.name"), width: "w-1/4" as const },
+        { key: "country", label: t("location.country"), width: "w-1/6" as const },
+        { key: "canton", label: t("location.canton"), width: "w-1/6" as const },
+        { key: "region", label: t("location.region"), width: "w-1/4" as const },
+    ]
+
+    if (isAdmin.value) {
+        baseColumns.push({ key: "actions", label: t("common.actions"), width: "w-1/6" as const })
+    }
+
+    return baseColumns
+})
+
+// API composables
+const { get: fetchLocationListApi, loading, data: locationData } = useFetchLocationList()
+const { delete: deleteLocationApi, loading: deleting } = useDeleteLocation()
+const currentPage = ref(1)
+// Data
+
+const locations = computed(() => locationData?.value?.data || [])
+
+// Filters
+const filters = ref<LocationFilter>({
+    name: "",
+    country: undefined,
+    canton: undefined,
+    page: 1,
+    limit: 100,
+    sortBy: "name",
+    sortOrder: "asc",
+})
+
+// Dialog state
+const showDeleteDialog = ref(false)
+const currentLocation = ref<Location | null>(null)
+
+// Fetch locations
+const fetchLocations = async (resetPage = false) => {
+    if (resetPage) {
+        currentPage.value = 1
+    }
+    await fetchLocationListApi({
+        query: {
+            ...filters.value,
+            page: currentPage.value,
+        },
+    })
+}
+
+// Simple debounce implementation
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+const debouncedFetch = () => {
+    if (debounceTimer) {
+        clearTimeout(debounceTimer)
+    }
+    debounceTimer = setTimeout(() => {
+        fetchLocations(true) // Reset to page 1 when filters change
+    }, 300)
+}
+
+watch(currentPage, () => {
+    fetchLocations()
+})
+
+// Clear canton when country changes from CH
+watch(
+    () => filters.value.country,
+    (newCountry, oldCountry) => {
+        if (oldCountry === "CH" && newCountry !== "CH") {
+            filters.value.canton = undefined
+        }
+    }
+)
+
+// Load locations on mount
+onMounted(() => {
+    fetchLocations()
+})
+
+// Open delete confirmation dialog
+const confirmDelete = (location: Location) => {
+    currentLocation.value = location
+    showDeleteDialog.value = true
+}
+
+// Delete location
+const deleteLocation = async () => {
+    if (!currentLocation.value) return
+
+    try {
+        await deleteLocationApi({ params: { id: currentLocation.value.id } })
+        successAlert(t("common.deleteSuccess", { name: currentLocation.value.name }))
+        showDeleteDialog.value = false
+        await fetchLocations() // Reload data
+    } catch (error) {
+        errorAlert(t("common.deleteError", { name: currentLocation.value.name }))
+        console.error("Error deleting location:", error)
+    }
+}
+</script>

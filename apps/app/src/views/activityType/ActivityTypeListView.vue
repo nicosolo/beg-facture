@@ -23,7 +23,7 @@
                 <template #cell:actions="{ item }">
                     <div class="flex justify-end gap-2">
                         <Button
-                            variant="ghost"
+                            variant="ghost-primary"
                             size="sm"
                             :to="{
                                 name: 'activity-edit',

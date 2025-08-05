@@ -1,8 +1,14 @@
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core"
 
 import { timestamps } from "./column.helper"
-import type { ActivityRateUser, ClassSchema, ProjectAccessLevel, UserRole } from "@beg/validations"
-
+import type {
+    ActivityRateUser,
+    ClassSchema,
+    ProjectAccessLevel,
+    UserRole,
+    COUNTRIES,
+    SWISS_CANTONS,
+} from "@beg/validations"
 // User table
 export const users = sqliteTable(
     "users",
@@ -38,8 +44,8 @@ export const locations = sqliteTable(
     {
         id: integer("id").primaryKey({ autoIncrement: true }),
         name: text("name").notNull(),
-        country: text("country", { length: 2 }).notNull(),
-        canton: text("canton", { length: 2 }),
+        country: text("country", { length: 2 }).$type<keyof typeof COUNTRIES>(),
+        canton: text("canton", { length: 2 }).$type<keyof typeof SWISS_CANTONS>(),
         region: text("region"),
         address: text("address"),
         ...timestamps,
@@ -111,15 +117,19 @@ export const projects = sqliteTable(
         projectNumber: text("projectNumber").notNull(),
         name: text("name").notNull(),
         startDate: integer("startDate", { mode: "timestamp" }).notNull(),
-        locationId: integer("locationId").references(() => locations.id),
-        clientId: integer("clientId").references(() => clients.id),
-        engineerId: integer("engineerId").references(() => engineers.id),
-        companyId: integer("companyId").references(() => companies.id),
+        locationId: integer("locationId").references(() => locations.id, {
+            onDelete: "set null",
+        }),
+        clientId: integer("clientId").references(() => clients.id, { onDelete: "set null" }),
+        engineerId: integer("engineerId").references(() => engineers.id, { onDelete: "set null" }),
+        companyId: integer("companyId").references(() => companies.id, { onDelete: "set null" }),
         typeId: integer("typeId")
             .notNull()
-            .references(() => projectTypes.id),
+            .references(() => projectTypes.id, { onDelete: "set null" }),
         remark: text("remark"),
-        projectManagerId: integer("projectManagerId").references(() => users.id),
+        projectManagerId: integer("projectManagerId").references(() => users.id, {
+            onDelete: "set null",
+        }),
         printFlag: integer("printFlag", { mode: "boolean" }).default(false),
         firstActivityDate: integer("firstActivityDate", { mode: "timestamp" }),
         lastActivityDate: integer("lastActivityDate", { mode: "timestamp" }),
@@ -206,7 +216,7 @@ export const activities = sqliteTable(
         id: integer("id").primaryKey({ autoIncrement: true }),
         userId: integer("userId")
             .notNull()
-            .references(() => users.id),
+            .references(() => users.id, { onDelete: "set null" }),
         date: integer("date", { mode: "timestamp" }).notNull(),
         duration: integer("duration").notNull(),
         kilometers: integer("kilometers").notNull(),
@@ -214,13 +224,16 @@ export const activities = sqliteTable(
         rate: integer("rate").notNull(),
         projectId: integer("projectId")
             .notNull()
-            .references(() => projects.id),
+            .references(() => projects.id, { onDelete: "set null" }),
         activityTypeId: integer("activityTypeId")
             .notNull()
-            .references(() => activityTypes.id),
+            .references(() => activityTypes.id, { onDelete: "set null" }),
         description: text("description"),
         billed: integer("billed", { mode: "boolean" }).notNull().default(false),
-        invoiceId: integer("invoiceId").references(() => invoices.id),
+        invoiceId: integer("invoiceId").references(() => invoices.id, {
+            onDelete: "set null",
+        }),
+        // Disbursement flag (if this activity is a disbursement)
         disbursement: integer("disbursement", { mode: "boolean" }).notNull().default(false),
         ...timestamps,
     },
@@ -245,7 +258,7 @@ export const invoices = sqliteTable(
         id: integer("id").primaryKey({ autoIncrement: true }),
         projectId: integer("projectId")
             .notNull()
-            .references(() => projects.id),
+            .references(() => projects.id, { onDelete: "set null" }),
         invoiceNumber: text("invoiceNumber").notNull().unique(),
         reference: text("reference").notNull(),
         type: text("type").notNull().default("Facture"),
@@ -260,7 +273,7 @@ export const invoices = sqliteTable(
         periodEnd: integer("periodEnd", { mode: "timestamp" }).notNull(),
         clientId: integer("clientId")
             .notNull()
-            .references(() => clients.id),
+            .references(() => clients.id, { onDelete: "set null" }),
         recipientName: text("recipientName").notNull(),
         recipientAddress: text("recipientAddress").notNull(),
         description: text("description").notNull(),

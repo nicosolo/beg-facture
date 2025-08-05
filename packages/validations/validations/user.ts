@@ -11,7 +11,7 @@ export const userRoleSchema = z.enum(["admin", "user"])
 
 // Login schema for authentication
 export const loginSchema = z.object({
-    email: z.string().email(),
+    email: z.string().min(2),
     password: z.string().min(3),
 })
 
@@ -61,6 +61,12 @@ export const userResponseSchema = z.object({
     archived: z.boolean(),
     createdAt: nullableDateSchema,
     updatedAt: nullableDateSchema,
+})
+
+// Define login response schema
+export const loginResponseSchema = z.object({
+    token: z.string(),
+    user: userResponseSchema,
 })
 
 export const userDetailResponseSchema = z.object({

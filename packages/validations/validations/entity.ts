@@ -21,17 +21,6 @@ export const regionSchema = z.object({
 
 export type RegionSchema = z.infer<typeof regionSchema>
 
-// Location schema
-export const locationSchema = z.object({
-    id: z.number(),
-    name: z.string(),
-    regionId: z.number(),
-    createdAt: nullableDateSchema,
-    updatedAt: nullableDateSchema,
-})
-
-export type LocationSchema = z.infer<typeof locationSchema>
-
 // Company schema
 export const companySchema = z.object({
     id: z.number(),

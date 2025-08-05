@@ -51,7 +51,7 @@
 
                 <Button
                     :to="{ name: 'time-list', query: { projectId: item.id } }"
-                    variant="ghost"
+                    variant="ghost-primary"
                     size="sm"
                     class="whitespace-nowrap w-fit"
                 >

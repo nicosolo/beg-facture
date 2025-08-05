@@ -5,7 +5,7 @@
         </h1>
     </div>
 
-    <div class="bg-white shadow-md rounded-lg p-6">
+    <Card>
         <form @submit.prevent="saveActivityType">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -51,7 +51,7 @@
                 </Button>
             </div>
         </form>
-    </div>
+    </Card>
 </template>
 
 <script setup lang="ts">
@@ -64,6 +64,7 @@ import {
     useUpdateActivityType,
 } from "../../composables/api/useActivityType"
 import type { ActivityTypeCreateInput, ActivityTypeUpdateInput } from "@beg/validations"
+import Card from "@/components/atoms/Card.vue"
 
 const route = useRoute()
 const router = useRouter()

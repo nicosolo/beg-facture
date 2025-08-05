@@ -1,10 +1,17 @@
-import { eq } from "drizzle-orm"
+import { eq, or } from "drizzle-orm"
 import { db } from "../index"
 import { users } from "../schema"
 import type { UserResponse, UserCreateInput, UserUpdateInput } from "@beg/validations"
 import { hashPassword } from "../../tools/auth"
 
 export const userRepository = {
+    findByEmailOrInitials: async (emailOrInitials: string) => {
+        const results = await db
+            .select()
+            .from(users)
+            .where(or(eq(users.email, emailOrInitials), eq(users.initials, emailOrInitials)))
+        return results[0] || null
+    },
     findByEmail: async (email: string) => {
         const results = await db.select().from(users).where(eq(users.email, email))
         return results[0] || null

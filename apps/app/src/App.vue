@@ -31,52 +31,68 @@ const handleLogout = () => {
 }
 
 // Navigation items with their routes and active states
-const navigation = computed(() => [
-    {
-        name: t("navigation.time"),
-        to: { name: "time-list" },
-        current: route.name === "time-list",
-    },
-    {
-        name: t("navigation.projects"),
-        to: { name: "project-list" },
-        current: route.name === "project-list",
-    },
-    {
-        name: t("navigation.invoices"),
-        to: { name: "invoice-list" },
-        current: route.name === "invoice-list",
-    },
-    {
-        name: t("navigation.settings"),
-        children: [
-            {
-                name: t("navigation.collaborators"),
-                to: { name: "collaborator-list" },
-                current: route.name === "collaborator-list",
-            },
-            {
-                name: t("navigation.activities"),
-                to: { name: "activity-list" },
-                current: route.name === "activity-list",
-            },
-            {
-                name: t("navigation.tariffs"),
-                to: { name: "tariff-list" },
-                current: route.name === "tariff-list",
-            },
-            {
-                name: t("navigation.projectTypes"),
-                to: { name: "project-type-list" },
-                current: route.name === "project-type-list",
-            },
-        ],
-        // Mark parent as current if any child is current
-        get current() {
-            return this.children.some((child) => child.current)
+const navigation = computed(() =>
+    [
+        {
+            name: t("navigation.time"),
+            to: { name: "time-list" },
+            current: route.name === "time-list",
         },
-    },
-])
+        {
+            name: t("navigation.projects"),
+            to: { name: "project-list" },
+            current: route.name === "project-list",
+        },
+        {
+            name: t("navigation.invoices"),
+            to: { name: "invoice-list" },
+            current: route.name === "invoice-list",
+        },
+        {
+            name: t("navigation.settings"),
+            visible: authStore.user?.role === "admin",
+            children: [
+                {
+                    name: t("navigation.collaborators"),
+                    to: { name: "collaborator-list" },
+                    current: route.name === "collaborator-list",
+                    visible: authStore.user?.role === "admin",
+                },
+                {
+                    name: t("navigation.activities"),
+                    to: { name: "activity-list" },
+                    current: route.name === "activity-list",
+                    visible: authStore.user?.role === "admin",
+                },
+                {
+                    name: t("navigation.tariffs"),
+                    to: { name: "tariff-list" },
+                    current: route.name === "tariff-list",
+                    visible: authStore.user?.role === "admin",
+                },
+                {
+                    name: t("navigation.projectTypes"),
+                    to: { name: "project-type-list" },
+                    current: route.name === "project-type-list",
+                    visible: authStore.user?.role === "admin",
+                },
+                {
+                    name: t("navigation.locations"),
+                    to: { name: "location-list" },
+                    current:
+                        route.name === "location-list" ||
+                        route.name === "location-new" ||
+                        route.name === "location-edit",
+                    visible: authStore.user?.role === "admin",
+                },
+            ].filter((item) => item.visible !== false),
+            // Mark parent as current if any child is current
+            get current() {
+                return this.children.some((child) => child.current)
+            },
+        },
+    ].filter((item) => item.visible !== false)
+)
 
 const expandedItems = ref<Record<string, boolean>>({})
 
@@ -212,8 +228,7 @@ const isExpanded = (itemName: string): boolean => {
                                     class="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center"
                                 >
                                     <span class="text-gray-600 text-xs font-medium">
-                                        {{ authStore.user?.firstName?.[0]
-                                        }}{{ authStore.user?.lastName?.[0] }}
+                                        {{ authStore.user?.initials }}
                                     </span>
                                 </div>
                                 <div class="ml-3 flex-grow">

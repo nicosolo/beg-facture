@@ -3,7 +3,7 @@
         <div class="container mx-auto">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-bold">{{ $t("location.title") }}</h1>
-                <Button v-if="isAdmin" variant="primary" :to="{ name: 'location-new' }">
+                <Button v-if="isAdmin" variant="primary" @click="openCreateModal">
                     {{ $t("location.new") }}
                 </Button>
             </div>
@@ -53,7 +53,7 @@
                         <Button
                             variant="ghost-primary"
                             size="sm"
-                            :to="{ name: 'location-edit', params: { id: item.id } }"
+                            @click="openEditModal(item)"
                         >
                             {{ $t("common.edit") }}
                         </Button>
@@ -86,7 +86,7 @@
         <!-- Delete Confirmation Dialog -->
         <Dialog v-model="showDeleteDialog" :title="$t('common.confirmDelete')">
             <p class="text-sm text-gray-500">
-                {{ $t("location.deleteConfirm", { name: currentLocation?.name }) }}
+                {{ $t("location.deleteConfirm", { name: currentLocationToDelete?.name }) }}
             </p>
 
             <template #footer>
@@ -103,6 +103,13 @@
                 </Button>
             </template>
         </Dialog>
+
+        <!-- Location Edit Modal -->
+        <LocationEditModal
+            v-model="showEditModal"
+            :location-id="editingLocationId"
+            @saved="onLocationSaved"
+        />
     </LoadingOverlay>
 </template>
 
@@ -117,6 +124,7 @@ import DataTable from "@/components/molecules/DataTable.vue"
 import Dialog from "@/components/molecules/Dialog.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
+import LocationEditModal from "@/components/organisms/location/LocationEditModal.vue"
 import { useFetchLocationList, useDeleteLocation } from "@/composables/api/useLocation"
 import { useAuthStore } from "@/stores/auth"
 import { COUNTRIES, SWISS_CANTONS, type Location, type LocationFilter } from "@beg/validations"
@@ -166,7 +174,9 @@ const filters = ref<LocationFilter>({
 
 // Dialog state
 const showDeleteDialog = ref(false)
-const currentLocation = ref<Location | null>(null)
+const currentLocationToDelete = ref<Location | null>(null)
+const showEditModal = ref(false)
+const editingLocationId = ref<number | null>(null)
 
 // Fetch locations
 const fetchLocations = async (resetPage = false) => {
@@ -213,22 +223,39 @@ onMounted(() => {
 
 // Open delete confirmation dialog
 const confirmDelete = (location: Location) => {
-    currentLocation.value = location
+    currentLocationToDelete.value = location
     showDeleteDialog.value = true
 }
 
 // Delete location
 const deleteLocation = async () => {
-    if (!currentLocation.value) return
+    if (!currentLocationToDelete.value) return
 
     try {
-        await deleteLocationApi({ params: { id: currentLocation.value.id } })
-        successAlert(t("common.deleteSuccess", { name: currentLocation.value.name }))
+        await deleteLocationApi({ params: { id: currentLocationToDelete.value.id } })
+        successAlert(t("common.deleteSuccess", { name: currentLocationToDelete.value.name }))
         showDeleteDialog.value = false
         await fetchLocations() // Reload data
     } catch (error) {
-        errorAlert(t("common.deleteError", { name: currentLocation.value.name }))
+        errorAlert(t("common.deleteError", { name: currentLocationToDelete.value.name }))
         console.error("Error deleting location:", error)
     }
+}
+
+// Open create modal
+const openCreateModal = () => {
+    editingLocationId.value = null
+    showEditModal.value = true
+}
+
+// Open edit modal
+const openEditModal = (location: Location) => {
+    editingLocationId.value = location.id
+    showEditModal.value = true
+}
+
+// Handle location saved
+const onLocationSaved = async () => {
+    await fetchLocations()
 }
 </script>

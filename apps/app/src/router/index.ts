@@ -16,7 +16,6 @@ import ProjectPreviewView from "../views/project/ProjectPreviewView.vue"
 import ActivityTypeListView from "../views/activityType/ActivityTypeListView.vue"
 import ActivityTypeEditView from "../views/activityType/ActivityTypeEditView.vue"
 import LocationListView from "../views/location/LocationListView.vue"
-import LocationEditView from "../views/location/LocationEditView.vue"
 import LoginView from "../views/LoginView.vue"
 import { useAuthStore } from "../stores/auth"
 
@@ -180,18 +179,6 @@ const router = createRouter({
             name: "location-list",
             component: LocationListView,
             meta: { requiresAuth: false }, // Public access
-        },
-        {
-            path: "/location/new",
-            name: "location-new",
-            component: LocationEditView,
-            meta: { requiresAuth: true, requiresAdmin: true },
-        },
-        {
-            path: "/location/:id/edit",
-            name: "location-edit",
-            component: LocationEditView,
-            meta: { requiresAuth: true, requiresAdmin: true },
         },
     ],
 })

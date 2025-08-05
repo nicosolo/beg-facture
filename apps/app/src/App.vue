@@ -79,10 +79,7 @@ const navigation = computed(() =>
                 {
                     name: t("navigation.locations"),
                     to: { name: "location-list" },
-                    current:
-                        route.name === "location-list" ||
-                        route.name === "location-new" ||
-                        route.name === "location-edit",
+                    current: route.name === "location-list",
                     visible: authStore.user?.role === "admin",
                 },
             ].filter((item) => item.visible !== false),

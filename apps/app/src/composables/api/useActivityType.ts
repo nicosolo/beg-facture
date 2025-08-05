@@ -16,6 +16,10 @@ export function useFetchActivityTypes() {
     return useGet<ActivityTypeResponse[]>("activity-type")
 }
 
+export function useFetchActivityTypeFiltered() {
+    return useGet<ActivityTypeResponse[]>("activity-type/filtered")
+}
+
 export function useCreateActivityType() {
     return usePost<
         ActivityTypeResponse,

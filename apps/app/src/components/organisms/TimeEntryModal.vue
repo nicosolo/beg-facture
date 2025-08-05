@@ -153,7 +153,7 @@ import {
     useCreateActivity,
     useUpdateActivity,
 } from "@/composables/api/useActivity"
-import { useFetchActivityTypes } from "@/composables/api/useActivityType"
+import { useFetchActivityTypeFiltered } from "@/composables/api/useActivityType"
 import { useAuthStore } from "@/stores/auth"
 import { ApiError } from "@/utils/api-error"
 import type { ActivityCreateInput, ActivityUpdateInput, ActivityResponse } from "@beg/validations"
@@ -206,10 +206,17 @@ const {
     get: fetchActivityTypes,
     loading: loadingActivityTypes,
     data: activityTypesData,
-} = useFetchActivityTypes()
+} = useFetchActivityTypeFiltered()
 
 // Options
-const activityTypeOptions = ref<Array<{ label: string; value: number }>>([])
+const activityTypeOptions = computed(() => {
+    return activityTypesData.value
+        ? activityTypesData.value.map((type) => ({
+              label: `${type.code} - ${type.name}`,
+              value: type.id,
+          }))
+        : []
+})
 
 // Date formatting
 const formattedDate = computed({
@@ -223,16 +230,6 @@ const formattedDate = computed({
     set: (value: string) => {
         activity.value.date = new Date(value)
     },
-})
-
-// Watch activity types data
-watch(activityTypesData, (newData) => {
-    if (newData) {
-        activityTypeOptions.value = newData.map((activityType) => ({
-            label: `${activityType.code} - ${activityType.name}`,
-            value: activityType.id,
-        }))
-    }
 })
 
 // Load activity data if editing

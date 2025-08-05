@@ -1,7 +1,11 @@
 import { eq } from "drizzle-orm"
 import { db } from "../index"
-import { activityTypes } from "../schema"
-import type { ActivityTypeResponse, ActivityTypeCreateInput, ActivityTypeUpdateInput } from "@beg/validations"
+import { activityTypes, users } from "../schema"
+import type {
+    ActivityTypeResponse,
+    ActivityTypeCreateInput,
+    ActivityTypeUpdateInput,
+} from "@beg/validations"
 
 export const activityTypeRepository = {
     findAll: async (): Promise<ActivityTypeResponse[]> => {
@@ -67,7 +71,10 @@ export const activityTypeRepository = {
         return newActivityType
     },
 
-    update: async (id: number, activityTypeData: Partial<ActivityTypeUpdateInput>): Promise<ActivityTypeResponse> => {
+    update: async (
+        id: number,
+        activityTypeData: Partial<ActivityTypeUpdateInput>
+    ): Promise<ActivityTypeResponse> => {
         const updateData: any = {}
 
         if (activityTypeData.name) updateData.name = activityTypeData.name

@@ -13,6 +13,7 @@ import { authMiddleware } from "../tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import type { Variables } from "@src/types/global"
 import { roleMiddleware } from "@src/tools/role-middleware"
+import { userRepository } from "@src/db/repositories/user.repository"
 
 // Create the app and apply auth middleware to all routes
 export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
@@ -27,6 +28,26 @@ export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const activityTypes = await activityTypeRepository.findAll()
             return c.render(activityTypes as ActivityTypeResponse[], 200)
+        }
+    )
+    .get(
+        "/filtered",
+        responseValidator({
+            200: activityTypesArrayResponseSchema,
+        }),
+        async (c) => {
+            const user = c.get("user")
+            const userWithActivities = await userRepository.findById(user.id)
+            if (!userWithActivities) {
+                return c.json({ error: "User not found" }, 404)
+            }
+            let activityTypes = await activityTypeRepository.findAll()
+            activityTypes = activityTypes.filter((activity) =>
+                (userWithActivities?.activityRates || []).some(
+                    (activityRate) => activityRate.activityId === activity.id
+                )
+            )
+            return c.render(activityTypes, 200)
         }
     )
 

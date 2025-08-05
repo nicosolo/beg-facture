@@ -1,74 +1,70 @@
 <template>
-    <h1 class="text-2xl font-bold mb-4">
-        {{ isNewInvoice ? "Créer une facture" : "Modifier la facture" }}
-    </h1>
-
-    <div class="mb-6">
-        <div class="border-b border-gray-200">
-            <nav class="flex -mb-px">
-                <button
-                    @click="activeTab = 'general'"
-                    :class="[
-                        'py-4 px-6 font-medium text-sm cursor-pointer',
-                        activeTab === 'general'
-                            ? 'border-b-2 border-blue-500 text-blue-600'
-                            : 'text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                    ]"
-                >
-                    Données de facturation et documents
-                </button>
-                <button
-                    @click="activeTab = 'details'"
-                    :class="[
-                        'py-4 px-6 font-medium text-sm cursor-pointer',
-                        activeTab === 'details'
-                            ? 'border-b-2 border-blue-500 text-blue-600'
-                            : 'text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                    ]"
-                >
-                    Préparation de la facture et heures réalisées
-                </button>
-            </nav>
+    <FormLayout
+        :title="isNewInvoice ? 'Créer une facture' : 'Modifier la facture'"
+        :loading="loading"
+        :error-message="errorMessage"
+    >
+        <!-- Tabs Navigation -->
+        <div class="-mx-6 -mt-6 mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="flex -mb-px px-6">
+                    <button
+                        @click="activeTab = 'general'"
+                        :class="[
+                            'py-4 px-6 font-medium text-sm cursor-pointer',
+                            activeTab === 'general'
+                                ? 'border-b-2 border-blue-500 text-blue-600'
+                                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                        ]"
+                    >
+                        Données de facturation et documents
+                    </button>
+                    <button
+                        @click="activeTab = 'details'"
+                        :class="[
+                            'py-4 px-6 font-medium text-sm cursor-pointer',
+                            activeTab === 'details'
+                                ? 'border-b-2 border-blue-500 text-blue-600'
+                                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                        ]"
+                    >
+                        Préparation de la facture et heures réalisées
+                    </button>
+                </nav>
+            </div>
         </div>
-    </div>
 
-    <div v-if="loading" class="text-center py-8">
-        <div
-            class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"
-        ></div>
-        <p class="mt-2 text-gray-600">Chargement...</p>
-    </div>
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <InvoiceGeneralInfo v-if="activeTab === 'general'" v-model="invoice" />
+            <InvoiceDetails v-if="activeTab === 'details'" v-model="invoice" />
+        </div>
 
-    <div v-else-if="error" class="mb-4 p-4 bg-red-100 text-red-700 rounded">
-        {{ error }}
-    </div>
-
-    <div v-else class="tab-content">
-        <InvoiceGeneralInfo v-if="activeTab === 'general'" v-model="invoice" />
-        <InvoiceDetails v-if="activeTab === 'details'" v-model="invoice" />
-    </div>
-
-    <div v-if="!loading" class="mt-6 flex gap-4">
-        <button
-            @click="handleSave"
-            :disabled="loading"
-            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-            {{ loading ? "Enregistrement..." : "Enregistrer" }}
-        </button>
-        <button
-            @click="handleCancel"
-            :disabled="loading"
-            class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
-        >
-            Annuler
-        </button>
-    </div>
+        <template #actions>
+            <Button
+                variant="secondary"
+                type="button"
+                @click="handleCancel"
+                :disabled="loading"
+            >
+                Annuler
+            </Button>
+            <Button
+                variant="primary"
+                @click="handleSave"
+                :disabled="loading"
+            >
+                {{ loading ? "Enregistrement..." : "Enregistrer" }}
+            </Button>
+        </template>
+    </FormLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import FormLayout from "@/components/templates/FormLayout.vue"
+import Button from "@/components/atoms/Button.vue"
 import InvoiceGeneralInfo from "@/components/organisms/invoice/InvoiceGeneralInfo.vue"
 import InvoiceDetails from "@/components/organisms/invoice/InvoiceDetails.vue"
 import { createEmptyInvoice, type Invoice, type InvoiceResponse } from "@beg/validations"
@@ -90,6 +86,12 @@ const { put: updateInvoice, loading: updateLoading, error: updateError } = useUp
 const invoice = ref<Invoice>(createEmptyInvoice())
 const loading = computed(() => fetchLoading.value || createLoading.value || updateLoading.value)
 const error = computed(() => fetchError.value || createError.value || updateError.value)
+const errorMessage = computed(() => {
+    const err = error.value as any
+    if (typeof err === 'string') return err
+    if (err?.message) return err.message
+    return err ? "Une erreur s'est produite" : null
+})
 
 // Helper to convert API response to form data
 const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
@@ -150,10 +152,9 @@ const loadInvoice = async () => {
             if (data) {
                 invoice.value = convertResponseToInvoice(data)
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to load invoice:", err)
-            alert("Erreur lors du chargement de la facture")
-            router.push({ name: "invoice-list" })
+            // Error will be displayed in the FormLayout
         }
     }
 }
@@ -171,11 +172,11 @@ const handleSave = async () => {
                 params: { id: parseInt(invoiceId.value) },
                 body: convertInvoiceToInput(invoice.value),
             })
-            alert("Facture enregistrée avec succès")
+            router.push({ name: "invoice-list" })
         }
-    } catch (err) {
+    } catch (err: any) {
         console.error("Failed to save invoice:", err)
-        alert("Erreur lors de l'enregistrement de la facture")
+        // Error will be displayed in the FormLayout
     }
 }
 

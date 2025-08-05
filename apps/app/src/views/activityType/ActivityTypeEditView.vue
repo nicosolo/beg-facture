@@ -1,12 +1,10 @@
 <template>
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold">
-            {{ isNewActivityType ? "Nouveau type d'activité" : "Modifier type d'activité" }}
-        </h1>
-    </div>
-
-    <Card>
-        <form @submit.prevent="saveActivityType">
+    <FormLayout
+        :title="isNewActivityType ? 'Nouveau type d\'activité' : 'Modifier type d\'activité'"
+        :loading="loadingCreate || loadingUpdate"
+        :error-message="errorMessage"
+    >
+        <form @submit.prevent="saveActivityType" id="activityTypeForm">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
@@ -42,29 +40,30 @@
                 </div>
             </div>
 
-            <div class="flex justify-end space-x-3 mt-6">
-                <Button type="button" variant="ghost" :to="{ name: 'activity-list' }">
-                    Annuler
-                </Button>
-                <Button type="submit" variant="primary" :loading="loadingCreate || loadingUpdate">
-                    {{ isNewActivityType ? "Créer" : "Modifier" }}
-                </Button>
-            </div>
         </form>
-    </Card>
+
+        <template #actions>
+            <Button type="button" variant="secondary" :to="{ name: 'activity-list' }">
+                Annuler
+            </Button>
+            <Button type="submit" form="activityTypeForm" variant="primary" :loading="loadingCreate || loadingUpdate">
+                {{ isNewActivityType ? "Créer" : "Modifier" }}
+            </Button>
+        </template>
+    </FormLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import Button from "../../components/atoms/Button.vue"
+import FormLayout from "@/components/templates/FormLayout.vue"
 import {
     useFetchActivityType,
     useCreateActivityType,
     useUpdateActivityType,
 } from "../../composables/api/useActivityType"
 import type { ActivityTypeCreateInput, ActivityTypeUpdateInput } from "@beg/validations"
-import Card from "@/components/atoms/Card.vue"
 
 const route = useRoute()
 const router = useRouter()
@@ -85,6 +84,9 @@ const activityType = ref<ActivityTypeCreateInput | ActivityTypeUpdateInput>({
     billable: false,
 })
 
+// Error state
+const errorMessage = ref<string | null>(null)
+
 // Load activity type data if editing
 onMounted(async () => {
     if (activityTypeId.value) {
@@ -101,6 +103,8 @@ onMounted(async () => {
 })
 
 const saveActivityType = async () => {
+    errorMessage.value = null
+    
     try {
         if (isNewActivityType.value) {
             await createActivityType({ body: activityType.value as ActivityTypeCreateInput })
@@ -113,8 +117,9 @@ const saveActivityType = async () => {
 
         // Redirect to the list page
         router.push({ name: "activity-list" })
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error saving activity type:", error)
+        errorMessage.value = error.message || "Une erreur s'est produite lors de l'enregistrement"
     }
 }
 </script>

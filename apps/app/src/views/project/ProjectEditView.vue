@@ -1,12 +1,10 @@
 <template>
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold">
-            {{ isNewProject ? $t("projects.new") : $t("projects.edit") }}
-        </h1>
-    </div>
-
-    <div class="bg-white rounded-lg p-6 border border-gray-200">
-        <form @submit.prevent="saveProject">
+    <FormLayout
+        :title="isNewProject ? $t('projects.new') : $t('projects.edit')"
+        :loading="isSubmitting"
+        :error-message="errorMessage"
+    >
+        <form @submit.prevent="saveProject" id="projectForm">
             <!-- Basic Information -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <FormField :label="$t('projects.mandat')" :error="errors.Mandat">
@@ -102,17 +100,17 @@
                 </FormField>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="mt-8 flex justify-end space-x-3">
-                <Button variant="secondary" type="button" :to="{ name: 'project-list' }">
-                    {{ $t("common.cancel") }}
-                </Button>
-                <Button variant="primary" type="submit" :disabled="isSubmitting">
-                    {{ $t("common.save") }}
-                </Button>
-            </div>
         </form>
-    </div>
+
+        <template #actions>
+            <Button variant="secondary" type="button" :to="{ name: 'project-list' }">
+                {{ $t("common.cancel") }}
+            </Button>
+            <Button variant="primary" type="submit" form="projectForm" :disabled="isSubmitting">
+                {{ $t("common.save") }}
+            </Button>
+        </template>
+    </FormLayout>
 </template>
 
 <script setup lang="ts">
@@ -121,6 +119,7 @@ import { useRoute, useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
 import Button from "@/components/atoms/Button.vue"
 import FormField from "@/components/molecules/FormField.vue"
+import FormLayout from "@/components/templates/FormLayout.vue"
 import Input from "@/components/atoms/Input.vue"
 import Select from "@/components/atoms/Select.vue"
 
@@ -155,6 +154,7 @@ interface MandatProject {
 
 // Form validation errors
 const errors = ref<Record<string, string>>({})
+const errorMessage = ref<string | null>(null)
 
 // Initialize project with default values
 const project = ref<MandatProject>({
@@ -213,10 +213,12 @@ const printValue = computed({
 const saveProject = async () => {
     // Reset errors
     errors.value = {}
+    errorMessage.value = null
 
     // Basic validation
     if (!project.value.Désignation) {
         errors.value.Désignation = t("validation.required")
+        errorMessage.value = t("validation.pleaseFillRequired")
         return
     }
 
@@ -233,6 +235,7 @@ const saveProject = async () => {
         router.push({ name: "project-list" })
     } catch (error) {
         console.error("Error saving project:", error)
+        errorMessage.value = t("errors.general")
     } finally {
         isSubmitting.value = false
     }

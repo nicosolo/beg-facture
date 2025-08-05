@@ -1,12 +1,10 @@
 <template>
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold">
-            {{ isNewCollaborator ? "Nouveau collaborateur" : "Modifier collaborateur" }}
-        </h1>
-    </div>
-
-    <Card>
-        <form @submit.prevent="saveCollaborator">
+    <FormLayout
+        :title="isNewCollaborator ? 'Nouveau collaborateur' : 'Modifier collaborateur'"
+        :loading="loadingCreate || loadingUpdate || loadingUser"
+        :error-message="errorMessage"
+    >
+        <form @submit.prevent="saveCollaborator" id="collaboratorForm">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Prénom -->
                 <div>
@@ -164,22 +162,24 @@
                 </div>
             </div>
 
-            <div class="mt-8 flex justify-end space-x-3">
-                <Button variant="secondary" type="button" :to="{ name: 'collaborator-list' }">
-                    Annuler
-                </Button>
-                <Button variant="primary" type="submit" :disabled="loadingCreate || loadingUpdate">
-                    {{ loadingCreate || loadingUpdate ? "Enregistrement..." : "Enregistrer" }}
-                </Button>
-            </div>
         </form>
-    </Card>
+
+        <template #actions>
+            <Button variant="secondary" type="button" :to="{ name: 'collaborator-list' }">
+                Annuler
+            </Button>
+            <Button variant="primary" type="submit" form="collaboratorForm" :disabled="loadingCreate || loadingUpdate">
+                {{ loadingCreate || loadingUpdate ? "Enregistrement..." : "Enregistrer" }}
+            </Button>
+        </template>
+    </FormLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import Button from "@/components/atoms/Button.vue"
+import FormLayout from "@/components/templates/FormLayout.vue"
 import {
     useFetchUser,
     useFetchUsers,
@@ -188,7 +188,6 @@ import {
 } from "../../composables/api/useUser"
 import { useFetchActivityTypes } from "../../composables/api/useActivityType"
 import type { UserCreateInput, UserUpdateInput, ActivityTypeResponse } from "@beg/validations"
-import Card from "@/components/atoms/Card.vue"
 
 interface ActivityRate {
     activityId: number
@@ -227,6 +226,9 @@ const collaborator = ref<UserCreateInput | UserUpdateInput>({
 // Track selected activities and their classes
 const selectedActivities = ref<Record<number, boolean>>({})
 const activityClasses = ref<Record<number, string>>({})
+
+// Error state
+const errorMessage = ref<string | null>(null)
 
 // Load user data and activity types
 onMounted(async () => {
@@ -271,6 +273,8 @@ const initializeDefaultClasses = () => {
 }
 
 const saveCollaborator = async () => {
+    errorMessage.value = null
+    
     try {
         // Collect activity rates from selected activities
         const activityRates = Object.keys(selectedActivities.value)
@@ -297,8 +301,9 @@ const saveCollaborator = async () => {
 
         // Redirect to the list page
         router.push({ name: "collaborator-list" })
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error saving collaborator:", error)
+        errorMessage.value = error.message || "Une erreur s'est produite lors de l'enregistrement"
     }
 }
 </script>

@@ -7,7 +7,8 @@
                 <h3 class="text-sm font-medium text-gray-700 mb-1">Objet de la facture</h3>
                 <input
                     type="text"
-                    v-model="invoice.reference"
+                    :value="invoice.reference"
+                    @input="(e) => invoice = { ...invoice, reference: (e.target as HTMLInputElement).value }"
                     class="w-full p-2 border border-gray-300 rounded"
                 />
             </div>
@@ -37,7 +38,8 @@
                 </label>
                 <textarea
                     id="invoiceClientAddress"
-                    v-model="invoice.client.address"
+                    :value="invoice.client?.address || ''"
+                    @input="(e) => invoice = { ...invoice, client: { ...invoice.client, address: (e.target as HTMLTextAreaElement).value } }"
                     rows="4"
                     placeholder="Adresse de facturation (société)"
                     class="w-full p-2 border border-gray-300 rounded"
@@ -51,7 +53,8 @@
                 </label>
                 <textarea
                     id="invoiceDescription"
-                    v-model="invoice.description"
+                    :value="invoice.description"
+                    @input="(e) => invoice = { ...invoice, description: (e.target as HTMLTextAreaElement).value }"
                     rows="6"
                     class="w-full p-2 border border-gray-300 rounded"
                 ></textarea>
@@ -85,7 +88,8 @@
                 <select
                     id="invoiceBillingMode"
                     class="w-full p-2 border border-gray-300 rounded"
-                    v-model="invoice.billingMode"
+                    :value="invoice.billingMode"
+                    @change="(e) => invoice = { ...invoice, billingMode: (e.target as HTMLSelectElement).value }"
                 >
                     <option :value="BILLING_MODE_KEYS.ACCORDING_TO_DATA">
                         {{ BILLING_MODE_LABELS[BILLING_MODE_KEYS.ACCORDING_TO_DATA] }}
@@ -143,32 +147,36 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="(offer, index) in invoice.offers" :key="index">
+                            <tr v-for="(offer, index) in (invoice.offers || [])" :key="index">
                                 <td class="px-4 py-2 text-sm text-gray-900">
                                     <input
                                         type="text"
-                                        v-model="offer.file"
+                                        :value="offer.file"
+                                        @input="(e) => updateOffer(index, 'file', (e.target as HTMLInputElement).value)"
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-900">
                                     <input
                                         type="text"
-                                        v-model="offer.date"
+                                        :value="offer.date"
+                                        @input="(e) => updateOffer(index, 'date', (e.target as HTMLInputElement).value)"
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-900">
                                     <input
                                         type="number"
-                                        v-model="offer.amount"
+                                        :value="offer.amount"
+                                        @input="(e) => updateOffer(index, 'amount', parseFloat((e.target as HTMLInputElement).value) || 0)"
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-900">
                                     <input
                                         type="text"
-                                        v-model="offer.remark"
+                                        :value="offer.remark"
+                                        @input="(e) => updateOffer(index, 'remark', (e.target as HTMLInputElement).value)"
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
@@ -216,34 +224,38 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr
-                                v-for="(adjudication, index) in invoice.adjudications"
+                                v-for="(adjudication, index) in (invoice.adjudications || [])"
                                 :key="`adjudication-${index}`"
                             >
                                 <td class="px-4 py-2 text-sm text-gray-900">
                                     <input
                                         type="text"
-                                        v-model="adjudication.file"
+                                        :value="adjudication.file"
+                                        @input="(e) => updateAdjudication(index, 'file', (e.target as HTMLInputElement).value)"
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-900">
                                     <input
                                         type="text"
-                                        v-model="adjudication.date"
+                                        :value="adjudication.date"
+                                        @input="(e) => updateAdjudication(index, 'date', (e.target as HTMLInputElement).value)"
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-900">
                                     <input
                                         type="number"
-                                        v-model="adjudication.amount"
+                                        :value="adjudication.amount"
+                                        @input="(e) => updateAdjudication(index, 'amount', parseFloat((e.target as HTMLInputElement).value) || 0)"
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-900">
                                     <input
                                         type="text"
-                                        v-model="adjudication.remark"
+                                        :value="adjudication.remark"
+                                        @input="(e) => updateAdjudication(index, 'remark', (e.target as HTMLInputElement).value)"
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
@@ -267,21 +279,53 @@
 import { type Invoice, BILLING_MODE_KEYS, BILLING_MODE_LABELS } from "@beg/validations"
 import { computed } from "vue"
 
-const { invoice } = defineProps<{
-    invoice: Invoice
+// Helper functions for updating nested arrays
+const updateOffer = (index: number, field: string, value: any) => {
+    const newInvoice = { ...invoice.value }
+    if (!newInvoice.offers) newInvoice.offers = []
+    newInvoice.offers = [...newInvoice.offers]
+    newInvoice.offers[index] = { ...newInvoice.offers[index], [field]: value }
+    invoice.value = newInvoice
+}
+
+const updateAdjudication = (index: number, field: string, value: any) => {
+    const newInvoice = { ...invoice.value }
+    if (!newInvoice.adjudications) newInvoice.adjudications = []
+    newInvoice.adjudications = [...newInvoice.adjudications]
+    newInvoice.adjudications[index] = { ...newInvoice.adjudications[index], [field]: value }
+    invoice.value = newInvoice
+}
+
+const props = defineProps<{
+    modelValue: Invoice
 }>()
 
+const emit = defineEmits<{
+    'update:modelValue': [value: Invoice]
+}>()
+
+const invoice = computed({
+    get: () => props.modelValue,
+    set: (value) => emit('update:modelValue', value),
+})
+
 const startDate = computed({
-    get: () => invoice.period.startDate?.toISOString().split("T")[0],
-    set: (value: Date) => {
-        invoice.period.startDate = value
+    get: () => invoice.value.period?.startDate?.toISOString().split("T")[0] || '',
+    set: (value: string) => {
+        const newInvoice = { ...invoice.value }
+        if (!newInvoice.period) newInvoice.period = {}
+        newInvoice.period.startDate = value ? new Date(value) : undefined
+        invoice.value = newInvoice
     },
 })
 
 const endDate = computed({
-    get: () => invoice.period.endDate?.toISOString().split("T")[0],
-    set: (value: Date) => {
-        invoice.period.endDate = value
+    get: () => invoice.value.period?.endDate?.toISOString().split("T")[0] || '',
+    set: (value: string) => {
+        const newInvoice = { ...invoice.value }
+        if (!newInvoice.period) newInvoice.period = {}
+        newInvoice.period.endDate = value ? new Date(value) : undefined
+        invoice.value = newInvoice
     },
 })
 </script>

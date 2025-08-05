@@ -28,173 +28,83 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200 text-sm">
-                            <tr v-for="rate in props.invoice.fees.rates" :key="rate.rateClass">
-                                <td class="px-4 py-2 text-gray-900 font-medium w-10" colspan="2">
-                                    {{ rate.rateClass }}
+                            <tr v-for="(rate, index) in rates" :key="rate.id">
+                                <td class="px-4 py-2 text-gray-800">{{ rate.name }}</td>
+                                <td class="px-4 py-2 text-gray-600">{{ rate.abbreviation }}</td>
+                                <td class="px-4 py-2">
+                                    <span>{{ formatDuration(rate.base) }}</span>
                                 </td>
-                                <td class="px-4 py-2 text-gray-900">
-                                    <div class="w-24 p-1">{{ formatDuration(rate.base) }}</div>
-                                </td>
-                                <td class="px-4 py-2 text-gray-900">
-                                    <InputDuration v-model="rate.adjusted" />
-                                </td>
-                                <td class="px-4 py-2 text-gray-900">
-                                    <InputNumber v-model="rate.hourlyRate" />
-                                </td>
-                                <td class="px-4 py-2 text-gray-900 font-medium">
-                                    {{ formatCurrency(rate.amount) }}
-                                </td>
-                            </tr>
-                            <!-- Total row -->
-                            <tr class="bg-gray-50">
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">Total h.</td>
-                                <td class="px-4 py-2 font-medium">
-                                    {{ formatDuration(props.invoice.fees.base) }}
-                                </td>
-                                <td class="px-4 py-2 font-medium">
-                                    {{ formatDuration(props.invoice.fees.adjusted) }}
-                                </td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">
-                                    {{ formatCurrency(props.invoice.fees.total) }}
-                                </td>
-                            </tr>
-                            <!-- Autres row -->
-                            <tr>
-                                <td class="px-4 py-2 font-bold">1</td>
-                                <td class="px-4 py-2">Autres</td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-medium">
-                                    <InputNumber
-                                        type="amount"
-                                        v-model="props.invoice.fees.others"
+                                <td class="px-4 py-2">
+                                    <InputDuration
+                                        :modelValue="rate.adjusted"
+                                        @update:modelValue="(value) => updateRate(index, 'adjusted', value)"
+                                        class="w-20"
                                     />
                                 </td>
-                            </tr>
-                            <!-- Subtotal -->
-                            <tr>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">Total</td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">
-                                    {{
-                                        formatCurrency(
-                                            props.invoice.fees.total +
-                                                (props.invoice.fees.others || 0)
-                                        )
-                                    }}
-                                </td>
-                            </tr>
-                            <!-- Discount -->
-                            <tr>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">Rabais</td>
-                                <td class="px-4 py-2 text-center">
-                                    <Button
-                                        @click="toggleDiscount()"
-                                        variant="secondary"
-                                        class="flex items-center gap-1 w-36"
-                                        size="sm"
-                                    >
-                                        <PercentBadgeIcon
-                                            v-if="props.invoice.fees.discount.percentage !== null"
-                                            class="w-6 h-6"
-                                        />
-                                        <CurrencyDollarIcon v-else class="w-6 h-6" />
-                                        <div>
-                                            {{
-                                                props.invoice.fees.discount.percentage !== null
-                                                    ? "au pourcent"
-                                                    : "au forfait"
-                                            }}
-                                        </div>
-                                    </Button>
-                                </td>
-                                <td class="px-4 py-2"></td>
                                 <td class="px-4 py-2">
                                     <InputNumber
-                                        type="percentage"
-                                        v-if="props.invoice.fees.discount.percentage !== null"
-                                        v-model="props.invoice.fees.discount.percentage"
+                                        :modelValue="rate.hourlyRate"
+                                        @update:modelValue="(value) => updateRate(index, 'hourlyRate', value)"
+                                        :currency="true"
+                                        class="w-24"
                                     />
                                 </td>
-                                <td class="px-4 py-2 font-medium">
-                                    <InputNumber
-                                        type="amount"
-                                        v-if="props.invoice.fees.discount.amount !== null"
-                                        v-model="props.invoice.fees.discount.amount"
-                                    />
+                                <td class="px-4 py-2 text-right">
+                                    {{ formatCurrency(rate.amount || 0) }}
                                 </td>
                             </tr>
-                            <!-- Total after discount -->
-                            <tr>
+                            <tr class="font-medium">
+                                <td class="px-4 py-2">TOTAL HONORAIRES</td>
                                 <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">TOTAL</td>
+                                <td class="px-4 py-2">{{ formatDuration(feesBase) }}</td>
+                                <td class="px-4 py-2">{{ formatDuration(feesAdjusted) }}</td>
                                 <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">
-                                    {{ formatCurrency(props.invoice.fees.finalTotal) }}
-                                </td>
-                            </tr>
-                            <!-- Multiplication factor -->
-                            <tr>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">N.F.</td>
-                                <td class="px-4 py-2" colspan="4">
-                                    <InputNumber
-                                        type="number"
-                                        v-model="props.invoice.fees.multiplicationFactor"
-                                        :step="0.01"
-                                    />
+                                <td class="px-4 py-2 text-right">
+                                    {{ formatCurrency(feesTotal) }}
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-            </section>
-
-            <!-- Frais section -->
-            <section class="mb-8">
-                <h2 class="text-lg font-medium mb-4 bg-gray-100 p-2 text-center">FRAIS</h2>
-                <div class="flex justify-end mb-3">
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-medium">Mode:</span>
-                        <Button
-                            @click="isExpensesPackage = !isExpensesPackage"
-                            variant="secondary"
-                            size="sm"
-                            class="flex items-center gap-1 w-36"
-                        >
-                            <CalculatorIcon v-if="!isExpensesPackage" class="w-5 h-5" />
-                            <CurrencyDollarIcon v-else class="w-5 h-5" />
-                            <div>{{ isExpensesPackage ? "Forfait" : "Calculé" }}</div>
-                        </Button>
+                <!-- Discount Section -->
+                <div class="mt-4 p-4 bg-gray-50 rounded">
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                :checked="hasDiscount"
+                                @change="toggleDiscount"
+                                class="h-4 w-4"
+                            />
+                            <span class="text-sm font-medium">Appliquer une remise</span>
+                        </label>
+                        <div v-if="hasDiscount" class="flex items-center gap-2">
+                            <InputNumber
+                                :modelValue="discountPercentage"
+                                @update:modelValue="updateDiscountPercentage"
+                                :min="0"
+                                :max="100"
+                                :step="1"
+                                class="w-20"
+                            />
+                            <span class="text-sm">%</span>
+                        </div>
+                    </div>
+                    <div v-if="hasDiscount" class="mt-2 text-sm text-gray-600">
+                        Montant de la remise: {{ formatCurrency(discountAmount) }}
                     </div>
                 </div>
+            </section>
+
+            <!-- Récapitulatif -->
+            <section class="mb-8">
+                <h2 class="text-lg font-medium mb-4 bg-gray-100 p-2 text-center">RÉCAPITULATIF</h2>
                 <div class="border border-gray-200 rounded overflow-x-scroll">
                     <table class="w-full divide-y divide-gray-200 text-left min-w-[600px]">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th
-                                    class="px-4 py-2 text-xs font-medium text-gray-500 uppercase"
-                                ></th>
-                                <th
-                                    class="px-4 py-2 text-xs font-medium text-gray-500 uppercase"
-                                ></th>
                                 <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
-                                    base
-                                </th>
-                                <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
-                                    corrigé
-                                </th>
-                                <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
-                                    Tarif
+                                    Description
                                 </th>
                                 <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
                                     Montant
@@ -202,198 +112,54 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200 text-sm">
-                            <!-- Kilometers row - only shown in calculated mode -->
-                            <tr v-show="!isExpensesPackage">
-                                <td class="px-4 py-2 text-gray-900 font-medium">2</td>
-                                <td class="px-4 py-2 text-gray-900">Km</td>
-                                <td class="px-4 py-2 text-gray-900">
-                                    <div class="w-24 p-1">
-                                        {{ props.invoice.expenses.travel.base.toFixed(2) }}
-                                    </div>
-                                </td>
-                                <td class="px-4 py-2 text-gray-900">
-                                    <InputNumber
-                                        type="distance"
-                                        v-model="props.invoice.expenses.travel.adjusted"
-                                    />
-                                </td>
-                                <td class="px-4 py-2 text-gray-900">
-                                    <InputNumber
-                                        type="amount"
-                                        v-model="props.invoice.expenses.travel.rate"
-                                    />
-                                </td>
-                                <td class="px-4 py-2 text-gray-900 font-medium">
-                                    {{ formatCurrency(props.invoice.expenses.travel.amount) }}
-                                </td>
-                            </tr>
-                            <!-- Other expenses row - only shown in calculated mode -->
-                            <tr v-show="!isExpensesPackage">
-                                <td class="px-4 py-2 text-gray-900 font-medium">3</td>
-                                <td class="px-4 py-2 text-gray-900">Frais</td>
-                                <td class="px-4 py-2 text-gray-900">
-                                    <div class="w-24 p-1">
-                                        {{ formatCurrency(props.invoice.expenses.other.base) }}
-                                    </div>
-                                </td>
-                                <td class="px-4 py-2 text-gray-900"></td>
-                                <td class="px-4 py-2 text-gray-900"></td>
-                                <td class="px-4 py-2 text-gray-900 font-medium">
-                                    {{ formatCurrency(props.invoice.expenses.other.amount) }}
-                                </td>
-                            </tr>
-                            <!-- Subtotal of calculated expenses - only shown in calculated mode -->
-                            <tr v-show="!isExpensesPackage" class="bg-gray-50">
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">Total</td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">
-                                    {{ formatCurrency(props.invoice.expenses.total) }}
-                                </td>
-                            </tr>
-                            <!-- Package adjustment - only shown in forfait mode -->
-                            <tr v-show="isExpensesPackage">
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 text-gray-900 font-medium">Forfait</td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 text-gray-900 font-medium">
-                                    <InputNumber
-                                        type="amount"
-                                        v-model="props.invoice.expenses.package.amount"
-                                    />
-                                </td>
-                            </tr>
-                            <!-- Package adjustment in calculated mode -->
-                            <tr v-show="!isExpensesPackage">
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 text-gray-900 font-medium">Forfait</td>
-                                <td class="px-4 py-2 text-gray-900 text-center">
-                                    <Button
-                                        @click="togglePackage()"
-                                        variant="secondary"
-                                        size="sm"
-                                        class="flex items-center gap-1 w-36"
-                                    >
-                                        <PercentBadgeIcon
-                                            v-if="
-                                                props.invoice.expenses.package.percentage !== null
-                                            "
-                                            class="w-6 h-6"
-                                        />
-                                        <CurrencyDollarIcon v-else class="w-6 h-6" />
-                                        <div>
-                                            {{
-                                                props.invoice.expenses.package.percentage !== null
-                                                    ? "au pourcent"
-                                                    : "au forfait"
-                                            }}
-                                        </div>
-                                    </Button>
-                                </td>
-                                <td class="px-4 py-2 text-gray-900"></td>
-                                <td class="px-4 py-2 text-gray-900">
-                                    <div
-                                        v-if="props.invoice.expenses.package.percentage !== null"
-                                        class="flex items-center gap-1"
-                                    >
-                                        <InputNumber
-                                            type="percentage"
-                                            v-model="props.invoice.expenses.package.percentage"
-                                        />
-                                    </div>
-                                </td>
-                                <td class="px-4 py-2 text-gray-900 font-medium">
-                                    <input
-                                        type="number"
-                                        v-if="props.invoice.expenses.package.percentage === null"
-                                        v-model.number="packageAmountValue"
-                                        step="0.01"
-                                        class="w-24 p-1 border border-gray-300 rounded"
-                                    />
-                                    <span
-                                        v-else-if="props.invoice.expenses.package.amount !== null"
-                                    >
-                                        {{ formatCurrency(props.invoice.expenses.package.amount) }}
-                                    </span>
-                                </td>
-                            </tr>
-                            <!-- Third party -->
                             <tr>
-                                <td class="px-4 py-2 text-gray-900 font-medium">4</td>
-                                <td class="px-4 py-2 text-gray-900">Tiers</td>
-                                <td class="px-4 py-2 text-gray-900"></td>
-                                <td class="px-4 py-2 text-gray-900"></td>
-                                <td class="px-4 py-2 text-gray-900"></td>
-                                <td class="px-4 py-2 text-gray-900 font-medium">
-                                    <InputNumber
-                                        type="amount"
-                                        v-model="props.invoice.expenses.thirdParty.amount"
-                                    />
+                                <td class="px-4 py-2">TOTAL HONORAIRES</td>
+                                <td class="px-4 py-2 text-right">
+                                    {{ formatCurrency(feesTotal) }}
                                 </td>
                             </tr>
-                            <!-- Total expenses -->
-                            <tr class="bg-gray-50">
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">Total</td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">
-                                    {{ formatCurrency(props.invoice.expenses.totalExpenses) }}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Total section -->
-            <section class="mb-8">
-                <h2 class="text-lg font-medium mb-4 bg-gray-100 p-2 text-center">
-                    TOTAL (honoraires+frais)
-                </h2>
-                <div class="border border-gray-200 rounded overflow-x-scroll">
-                    <table class="w-full divide-y divide-gray-200 text-left min-w-[600px]">
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">Total HT</td>
-
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">
-                                    {{ formatCurrency(props.invoice.totals.ht) }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 py-2 font-bold">TVA</td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
+                            <tr v-if="hasDiscount">
                                 <td class="px-4 py-2">
-                                    <InputNumber
-                                        type="percentage"
-                                        v-model="props.invoice.totals.vat.rate"
-                                    />
+                                    REMISE HONORAIRES ({{ discountPercentage }}%)
                                 </td>
-                                <td class="px-4 py-2 font-bold">
-                                    {{ formatCurrency(props.invoice.totals.vat.amount) }}
+                                <td class="px-4 py-2 text-right">
+                                    -{{ formatCurrency(discountAmount) }}
                                 </td>
                             </tr>
-                            <tr class="bg-yellow-50">
-                                <td class="px-4 py-2 font-bold">Total TTC</td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2"></td>
-                                <td class="px-4 py-2 font-bold">
-                                    {{ formatCurrency(props.invoice.totals.ttc) }}
+                            <tr>
+                                <td class="px-4 py-2">AUTRES PRESTATIONS</td>
+                                <td class="px-4 py-2 text-right">
+                                    {{ formatCurrency(otherServicesAmount) }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2">DÉPLACEMENTS</td>
+                                <td class="px-4 py-2 text-right">
+                                    {{ formatCurrency(travelExpensesAmount) }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2">FRAIS REMBOURSABLES</td>
+                                <td class="px-4 py-2 text-right">
+                                    {{ formatCurrency(thirdPartyExpensesAmount) }}
+                                </td>
+                            </tr>
+                            <tr class="font-medium">
+                                <td class="px-4 py-2">TOTAL HT</td>
+                                <td class="px-4 py-2 text-right">
+                                    {{ formatCurrency(totalHT) }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2">TVA ({{ vatRate }}%)</td>
+                                <td class="px-4 py-2 text-right">
+                                    {{ formatCurrency(vatAmount) }}
+                                </td>
+                            </tr>
+                            <tr class="font-bold text-base">
+                                <td class="px-4 py-2">TOTAL TTC</td>
+                                <td class="px-4 py-2 text-right">
+                                    {{ formatCurrency(totalTTC) }}
                                 </td>
                             </tr>
                         </tbody>
@@ -411,7 +177,8 @@
             >
                 <template #content>
                     <textarea
-                        v-model="props.invoice.remarks.otherServices"
+                        :value="invoice.remarks?.otherServices || ''"
+                        @input="(e) => updateRemarks('otherServices', (e.target as HTMLTextAreaElement).value)"
                         rows="6"
                         class="w-full p-2 border border-gray-300 rounded"
                     ></textarea>
@@ -421,29 +188,36 @@
             <AccordionPanel id="deplacements" title="2. Déplacements (voiture)">
                 <template #content>
                     <textarea
-                        v-model="props.invoice.remarks.travelExpenses"
+                        :value="invoice.remarks?.travelExpenses || ''"
+                        @input="(e) => updateRemarks('travelExpenses', (e.target as HTMLTextAreaElement).value)"
                         rows="6"
                         class="w-full p-2 border border-gray-300 rounded"
                     ></textarea>
                 </template>
             </AccordionPanel>
 
-            <!-- 3. Frais -->
-            <AccordionPanel id="frais" title="3. Frais (train, achats de matériel, etc.)">
+            <AccordionPanel
+                id="frais-remboursables"
+                title="3. Frais remboursables (achats...)"
+            >
                 <template #content>
                     <textarea
-                        v-model="props.invoice.remarks.expenses"
+                        :value="invoice.remarks?.expenses || ''"
+                        @input="(e) => updateRemarks('expenses', (e.target as HTMLTextAreaElement).value)"
                         rows="6"
                         class="w-full p-2 border border-gray-300 rounded"
                     ></textarea>
                 </template>
             </AccordionPanel>
 
-            <!-- 4. Frais de tiers -->
-            <AccordionPanel id="fraisTiers" title="4. Frais de tiers (laboratoire, pelle...)">
+            <AccordionPanel
+                id="frais-laboratoire"
+                title="4. Frais de laboratoire, pelle, minage"
+            >
                 <template #content>
                     <textarea
-                        v-model="props.invoice.remarks.thirdPartyExpenses"
+                        :value="invoice.remarks?.thirdPartyExpenses || ''"
+                        @input="(e) => updateRemarks('thirdPartyExpenses', (e.target as HTMLTextAreaElement).value)"
                         rows="6"
                         class="w-full p-2 border border-gray-300 rounded"
                     ></textarea>
@@ -463,151 +237,90 @@ import InputNumber from "@/components/atoms/InputNumber.vue"
 import InputDuration from "@/components/atoms/InputDuration.vue"
 import { computed, ref, watch, watchEffect } from "vue"
 
-interface Props {
-    invoice: Invoice
-}
+const props = defineProps<{
+    modelValue: Invoice
+}>()
 
-const props = defineProps<Props>()
 const emit = defineEmits<{
-    (e: "update:invoice", invoice: Invoice): void
+    'update:modelValue': [value: Invoice]
 }>()
 
 const { formatCurrency, formatDuration } = useFormat()
 
-// State to track whether we're in forfait mode
-const isExpensesPackage = ref(false)
-
-// Handle package amount with a computed property to avoid null issues
-const packageAmountValue = computed({
-    get: () => props.invoice.expenses.package.amount || 0,
-    set: (value) => {
-        props.invoice.expenses.package.amount = value
-        recalculateAll()
-    },
+// Computed property for invoice
+const invoice = computed({
+    get: () => props.modelValue,
+    set: (value) => emit('update:modelValue', value)
 })
 
-// Calculation Methods
-const calculateRateAmounts = () => {
-    // Calculate each rate amount
-    for (const rate of props.invoice.fees.rates) {
-        rate.amount = (rate.adjusted / 60) * rate.hourlyRate
+// Computed properties for data
+const rates = computed(() => invoice.value.fees?.rates || [])
+const feesBase = computed(() => invoice.value.fees?.base || 0)
+const feesAdjusted = computed(() => invoice.value.fees?.adjusted || 0)
+const feesTotal = computed(() => invoice.value.fees?.totalAmount || 0)
+
+const hasDiscount = computed(() => (invoice.value.discount?.percentage || 0) > 0)
+const discountPercentage = computed(() => invoice.value.discount?.percentage || 0)
+const discountAmount = computed(() => invoice.value.discount?.amount || 0)
+
+const otherServicesAmount = computed(() => invoice.value.otherServices?.amount || 0)
+const travelExpensesAmount = computed(() => invoice.value.travelExpenses?.amount || 0)
+const thirdPartyExpensesAmount = computed(() => invoice.value.thirdPartyExpenses?.amount || 0)
+
+const totalHT = computed(() => invoice.value.subtotal || 0)
+const vatRate = computed(() => invoice.value.vat?.rate || 8.1)
+const vatAmount = computed(() => invoice.value.vat?.amount || 0)
+const totalTTC = computed(() => invoice.value.total || 0)
+
+// Helper function to update remarks
+const updateRemarks = (field: string, value: string) => {
+    const newInvoice = { ...invoice.value }
+    if (!newInvoice.remarks) newInvoice.remarks = {
+        expenses: '',
+        otherServices: '',
+        travelExpenses: '',
+        thirdPartyExpenses: ''
     }
+    newInvoice.remarks = { ...newInvoice.remarks, [field]: value }
+    invoice.value = newInvoice
 }
 
-const calculateFeesTotal = () => {
-    // Calculate base and adjusted totals
-    props.invoice.fees.base = props.invoice.fees.rates.reduce((total, rate) => total + rate.base, 0)
-    props.invoice.fees.adjusted = props.invoice.fees.rates.reduce(
-        (total, rate) => total + rate.adjusted,
-        0
-    )
-
-    // Calculate rates total
-    props.invoice.fees.total = props.invoice.fees.rates.reduce(
-        (total, rate) => total + rate.amount,
-        0
-    )
-
-    // Calculate discount
-    if (props.invoice.fees.discount.percentage !== null) {
-        const subtotal = props.invoice.fees.total + (props.invoice.fees.others || 0)
-        props.invoice.fees.discount.amount =
-            subtotal * (props.invoice.fees.discount.percentage / 100)
-    }
-
-    // Calculate final total with discount and multiplication factor
-    const subtotal = props.invoice.fees.total + (props.invoice.fees.others || 0)
-    const discountAmount = props.invoice.fees.discount.amount || 0
-    props.invoice.fees.finalTotal =
-        (subtotal - discountAmount) * (props.invoice.fees.multiplicationFactor || 1)
+// Update rate
+const updateRate = (index: number, field: string, value: any) => {
+    const newInvoice = { ...invoice.value }
+    if (!newInvoice.fees) newInvoice.fees = { rates: [], base: 0, adjusted: 0, totalAmount: 0 }
+    if (!newInvoice.fees.rates) newInvoice.fees.rates = []
+    newInvoice.fees.rates = [...newInvoice.fees.rates]
+    newInvoice.fees.rates[index] = { ...newInvoice.fees.rates[index], [field]: value }
+    
+    // Recalculate amount
+    const rate = newInvoice.fees.rates[index]
+    rate.amount = (rate.adjusted / 60) * rate.hourlyRate
+    
+    // Recalculate totals
+    newInvoice.fees.base = newInvoice.fees.rates.reduce((total, r) => total + (r.base || 0), 0)
+    newInvoice.fees.adjusted = newInvoice.fees.rates.reduce((total, r) => total + (r.adjusted || 0), 0)
+    newInvoice.fees.totalAmount = newInvoice.fees.rates.reduce((total, r) => total + (r.amount || 0), 0)
+    
+    invoice.value = newInvoice
 }
 
-const calculateExpensesTotal = () => {
-    // Calculate travel amount
-    props.invoice.expenses.travel.amount =
-        props.invoice.expenses.travel.adjusted * props.invoice.expenses.travel.rate
-
-    // Calculate total for calculated expenses
-    props.invoice.expenses.total =
-        props.invoice.expenses.travel.amount + props.invoice.expenses.other.amount
-
-    // Calculate package amount if it's percentage-based
-    if (props.invoice.expenses.package.percentage !== null) {
-        props.invoice.expenses.package.amount =
-            props.invoice.expenses.total * (props.invoice.expenses.package.percentage / 100)
-    }
-
-    // Calculate total expenses based on mode
-    if (isExpensesPackage.value) {
-        props.invoice.expenses.totalExpenses =
-            (props.invoice.expenses.package.amount || 0) +
-            (props.invoice.expenses.thirdParty.amount || 0)
-    } else {
-        props.invoice.expenses.totalExpenses =
-            props.invoice.expenses.total +
-            (props.invoice.expenses.package.amount || 0) +
-            (props.invoice.expenses.thirdParty.amount || 0)
-    }
-}
-
-const calculateTotals = () => {
-    // Calculate HT total (fees + expenses)
-    props.invoice.totals.ht = props.invoice.fees.finalTotal + props.invoice.expenses.totalExpenses
-
-    // Calculate VAT
-    props.invoice.totals.vat.amount =
-        props.invoice.totals.ht * (props.invoice.totals.vat.rate / 100)
-
-    // Calculate TTC
-    props.invoice.totals.ttc = props.invoice.totals.ht + props.invoice.totals.vat.amount
-}
-
-const recalculateAll = () => {
-    calculateRateAmounts()
-    calculateFeesTotal()
-    calculateExpensesTotal()
-    calculateTotals()
-    emitUpdate()
-}
-
-const emitUpdate = () => {
-    emit("update:invoice", { ...props.invoice })
-}
-
-// Toggle functions with recalculation
-const togglePackage = () => {
-    props.invoice.expenses.package =
-        props.invoice.expenses.package?.amount !== null
-            ? { percentage: 0, amount: null }
-            : {
-                  amount: 0,
-                  percentage: null,
-              }
-    recalculateAll()
-}
-
+// Toggle discount
 const toggleDiscount = () => {
-    props.invoice.fees.discount =
-        props.invoice.fees.discount.amount !== null
-            ? { percentage: 0, amount: null }
-            : { amount: 0, percentage: null }
-    recalculateAll()
+    const newInvoice = { ...invoice.value }
+    if (!newInvoice.discount) {
+        newInvoice.discount = { percentage: 10, amount: 0 }
+    } else {
+        newInvoice.discount.percentage = newInvoice.discount.percentage > 0 ? 0 : 10
+    }
+    invoice.value = newInvoice
 }
 
-// Watch for changes to isExpensesPackage
-watch(isExpensesPackage, () => {
-    recalculateAll()
-})
-
-// Watch for deep changes to invoice
-watch(
-    () => props.invoice,
-    () => {
-        recalculateAll()
-    },
-    { deep: true }
-)
-
-// Initial calculation
-recalculateAll()
+// Update discount percentage
+const updateDiscountPercentage = (value: number) => {
+    const newInvoice = { ...invoice.value }
+    if (!newInvoice.discount) newInvoice.discount = { percentage: 0, amount: 0 }
+    newInvoice.discount.percentage = value
+    invoice.value = newInvoice
+}
 </script>

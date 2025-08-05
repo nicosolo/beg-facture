@@ -6,7 +6,6 @@ import PreviewInvoiceView from "@/views/invoice/PreviewInvoiceView.vue"
 import CollaboratorListView from "../views/collaborator/CollaboratorListView.vue"
 import CollaboratorEditView from "../views/collaborator/CollaboratorEditView.vue"
 import TimeListView from "../views/time/TimeListView.vue"
-import TimeEditView from "../views/time/TimeEditView.vue"
 import TariffListView from "../views/tariff/TariffListView.vue"
 import TariffEditView from "../views/tariff/TariffEditView.vue"
 import ProjectEditView from "../views/project/ProjectEditView.vue"
@@ -135,19 +134,6 @@ const router = createRouter({
             meta: { requiresAuth: true },
         },
 
-        // Time entry routes
-        {
-            path: "/time/new",
-            name: "time-new",
-            component: TimeEditView,
-            meta: { requiresAuth: true },
-        },
-        {
-            path: "/time/:id/edit",
-            name: "time-edit",
-            component: TimeEditView,
-            meta: { requiresAuth: true },
-        },
         {
             path: "/time",
             name: "time-list",
@@ -192,7 +178,7 @@ router.beforeEach((to, from, next) => {
     if (requiresAuth && !authStore.isAuthenticated) {
         // Redirect to login if authentication is required but user is not authenticated
         next({ name: "login" })
-    } else if (requiresAdmin && authStore.user?.role !== 'admin') {
+    } else if (requiresAdmin && authStore.user?.role !== "admin") {
         // Redirect to home if admin role is required but user is not admin
         next({ name: "home" })
     } else {

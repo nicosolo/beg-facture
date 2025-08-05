@@ -76,13 +76,6 @@
                 <div class="bg-white rounded-lg p-6 border border-gray-200">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-lg font-semibold">{{ $t("timeEntries.title") }}</h2>
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            :to="{ name: 'time-new', query: { projectId: project.id } }"
-                        >
-                            Ajouter des heures
-                        </Button>
                     </div>
                     <TimeFilterPanel />
                     <TimeEntriesList

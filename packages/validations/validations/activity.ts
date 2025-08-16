@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { createPageResponseSchema, paginationSchema } from "./pagination"
-import { booleanSchema, dateSchema, nullableDateSchema } from "./base"
+import { booleanSchema, dateSchema, timestampsSchema } from "./base"
 
 // Create a schema that parses query string values
 export const activityFilterSchema = z
@@ -45,42 +45,42 @@ export const activityUpdateSchema = activityCreateSchema.partial()
 export type ActivityUpdateInput = z.infer<typeof activityUpdateSchema>
 
 // Activity response schema with nested objects
-export const activityResponseSchema = z.object({
-    id: z.number(),
-    date: dateSchema,
-    duration: z.number(),
-    kilometers: z.number(),
-    expenses: z.number(),
-    rate: z.number(),
-    description: z.string().nullable(),
-    billed: z.boolean(),
-    disbursement: z.boolean(),
-    createdAt: nullableDateSchema,
-    updatedAt: nullableDateSchema,
-    user: z
-        .object({
-            id: z.number(),
-            firstName: z.string(),
-            lastName: z.string(),
-            initials: z.string(),
-        })
-        .nullable(),
-    project: z
-        .object({
-            id: z.number(),
-            name: z.string(),
-            projectNumber: z.string(),
-        })
-        .nullable(),
-    activityType: z
-        .object({
-            id: z.number(),
-            name: z.string(),
-            code: z.string(),
-            billable: z.boolean(),
-        })
-        .nullable(),
-})
+export const activityResponseSchema = z
+    .object({
+        id: z.number(),
+        date: dateSchema,
+        duration: z.number(),
+        kilometers: z.number(),
+        expenses: z.number(),
+        rate: z.number(),
+        description: z.string().nullable(),
+        billed: z.boolean(),
+        disbursement: z.boolean(),
+        user: z
+            .object({
+                id: z.number(),
+                firstName: z.string(),
+                lastName: z.string(),
+                initials: z.string(),
+            })
+            .nullable(),
+        project: z
+            .object({
+                id: z.number(),
+                name: z.string(),
+                projectNumber: z.string(),
+            })
+            .nullable(),
+        activityType: z
+            .object({
+                id: z.number(),
+                name: z.string(),
+                code: z.string(),
+                billable: z.boolean(),
+            })
+            .nullable(),
+    })
+    .merge(timestampsSchema)
 
 export type ActivityResponse = z.infer<typeof activityResponseSchema>
 

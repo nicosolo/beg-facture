@@ -27,3 +27,11 @@ export const successSchema = z.object({
 })
 
 export type SuccessResponse = z.infer<typeof successSchema>
+
+// Timestamps schema for entities
+export const timestampsSchema = z.object({
+    createdAt: nullableDateSchema,
+    updatedAt: nullableDateSchema,
+})
+
+export type TimestampsSchema = z.infer<typeof timestampsSchema>

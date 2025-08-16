@@ -39,3 +39,16 @@ export const authMiddleware: MiddlewareHandler<{ Variables: Variables }> = async
 
     await next()
 }
+
+export const adminOnlyMiddleware: MiddlewareHandler<{ Variables: Variables }> = async (
+    c: Context<{ Variables: Variables }>,
+    next: Next
+) => {
+    const user = c.get("user")
+    
+    if (!user || user.role !== "admin") {
+        return c.json({ error: "Forbidden - Admin access required" }, 403)
+    }
+    
+    await next()
+}

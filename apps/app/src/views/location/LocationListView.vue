@@ -39,7 +39,7 @@
                 :empty-message="$t('location.empty')"
             >
                 <template #cell:country="{ item }">
-                    {{ COUNTRIES[item.country as keyof typeof COUNTRIES] }}
+                    {{ item.country }}
                 </template>
 
                 <template #cell:canton="{ item }">
@@ -50,11 +50,7 @@
 
                 <template #cell:actions="{ item }">
                     <div v-if="isAdmin" class="flex justify-end gap-2">
-                        <Button
-                            variant="ghost-primary"
-                            size="sm"
-                            @click="openEditModal(item)"
-                        >
+                        <Button variant="ghost-primary" size="sm" @click="openEditModal(item)">
                             {{ $t("common.edit") }}
                         </Button>
                         <Button
@@ -138,20 +134,13 @@ const { successAlert, errorAlert } = useAlert()
 const isAdmin = computed(() => authStore.user?.role === "admin")
 
 // Table columns
-const columns = computed(() => {
-    const baseColumns = [
-        { key: "name", label: t("location.name"), width: "w-1/4" as const },
-        { key: "country", label: t("location.country"), width: "w-1/6" as const },
-        { key: "canton", label: t("location.canton"), width: "w-1/6" as const },
-        { key: "region", label: t("location.region"), width: "w-1/4" as const },
-    ]
-
-    if (isAdmin.value) {
-        baseColumns.push({ key: "actions", label: t("common.actions"), width: "w-1/6" as const })
-    }
-
-    return baseColumns
-})
+const columns = [
+    { key: "name", label: t("location.name"), width: "w-1/4" as const },
+    { key: "country", label: t("location.country"), width: "w-1/6" as const },
+    { key: "canton", label: t("location.canton"), width: "w-1/6" as const },
+    { key: "region", label: t("location.region"), width: "w-1/6" as const },
+    { key: "actions", label: t("common.actions") },
+]
 
 // API composables
 const { get: fetchLocationListApi, loading, data: locationData } = useFetchLocationList()

@@ -2,7 +2,7 @@
     <LoadingOverlay :loading="loading">
         <div class="container mx-auto">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold">Liste des collaborateurs</h1>
+                <h1 class="text-2xl font-bold">Collaborateurs</h1>
                 <Button variant="primary" :to="{ name: 'collaborator-new' }">
                     Nouveau collaborateur
                 </Button>
@@ -38,26 +38,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue"
-import Button from "../../components/atoms/Button.vue"
-import DataTable from "../../components/molecules/DataTable.vue"
+import { ref, onMounted } from "vue"
+import Button from "@/components/atoms/Button.vue"
+import DataTable, { type Column } from "@/components/molecules/DataTable.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import { useFetchUsers } from "@/composables/api/useUser"
-
-interface Collaborator {
-    IDcollaborateur: number
-    Prénom: string
-    Nom: string
-    Initiales: string
-    "Mot de passe"?: string
-    email?: string
-    role?: string
-}
 
 // API client
 const { get: fetchUsers, loading, data: collaborators } = useFetchUsers()
 
-const columns = [
+const columns: Column[] = [
     { key: "id", label: "ID" },
     { key: "fullName", label: "Nom" },
     { key: "email", label: "Email" },

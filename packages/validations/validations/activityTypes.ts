@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { nullableDateSchema } from "./base"
+import { timestampsSchema } from "./base"
 
 // Activity type creation schema
 export const activityTypeCreateSchema = z.object({
@@ -16,14 +16,14 @@ export const activityTypeUpdateSchema = z.object({
 })
 
 // Activity type response schema
-export const activityTypeResponseSchema = z.object({
-    id: z.coerce.number(),
-    name: z.string(),
-    code: z.string(),
-    billable: z.boolean(),
-    createdAt: nullableDateSchema,
-    updatedAt: nullableDateSchema,
-})
+export const activityTypeResponseSchema = z
+    .object({
+        id: z.coerce.number(),
+        name: z.string(),
+        code: z.string(),
+        billable: z.boolean(),
+    })
+    .merge(timestampsSchema)
 
 // Array response for getting all activity types
 export const activityTypesArrayResponseSchema = z.array(activityTypeResponseSchema)

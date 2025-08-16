@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { nullableDateSchema } from "./base"
+import { timestampsSchema } from "./base"
 import { activityRateUserSchema } from "./activityRateUser"
 import { booleanSchema } from "./base"
 // Create a schema that parses query string values
@@ -51,17 +51,17 @@ export function convertUserFilterToInput(filter: UserFilter): UserFilterInput {
     }
 }
 
-export const userResponseSchema = z.object({
-    id: z.coerce.number(),
-    email: z.string().email(),
-    firstName: z.string(),
-    lastName: z.string(),
-    initials: z.string(),
-    role: z.enum(["admin", "user"]),
-    archived: z.boolean(),
-    createdAt: nullableDateSchema,
-    updatedAt: nullableDateSchema,
-})
+export const userResponseSchema = z
+    .object({
+        id: z.coerce.number(),
+        email: z.string().email(),
+        firstName: z.string(),
+        lastName: z.string(),
+        initials: z.string(),
+        role: z.enum(["admin", "user"]),
+        archived: z.boolean(),
+    })
+    .merge(timestampsSchema)
 
 // Define login response schema
 export const loginResponseSchema = z.object({
@@ -69,18 +69,18 @@ export const loginResponseSchema = z.object({
     user: userResponseSchema,
 })
 
-export const userDetailResponseSchema = z.object({
-    id: z.coerce.number(),
-    email: z.string().email(),
-    firstName: z.string(),
-    lastName: z.string(),
-    initials: z.string(),
-    role: z.enum(["admin", "user"]),
-    archived: z.boolean(),
-    createdAt: nullableDateSchema,
-    updatedAt: nullableDateSchema,
-    activityRates: z.array(activityRateUserSchema).nullable(),
-})
+export const userDetailResponseSchema = z
+    .object({
+        id: z.coerce.number(),
+        email: z.string().email(),
+        firstName: z.string(),
+        lastName: z.string(),
+        initials: z.string(),
+        role: z.enum(["admin", "user"]),
+        archived: z.boolean(),
+        activityRates: z.array(activityRateUserSchema).nullable(),
+    })
+    .merge(timestampsSchema)
 
 export type UserResponse = z.infer<typeof userResponseSchema>
 export type UserDetailResponse = z.infer<typeof userDetailResponseSchema>

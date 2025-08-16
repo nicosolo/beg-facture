@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { createPageResponseSchema, paginationSchema } from "./pagination"
-import { dateSchema, nullableDateSchema } from "./base"
+import { dateSchema, timestampsSchema } from "./base"
 
 // Billing mode enum with keys
 export const BILLING_MODE_KEYS = {
@@ -306,89 +306,89 @@ export const invoiceUpdateSchema = invoiceCreateSchema.partial()
 export type InvoiceUpdateInput = z.infer<typeof invoiceUpdateSchema>
 
 // Response schema for API - matches the Invoice type from frontend
-export const invoiceResponseSchema = z.object({
-    id: z.number(),
-    invoiceNumber: z.string(),
-    reference: z.string(),
-    type: z.string(),
-    billingMode: BillingModeEnum,
-    status: z.enum(["draft", "sent", "paid", "overdue", "cancelled"]),
-    period: z.object({
-        startDate: dateSchema,
-        endDate: dateSchema,
-    }),
-    client: z.object({
+export const invoiceResponseSchema = z
+    .object({
         id: z.number(),
-        name: z.string(),
-        address: z.string(),
-    }),
-    recipient: z.object({
-        name: z.string(),
-        address: z.string(),
-    }),
-    description: z.string(),
-    offers: z.array(OfferSchema),
-    adjudications: z.array(AdjudicationSchema),
-    fees: z.object({
-        base: z.number(),
-        adjusted: z.number(),
-        total: z.number(),
-        others: z.number(),
-        finalTotal: z.number(),
-        multiplicationFactor: z.number(),
-        discount: z.object({
-            percentage: z.number().nullable(),
-            amount: z.number().nullable(),
+        invoiceNumber: z.string(),
+        reference: z.string(),
+        type: z.string(),
+        billingMode: BillingModeEnum,
+        status: z.enum(["draft", "sent", "paid", "overdue", "cancelled"]),
+        period: z.object({
+            startDate: dateSchema,
+            endDate: dateSchema,
         }),
-        rates: z.array(RateItemSchema),
-    }),
-    expenses: z.object({
-        travel: z.object({
-            base: z.number(),
-            adjusted: z.number(),
-            rate: z.number(),
-            amount: z.number(),
-        }),
-        other: z.object({
-            base: z.number(),
-            amount: z.number(),
-        }),
-        total: z.number(),
-        thirdParty: z.object({
-            amount: z.number(),
-        }),
-        package: z.object({
-            percentage: z.number().nullable(),
-            amount: z.number().nullable(),
-        }),
-        totalExpenses: z.number(),
-    }),
-    totals: z.object({
-        ht: z.number(),
-        vat: z.object({
-            rate: z.number(),
-            amount: z.number(),
-        }),
-        ttc: z.number(),
-    }),
-    otherServices: z.string(),
-    remarks: z.object({
-        otherServices: z.string(),
-        travelExpenses: z.string(),
-        expenses: z.string(),
-        thirdPartyExpenses: z.string(),
-    }),
-    createdAt: nullableDateSchema,
-    updatedAt: nullableDateSchema,
-    // Relations
-    project: z
-        .object({
+        client: z.object({
             id: z.number(),
             name: z.string(),
-            projectNumber: z.string(),
-        })
-        .nullable(),
-})
+            address: z.string(),
+        }),
+        recipient: z.object({
+            name: z.string(),
+            address: z.string(),
+        }),
+        description: z.string(),
+        offers: z.array(OfferSchema),
+        adjudications: z.array(AdjudicationSchema),
+        fees: z.object({
+            base: z.number(),
+            adjusted: z.number(),
+            total: z.number(),
+            others: z.number(),
+            finalTotal: z.number(),
+            multiplicationFactor: z.number(),
+            discount: z.object({
+                percentage: z.number().nullable(),
+                amount: z.number().nullable(),
+            }),
+            rates: z.array(RateItemSchema),
+        }),
+        expenses: z.object({
+            travel: z.object({
+                base: z.number(),
+                adjusted: z.number(),
+                rate: z.number(),
+                amount: z.number(),
+            }),
+            other: z.object({
+                base: z.number(),
+                amount: z.number(),
+            }),
+            total: z.number(),
+            thirdParty: z.object({
+                amount: z.number(),
+            }),
+            package: z.object({
+                percentage: z.number().nullable(),
+                amount: z.number().nullable(),
+            }),
+            totalExpenses: z.number(),
+        }),
+        totals: z.object({
+            ht: z.number(),
+            vat: z.object({
+                rate: z.number(),
+                amount: z.number(),
+            }),
+            ttc: z.number(),
+        }),
+        otherServices: z.string(),
+        remarks: z.object({
+            otherServices: z.string(),
+            travelExpenses: z.string(),
+            expenses: z.string(),
+            thirdPartyExpenses: z.string(),
+        }),
+        // Relations
+        project: z
+            .object({
+                id: z.number(),
+                name: z.string(),
+                projectNumber: z.string(),
+            })
+            .nullable(),
+    })
+    .merge(timestampsSchema)
 
 export type InvoiceResponse = z.infer<typeof invoiceResponseSchema>
 

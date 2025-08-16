@@ -1,31 +1,31 @@
 import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
 import { 
-    clientFilterSchema, 
-    clientSchema, 
-    clientCreateSchema,
-    clientUpdateSchema,
+    companyFilterSchema, 
+    companySchema, 
+    companyCreateSchema,
+    companyUpdateSchema,
     createPageResponseSchema 
 } from "@beg/validations"
-import { clientRepository } from "../db/repositories/client.repository"
+import { companyRepository } from "../db/repositories/company.repository"
 import { authMiddleware, adminOnlyMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import type { Variables } from "@src/types/global"
 import { createApiError, ErrorCode } from "@beg/validations"
 
-const clientResponseArraySchema = createPageResponseSchema(clientSchema)
+const companyResponseArraySchema = createPageResponseSchema(companySchema)
 
-export const clientRoutes = new Hono<{ Variables: Variables }>()
+export const companyRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
     .get(
         "/",
-        zValidator("query", clientFilterSchema),
+        zValidator("query", companyFilterSchema),
         responseValidator({
-            200: clientResponseArraySchema,
+            200: companyResponseArraySchema,
         }),
         async (c) => {
             const filter = c.req.valid("query")
-            const result = await clientRepository.findAll(filter)
+            const result = await companyRepository.findAll(filter)
             return c.render(result, 200)
         }
     )
@@ -33,7 +33,7 @@ export const clientRoutes = new Hono<{ Variables: Variables }>()
     .get(
         "/:id",
         responseValidator({
-            200: clientSchema,
+            200: companySchema,
         }),
         async (c) => {
             const id = parseInt(c.req.param("id"))
@@ -41,35 +41,35 @@ export const clientRoutes = new Hono<{ Variables: Variables }>()
                 throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
             }
 
-            const client = await clientRepository.findById(id)
-            if (!client) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Client not found")
+            const company = await companyRepository.findById(id)
+            if (!company) {
+                throw createApiError(ErrorCode.NOT_FOUND, "Company not found")
             }
 
-            return c.render(client, 200)
+            return c.render(company, 200)
         }
     )
 
     .post(
         "/",
         adminOnlyMiddleware,
-        zValidator("json", clientCreateSchema),
+        zValidator("json", companyCreateSchema),
         responseValidator({
-            201: clientSchema,
+            201: companySchema,
         }),
         async (c) => {
             const data = c.req.valid("json")
-            const client = await clientRepository.create(data)
-            return c.render(client, 201)
+            const company = await companyRepository.create(data)
+            return c.render(company, 201)
         }
     )
 
     .put(
         "/:id",
         adminOnlyMiddleware,
-        zValidator("json", clientUpdateSchema),
+        zValidator("json", companyUpdateSchema),
         responseValidator({
-            200: clientSchema,
+            200: companySchema,
         }),
         async (c) => {
             const id = parseInt(c.req.param("id"))
@@ -78,12 +78,12 @@ export const clientRoutes = new Hono<{ Variables: Variables }>()
             }
 
             const data = c.req.valid("json")
-            const client = await clientRepository.update(id, data)
-            if (!client) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Client not found")
+            const company = await companyRepository.update(id, data)
+            if (!company) {
+                throw createApiError(ErrorCode.NOT_FOUND, "Company not found")
             }
 
-            return c.render(client, 200)
+            return c.render(company, 200)
         }
     )
 
@@ -96,24 +96,23 @@ export const clientRoutes = new Hono<{ Variables: Variables }>()
                 throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
             }
 
-            // Check if client exists
-            const client = await clientRepository.findById(id)
-            if (!client) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Client not found")
+            // Check if company exists
+            const company = await companyRepository.findById(id)
+            if (!company) {
+                throw createApiError(ErrorCode.NOT_FOUND, "Company not found")
             }
 
-            // Check if client has invoices or projects
-            const hasInvoices = await clientRepository.hasInvoices(id)
-            const hasProjects = await clientRepository.hasProjects(id)
+            // Check if company has projects
+            const hasProjects = await companyRepository.hasProjects(id)
             
-            if (hasInvoices || hasProjects) {
+            if (hasProjects) {
                 throw createApiError(
                     ErrorCode.CONSTRAINT_VIOLATION,
-                    "Cannot delete client with existing invoices or projects"
+                    "Cannot delete company with existing projects"
                 )
             }
 
-            await clientRepository.delete(id)
+            await companyRepository.delete(id)
             return c.json({ success: true }, 200)
         }
     )

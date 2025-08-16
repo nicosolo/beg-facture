@@ -7,6 +7,8 @@ import { projectRoutes } from "@src/routes/project"
 import { projectTypeRoutes } from "@src/routes/projectType"
 import { rateRoutes } from "@src/routes/rate"
 import { clientRoutes } from "@src/routes/client"
+import { companyRoutes } from "@src/routes/company"
+import { engineerRoutes } from "@src/routes/engineer"
 import { invoiceRoutes } from "@src/routes/invoice"
 import { locationRoutes } from "@src/routes/location"
 import { runMigrations } from "@src/db/migrate"
@@ -36,6 +38,8 @@ const app = new Hono()
     .route("/project-type", projectTypeRoutes)
     .route("/rate", rateRoutes)
     .route("/client", clientRoutes)
+    .route("/company", companyRoutes)
+    .route("/engineer", engineerRoutes)
     .route("/invoice", invoiceRoutes)
     .route("/location", locationRoutes)
 

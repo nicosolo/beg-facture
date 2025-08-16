@@ -15,6 +15,9 @@ import ProjectPreviewView from "../views/project/ProjectPreviewView.vue"
 import ActivityTypeListView from "../views/activityType/ActivityTypeListView.vue"
 import ActivityTypeEditView from "../views/activityType/ActivityTypeEditView.vue"
 import LocationListView from "../views/location/LocationListView.vue"
+import ClientListView from "../views/client/ClientListView.vue"
+import CompanyListView from "../views/company/CompanyListView.vue"
+import EngineerListView from "../views/engineer/EngineerListView.vue"
 import LoginView from "../views/LoginView.vue"
 import { useAuthStore } from "../stores/auth"
 
@@ -165,6 +168,24 @@ const router = createRouter({
             name: "location-list",
             component: LocationListView,
             meta: { requiresAuth: false }, // Public access
+        },
+        {
+            path: "/client",
+            name: "client-list",
+            component: ClientListView,
+            meta: { requiresAuth: true },
+        },
+        {
+            path: "/company",
+            name: "company-list",
+            component: CompanyListView,
+            meta: { requiresAuth: true },
+        },
+        {
+            path: "/engineer",
+            name: "engineer-list",
+            component: EngineerListView,
+            meta: { requiresAuth: true },
         },
     ],
 })

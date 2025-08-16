@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRoute, useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
-import { ref, computed } from "vue"
+import { ref, computed, watch, onMounted } from "vue"
 import { Bars3Icon, XMarkIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/vue/24/outline"
 import { useAuthStore } from "./stores/auth"
 import { useAlert } from "./composables/utils/useAlert"
@@ -82,6 +82,24 @@ const navigation = computed(() =>
                     current: route.name === "location-list",
                     visible: authStore.user?.role === "admin",
                 },
+                {
+                    name: t("navigation.clients"),
+                    to: { name: "client-list" },
+                    current: route.name === "client-list",
+                    visible: authStore.user?.role === "admin",
+                },
+                {
+                    name: t("navigation.companies"),
+                    to: { name: "company-list" },
+                    current: route.name === "company-list",
+                    visible: authStore.user?.role === "admin",
+                },
+                {
+                    name: t("navigation.engineers"),
+                    to: { name: "engineer-list" },
+                    current: route.name === "engineer-list",
+                    visible: authStore.user?.role === "admin",
+                },
             ].filter((item) => item.visible !== false),
             // Mark parent as current if any child is current
             get current() {
@@ -102,8 +120,18 @@ const initializeExpandedItems = () => {
     })
 }
 
-// Call on component creation
-initializeExpandedItems()
+// Watch route changes to update expanded items
+watch(
+    () => route.name,
+    () => {
+        initializeExpandedItems()
+    }
+)
+
+// Initialize on mount (for page reload)
+onMounted(() => {
+    initializeExpandedItems()
+})
 
 const toggleNestedMenu = (itemName: string) => {
     expandedItems.value[itemName] = !expandedItems.value[itemName]

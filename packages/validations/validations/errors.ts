@@ -36,6 +36,7 @@ export const ErrorCode = {
 
     // Response validation errors
     RESPONSE_VALIDATION_ERROR: "RESPONSE_VALIDATION_ERROR",
+    BAD_REQUEST: "BAD_REQUEST",
 } as const
 
 export type ErrorCodeType = (typeof ErrorCode)[keyof typeof ErrorCode]
@@ -61,6 +62,7 @@ export const errorCodeSchema = z.enum([
     ErrorCode.RATE_LIMIT_EXCEEDED,
     ErrorCode.UNKNOWN_ERROR,
     ErrorCode.RESPONSE_VALIDATION_ERROR,
+    ErrorCode.BAD_REQUEST,
 ])
 
 // Validation error details

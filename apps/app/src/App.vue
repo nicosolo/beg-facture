@@ -174,24 +174,24 @@ const isExpanded = (itemName: string): boolean => {
             <!-- Mobile: Overlay sidebar; Desktop: Fixed position sidebar that doesn't overlay content -->
             <aside
                 v-if="!isLoginPage"
-                class="fixed lg:absolute inset-y-0 right-0 flex flex-col w-64 transition-all duration-300 ease-in-out z-20"
+                class="fixed top-0 right-0 h-screen flex flex-col w-64 transition-all duration-300 ease-in-out z-20"
                 :class="[isSidebarOpen ? 'translate-x-0' : 'translate-x-full']"
             >
                 <!-- Sidebar component -->
-                <div
-                    class="flex min-h-0 flex-1 flex-col border-l border-gray-200 bg-white shadow-lg"
-                >
-                    <div class="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
-                        <div class="flex flex-shrink-0 items-center px-4 lg:hidden">
-                            <button
-                                class="ml-auto inline-flex items-center justify-center p-1 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
-                                @click="toggleSidebar"
-                            >
-                                <span class="sr-only">Close sidebar</span>
-                                <span class="text-xxl"><XMarkIcon class="h-6 w-6" /></span>
-                            </button>
-                        </div>
-                        <nav class="mt-5 flex-1 space-y-1 bg-white px-2">
+                <div class="flex h-full flex-col border-l border-gray-200 bg-white shadow-lg">
+                    <!-- Close button for mobile -->
+                    <div class="flex flex-shrink-0 items-center px-4 pt-5 lg:hidden">
+                        <button
+                            class="ml-auto inline-flex items-center justify-center p-1 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+                            @click="toggleSidebar"
+                        >
+                            <span class="sr-only">Close sidebar</span>
+                            <span class="text-xxl"><XMarkIcon class="h-6 w-6" /></span>
+                        </button>
+                    </div>
+                    <!-- Scrollable navigation area -->
+                    <div class="flex-1 overflow-y-auto pt-5 pb-4">
+                        <nav class="space-y-1 bg-white px-2">
                             <template v-for="item in navigation" :key="item.name">
                                 <!-- Parent item with children -->
                                 <div v-if="item.children" class="space-y-1">
@@ -246,13 +246,14 @@ const isExpanded = (itemName: string): boolean => {
                             </template>
                         </nav>
                     </div>
-                    <div class="flex flex-shrink-0 border-t border-gray-200 p-4">
+                    <!-- User info section - fixed at bottom -->
+                    <div class="flex-shrink-0 border-t border-gray-200 p-4">
                         <div class="group block w-full flex-shrink-0">
                             <div class="flex items-center">
                                 <div
-                                    class="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center"
+                                    class="h-10 min-w-10 rounded-full bg-gray-200 flex items-center justify-center"
                                 >
-                                    <span class="text-gray-600 text-xs font-medium">
+                                    <span class="text-gray-600 text-sm font-medium uppercase">
                                         {{ authStore.user?.initials }}
                                     </span>
                                 </div>

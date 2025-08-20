@@ -1,10 +1,14 @@
 import {
     idParamSchema,
     projectFilterSchema,
+    projectCreateSchema,
+    projectUpdateSchema,
     type ProjectListResponse,
     type ProjectResponse,
+    type ProjectCreateInput,
+    type ProjectUpdateInput,
 } from "@beg/validations"
-import { useGet } from "./useAPI"
+import { useGet, usePost, usePut } from "./useAPI"
 
 export function useFetchProject() {
     return useGet<
@@ -25,5 +29,29 @@ export function useFetchProjectList() {
         }
     >("project", {
         query: projectFilterSchema,
+    })
+}
+
+export function useCreateProject() {
+    return usePost<
+        ProjectResponse,
+        {
+            body: typeof projectCreateSchema
+        }
+    >("project", {
+        body: projectCreateSchema,
+    })
+}
+
+export function useUpdateProject() {
+    return usePut<
+        ProjectResponse,
+        {
+            params: typeof idParamSchema
+            body: typeof projectUpdateSchema
+        }
+    >("project/:id", {
+        params: idParamSchema,
+        body: projectUpdateSchema,
     })
 }

@@ -127,6 +127,7 @@ export const projects = sqliteTable(
             .notNull()
             .references(() => projectTypes.id, { onDelete: "set null" }),
         remark: text("remark"),
+        invoiceAddress: text("invoiceAddress"),
         projectManagerId: integer("projectManagerId").references(() => users.id, {
             onDelete: "set null",
         }),

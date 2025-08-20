@@ -4,8 +4,12 @@ import {
     projectFilterSchema,
     projectListResponse,
     projectResponseSchema,
+    projectCreateSchema,
+    projectUpdateSchema,
     type ProjectListResponse,
     type ProjectResponse,
+    type ProjectCreateInput,
+    type ProjectUpdateInput,
 } from "@beg/validations"
 import { projectRepository } from "../db/repositories/project.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
@@ -47,5 +51,58 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             }
 
             return c.render(project as ProjectResponse, 200)
+        }
+    )
+    .post(
+        "/",
+        zValidator("json", projectCreateSchema),
+        responseValidator({
+            201: projectResponseSchema,
+        }),
+        async (c) => {
+            const data = c.req.valid("json")
+            const user = c.get("user")
+
+            try {
+                const project = await projectRepository.create(data, user)
+                return c.render(project as ProjectResponse, 201)
+            } catch (error: any) {
+                if (error.message === "Project number already exists") {
+                    return c.json({ error: error.message }, 409)
+                }
+                return c.json({ error: "Failed to create project" }, 500)
+            }
+        }
+    )
+    .put(
+        "/:id",
+        zValidator("json", projectUpdateSchema),
+        responseValidator({
+            200: projectResponseSchema,
+        }),
+        async (c) => {
+            const id = parseInt(c.req.param("id"))
+            if (isNaN(id)) {
+                return c.json({ error: "Invalid ID" }, 400)
+            }
+
+            const data = c.req.valid("json")
+            const user = c.get("user")
+
+            try {
+                const project = await projectRepository.update(id, data, user)
+                return c.render(project as ProjectResponse, 200)
+            } catch (error: any) {
+                if (error.message === "Insufficient permissions to update this project") {
+                    return c.json({ error: error.message }, 403)
+                }
+                if (error.message === "Project number already exists") {
+                    return c.json({ error: error.message }, 409)
+                }
+                if (error.message === "Project not found") {
+                    return c.json({ error: error.message }, 404)
+                }
+                return c.json({ error: "Failed to update project" }, 500)
+            }
         }
     )

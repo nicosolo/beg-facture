@@ -32,6 +32,7 @@ export const projectResponseSchema = z
         name: z.string(),
         startDate: dateSchema,
         remark: z.string().nullable(),
+        invoiceAddress: z.string().nullable(),
         printFlag: z.boolean().nullable(),
         location: z
             .object({
@@ -72,6 +73,8 @@ export const projectResponseSchema = z
         totalDuration: z.number().nullable(),
         unBilledDuration: z.number().nullable(),
         unBilledDisbursementDuration: z.number().nullable(),
+        firstActivityDate: z.coerce.date().nullable(),
+        lastActivityDate: z.coerce.date().nullable(),
         ended: z.boolean().nullable(),
     })
     .merge(timestampsSchema)
@@ -83,6 +86,30 @@ export const projectListResponse = createPageResponseSchema(projectResponseSchem
 export type ProjectListResponse = z.infer<typeof projectListResponse>
 
 export type ProjectAccessLevel = z.infer<typeof projectAccessLevelSchema>
+
+// Project create schema
+export const projectCreateSchema = z.object({
+    projectNumber: z.string().min(1),
+    name: z.string().min(1),
+    startDate: dateSchema,
+    typeId: z.number().positive(),
+    locationId: z.number().positive().optional(),
+    clientId: z.number().positive().optional(),
+    engineerId: z.number().positive().optional(),
+    companyId: z.number().positive().optional(),
+    projectManagerId: z.number().positive().optional(),
+    invoiceAddress: z.string().optional(),
+    remark: z.string().optional(),
+    printFlag: z.boolean().optional().default(false),
+    ended: z.boolean().optional().default(false),
+    archived: z.boolean().optional().default(false),
+})
+
+// Project update schema - all fields optional
+export const projectUpdateSchema = projectCreateSchema.partial()
+
+export type ProjectCreateInput = z.infer<typeof projectCreateSchema>
+export type ProjectUpdateInput = z.infer<typeof projectUpdateSchema>
 
 export const projectTypeCreateSchema = z.object({
     name: z.string().min(1),

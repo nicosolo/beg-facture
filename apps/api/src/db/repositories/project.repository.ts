@@ -10,7 +10,13 @@ import {
     users,
     projectAccess,
 } from "../schema"
-import type { ProjectFilter, ProjectListResponse, ProjectResponse } from "@beg/validations"
+import type { 
+    ProjectFilter, 
+    ProjectListResponse, 
+    ProjectResponse,
+    ProjectCreateInput,
+    ProjectUpdateInput 
+} from "@beg/validations"
 import type { Variables } from "@src/types/global"
 
 export const projectRepository = {
@@ -118,6 +124,7 @@ export const projectRepository = {
                 name: projects.name,
                 startDate: projects.startDate,
                 remark: projects.remark,
+                invoiceAddress: projects.invoiceAddress,
                 printFlag: projects.printFlag,
                 createdAt: projects.createdAt,
                 updatedAt: projects.updatedAt,
@@ -217,6 +224,7 @@ export const projectRepository = {
                 name: projects.name,
                 startDate: projects.startDate,
                 remark: projects.remark,
+                invoiceAddress: projects.invoiceAddress,
                 printFlag: projects.printFlag,
                 createdAt: projects.createdAt,
                 updatedAt: projects.updatedAt,
@@ -272,5 +280,138 @@ export const projectRepository = {
         if (!results[0]) return null
 
         return results[0] as ProjectResponse
+    },
+
+    create: async (data: ProjectCreateInput, user: Variables["user"]): Promise<ProjectResponse> => {
+        // Check if project number already exists
+        const existing = await db
+            .select({ id: projects.id })
+            .from(projects)
+            .where(eq(projects.projectNumber, data.projectNumber))
+            .execute()
+
+        if (existing.length > 0) {
+            throw new Error("Project number already exists")
+        }
+
+        // Insert the new project
+        const [newProject] = await db
+            .insert(projects)
+            .values({
+                projectNumber: data.projectNumber,
+                name: data.name,
+                startDate: data.startDate,
+                typeId: data.typeId,
+                locationId: data.locationId || null,
+                clientId: data.clientId || null,
+                engineerId: data.engineerId || null,
+                companyId: data.companyId || null,
+                projectManagerId: data.projectManagerId || null,
+                remark: data.remark || null,
+                invoiceAddress: data.invoiceAddress || null,
+                printFlag: data.printFlag || false,
+                ended: data.ended || false,
+                archived: data.archived || false,
+            })
+            .returning({ id: projects.id })
+            .execute()
+
+        // If not admin, grant write access to the creator
+        if (user.role !== "admin" && newProject) {
+            await db
+                .insert(projectAccess)
+                .values({
+                    projectId: newProject.id,
+                    userId: user.id,
+                    accessLevel: "write",
+                })
+                .execute()
+        }
+
+        // Return the created project with all relations
+        const created = await projectRepository.findById(newProject.id, user)
+        if (!created) {
+            throw new Error("Failed to retrieve created project")
+        }
+
+        return created
+    },
+
+    update: async (
+        id: number,
+        data: ProjectUpdateInput,
+        user: Variables["user"]
+    ): Promise<ProjectResponse> => {
+        // Check if user has write access
+        if (user.role !== "admin") {
+            const access = await db
+                .select({ accessLevel: projectAccess.accessLevel })
+                .from(projectAccess)
+                .where(
+                    and(
+                        eq(projectAccess.projectId, id),
+                        eq(projectAccess.userId, user.id),
+                        eq(projectAccess.accessLevel, "write")
+                    )
+                )
+                .execute()
+
+            if (access.length === 0) {
+                throw new Error("Insufficient permissions to update this project")
+            }
+        }
+
+        // If updating project number, check uniqueness
+        if (data.projectNumber) {
+            const existing = await db
+                .select({ id: projects.id })
+                .from(projects)
+                .where(
+                    and(
+                        eq(projects.projectNumber, data.projectNumber),
+                        sql`${projects.id} != ${id}`
+                    )
+                )
+                .execute()
+
+            if (existing.length > 0) {
+                throw new Error("Project number already exists")
+            }
+        }
+
+        // Build update object, filtering out undefined values
+        const updateData: any = {}
+        if (data.projectNumber !== undefined) updateData.projectNumber = data.projectNumber
+        if (data.name !== undefined) updateData.name = data.name
+        if (data.startDate !== undefined) updateData.startDate = data.startDate
+        if (data.typeId !== undefined) updateData.typeId = data.typeId
+        if (data.locationId !== undefined) updateData.locationId = data.locationId || null
+        if (data.clientId !== undefined) updateData.clientId = data.clientId || null
+        if (data.engineerId !== undefined) updateData.engineerId = data.engineerId || null
+        if (data.companyId !== undefined) updateData.companyId = data.companyId || null
+        if (data.projectManagerId !== undefined) updateData.projectManagerId = data.projectManagerId || null
+        if (data.remark !== undefined) updateData.remark = data.remark || null
+        if (data.invoiceAddress !== undefined) updateData.invoiceAddress = data.invoiceAddress || null
+        if (data.printFlag !== undefined) updateData.printFlag = data.printFlag
+        if (data.ended !== undefined) updateData.ended = data.ended
+        if (data.archived !== undefined) updateData.archived = data.archived
+
+        // Update the project
+        await db
+            .update(projects)
+            .set({
+                ...updateData,
+                updatedAt: new Date(),
+            })
+            .where(eq(projects.id, id))
+            .execute()
+
+        // Return the updated project
+        const updated = await projectRepository.findById(id, user)
+        if (!updated) {
+            throw new Error("Project not found")
+        }
+
+        return updated
     },
 }

@@ -17,7 +17,6 @@ export async function updateProjectActivityDates(projectId: number) {
         .where(eq(activities.projectId, projectId))
 
     const { firstDate, lastDate, totalDuration } = result[0]
-
     const resultUnbilled = await db
         .select({
             unbilledDuration: sql<number>`COALESCE(SUM(${activities.duration}), 0)`,
@@ -35,7 +34,14 @@ export async function updateProjectActivityDates(projectId: number) {
         .where(and(eq(activities.disbursement, true), eq(activities.projectId, projectId)))
 
     const { unbilledDisbursementDuration } = resultUnbilledDisbursement[0]
-
+    console.log({
+        firstActivityDate: firstDate ? new Date(firstDate * 1000) : null,
+        lastActivityDate: lastDate ? new Date(lastDate * 1000) : null,
+        totalDuration: Math.round(totalDuration || 0),
+        unBilledDuration: Math.round(unbilledDuration || 0),
+        unBilledDisbursementDuration: Math.round(unbilledDisbursementDuration || 0),
+        updatedAt: new Date(),
+    })
     // Update the project with the calculated values
     await db
         .update(projects)

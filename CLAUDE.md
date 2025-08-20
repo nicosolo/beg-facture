@@ -189,10 +189,11 @@ When making changes:
 - The application runs in containers with automatic hot reload via Docker Compose watch mode
 
 # important-instruction-reminders
+
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
 
 ## Docker Compose Usage
 
@@ -201,3 +202,7 @@ NEVER proactively create documentation files (*.md) or README files. Only create
 - **ALWAYS** check if services are running with `docker compose ps` before executing commands
 - For database operations, use: `docker compose exec api bun run db:[command]`
 - For build operations, use: `docker compose exec [api|app] bun run build`
+
+## Tasks
+
+To create tasks add the name of the feature as the file name and the date for the folder @tasks/{YYYY-MM-DD}/{feature_name}.md

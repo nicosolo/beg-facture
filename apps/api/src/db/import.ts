@@ -203,8 +203,8 @@ async function importLocations() {
             const location = {
                 id: rawLocation.IDlocalité,
                 name: rawLocation.Localité,
-                country,
-                canton,
+                country: country as any,
+                canton: canton as any,
                 region,
                 address,
                 createdAt: new Date(),
@@ -373,24 +373,8 @@ async function importProjects() {
     const projectData = await readJsonFile("Mandats")
     if (projectData.length === 0) return
 
-    // Get references to related entities by their original IDs
-    const allClients = await db.select().from(clients)
-    const clientMap = new Map(allClients.map((c) => [c.name, c.id]))
-
-    const allTypes = await db.select().from(projectTypes)
-    const typeMap = new Map(allTypes.map((t) => [t.name, t.id]))
-
-    const allEngineers = await db.select().from(engineers)
-    const engineerMap = new Map(allEngineers.map((e) => [e.name, e.id]))
-
-    const allCompanies = await db.select().from(companies)
-    const companyMap = new Map(allCompanies.map((c) => [c.name, c.id]))
-
-    const allLocations = await db.select().from(locations)
-    const locationMap = new Map(allLocations.map((l) => [l.name, l.id]))
     const allUsers = await db.select().from(users)
     const userMap = new Map(allUsers.map((u) => [u.initials, u.id]))
-
     for (const rawProject of projectData) {
         const project = {
             id: rawProject.IDmandat,
@@ -398,11 +382,11 @@ async function importProjects() {
             name: rawProject["Désignation"],
             projectManagerId: userMap.get(rawProject.Responsable) || null,
             startDate: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
-            clientId: rawProject.MandantID || clientMap.get(rawProject.Mandant),
-            locationId: rawProject.LocalitéID || locationMap.get(rawProject.Localité),
-            engineerId: rawProject.IngénieurID || engineerMap.get(rawProject.Ingénieur),
-            companyId: rawProject.EntrepriseID || companyMap.get(rawProject.Entreprise),
-            typeId: rawProject.TypeID || typeMap.get(rawProject.Type) || allTypes[0]?.id, // Default to first type
+            clientId: rawProject.IDmandant,
+            locationId: rawProject.IDmandant,
+            engineerId: rawProject.IDingénieur,
+            companyId: rawProject.IDentreprise,
+            typeId: rawProject.IDtype, // Default to first type
             remark: rawProject.Remarque,
             printFlag: rawProject.FlagImpression === "Oui",
             createdAt: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
@@ -489,9 +473,10 @@ async function importActivities() {
 
     // Update all project dates after bulk import
     console.log("Updating project activity dates...")
-    const allProjects = await db.select({ id: projects.id }).from(projects)
+    const allProjects = await db.select({ id: projects.id, name: projects.name }).from(projects)
 
     for (const project of allProjects) {
+        console.log(project.name)
         await updateProjectActivityDates(project.id)
     }
 

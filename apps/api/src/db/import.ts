@@ -375,18 +375,49 @@ async function importProjects() {
 
     const allUsers = await db.select().from(users)
     const userMap = new Map(allUsers.map((u) => [u.initials, u.id]))
+
+    const allEngineers = await db.select({ id: engineers.id }).from(engineers)
+    const engineersArray = allEngineers.map((e) => e.id)
+
+    const allProjectTypes = await db.select({ id: projectTypes.id }).from(projectTypes)
+    const projectTypesArray = allProjectTypes.map((pt) => pt.id)
+
+    const allClients = await db.select({ id: clients.id }).from(clients)
+    const clientsArray = allClients.map((c) => c.id)
+
+    const allCompanies = await db.select({ id: companies.id }).from(companies)
+    const companiesArray = allCompanies.map((c) => c.id)
+
+    const allLocations = await db.select({ id: locations.id }).from(locations)
+    const locationsArray = allLocations.map((l) => l.id)
+    const allProjects = []
     for (const rawProject of projectData) {
+        const engineerId = engineersArray.includes(rawProject.IDingénieur)
+            ? rawProject.IDingénieur
+            : null
+        const companyId = companiesArray.includes(rawProject.IDentreprise)
+            ? rawProject.IDentreprise
+            : null
+
+        const typeId = projectTypesArray.includes(rawProject.IDtype) ? rawProject.IDtype : null
+
+        const locationId = locationsArray.includes(rawProject.IDlocalité)
+            ? rawProject.IDlocalité
+            : null
+
+        const clientId = clientsArray.includes(rawProject.IDmandant) ? rawProject.IDmandant : null
+
         const project = {
             id: rawProject.IDmandat,
             projectNumber: rawProject.Mandat,
             name: rawProject["Désignation"],
             projectManagerId: userMap.get(rawProject.Responsable) || null,
             startDate: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
-            clientId: rawProject.IDmandant,
-            locationId: rawProject.IDmandant,
-            engineerId: rawProject.IDingénieur,
-            companyId: rawProject.IDentreprise,
-            typeId: rawProject.IDtype, // Default to first type
+            clientId,
+            locationId,
+            engineerId,
+            companyId,
+            typeId,
             remark: rawProject.Remarque,
             printFlag: rawProject.FlagImpression === "Oui",
             createdAt: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
@@ -394,8 +425,9 @@ async function importProjects() {
             ended: rawProject.Etat === "Terminé",
         } satisfies typeof projects.$inferInsert
 
-        await db.insert(projects).values(project)
+        allProjects.push(project)
     }
+    await db.insert(projects).values(allProjects)
 
     const importedProjects = await db.select().from(projects)
     console.log(`Imported ${importedProjects.length} projects`)

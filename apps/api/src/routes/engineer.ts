@@ -1,11 +1,11 @@
 import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
-import { 
-    engineerFilterSchema, 
-    engineerSchema, 
+import {
+    engineerFilterSchema,
+    engineerSchema,
     engineerCreateSchema,
     engineerUpdateSchema,
-    createPageResponseSchema 
+    createPageResponseSchema,
 } from "@beg/validations"
 import { engineerRepository } from "../db/repositories/engineer.repository"
 import { authMiddleware, adminOnlyMiddleware } from "@src/tools/auth-middleware"
@@ -87,32 +87,28 @@ export const engineerRoutes = new Hono<{ Variables: Variables }>()
         }
     )
 
-    .delete(
-        "/:id",
-        adminOnlyMiddleware,
-        async (c) => {
-            const id = parseInt(c.req.param("id"))
-            if (isNaN(id)) {
-                throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
-            }
-
-            // Check if engineer exists
-            const engineer = await engineerRepository.findById(id)
-            if (!engineer) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Engineer not found")
-            }
-
-            // Check if engineer has projects
-            const hasProjects = await engineerRepository.hasProjects(id)
-            
-            if (hasProjects) {
-                throw createApiError(
-                    ErrorCode.CONSTRAINT_VIOLATION,
-                    "Cannot delete engineer with existing projects"
-                )
-            }
-
-            await engineerRepository.delete(id)
-            return c.json({ success: true }, 200)
+    .delete("/:id", adminOnlyMiddleware, async (c) => {
+        const id = parseInt(c.req.param("id"))
+        if (isNaN(id)) {
+            throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
         }
-    )
+
+        // Check if engineer exists
+        const engineer = await engineerRepository.findById(id)
+        if (!engineer) {
+            throw createApiError(ErrorCode.NOT_FOUND, "Engineer not found")
+        }
+
+        // Check if engineer has projects
+        const hasProjects = await engineerRepository.hasProjects(id)
+
+        if (hasProjects) {
+            throw createApiError(
+                ErrorCode.CONSTRAINT_VIOLATION,
+                "Cannot delete engineer with existing projects"
+            )
+        }
+
+        await engineerRepository.delete(id)
+        return c.json({ success: true }, 200)
+    })

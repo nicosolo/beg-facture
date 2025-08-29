@@ -579,7 +579,7 @@ async function importWorkloads() {
 
     // Get all user IDs for validation
     const allUsers = await db.select({ id: users.id }).from(users)
-    const validUserIds = new Set(allUsers.map(u => u.id))
+    const validUserIds = new Set(allUsers.map((u) => u.id))
 
     const validWorkloads = []
     const erroredEntries: any[] = []
@@ -631,7 +631,9 @@ async function importWorkloads() {
         }
     }
 
-    console.log(`Import complete: ${validWorkloads.length} workloads imported, ${erroredEntries.length} errors`)
+    console.log(
+        `Import complete: ${validWorkloads.length} workloads imported, ${erroredEntries.length} errors`
+    )
 }
 
 const importFunctions = [

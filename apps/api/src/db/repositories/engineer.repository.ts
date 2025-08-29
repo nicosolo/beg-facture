@@ -75,6 +75,8 @@ export const engineerRepository = {
             .insert(engineers)
             .values({
                 name: data.name,
+                createdAt: new Date(),
+                updatedAt: new Date(),
             })
             .returning({
                 id: engineers.id,

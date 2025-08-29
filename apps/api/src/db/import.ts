@@ -390,47 +390,61 @@ async function importProjects() {
 
     const allLocations = await db.select({ id: locations.id }).from(locations)
     const locationsArray = allLocations.map((l) => l.id)
-    const allProjects = []
-    for (const rawProject of projectData) {
-        const engineerId = engineersArray.includes(rawProject.IDingénieur)
-            ? rawProject.IDingénieur
-            : null
-        const companyId = companiesArray.includes(rawProject.IDentreprise)
-            ? rawProject.IDentreprise
-            : null
 
-        const typeId = projectTypesArray.includes(rawProject.IDtype) ? rawProject.IDtype : null
+    // Process in chunks for bulk insert
+    const chunkSize = 3000
+    let imported = 0
 
-        const locationId = locationsArray.includes(rawProject.IDlocalité)
-            ? rawProject.IDlocalité
-            : null
+    for (let i = 0; i < projectData.length; i += chunkSize) {
+        const chunk = projectData.slice(i, i + chunkSize)
+        const chunkProjects = []
 
-        const clientId = clientsArray.includes(rawProject.IDmandant) ? rawProject.IDmandant : null
+        for (const rawProject of chunk) {
+            const engineerId = engineersArray.includes(rawProject.IDingénieur)
+                ? rawProject.IDingénieur
+                : null
+            const companyId = companiesArray.includes(rawProject.IDentreprise)
+                ? rawProject.IDentreprise
+                : null
 
-        const project = {
-            id: rawProject.IDmandat,
-            projectNumber: rawProject.Mandat,
-            name: rawProject["Désignation"],
-            projectManagerId: userMap.get(rawProject.Responsable) || null,
-            startDate: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
-            clientId,
-            locationId,
-            engineerId,
-            companyId,
-            typeId,
-            remark: rawProject.Remarque,
-            printFlag: rawProject.FlagImpression === "Oui",
-            createdAt: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
-            updatedAt: new Date(),
-            ended: rawProject.Etat === "Terminé",
-        } satisfies typeof projects.$inferInsert
+            const typeId = projectTypesArray.includes(rawProject.IDtype) ? rawProject.IDtype : null
 
-        allProjects.push(project)
+            const locationId = locationsArray.includes(rawProject.IDlocalité)
+                ? rawProject.IDlocalité
+                : null
+
+            const clientId = clientsArray.includes(rawProject.IDmandant)
+                ? rawProject.IDmandant
+                : null
+
+            const project = {
+                id: rawProject.IDmandat,
+                projectNumber: rawProject.Mandat,
+                name: rawProject["Désignation"],
+                projectManagerId: userMap.get(rawProject.Responsable) || null,
+                startDate: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
+                clientId,
+                locationId,
+                engineerId,
+                companyId,
+                typeId,
+                remark: rawProject.Remarque,
+                printFlag: rawProject.FlagImpression === "Oui",
+                createdAt: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
+                updatedAt: new Date(),
+                ended: rawProject.Etat === "Terminé",
+            } satisfies typeof projects.$inferInsert
+
+            chunkProjects.push(project)
+            imported++
+        }
+
+        // Bulk insert the chunk
+        await db.insert(projects).values(chunkProjects)
+        console.log(`Imported ${imported} / ${projectData.length} projects`)
     }
-    await db.insert(projects).values(allProjects)
 
-    const importedProjects = await db.select().from(projects)
-    console.log(`Imported ${importedProjects.length} projects`)
+    console.log(`Imported ${imported} projects total`)
 }
 
 async function importActivityTypes() {
@@ -459,7 +473,7 @@ async function importActivities() {
     if (activityData.length === 0) return
 
     // Process in chunks due to potentially large size
-    const chunkSize = 1000
+    const chunkSize = 3000
     let imported = 0
 
     for (let i = 0; i < activityData.length; i += chunkSize) {
@@ -508,7 +522,6 @@ async function importActivities() {
     const allProjects = await db.select({ id: projects.id, name: projects.name }).from(projects)
 
     for (const project of allProjects) {
-        console.log(project.name)
         await updateProjectActivityDates(project.id)
     }
 

@@ -577,59 +577,48 @@ async function importWorkloads() {
         return
     }
 
-    // Process in chunks for bulk insert
-    const chunkSize = 1000
-    let imported = 0
+    // Get all user IDs for validation
+    const allUsers = await db.select({ id: users.id }).from(users)
+    const validUserIds = new Set(allUsers.map(u => u.id))
+
+    const validWorkloads = []
     const erroredEntries: any[] = []
 
-    for (let i = 0; i < workloadData.length; i += chunkSize) {
-        const chunk = workloadData.slice(i, i + chunkSize)
-        const chunkWorkloads = []
-
-        for (const rawWorkload of chunk) {
-            // Validate required fields
-            if (!rawWorkload.IDcollaborateur || !rawWorkload.Année || !rawWorkload.Mois) {
-                erroredEntries.push({
-                    data: rawWorkload,
-                    reason: "Missing required fields",
-                })
-                continue
-            }
-
-            // Check if user exists
-            const userId = rawWorkload.IDcollaborateur
-            const user = await db
-                .select({ id: users.id })
-                .from(users)
-                .where(eq(users.id, userId))
-                .limit(1)
-
-            if (user.length === 0) {
-                erroredEntries.push({
-                    data: rawWorkload,
-                    reason: `User with ID ${userId} not found`,
-                })
-                continue
-            }
-
-            const workload = {
-                userId: rawWorkload.IDcollaborateur,
-                year: rawWorkload.Année,
-                month: rawWorkload.Mois,
-                workload: rawWorkload.Taux || 100, // Default to 100% if not specified
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            } satisfies typeof workloads.$inferInsert
-
-            chunkWorkloads.push(workload)
-            imported++
+    for (const rawWorkload of workloadData) {
+        // Validate required fields
+        if (!rawWorkload.IDcollaborateur || !rawWorkload.Année || !rawWorkload.Mois) {
+            erroredEntries.push({
+                data: rawWorkload,
+                reason: "Missing required fields",
+            })
+            continue
         }
 
-        // Bulk insert the chunk
-        if (chunkWorkloads.length > 0) {
-            await db.insert(workloads).values(chunkWorkloads)
-            console.log(`Imported ${imported} / ${workloadData.length} workloads`)
+        // Check if user exists
+        if (!validUserIds.has(rawWorkload.IDcollaborateur)) {
+            erroredEntries.push({
+                data: rawWorkload,
+                reason: `User with ID ${rawWorkload.IDcollaborateur} not found`,
+            })
+            continue
         }
+
+        const workload = {
+            userId: rawWorkload.IDcollaborateur,
+            year: rawWorkload.Année,
+            month: rawWorkload.Mois,
+            workload: rawWorkload.Taux || 100, // Default to 100% if not specified
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        } satisfies typeof workloads.$inferInsert
+
+        validWorkloads.push(workload)
+    }
+
+    // Bulk insert all valid workloads at once
+    if (validWorkloads.length > 0) {
+        await db.insert(workloads).values(validWorkloads)
+        console.log(`Imported ${validWorkloads.length} workloads`)
     }
 
     if (erroredEntries.length > 0) {
@@ -642,7 +631,7 @@ async function importWorkloads() {
         }
     }
 
-    console.log(`Imported ${imported} workloads total`)
+    console.log(`Import complete: ${validWorkloads.length} workloads imported, ${erroredEntries.length} errors`)
 }
 
 const importFunctions = [

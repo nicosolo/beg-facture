@@ -34,7 +34,7 @@
                     :key="getItemKey(item, index)"
                     :class="[
                         'cursor-pointer transition-colors',
-                        selectedRows?.has(getItemKey(item, index))
+                        selectedRows && selectedRows.has(getItemKey(item, index))
                             ? 'bg-blue-100 hover:bg-blue-200'
                             : 'hover:bg-gray-100',
                         getRowClass(item, index),
@@ -132,7 +132,7 @@
 </template>
 
 <script setup lang="ts" generic="T = unknown">
-import { computed } from "vue"
+import { computed, ref, watch } from "vue"
 import SortIcon from "../atoms/SortIcon.vue"
 import TruncateWithTooltip from "../atoms/TruncateWithTooltip.vue"
 export interface Column {
@@ -169,10 +169,14 @@ interface Props<T = unknown> {
     sort?: { key: string; direction: "asc" | "desc" }
     selectedRows?: Set<string | number>
     rowClass?: (item: T, index: number) => string | undefined
+    selectable?: boolean
+    modelValue?: Set<string | number>
 }
 const emit = defineEmits<{
     (e: "sort-change", sort: { key: string; direction: "asc" | "desc" }): void
     (e: "row-click", item: T, index: number, event: MouseEvent): void
+    (e: "update:modelValue", selection: Set<string | number>): void
+    (e: "selection-change", selection: Set<string | number>): void
 }>()
 const {
     items,
@@ -181,9 +185,37 @@ const {
     emptyMessage = "No items found",
     showFooter = false,
     sort,
-    selectedRows,
+    selectedRows: externalSelectedRows,
     rowClass,
+    selectable = false,
+    modelValue,
 } = defineProps<Props<T>>()
+
+// Internal selection state
+const internalSelection = ref<Set<string | number>>(new Set())
+const lastClickedIndex = ref<number | null>(null)
+
+// Use either v-model or internal state for selection
+const selectedRows = computed(() => {
+    if (modelValue !== undefined) {
+        return modelValue
+    }
+    if (externalSelectedRows !== undefined) {
+        return externalSelectedRows
+    }
+    return selectable ? internalSelection.value : undefined
+})
+
+// Watch for external selection changes
+watch(
+    () => modelValue,
+    (newValue) => {
+        if (newValue !== undefined) {
+            internalSelection.value = new Set(newValue)
+        }
+    },
+    { immediate: true }
+)
 
 // Generate grid template columns based on column widths
 const gridTemplateColumns = computed(() => {
@@ -256,8 +288,85 @@ const handleRowClick = (item: T, index: number, event: MouseEvent) => {
     if (window.getSelection()?.toString()) {
         return
     }
+    
+    // Handle selection if enabled
+    if (selectable || modelValue !== undefined || externalSelectedRows !== undefined) {
+        handleSelection(item, index, event)
+    }
+    
     emit("row-click", item, index, event)
 }
+
+// Handle selection logic
+const handleSelection = (item: T, index: number, event: MouseEvent) => {
+    const itemId = getItemKey(item, index)
+    const currentSelection = selectedRows.value || new Set()
+    const newSelection = new Set(currentSelection)
+
+    if (event.shiftKey && lastClickedIndex.value !== null) {
+        // Shift+click: select range
+        const start = Math.min(lastClickedIndex.value, index)
+        const end = Math.max(lastClickedIndex.value, index)
+
+        for (let i = start; i <= end; i++) {
+            if (items[i]) {
+                newSelection.add(getItemKey(items[i], i))
+            }
+        }
+    } else if (event.ctrlKey || event.metaKey) {
+        // Ctrl/Cmd+click: toggle single selection
+        if (newSelection.has(itemId)) {
+            newSelection.delete(itemId)
+        } else {
+            newSelection.add(itemId)
+        }
+    } else {
+        // Regular click: select only this row
+        newSelection.clear()
+        newSelection.add(itemId)
+    }
+
+    // Update selection
+    if (modelValue !== undefined) {
+        emit("update:modelValue", newSelection)
+    } else if (selectable) {
+        internalSelection.value = newSelection
+    }
+    
+    emit("selection-change", newSelection)
+    lastClickedIndex.value = index
+}
+
+// Clear selection
+const clearSelection = () => {
+    const newSelection = new Set<string | number>()
+    
+    if (modelValue !== undefined) {
+        emit("update:modelValue", newSelection)
+    } else if (selectable) {
+        internalSelection.value = newSelection
+    }
+    
+    emit("selection-change", newSelection)
+    lastClickedIndex.value = null
+}
+
+// Get selected items
+const getSelectedItems = (): T[] => {
+    const selection = selectedRows.value
+    if (!selection) return []
+    
+    return items.filter((item, index) => 
+        selection.has(getItemKey(item, index))
+    )
+}
+
+// Expose methods for parent components
+defineExpose({
+    clearSelection,
+    getSelectedItems,
+    selectedRows: selectedRows,
+})
 
 // Handle mousedown to prevent text selection on shift+click
 const handleMouseDown = (event: MouseEvent) => {
@@ -280,7 +389,8 @@ const getSortDirection = (column: Column): "asc" | "desc" | "none" => {
 // Get row style based on rowColor function
 const getRowClass = (item: T, index: number): string | string[] | undefined => {
     // If row is selected, don't apply custom color (selection takes priority)
-    if (selectedRows?.has(getItemKey(item, index))) {
+    const selection = selectedRows.value
+    if (selection && selection.has(getItemKey(item, index))) {
         return
     }
 

@@ -161,12 +161,14 @@
 
             <!-- DataTable for workloads -->
             <DataTable
+                ref="dataTableRef"
                 :items="paginatedWorkloads"
                 :columns="columns"
                 item-key="id"
                 empty-message="Aucune charge de travail définie"
-                :selected-rows="selectedRows"
-                @row-click="handleRowClick"
+                v-model="selectedRows"
+                @selection-change="handleSelectionChange"
+                selectable
             >
                 <!-- Month column -->
                 <template #cell:monthYear="{ item }">
@@ -398,7 +400,8 @@ const bulkUpdateData = reactive({
 // Pagination state
 const currentPage = ref(1)
 const itemsPerPage = ref(24)
-const selectedRows = ref(new Set<number>())
+const selectedRows = ref<Set<string | number>>(new Set())
+const dataTableRef = ref<any>(null)
 
 const monthNames = [
     "Janvier",
@@ -545,21 +548,12 @@ const cancelBulkCreate = () => {
 }
 
 // Selection functions
-const handleRowClick = (item: WorkloadResponse, _index: number, event: MouseEvent) => {
-    // Handle multi-selection with shift and ctrl/cmd keys
-    if (event.shiftKey || event.ctrlKey || event.metaKey) {
-        if (selectedRows.value.has(item.id)) {
-            selectedRows.value.delete(item.id)
-        } else {
-            selectedRows.value.add(item.id)
-        }
-        // Trigger reactivity
-        selectedRows.value = new Set(selectedRows.value)
-    }
+const handleSelectionChange = (newSelection: Set<string | number>) => {
+    selectedRows.value = newSelection
 }
 
 const clearSelection = () => {
-    selectedRows.value = new Set()
+    dataTableRef.value?.clearSelection()
 }
 
 // Bulk operations
@@ -571,14 +565,14 @@ const bulkDeleteWorkloads = async () => {
     try {
         // Delete each selected workload
         for (const id of selectedRows.value) {
-            await removeWorkload({ params: { id } })
+            await removeWorkload({ params: { id: Number(id) } })
         }
 
         // Remove deleted workloads from the list
         workloads.value = workloads.value.filter((w) => !selectedRows.value.has(w.id))
 
         // Clear selection and close dialog
-        selectedRows.value = new Set()
+        clearSelection()
         showBulkDeleteConfirm.value = false
 
         // Reset page if current page is empty
@@ -601,12 +595,12 @@ const bulkUpdateWorkloads = async () => {
         // Update each selected workload
         for (const id of selectedRows.value) {
             const result = await updateWorkload({
-                params: { id },
+                params: { id: Number(id) },
                 body: { workload: bulkUpdateData.workload },
             })
 
             if (result) {
-                const index = workloads.value.findIndex((w) => w.id === id)
+                const index = workloads.value.findIndex((w) => w.id === Number(id))
                 if (index !== -1) {
                     workloads.value[index] = {
                         ...workloads.value[index],
@@ -617,7 +611,7 @@ const bulkUpdateWorkloads = async () => {
         }
 
         // Clear selection and close form
-        selectedRows.value = new Set()
+        clearSelection()
         cancelBulkUpdate()
     } catch (error) {
         console.error("Error during bulk update:", error)

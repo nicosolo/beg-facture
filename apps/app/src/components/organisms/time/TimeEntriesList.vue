@@ -42,6 +42,7 @@
         </div>
 
         <DataTable
+            ref="dataTableRef"
             showFooter
             :items="activities"
             :columns="columns"
@@ -49,8 +50,9 @@
             :empty-message="emptyMessage"
             :sort="sort"
             @sort-change="handleSort"
-            @row-click="handleRowClick"
-            :selected-rows="selectedRows"
+            v-model="selectedRows"
+            @selection-change="handleSelectionChange"
+            selectable
         >
             <template #cell:user="{ item }">
                 {{ item.user ? `${item.user.initials}` : "-" }}
@@ -60,7 +62,7 @@
                 <TruncateWithTooltip
                     :content="item.project?.name"
                     placement="right"
-                    :disabled="item.project?.name.length < 20"
+                    :disabled="!item.project?.name || item.project.name.length < 20"
                 >
                     <span class="font-medium mr-2">{{ item.project?.projectNumber }}</span>
                     <span class="text-sm text-gray-600">{{
@@ -169,8 +171,8 @@ const emit = defineEmits<{
 const updateActivityApi = useUpdateActivity()
 
 // Selection state
-const selectedRows = ref<Set<number>>(new Set())
-const lastClickedIndex = ref<number | null>(null)
+const selectedRows = ref<Set<string | number>>(new Set())
+const dataTableRef = ref<any>(null)
 
 const defaultColumns: Column[] = [
     { key: "date", label: t("time.columns.date"), sortKey: "date", width: "7rem" },
@@ -204,35 +206,9 @@ const handleSort = ({ key, direction }: { key: string; direction: "asc" | "desc"
     emit("sort-change", { key, direction })
 }
 
-// Handle row click for selection
-const handleRowClick = (item: ActivityResponse, index: number, event: MouseEvent) => {
-    const newSelection = new Set(selectedRows.value)
-
-    if (event.shiftKey && lastClickedIndex.value !== null) {
-        // Shift+click: select range
-        const start = Math.min(lastClickedIndex.value, index)
-        const end = Math.max(lastClickedIndex.value, index)
-
-        for (let i = start; i <= end; i++) {
-            if (props.activities[i]) {
-                newSelection.add(props.activities[i].id)
-            }
-        }
-    } else if (event.ctrlKey || event.metaKey) {
-        // Ctrl/Cmd+click: toggle single selection
-        if (newSelection.has(item.id)) {
-            newSelection.delete(item.id)
-        } else {
-            newSelection.add(item.id)
-        }
-    } else {
-        // Regular click: select only this row
-        newSelection.clear()
-        newSelection.add(item.id)
-    }
-
+// Handle selection change from DataTable
+const handleSelectionChange = (newSelection: Set<string | number>) => {
     selectedRows.value = newSelection
-    lastClickedIndex.value = index
 }
 
 // Update billed status
@@ -273,7 +249,7 @@ const updateDisbursementStatus = async (activityId: number, disbursement: boolea
 const updateSelectedRows = async (field: "billed" | "disbursement", value: boolean) => {
     const promises = Array.from(selectedRows.value).map((id) =>
         updateActivityApi.put({
-            params: { id },
+            params: { id: Number(id) },
             body: { [field]: value },
         })
     )
@@ -306,7 +282,7 @@ const updateSelectedRows = async (field: "billed" | "disbursement", value: boole
 
 // Clear selection
 const clearSelection = () => {
-    selectedRows.value = new Set()
+    dataTableRef.value?.clearSelection()
 }
 
 // Expose bulk update method for parent components

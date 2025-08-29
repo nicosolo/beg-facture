@@ -69,7 +69,6 @@
                         >
                         <DurationInput
                             v-model="activity.duration"
-                            :step="15"
                             :disabled="loading"
                             :required="true"
                         />

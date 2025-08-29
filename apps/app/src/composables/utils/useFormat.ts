@@ -24,17 +24,9 @@ export const useFormat = () => {
     const formatDuration = (duration: number | null | undefined) => {
         if (duration === undefined || duration === null) return "-"
 
-        // Format duration in hours
-        const hours = Math.floor(duration / 60)
-        const minutes = duration % 60
-
-        if (hours === 0) {
-            return `${minutes}m`
-        }
-
-        return minutes === 0
-            ? `${formatNumber(hours, 0)}h`
-            : `${formatNumber(hours, 0)}h ${formatNumber(minutes, 0)}m`
+        const hours = duration / 60
+        const roundedHours = Math.round(hours * 100) / 100
+        return roundedHours
     }
 
     const formatDate = (date: Date | null | undefined) => {

@@ -6,6 +6,7 @@ import {
     projectTypeUpdateSchema,
     projectTypesArraySchema,
     idParamSchema,
+    messageSchema,
     type ProjectTypeSchema,
 } from "@beg/validations"
 import { projectTypeRepository } from "../db/repositories/projectType.repository"
@@ -102,15 +103,22 @@ export const projectTypeRoutes = new Hono<{ Variables: Variables }>()
     )
 
     // Delete project type
-    .delete("/:id", zValidator("param", idParamSchema), async (c) => {
-        const { id } = c.req.valid("param")
+    .delete(
+        "/:id",
+        zValidator("param", idParamSchema),
+        responseValidator({
+            200: messageSchema,
+        }),
+        async (c) => {
+            const { id } = c.req.valid("param")
 
-        // Check if project type exists
-        const existingProjectType = await projectTypeRepository.findById(id)
-        if (!existingProjectType) {
-            return c.json({ error: "Project type not found" }, 404)
+            // Check if project type exists
+            const existingProjectType = await projectTypeRepository.findById(id)
+            if (!existingProjectType) {
+                return c.json({ error: "Project type not found" }, 404)
+            }
+
+            await projectTypeRepository.delete(id)
+            return c.render({ message: "Project type deleted successfully" }, 200)
         }
-
-        await projectTypeRepository.delete(id)
-        return c.json({ message: "Project type deleted successfully" }, 200)
-    })
+    )

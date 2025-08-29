@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm"
 import { db } from "../index"
-import { activityTypes, users } from "../schema"
+import { activityTypes } from "../schema"
 import type {
     ActivityTypeResponse,
     ActivityTypeCreateInput,

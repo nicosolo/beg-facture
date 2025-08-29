@@ -9,7 +9,6 @@ import TimeListView from "../views/time/TimeListView.vue"
 import TariffListView from "../views/tariff/TariffListView.vue"
 import ProjectEditView from "../views/project/ProjectEditView.vue"
 import ProjectTypeListView from "../views/projectType/ProjectTypeListView.vue"
-import ProjectTypeEditView from "../views/projectType/ProjectTypeEditView.vue"
 import ProjectPreviewView from "../views/project/ProjectPreviewView.vue"
 import ActivityTypeListView from "../views/activityType/ActivityTypeListView.vue"
 import LocationListView from "../views/location/LocationListView.vue"
@@ -53,18 +52,6 @@ const router = createRouter({
             meta: { requiresAuth: true },
         },
         // Project Type routes
-        {
-            path: "/project-type/new",
-            name: "project-type-new",
-            component: ProjectTypeEditView,
-            meta: { requiresAuth: true },
-        },
-        {
-            path: "/project-type/:id/edit",
-            name: "project-type-edit",
-            component: ProjectTypeEditView,
-            meta: { requiresAuth: true },
-        },
         {
             path: "/project-type",
             name: "project-type-list",

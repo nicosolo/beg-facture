@@ -3,11 +3,11 @@
         <div class="container mx-auto">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-bold">Types de mandat</h1>
-                <Button variant="primary" :to="{ name: 'project-type-new' }"> Nouveau type </Button>
+                <Button variant="primary" @click="openCreateDialog"> Nouveau type </Button>
             </div>
 
             <DataTable
-                :items="projectTypes"
+                :items="projectTypes || []"
                 :columns="columns"
                 item-key="id"
                 empty-message="Aucun type de mandat trouvé"
@@ -17,7 +17,7 @@
                         <Button
                             variant="ghost-primary"
                             size="sm"
-                            :to="{ name: 'project-type-edit', params: { id: item.id } }"
+                            @click="openEditDialog(item)"
                         >
                             Modifier
                         </Button>
@@ -25,7 +25,6 @@
                             variant="ghost-danger"
                             size="sm"
                             @click="confirmDelete(item)"
-                            className="text-red-600 hover:text-red-900"
                             :disabled="deletingProjectType"
                         >
                             Supprimer
@@ -35,84 +34,145 @@
             </DataTable>
         </div>
 
-        <!-- Delete Confirmation Dialog -->
-        <Dialog v-model="showDeleteDialog" title="Confirmer la suppression">
-            <p class="text-sm text-gray-500">
-                Êtes-vous sûr de vouloir supprimer le type de mandat "{{ currentProjectType.name }}"
-                ? Cette action ne peut pas être annulée.
-            </p>
-
-            <template #footer>
-                <Button
-                    variant="primary"
-                    class="ml-3 bg-red-600 hover:bg-red-700"
-                    @click="deleteProjectType"
-                    :disabled="deletingProjectType"
-                >
-                    {{ deletingProjectType ? "Suppression..." : "Supprimer" }}
-                </Button>
-                <Button variant="secondary" @click="showDeleteDialog = false"> Annuler </Button>
-            </template>
+        <!-- Create/Edit Dialog -->
+        <Dialog
+            v-model="showDialog"
+            :title="dialogTitle"
+            size="md"
+        >
+            <ProjectTypeForm
+                :project-type="selectedProjectType"
+                :loading="savingProjectType"
+                @submit="handleSave"
+                @cancel="closeDialog"
+            />
         </Dialog>
+
+        <!-- Delete Confirmation Dialog -->
+        <ConfirmDialog
+            v-model="showDeleteDialog"
+            title="Confirmer la suppression"
+            :message="`Êtes-vous sûr de vouloir supprimer le type de mandat '${projectTypeToDelete?.name}' ?`"
+            type="danger"
+            confirm-text="Supprimer"
+            cancel-text="Annuler"
+            @confirm="deleteProjectType"
+        />
     </LoadingOverlay>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue"
-import Button from "../../components/atoms/Button.vue"
-import DataTable from "../../components/molecules/DataTable.vue"
-import Dialog from "../../components/molecules/Dialog.vue"
+import { ref, computed, onMounted } from "vue"
+import Button from "@/components/atoms/Button.vue"
+import DataTable from "@/components/molecules/DataTable.vue"
+import Dialog from "@/components/molecules/Dialog.vue"
+import ConfirmDialog from "@/components/molecules/ConfirmDialog.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
-import { useFetchProjectTypes, useDeleteProjectType } from "@/composables/api/useProjectType"
+import ProjectTypeForm from "@/components/organisms/ProjectTypeForm.vue"
+import { 
+    useFetchProjectTypes, 
+    useCreateProjectType, 
+    useUpdateProjectType,
+    useDeleteProjectType 
+} from "@/composables/api/useProjectType"
+import { useAlert } from "@/composables/utils/useAlert"
 import type { ProjectTypeSchema } from "@beg/validations"
 
-const columns = [
-    { key: "id", label: "ID", width: "w-1/3" as "w-1/3" },
-    { key: "name", label: "Type de mandat" },
-    { key: "actions", label: "Actions" },
-]
-
-// API client
-const { get: fetchProjectTypes, loading, data: projectTypesData } = useFetchProjectTypes()
+// API composables
+const { get: fetchProjectTypes, loading, data: projectTypes } = useFetchProjectTypes()
+const { post: createProjectType, loading: creatingProjectType } = useCreateProjectType()
+const { put: updateProjectType, loading: updatingProjectType } = useUpdateProjectType()
 const { delete: deleteProjectTypeApi, loading: deletingProjectType } = useDeleteProjectType()
 
-const projectTypes = ref<ProjectTypeSchema[]>([])
+// Alert composable
+const { successAlert, errorAlert } = useAlert()
 
-// Dialog state
+// State
+const showDialog = ref(false)
 const showDeleteDialog = ref(false)
-const currentProjectType = ref<ProjectTypeSchema>({
-    id: 0,
-    name: "",
-    createdAt: null,
-    updatedAt: null,
-})
+const selectedProjectType = ref<ProjectTypeSchema | null>(null)
+const projectTypeToDelete = ref<ProjectTypeSchema | null>(null)
+
+// Computed
+const savingProjectType = computed(() => creatingProjectType.value || updatingProjectType.value)
+const dialogTitle = computed(() => selectedProjectType.value ? 'Modifier le type de mandat' : 'Nouveau type de mandat')
+
+const columns = [
+    { key: "id", label: "ID", width: "20%" },
+    { key: "name", label: "Type de mandat", width: "60%" },
+    { key: "actions", label: "Actions", width: "20%", actions: true },
+]
 
 // Load project types on mount
 onMounted(async () => {
     await fetchProjectTypes({})
 })
 
-// Watch for API data changes
-watch(projectTypesData, (newData) => {
-    if (newData) {
-        projectTypes.value = newData
-    }
-})
+// Dialog handlers
+const openCreateDialog = () => {
+    selectedProjectType.value = null
+    showDialog.value = true
+}
 
-// Open delete confirmation dialog
-const confirmDelete = (item: ProjectTypeSchema) => {
-    currentProjectType.value = { ...item }
+const openEditDialog = (projectType: ProjectTypeSchema) => {
+    selectedProjectType.value = projectType
+    showDialog.value = true
+}
+
+const closeDialog = () => {
+    showDialog.value = false
+    selectedProjectType.value = null
+}
+
+// Save handler
+const handleSave = async (data: { name: string }) => {
+    try {
+        if (selectedProjectType.value) {
+            // Update existing project type
+            await updateProjectType({
+                params: { id: selectedProjectType.value.id },
+                body: data
+            })
+            successAlert(`Type de mandat '${data.name}' modifié avec succès`)
+        } else {
+            // Create new project type
+            await createProjectType({
+                body: data
+            })
+            successAlert(`Type de mandat '${data.name}' créé avec succès`)
+        }
+        
+        // Reload data and close dialog
+        await fetchProjectTypes({})
+        closeDialog()
+    } catch (error) {
+        console.error("Error saving project type:", error)
+        errorAlert(selectedProjectType.value ? 
+            "Erreur lors de la modification du type de mandat" : 
+            "Erreur lors de la création du type de mandat"
+        )
+    }
+}
+
+// Delete handlers
+const confirmDelete = (projectType: ProjectTypeSchema) => {
+    projectTypeToDelete.value = projectType
     showDeleteDialog.value = true
 }
 
-// Delete project type
 const deleteProjectType = async () => {
+    if (!projectTypeToDelete.value) return
+
     try {
-        await deleteProjectTypeApi({ params: { id: currentProjectType.value.id } })
+        await deleteProjectTypeApi({ params: { id: projectTypeToDelete.value.id } })
+        successAlert(`Type de mandat '${projectTypeToDelete.value.name}' supprimé avec succès`)
         await fetchProjectTypes({}) // Reload data
         showDeleteDialog.value = false
+        projectTypeToDelete.value = null
     } catch (error) {
         console.error("Error deleting project type:", error)
+        errorAlert("Erreur lors de la suppression du type de mandat")
+        showDeleteDialog.value = false
     }
 }
 </script>

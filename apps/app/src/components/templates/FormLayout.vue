@@ -62,6 +62,10 @@
                     <slot name="actions" />
                 </div>
             </div>
+            <!-- Form Content -->
+            <div class="px-6 py-6">
+                <slot name="footer" />
+            </div>
         </Card>
     </div>
 </template>

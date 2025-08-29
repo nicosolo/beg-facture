@@ -162,13 +162,21 @@
                 </div>
             </div>
 
+            <!-- Workloads Section -->
         </form>
-
+        <template #footer>
+            <UserWorkloadList v-if="userData?.id" :user-id="userData.id" />
+        </template>
         <template #actions>
             <Button variant="secondary" type="button" :to="{ name: 'collaborator-list' }">
                 Annuler
             </Button>
-            <Button variant="primary" type="submit" form="collaboratorForm" :disabled="loadingCreate || loadingUpdate">
+            <Button
+                variant="primary"
+                type="submit"
+                form="collaboratorForm"
+                :disabled="loadingCreate || loadingUpdate"
+            >
                 {{ loadingCreate || loadingUpdate ? "Enregistrement..." : "Enregistrer" }}
             </Button>
         </template>
@@ -187,6 +195,7 @@ import {
     useUpdateUser,
 } from "../../composables/api/useUser"
 import { useFetchActivityTypes } from "../../composables/api/useActivityType"
+import UserWorkloadList from "@/components/organisms/UserWorkloadList.vue"
 import type { UserCreateInput, UserUpdateInput, ActivityTypeResponse } from "@beg/validations"
 
 interface ActivityRate {
@@ -274,7 +283,7 @@ const initializeDefaultClasses = () => {
 
 const saveCollaborator = async () => {
     errorMessage.value = null
-    
+
     try {
         // Collect activity rates from selected activities
         const activityRates = Object.keys(selectedActivities.value)

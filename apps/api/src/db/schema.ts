@@ -388,3 +388,26 @@ export const invoiceAdjudications = sqliteTable(
         index("invoice_adjudications_invoice_idx").on(table.invoiceId),
     ]
 )
+
+// Workloads table
+export const workloads = sqliteTable(
+    "workloads",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        userId: integer("userId")
+            .notNull()
+            .references(() => users.id, { onDelete: "cascade" }),
+        year: integer("year").notNull(),
+        month: integer("month").notNull(),
+        workload: integer("workload").notNull(), // Percentage (0-100)
+        ...timestamps,
+    },
+    (table) => [
+        // Composite index for user-year-month queries
+        index("workloads_user_year_month_idx").on(table.userId, table.year, table.month),
+        // Index for user queries
+        index("workloads_user_idx").on(table.userId),
+        // Index for year queries
+        index("workloads_year_idx").on(table.year),
+    ]
+)

@@ -12,6 +12,7 @@ import {
     activityTypes,
     activities,
     invoices,
+    workloads,
 } from "./schema"
 import bcrypt from "bcrypt"
 import { eq, and } from "drizzle-orm"
@@ -21,7 +22,7 @@ import { hashPassword } from "@src/tools/auth"
 import type {
     ActivityRateUser,
     ClassSchema,
-    CompanySchema,
+    Company,
     ProjectAccessLevel,
     UserRole,
 } from "@beg/validations"
@@ -73,6 +74,7 @@ async function resetDatabase() {
     await db.delete(clients)
     await db.delete(companies)
     await db.delete(locations)
+    await db.delete(workloads)
     await db.delete(users)
     await db.delete(invoices)
 
@@ -246,7 +248,7 @@ async function importCompanies() {
             name: rawCompany.Entreprise,
             createdAt: new Date(),
             updatedAt: new Date(),
-        } as CompanySchema
+        } as Company
 
         await db.insert(companies).values(company)
     }
@@ -565,6 +567,84 @@ async function importProjectAccess() {
 
     console.log(`Created ${imported} access entries`)
 }
+
+async function importWorkloads() {
+    console.log("Importing workloads from Taux.json...")
+    const workloadData = await readJsonFile("Taux")
+
+    if (workloadData.length === 0) {
+        console.log("No workload data found in Taux.json")
+        return
+    }
+
+    // Process in chunks for bulk insert
+    const chunkSize = 1000
+    let imported = 0
+    const erroredEntries: any[] = []
+
+    for (let i = 0; i < workloadData.length; i += chunkSize) {
+        const chunk = workloadData.slice(i, i + chunkSize)
+        const chunkWorkloads = []
+
+        for (const rawWorkload of chunk) {
+            // Validate required fields
+            if (!rawWorkload.IDcollaborateur || !rawWorkload.Année || !rawWorkload.Mois) {
+                erroredEntries.push({
+                    data: rawWorkload,
+                    reason: "Missing required fields",
+                })
+                continue
+            }
+
+            // Check if user exists
+            const userId = rawWorkload.IDcollaborateur
+            const user = await db
+                .select({ id: users.id })
+                .from(users)
+                .where(eq(users.id, userId))
+                .limit(1)
+
+            if (user.length === 0) {
+                erroredEntries.push({
+                    data: rawWorkload,
+                    reason: `User with ID ${userId} not found`,
+                })
+                continue
+            }
+
+            const workload = {
+                userId: rawWorkload.IDcollaborateur,
+                year: rawWorkload.Année,
+                month: rawWorkload.Mois,
+                workload: rawWorkload.Taux || 100, // Default to 100% if not specified
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            } satisfies typeof workloads.$inferInsert
+
+            chunkWorkloads.push(workload)
+            imported++
+        }
+
+        // Bulk insert the chunk
+        if (chunkWorkloads.length > 0) {
+            await db.insert(workloads).values(chunkWorkloads)
+            console.log(`Imported ${imported} / ${workloadData.length} workloads`)
+        }
+    }
+
+    if (erroredEntries.length > 0) {
+        console.warn(`Failed to import ${erroredEntries.length} workload entries:`)
+        erroredEntries.slice(0, 5).forEach((entry) => {
+            console.warn(`  - User ${entry.data.IDcollaborateur}: ${entry.reason}`)
+        })
+        if (erroredEntries.length > 5) {
+            console.warn(`  ... and ${erroredEntries.length - 5} more`)
+        }
+    }
+
+    console.log(`Imported ${imported} workloads total`)
+}
+
 const importFunctions = [
     resetDatabase, // Add database reset as the first function to run
     importUsers,
@@ -578,6 +658,7 @@ const importFunctions = [
     importActivityTypes,
     importActivities,
     importProjectAccess,
+    importWorkloads,
 ]
 for (const importFunction of importFunctions) {
     console.log(`Running ${importFunction.name}`)

@@ -12,7 +12,7 @@
             </div>
 
             <!-- Project Filter -->
-            <div class="form-group">
+            <div class="form-group" v-if="showProjectFilter">
                 <Label>{{ $t("time.filters.project") }}</Label>
                 <ProjectSelect
                     v-model="localFilter.projectId"
@@ -93,15 +93,15 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue"
-import Label from "../atoms/Label.vue"
-import Select from "../atoms/Select.vue"
-import Button from "../atoms/Button.vue"
-import DateField from "../molecules/DateField.vue"
-import ProjectSelect from "./project/ProjectSelect.vue"
+import Label from "@/components/atoms/Label.vue"
+import Select from "@/components/atoms/Select.vue"
+import Button from "@/components/atoms/Button.vue"
+import DateField from "@/components/molecules/DateField.vue"
+import ProjectSelect from "@/components/organisms/project/ProjectSelect.vue"
 import { useFetchUsers } from "@/composables/api/useUser"
 import { useFetchActivityTypes } from "@/composables/api/useActivityType"
 import type { ActivityFilter } from "@beg/validations"
-import UserSelect from "./user/UserSelect.vue"
+import UserSelect from "@/components/organisms/user/UserSelect.vue"
 
 export interface TimeFilterModel {
     userId?: number
@@ -121,16 +121,17 @@ export type TimeFilters = TimeFilterModel
 
 interface Props {
     filter: TimeFilterModel
+    showProjectFilter?: boolean
 }
 
-const props = defineProps<Props>()
+const { filter, showProjectFilter = true } = defineProps<Props>()
 
 const emit = defineEmits<{
     "update:filter": [value: TimeFilterModel]
 }>()
 
 // Local filter state
-const localFilter = ref<TimeFilterModel>({ ...props.filter })
+const localFilter = ref<TimeFilterModel>({ ...filter })
 
 // Fetch data for dropdowns
 const { get: fetchUsers, loading: loadingUsers, data: usersData } = useFetchUsers()
@@ -164,7 +165,7 @@ watch(activityTypesData, (newData) => {
 
 // Watch for prop changes
 watch(
-    () => props.filter,
+    () => filter,
     (newFilter) => {
         localFilter.value = { ...newFilter }
     },

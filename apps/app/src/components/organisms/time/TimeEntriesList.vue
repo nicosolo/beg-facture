@@ -128,13 +128,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { useI18n } from "vue-i18n"
-import DataTable, { type Column } from "../molecules/DataTable.vue"
-import Button from "../atoms/Button.vue"
+import DataTable, { type Column } from "@/components/molecules/DataTable.vue"
+import Button from "@/components/atoms/Button.vue"
 import { useFormat } from "@/composables/utils/useFormat"
 import { useUpdateActivity } from "@/composables/api/useActivity"
 import type { ActivityResponse } from "@beg/validations"
 import { truncateText } from "@/utils/text"
-import TruncateWithTooltip from "../atoms/TruncateWithTooltip.vue"
+import TruncateWithTooltip from "@/components/atoms/TruncateWithTooltip.vue"
 import { useAlert } from "@/composables/utils/useAlert"
 
 const { formatDuration, formatDate, formatNumber, formatCurrency } = useFormat()

@@ -106,6 +106,7 @@ export const activityRepository = {
         })()
 
         const sortDirection = sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn)
+        const secondarySort = sortOrder === "desc" ? desc(activities.id) : asc(activities.id)
 
         // Query with conditions
         const baseQuery = db
@@ -156,10 +157,10 @@ export const activityRepository = {
         const data = await (whereConditions.length > 0
             ? baseQuery
                   .where(and(...whereConditions))
-                  .orderBy(sortDirection)
+                  .orderBy(sortDirection, secondarySort)
                   .limit(limit)
                   .offset(offset)
-            : baseQuery.orderBy(sortDirection).limit(limit).offset(offset))
+            : baseQuery.orderBy(sortDirection, secondarySort).limit(limit).offset(offset))
 
         // Count total with same filters and access control
         const countQuery = db

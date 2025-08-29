@@ -95,10 +95,10 @@ import { ref, computed, onMounted, watch } from "vue"
 import { useRoute } from "vue-router"
 import { useI18n } from "vue-i18n"
 import Button from "@/components/atoms/Button.vue"
-import TimeEntriesList from "@/components/organisms/TimeEntriesList.vue"
+import TimeEntriesList from "@/components/organisms/time/TimeEntriesList.vue"
 import { useFormat } from "@/composables/utils/useFormat"
-import type { TimeEntry } from "@/components/organisms/TimeEntriesList.vue"
-import TimeFilterPanel from "@/components/organisms/TimeFilterPanel.vue"
+import type { TimeEntry } from "@/components/organisms/time/TimeEntriesList.vue"
+import TimeFilterPanel from "@/components/organisms/time/TimeFilterPanel.vue"
 import { useFetchProject } from "@/composables/api/useProject"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 
@@ -155,7 +155,7 @@ const timeEntries = ref<TimeEntry[]>([])
 onMounted(async () => {
     console.log("projectId", projectId.value)
     if (projectId.value && !isNaN(projectId.value)) {
-        await fetchProject({ id: projectId.value })
+        await fetchProject({ params: { id: projectId.value } })
     }
 })
 

@@ -1,7 +1,7 @@
 <template>
     <h1 class="text-2xl font-bold mb-6">{{ $t("time.title") }}</h1>
 
-    <TimeFilterPanel v-model:filter="filter" />
+    <TimeFilterPanel v-model:filter="filter" :show-project-filter="showProjectFilter" />
     <LoadingOverlay :loading="loading">
         <TimeEntriesList
             :activities="activities"
@@ -36,11 +36,13 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from "vue"
 import { useFetchActivityList } from "@/composables/api/useActivity"
-import TimeFilterPanel, { type TimeFilterModel } from "@/components/organisms/TimeFilterPanel.vue"
-import TimeEntriesList from "@/components/organisms/TimeEntriesList.vue"
+import TimeFilterPanel, {
+    type TimeFilterModel,
+} from "@/components/organisms/time/TimeFilterPanel.vue"
+import TimeEntriesList from "@/components/organisms/time/TimeEntriesList.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
-import TimeEntryModal from "@/components/organisms/TimeEntryModal.vue"
+import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@beg/validations"
 import { useRoute } from "vue-router"
 
@@ -60,6 +62,9 @@ const route = useRoute()
 const showTimeEntryModal = ref(false)
 const selectedActivityId = ref<number | null>(null)
 // Filter state
+const showProjectFilter = computed(() => {
+    return !filter.value.projectId
+})
 const filter = ref<TimeFilterModel>({
     userId: undefined,
     projectId: (route.query.projectId as unknown as number) || undefined,

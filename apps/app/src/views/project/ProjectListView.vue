@@ -40,7 +40,7 @@ import ProjectFilterPanel, {
 import ProjectTable from "@/components/organisms/project/ProjectTable.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
-import TimeEntryModal from "@/components/organisms/TimeEntryModal.vue"
+import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import type { PageResponse, ProjectFilter, ProjectResponse } from "@beg/validations"
 
 // Initialize i18n

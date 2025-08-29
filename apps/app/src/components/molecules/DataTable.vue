@@ -38,6 +38,7 @@
                             ? 'bg-blue-100 hover:bg-blue-200'
                             : 'hover:bg-gray-100',
                     ]"
+                    :style="getRowStyle(item, index)"
                     @click="handleRowClick(item, index, $event)"
                     @mousedown="handleMouseDown($event)"
                 >
@@ -130,7 +131,7 @@
     </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" generic="T = unknown">
 import { computed } from "vue"
 import SortIcon from "../atoms/SortIcon.vue"
 import TruncateWithTooltip from "../atoms/TruncateWithTooltip.vue"
@@ -159,18 +160,19 @@ export interface Column {
     tooltipPlacement?: "top" | "bottom" | "left" | "right"
 }
 
-interface Props {
-    items: any[]
+interface Props<T = unknown> {
+    items: T[]
     columns: Column[]
-    itemKey?: string
+    itemKey?: keyof T | string
     emptyMessage?: string
     showFooter?: boolean
     sort?: { key: string; direction: "asc" | "desc" }
     selectedRows?: Set<string | number>
+    rowColor?: (item: T, index: number) => string | undefined
 }
 const emit = defineEmits<{
     (e: "sort-change", sort: { key: string; direction: "asc" | "desc" }): void
-    (e: "row-click", item: any, index: number, event: MouseEvent): void
+    (e: "row-click", item: T, index: number, event: MouseEvent): void
 }>()
 const {
     items,
@@ -180,7 +182,8 @@ const {
     showFooter = false,
     sort,
     selectedRows,
-} = defineProps<Props>()
+    rowColor,
+} = defineProps<Props<T>>()
 
 // Generate grid template columns based on column widths
 const gridTemplateColumns = computed(() => {
@@ -210,16 +213,16 @@ const gridTemplateColumns = computed(() => {
 })
 
 // Get a unique key for each item
-const getItemKey = (item: any, index: number): string | number => {
-    if (itemKey && item[itemKey] !== undefined) {
-        return item[itemKey]
+const getItemKey = (item: T, index: number): string | number => {
+    if (itemKey && item[itemKey as keyof T] !== undefined) {
+        return item[itemKey as keyof T] as string | number
     }
     return index
 }
 
 // Get the value for a cell based on the column key
-const getItemValue = (item: any, column: Column): string => {
-    const value = item[column.key]
+const getItemValue = (item: T, column: Column): string => {
+    const value = item[column.key as keyof T]
 
     if (value === undefined || value === null) {
         return ""
@@ -248,7 +251,7 @@ const handleSort = (column: Column) => {
 }
 
 // Handle row click
-const handleRowClick = (item: any, index: number, event: MouseEvent) => {
+const handleRowClick = (item: T, index: number, event: MouseEvent) => {
     // Ignore click if user has selected text
     if (window.getSelection()?.toString()) {
         return
@@ -272,5 +275,23 @@ const getSortDirection = (column: Column): "asc" | "desc" | "none" => {
     if (sort.key !== sortKey) return "none"
 
     return sort.direction
+}
+
+// Get row style based on rowColor function
+const getRowStyle = (item: T, index: number): { backgroundColor?: string } => {
+    // If row is selected, don't apply custom color (selection takes priority)
+    if (selectedRows?.has(getItemKey(item, index))) {
+        return {}
+    }
+
+    // Apply custom color if rowColor function is provided
+    if (rowColor) {
+        const color = rowColor(item, index)
+        if (color) {
+            return { backgroundColor: color }
+        }
+    }
+
+    return {}
 }
 </script>

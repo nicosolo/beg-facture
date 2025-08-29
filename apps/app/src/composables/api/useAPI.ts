@@ -3,7 +3,9 @@ import { hc } from "hono/client"
 import type { ApiRoutes } from "@beg/api"
 import { z } from "zod"
 import { useAuthStore } from "../../stores/auth"
-import { parseApiError } from "@/utils/api-error"
+import { ApiError, parseApiError } from "@/utils/api-error"
+import { useAlert } from "../utils/useAlert"
+import { useI18n } from "vue-i18n"
 
 interface ApiSchemas {
     query?: z.ZodType<any>
@@ -88,6 +90,8 @@ export function useGet<
         params?: TSchemas["params"]
     }
 ) {
+    const { t } = useI18n()
+    const { errorAlert } = useAlert()
     const loading = ref(false)
     const error = ref<string | null>(null)
     const data = ref<TResponse | null>(null)
@@ -109,6 +113,9 @@ export function useGet<
             return result as TResponse
         } catch (e) {
             error.value = e instanceof Error ? e.message : "Unknown error"
+            if (e instanceof ApiError) {
+                errorAlert(e.getLocalizedMessage(t))
+            }
             throw e
         } finally {
             loading.value = false
@@ -136,6 +143,8 @@ export function usePost<
         params?: TSchemas["params"]
     }
 ) {
+    const { t } = useI18n()
+    const { errorAlert } = useAlert()
     const loading = ref(false)
     const error = ref<string | null>(null)
     const data = ref<TResponse | null>(null)
@@ -157,6 +166,9 @@ export function usePost<
             return result as TResponse
         } catch (e) {
             error.value = e instanceof Error ? e.message : "Unknown error"
+            if (e instanceof ApiError) {
+                errorAlert(e.getLocalizedMessage(t))
+            }
             throw e
         } finally {
             loading.value = false
@@ -184,6 +196,8 @@ export function usePut<
         params?: TSchemas["params"]
     }
 ) {
+    const { t } = useI18n()
+    const { errorAlert } = useAlert()
     const loading = ref(false)
     const error = ref<string | null>(null)
     const data = ref<TResponse | null>(null)
@@ -205,6 +219,9 @@ export function usePut<
             return result as TResponse
         } catch (e) {
             error.value = e instanceof Error ? e.message : "Unknown error"
+            if (e instanceof ApiError) {
+                errorAlert(e.getLocalizedMessage(t))
+            }
             throw e
         } finally {
             loading.value = false
@@ -230,6 +247,8 @@ export function useDelete<
         params?: TSchemas["params"]
     }
 ) {
+    const { t } = useI18n()
+    const { errorAlert } = useAlert()
     const loading = ref(false)
     const error = ref<string | null>(null)
     const data = ref<TResponse | null>(null)
@@ -247,6 +266,9 @@ export function useDelete<
             return result as TResponse
         } catch (e) {
             error.value = e instanceof Error ? e.message : "Unknown error"
+            if (e instanceof ApiError) {
+                errorAlert(e.getLocalizedMessage(t))
+            }
             throw new Error(error.value)
         } finally {
             loading.value = false

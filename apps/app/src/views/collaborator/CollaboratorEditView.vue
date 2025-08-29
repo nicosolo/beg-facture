@@ -175,9 +175,9 @@
                 variant="primary"
                 type="submit"
                 form="collaboratorForm"
-                :disabled="loadingCreate || loadingUpdate"
+                :loading="loadingCreate || loadingUpdate"
             >
-                {{ loadingCreate || loadingUpdate ? "Enregistrement..." : "Enregistrer" }}
+                Enregistrer
             </Button>
         </template>
     </FormLayout>
@@ -197,6 +197,7 @@ import {
 import { useFetchActivityTypes } from "../../composables/api/useActivityType"
 import UserWorkloadList from "@/components/organisms/UserWorkloadList.vue"
 import type { UserCreateInput, UserUpdateInput, ActivityTypeResponse } from "@beg/validations"
+import LoadingSpinner from "@/components/atoms/LoadingSpinner.vue"
 
 interface ActivityRate {
     activityId: number

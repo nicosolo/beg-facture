@@ -16,19 +16,16 @@
         </form>
 
         <template #footer>
+            <Button variant="secondary" @click="closeModal" :disabled="saving">
+                {{ $t("common.cancel") }}
+            </Button>
             <Button
                 variant="primary"
                 @click="saveClient"
-                :disabled="saving || !client.name"
+                :loading="saving || !client.name"
+                :disabled="!client.name"
             >
-                {{ saving ? $t("common.saving") : $t("common.save") }}
-            </Button>
-            <Button
-                variant="secondary"
-                @click="closeModal"
-                :disabled="saving"
-            >
-                {{ $t("common.cancel") }}
+                {{ $t("common.save") }}
             </Button>
         </template>
     </Dialog>
@@ -67,12 +64,12 @@ const isOpen = computed({
 const isNewClient = computed(() => !props.clientId)
 
 // API composables
-const { get: fetchClient } = useFetchClient()
-const { post: createClient } = useCreateClient()
-const { put: updateClient } = useUpdateClient()
+const { get: fetchClient, loading: fetching } = useFetchClient()
+const { post: createClient, loading: creating } = useCreateClient()
+const { put: updateClient, loading: updating } = useUpdateClient()
 
 // State
-const saving = ref(false)
+const saving = computed(() => creating.value || updating.value || fetching.value)
 const client = ref<ClientCreateInput>({
     name: "",
 })
@@ -96,7 +93,6 @@ const loadClientData = async () => {
         }
     } catch (error) {
         console.error("Error loading client:", error)
-        errorAlert(t("errors.loadFailed"))
         closeModal()
     }
 }
@@ -108,28 +104,19 @@ const saveClient = async () => {
         return
     }
 
-    saving.value = true
-
-    try {
-        if (isNewClient.value) {
-            await createClient({ body: client.value })
-            successAlert(t("client.createSuccess"))
-        } else if (props.clientId) {
-            await updateClient({
-                params: { id: props.clientId },
-                body: client.value as ClientUpdateInput,
-            })
-            successAlert(t("client.updateSuccess"))
-        }
-
-        emit("saved")
-        closeModal()
-    } catch (error: any) {
-        console.error("Error saving client:", error)
-        errorAlert(error.message || t("errors.saveFailed"))
-    } finally {
-        saving.value = false
+    if (isNewClient.value) {
+        await createClient({ body: client.value })
+        successAlert(t("client.createSuccess"))
+    } else if (props.clientId) {
+        await updateClient({
+            params: { id: props.clientId },
+            body: client.value as ClientUpdateInput,
+        })
+        successAlert(t("client.updateSuccess"))
     }
+
+    emit("saved")
+    closeModal()
 }
 
 // Close modal

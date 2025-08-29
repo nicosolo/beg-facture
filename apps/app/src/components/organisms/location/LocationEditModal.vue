@@ -88,9 +88,10 @@
                 variant="primary"
                 type="submit"
                 :disabled="saving || loading"
+                :loading="saving"
                 @click="saveLocation"
             >
-                {{ saving ? $t("common.saving") : $t("common.save") }}
+                {{ $t("common.save") }}
             </Button>
         </template>
     </Dialog>
@@ -149,21 +150,20 @@ const location = ref<{
 })
 
 // States
-const loading = ref(false)
-const saving = ref(false)
 const errorMessage = ref<string | null>(null)
 
 // API composables
-const { get: fetchLocation } = useFetchLocation()
-const { post: createLocation } = useCreateLocation()
-const { put: updateLocation } = useUpdateLocation()
+const { get: fetchLocation, loading } = useFetchLocation()
+const { post: createLocation, loading: creating } = useCreateLocation()
+const { put: updateLocation, loading: updating } = useUpdateLocation()
+
+const saving = computed(() => creating.value || updating.value || loading.value)
 
 // Watch for locationId changes to load data
 watch(
     () => [props.locationId, props.modelValue],
     async ([newLocationId, newIsOpen]) => {
         if (newIsOpen && newLocationId) {
-            loading.value = true
             errorMessage.value = null
             try {
                 const locationData = await fetchLocation({
@@ -181,8 +181,6 @@ watch(
             } catch (error) {
                 console.error("Error loading location:", error)
                 errorMessage.value = t("common.errorLoading")
-            } finally {
-                loading.value = false
             }
         } else if (newIsOpen && !newLocationId) {
             // Reset form for new location
@@ -210,8 +208,6 @@ const onCountryChange = (newCountry: string | undefined) => {
 
 // Save location
 const saveLocation = async () => {
-    saving.value = true
-
     try {
         const locationData = {
             name: location.value.name.trim(),
@@ -248,8 +244,6 @@ const saveLocation = async () => {
         } else {
             errorMessage.value = t("common.errorSaving")
         }
-    } finally {
-        saving.value = false
     }
 }
 

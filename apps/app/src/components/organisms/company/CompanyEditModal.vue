@@ -16,18 +16,10 @@
         </form>
 
         <template #footer>
-            <Button
-                variant="primary"
-                @click="saveCompany"
-                :disabled="saving || !company.name"
-            >
+            <Button variant="primary" @click="saveCompany" :disabled="saving || !company.name">
                 {{ saving ? $t("common.saving") : $t("common.save") }}
             </Button>
-            <Button
-                variant="secondary"
-                @click="closeModal"
-                :disabled="saving"
-            >
+            <Button variant="secondary" @click="closeModal" :loading="saving">
                 {{ $t("common.cancel") }}
             </Button>
         </template>
@@ -67,16 +59,19 @@ const isOpen = computed({
 const isNewCompany = computed(() => !props.companyId)
 
 // API composables
-const { get: fetchCompany } = useFetchCompany()
-const { post: createCompany } = useCreateCompany()
-const { put: updateCompany } = useUpdateCompany()
+const { get: fetchCompany, loading: fetching } = useFetchCompany()
+const { post: createCompany, loading: creating } = useCreateCompany()
+const { put: updateCompany, loading: updating } = useUpdateCompany()
 
 // State
-const saving = ref(false)
+const saving = computed(() => creating.value || updating.value || fetching.value)
 const company = ref<CompanyCreateInput>({
     name: "",
 })
-
+// Close modal
+const closeModal = () => {
+    isOpen.value = false
+}
 // Load company data if editing
 const loadCompanyData = async () => {
     if (!props.companyId) {
@@ -96,7 +91,6 @@ const loadCompanyData = async () => {
         }
     } catch (error) {
         console.error("Error loading company:", error)
-        errorAlert(t("errors.loadFailed"))
         closeModal()
     }
 }
@@ -108,33 +102,19 @@ const saveCompany = async () => {
         return
     }
 
-    saving.value = true
-
-    try {
-        if (isNewCompany.value) {
-            await createCompany({ body: company.value })
-            successAlert(t("company.createSuccess"))
-        } else if (props.companyId) {
-            await updateCompany({
-                params: { id: props.companyId },
-                body: company.value as CompanyUpdateInput,
-            })
-            successAlert(t("company.updateSuccess"))
-        }
-
-        emit("saved")
-        closeModal()
-    } catch (error: any) {
-        console.error("Error saving company:", error)
-        errorAlert(error.message || t("errors.saveFailed"))
-    } finally {
-        saving.value = false
+    if (isNewCompany.value) {
+        await createCompany({ body: company.value })
+        successAlert(t("company.createSuccess"))
+    } else if (props.companyId) {
+        await updateCompany({
+            params: { id: props.companyId },
+            body: company.value as CompanyUpdateInput,
+        })
+        successAlert(t("company.updateSuccess"))
     }
-}
 
-// Close modal
-const closeModal = () => {
-    isOpen.value = false
+    emit("saved")
+    closeModal()
 }
 
 // Watch for modal open/close
@@ -142,4 +122,5 @@ watch(isOpen, (newValue) => {
     if (newValue) {
         loadCompanyData()
     }
-})</script>
+})
+</script>

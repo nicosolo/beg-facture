@@ -71,9 +71,9 @@
                     variant="primary"
                     class="ml-3 bg-red-600 hover:bg-red-700"
                     @click="deleteEngineer"
-                    :disabled="deleting"
+                    :loading="deleting"
                 >
-                    {{ deleting ? $t("common.deleting") : $t("common.delete") }}
+                    {{ $t("common.delete") }}
                 </Button>
                 <Button variant="secondary" @click="showDeleteDialog = false">
                     {{ $t("common.cancel") }}
@@ -191,17 +191,10 @@ const confirmDelete = (engineer: Engineer) => {
 const deleteEngineer = async () => {
     if (!currentEngineerToDelete.value) return
 
-    try {
-        await deleteEngineerApi({ params: { id: currentEngineerToDelete.value.id } })
-        successAlert(t("common.deleteSuccess", { name: currentEngineerToDelete.value.name }))
-        showDeleteDialog.value = false
-        await fetchEngineers() // Reload data
-    } catch (error: any) {
-        errorAlert(
-            error.message || t("common.deleteError", { name: currentEngineerToDelete.value.name })
-        )
-        console.error("Error deleting engineer:", error)
-    }
+    await deleteEngineerApi({ params: { id: currentEngineerToDelete.value.id } })
+    successAlert(t("common.deleteSuccess", { name: currentEngineerToDelete.value.name }))
+    showDeleteDialog.value = false
+    await fetchEngineers() // Reload data
 }
 
 // Open create modal

@@ -39,14 +39,9 @@
                     />
                 </div>
             </div>
-            
+
             <div class="flex justify-end space-x-2">
-                <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    @click="$emit('cancel')"
-                >
+                <Button type="button" variant="secondary" size="sm" @click="$emit('cancel')">
                     Annuler
                 </Button>
                 <Button
@@ -54,12 +49,13 @@
                     variant="primary"
                     size="sm"
                     :disabled="loading || !isValid"
+                    :loading="loading"
                 >
-                    {{ loading ? "Création..." : "Créer" }}
+                    {{ $t("common.save") }}
                 </Button>
             </div>
         </form>
-        
+
         <div v-if="error" class="mt-2 text-sm text-red-600">
             {{ error }}
         </div>
@@ -84,8 +80,18 @@ const emit = defineEmits<{
 const { post: postWorkload, loading } = useCreateWorkload()
 
 const monthNames = [
-    "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-    "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
 ]
 
 const currentDate = new Date()
@@ -110,7 +116,7 @@ const isValid = computed(() => {
 
 const createWorkload = async () => {
     error.value = null
-    
+
     try {
         const result = await postWorkload({
             body: {
@@ -118,7 +124,7 @@ const createWorkload = async () => {
                 userId: props.userId,
             },
         })
-        
+
         if (result) {
             emit("created", result)
             // Reset form with next month

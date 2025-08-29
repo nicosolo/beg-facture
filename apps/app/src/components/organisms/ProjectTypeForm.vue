@@ -18,19 +18,22 @@
             <Button type="button" variant="secondary" @click="$emit('cancel')" :disabled="loading">
                 Annuler
             </Button>
-            <Button type="submit" variant="primary" :disabled="loading || !isFormValid">
-                <LoadingSpinner v-if="loading" size="sm" color="white" class="mr-2" />
-                {{ projectType ? 'Modifier' : 'Créer' }}
+            <Button
+                type="submit"
+                variant="primary"
+                :disabled="loading || !isFormValid"
+                :loading="loading"
+            >
+                {{ $t("common.save") }}
             </Button>
         </div>
     </form>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import Button from '@/components/atoms/Button.vue'
-import LoadingSpinner from '@/components/atoms/LoadingSpinner.vue'
-import type { ProjectTypeSchema } from '@beg/validations'
+import { ref, computed, watch } from "vue"
+import Button from "@/components/atoms/Button.vue"
+import type { ProjectTypeSchema } from "@beg/validations"
 
 interface Props {
     projectType?: ProjectTypeSchema | null
@@ -45,32 +48,36 @@ const emit = defineEmits<{
 }>()
 
 const formData = ref({
-    name: ''
+    name: "",
 })
 
 const isFormValid = computed(() => {
-    return formData.value.name.trim() !== ''
+    return formData.value.name.trim() !== ""
 })
 
 const handleSubmit = () => {
     if (isFormValid.value) {
-        emit('submit', {
-            name: formData.value.name.trim()
+        emit("submit", {
+            name: formData.value.name.trim(),
         })
     }
 }
 
 // Initialize form data when projectType prop changes
-watch(() => props.projectType, (newProjectType) => {
-    if (newProjectType) {
-        formData.value = {
-            name: newProjectType.name || ''
+watch(
+    () => props.projectType,
+    (newProjectType) => {
+        if (newProjectType) {
+            formData.value = {
+                name: newProjectType.name || "",
+            }
+        } else {
+            // Reset form for new project type
+            formData.value = {
+                name: "",
+            }
         }
-    } else {
-        // Reset form for new project type
-        formData.value = {
-            name: ''
-        }
-    }
-}, { immediate: true })
+    },
+    { immediate: true }
+)
 </script>

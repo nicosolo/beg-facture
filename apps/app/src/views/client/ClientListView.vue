@@ -186,17 +186,10 @@ const confirmDelete = (client: Client) => {
 const deleteClient = async () => {
     if (!currentClientToDelete.value) return
 
-    try {
-        await deleteClientApi({ params: { id: currentClientToDelete.value.id } })
-        successAlert(t("common.deleteSuccess", { name: currentClientToDelete.value.name }))
-        showDeleteDialog.value = false
-        await fetchClients() // Reload data
-    } catch (error: any) {
-        errorAlert(
-            error.message || t("common.deleteError", { name: currentClientToDelete.value.name })
-        )
-        console.error("Error deleting client:", error)
-    }
+    await deleteClientApi({ params: { id: currentClientToDelete.value.id } })
+    successAlert(t("common.deleteSuccess", { name: currentClientToDelete.value.name }))
+    showDeleteDialog.value = false
+    await fetchClients() // Reload data
 }
 
 // Open create modal

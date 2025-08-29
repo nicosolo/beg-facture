@@ -1,9 +1,7 @@
 <template>
     <form @submit.prevent="handleSubmit" class="space-y-4">
         <div>
-            <label for="class" class="block text-sm font-medium text-gray-700 mb-1">
-                Classe
-            </label>
+            <label for="class" class="block text-sm font-medium text-gray-700 mb-1"> Classe </label>
             <select
                 id="class"
                 v-model="formData.class"
@@ -18,9 +16,7 @@
         </div>
 
         <div>
-            <label for="year" class="block text-sm font-medium text-gray-700 mb-1">
-                Année
-            </label>
+            <label for="year" class="block text-sm font-medium text-gray-700 mb-1"> Année </label>
             <input
                 id="year"
                 v-model.number="formData.year"
@@ -55,17 +51,17 @@
             </Button>
             <Button type="submit" variant="primary" :disabled="loading || !isFormValid">
                 <LoadingSpinner v-if="loading" size="sm" color="white" class="mr-2" />
-                {{ tariff ? 'Modifier' : 'Créer' }}
+                Enregistrer
             </Button>
         </div>
     </form>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import Button from '@/components/atoms/Button.vue'
-import LoadingSpinner from '@/components/atoms/LoadingSpinner.vue'
-import type { RateClassSchema, ClassSchema } from '@beg/validations'
+import { ref, computed, watch } from "vue"
+import Button from "@/components/atoms/Button.vue"
+import LoadingSpinner from "@/components/atoms/LoadingSpinner.vue"
+import type { RateClassSchema, ClassSchema } from "@beg/validations"
 
 interface Props {
     tariff?: RateClassSchema | null
@@ -83,48 +79,54 @@ const emit = defineEmits<{
 const availableClasses: ClassSchema[] = ["A", "B", "C", "D", "E", "F", "G", "R", "Z"]
 
 const formData = ref<{
-    class: ClassSchema | ''
+    class: ClassSchema | ""
     year: number
     amount: number
 }>({
-    class: '',
+    class: "",
     year: new Date().getFullYear(),
-    amount: 0
+    amount: 0,
 })
 
 const isFormValid = computed(() => {
-    return formData.value.class !== '' &&
-           availableClasses.includes(formData.value.class as ClassSchema) &&
-           formData.value.year >= 1990 &&
-           formData.value.year <= 2100 &&
-           formData.value.amount >= 0
+    return (
+        formData.value.class !== "" &&
+        availableClasses.includes(formData.value.class as ClassSchema) &&
+        formData.value.year >= 1990 &&
+        formData.value.year <= 2100 &&
+        formData.value.amount >= 0
+    )
 })
 
 const handleSubmit = () => {
-    if (isFormValid.value && formData.value.class !== '') {
-        emit('submit', {
+    if (isFormValid.value && formData.value.class !== "") {
+        emit("submit", {
             class: formData.value.class as ClassSchema,
             year: formData.value.year,
-            amount: formData.value.amount
+            amount: formData.value.amount,
         })
     }
 }
 
 // Initialize form data when tariff prop changes
-watch(() => props.tariff, (newTariff) => {
-    if (newTariff) {
-        formData.value = {
-            class: newTariff.class || '',
-            year: newTariff.year || new Date().getFullYear(),
-            amount: newTariff.amount || 0
+watch(
+    () => props.tariff,
+    (newTariff) => {
+        if (newTariff) {
+            formData.value = {
+                class: newTariff.class || "",
+                year: newTariff.year || new Date().getFullYear(),
+                amount: newTariff.amount || 0,
+            }
+        } else {
+            // Reset form for new tariff
+            formData.value = {
+                class: "",
+                year: new Date().getFullYear(),
+                amount: 0,
+            }
         }
-    } else {
-        // Reset form for new tariff
-        formData.value = {
-            class: '',
-            year: new Date().getFullYear(),
-            amount: 0
-        }
-    }
-}, { immediate: true })
+    },
+    { immediate: true }
+)
 </script>

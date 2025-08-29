@@ -162,8 +162,6 @@ const deleteTariff = async () => {
         showDeleteDialog.value = false
         tariffToDelete.value = null
     } catch (error) {
-        console.error("Error deleting rate:", error)
-        errorAlert("Erreur lors de la suppression du tarif")
         showDeleteDialog.value = false
     }
 }

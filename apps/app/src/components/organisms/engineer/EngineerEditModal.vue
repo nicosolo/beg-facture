@@ -16,19 +16,16 @@
         </form>
 
         <template #footer>
+            <Button variant="secondary" @click="closeModal" :disabled="saving">
+                {{ $t("common.cancel") }}
+            </Button>
             <Button
                 variant="primary"
                 @click="saveEngineer"
-                :disabled="saving || !engineer.name"
+                :disabled="!engineer.name"
+                :loading="saving"
             >
-                {{ saving ? $t("common.saving") : $t("common.save") }}
-            </Button>
-            <Button
-                variant="secondary"
-                @click="closeModal"
-                :disabled="saving"
-            >
-                {{ $t("common.cancel") }}
+                {{ $t("common.save") }}
             </Button>
         </template>
     </Dialog>
@@ -40,7 +37,11 @@ import { useI18n } from "vue-i18n"
 import Dialog from "@/components/molecules/Dialog.vue"
 import Button from "@/components/atoms/Button.vue"
 import Input from "@/components/atoms/Input.vue"
-import { useFetchEngineer, useCreateEngineer, useUpdateEngineer } from "@/composables/api/useEngineer"
+import {
+    useFetchEngineer,
+    useCreateEngineer,
+    useUpdateEngineer,
+} from "@/composables/api/useEngineer"
 import { useAlert } from "@/composables/utils/useAlert"
 import type { EngineerCreateInput, EngineerUpdateInput } from "@beg/validations"
 
@@ -67,12 +68,12 @@ const isOpen = computed({
 const isNewEngineer = computed(() => !props.engineerId)
 
 // API composables
-const { get: fetchEngineer } = useFetchEngineer()
-const { post: createEngineer } = useCreateEngineer()
-const { put: updateEngineer } = useUpdateEngineer()
+const { get: fetchEngineer, loading: fetching } = useFetchEngineer()
+const { post: createEngineer, loading: creating } = useCreateEngineer()
+const { put: updateEngineer, loading: updating } = useUpdateEngineer()
 
 // State
-const saving = ref(false)
+const saving = computed(() => creating.value || updating.value || fetching.value)
 const engineer = ref<EngineerCreateInput>({
     name: "",
 })
@@ -96,7 +97,6 @@ const loadEngineerData = async () => {
         }
     } catch (error) {
         console.error("Error loading engineer:", error)
-        errorAlert(t("errors.loadFailed"))
         closeModal()
     }
 }
@@ -108,28 +108,19 @@ const saveEngineer = async () => {
         return
     }
 
-    saving.value = true
-
-    try {
-        if (isNewEngineer.value) {
-            await createEngineer({ body: engineer.value })
-            successAlert(t("engineer.createSuccess"))
-        } else if (props.engineerId) {
-            await updateEngineer({
-                params: { id: props.engineerId },
-                body: engineer.value as EngineerUpdateInput,
-            })
-            successAlert(t("engineer.updateSuccess"))
-        }
-
-        emit("saved")
-        closeModal()
-    } catch (error: any) {
-        console.error("Error saving engineer:", error)
-        errorAlert(error.message || t("errors.saveFailed"))
-    } finally {
-        saving.value = false
+    if (isNewEngineer.value) {
+        await createEngineer({ body: engineer.value })
+        successAlert(t("engineer.createSuccess"))
+    } else if (props.engineerId) {
+        await updateEngineer({
+            params: { id: props.engineerId },
+            body: engineer.value as EngineerUpdateInput,
+        })
+        successAlert(t("engineer.updateSuccess"))
     }
+
+    emit("saved")
+    closeModal()
 }
 
 // Close modal
@@ -142,4 +133,5 @@ watch(isOpen, (newValue) => {
     if (newValue) {
         loadEngineerData()
     }
-})</script>
+})
+</script>

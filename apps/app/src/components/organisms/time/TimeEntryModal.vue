@@ -121,6 +121,9 @@
         </form>
 
         <template #footer>
+            <Button @click="closeModal" :disabled="saving" variant="secondary">
+                {{ $t("common.cancel") }}
+            </Button>
             <Button
                 type="submit"
                 form="timeEntryForm"
@@ -130,9 +133,6 @@
                 @click="submitForm"
             >
                 {{ $t("common.save") }}
-            </Button>
-            <Button @click="closeModal" :disabled="saving" variant="secondary">
-                {{ $t("common.cancel") }}
             </Button>
         </template>
     </Dialog>
@@ -176,11 +176,14 @@ const authStore = useAuthStore()
 // Computed properties
 const isNewEntry = computed(() => !props.activityId)
 const currentUser = computed(() => authStore.user)
+
+const saving = computed(() => creatingActivity.value || updatingActivity.value)
+
 const loading = computed(() => loadingActivity.value || saving.value)
 
 // State
 const errorMessage = ref<string | null>(null)
-const saving = ref(false)
+
 const formRef = ref<HTMLFormElement | null>(null)
 
 // Activity data
@@ -199,8 +202,8 @@ const activity = ref<ActivityCreateInput>({
 
 // API composables
 const { get: fetchActivity, loading: loadingActivity } = useFetchActivity()
-const { post: createActivity } = useCreateActivity()
-const { put: updateActivity } = useUpdateActivity()
+const { post: createActivity, loading: creatingActivity } = useCreateActivity()
+const { put: updateActivity, loading: updatingActivity } = useUpdateActivity()
 const {
     get: fetchActivityTypes,
     loading: loadingActivityTypes,
@@ -287,7 +290,6 @@ const submitForm = () => {
 // Save activity
 const saveActivity = async () => {
     errorMessage.value = null
-    saving.value = true
 
     try {
         let response: ActivityResponse | null = null
@@ -333,8 +335,6 @@ const saveActivity = async () => {
         } else {
             errorMessage.value = t("errors.general")
         }
-    } finally {
-        saving.value = false
     }
 }
 

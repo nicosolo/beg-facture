@@ -22,11 +22,7 @@
 
                 <template #cell:actions="{ item }">
                     <div class="flex justify-end gap-2">
-                        <Button
-                            variant="ghost-primary"
-                            size="sm"
-                            @click="openEditDialog(item)"
-                        >
+                        <Button variant="ghost-primary" size="sm" @click="openEditDialog(item)">
                             Modifier
                         </Button>
                         <Button
@@ -43,11 +39,7 @@
         </div>
 
         <!-- Create/Edit Dialog -->
-        <Dialog
-            v-model="showDialog"
-            :title="dialogTitle"
-            size="md"
-        >
+        <Dialog v-model="showDialog" :title="dialogTitle" size="md">
             <ActivityTypeForm
                 :activity-type="selectedActivityType"
                 :loading="savingActivityType"
@@ -77,11 +69,11 @@ import Dialog from "@/components/molecules/Dialog.vue"
 import ConfirmDialog from "@/components/molecules/ConfirmDialog.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import ActivityTypeForm from "@/components/organisms/ActivityTypeForm.vue"
-import { 
-    useFetchActivityTypes, 
-    useCreateActivityType, 
+import {
+    useFetchActivityTypes,
+    useCreateActivityType,
     useUpdateActivityType,
-    useDeleteActivityType 
+    useDeleteActivityType,
 } from "@/composables/api/useActivityType"
 import { useAlert } from "@/composables/utils/useAlert"
 import type { ActivityTypeResponse } from "@beg/validations"
@@ -103,7 +95,9 @@ const activityTypeToDelete = ref<ActivityTypeResponse | null>(null)
 
 // Computed
 const savingActivityType = computed(() => creatingActivityType.value || updatingActivityType.value)
-const dialogTitle = computed(() => selectedActivityType.value ? 'Modifier le type d\'activité' : 'Nouveau type d\'activité')
+const dialogTitle = computed(() =>
+    selectedActivityType.value ? "Modifier le type d'activité" : "Nouveau type d'activité"
+)
 
 const columns = [
     { key: "id", label: "ID", width: "10%" },
@@ -136,32 +130,24 @@ const closeDialog = () => {
 
 // Save handler
 const handleSave = async (data: { name: string; code: string; billable: boolean }) => {
-    try {
-        if (selectedActivityType.value) {
-            // Update existing activity type
-            await updateActivityType({
-                params: { id: selectedActivityType.value.id },
-                body: data
-            })
-            successAlert(`Type d'activité '${data.name}' modifié avec succès`)
-        } else {
-            // Create new activity type
-            await createActivityType({
-                body: data
-            })
-            successAlert(`Type d'activité '${data.name}' créé avec succès`)
-        }
-        
-        // Reload data and close dialog
-        await fetchActivityTypes()
-        closeDialog()
-    } catch (error) {
-        console.error("Error saving activity type:", error)
-        errorAlert(selectedActivityType.value ? 
-            "Erreur lors de la modification du type d'activité" : 
-            "Erreur lors de la création du type d'activité"
-        )
+    if (selectedActivityType.value) {
+        // Update existing activity type
+        await updateActivityType({
+            params: { id: selectedActivityType.value.id },
+            body: data,
+        })
+        successAlert(`Type d'activité '${data.name}' modifié avec succès`)
+    } else {
+        // Create new activity type
+        await createActivityType({
+            body: data,
+        })
+        successAlert(`Type d'activité '${data.name}' créé avec succès`)
     }
+
+    // Reload data and close dialog
+    await fetchActivityTypes()
+    closeDialog()
 }
 
 // Delete handlers
@@ -173,16 +159,10 @@ const confirmDelete = (activityType: ActivityTypeResponse) => {
 const deleteActivityType = async () => {
     if (!activityTypeToDelete.value) return
 
-    try {
-        await deleteActivityTypeApi({ params: { id: activityTypeToDelete.value.id } })
-        successAlert(`Type d'activité '${activityTypeToDelete.value.name}' supprimé avec succès`)
-        await fetchActivityTypes() // Reload data
-        showDeleteDialog.value = false
-        activityTypeToDelete.value = null
-    } catch (error) {
-        console.error("Error deleting activity type:", error)
-        errorAlert("Erreur lors de la suppression du type d'activité")
-        showDeleteDialog.value = false
-    }
+    await deleteActivityTypeApi({ params: { id: activityTypeToDelete.value.id } })
+    successAlert(`Type d'activité '${activityTypeToDelete.value.name}' supprimé avec succès`)
+    await fetchActivityTypes() // Reload data
+    showDeleteDialog.value = false
+    activityTypeToDelete.value = null
 }
 </script>

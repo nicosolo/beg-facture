@@ -213,36 +213,26 @@ const handleSelectionChange = (newSelection: Set<string | number>) => {
 
 // Update billed status
 const updateBilledStatus = async (activityId: number, billed: boolean) => {
-    try {
-        await updateActivityApi.put({
-            params: { id: activityId },
-            body: { billed },
-        })
-        emit("activities-updated")
-        successAlert(billed ? t("time.alerts.markedAsBilled") : t("time.alerts.markedAsUnbilled"))
-    } catch (error) {
-        console.error("Error updating billed status:", error)
-        errorAlert(t("time.alerts.updateError"))
-    }
+    await updateActivityApi.put({
+        params: { id: activityId },
+        body: { billed },
+    })
+    emit("activities-updated")
+    successAlert(billed ? t("time.alerts.markedAsBilled") : t("time.alerts.markedAsUnbilled"))
 }
 
 // Update disbursement status
 const updateDisbursementStatus = async (activityId: number, disbursement: boolean) => {
-    try {
-        await updateActivityApi.put({
-            params: { id: activityId },
-            body: { disbursement },
-        })
-        emit("activities-updated")
-        successAlert(
-            disbursement
-                ? t("time.alerts.markedAsDisbursement")
-                : t("time.alerts.unmarkedAsDisbursement")
-        )
-    } catch (error) {
-        console.error("Error updating disbursement status:", error)
-        errorAlert(t("time.alerts.updateError"))
-    }
+    await updateActivityApi.put({
+        params: { id: activityId },
+        body: { disbursement },
+    })
+    emit("activities-updated")
+    successAlert(
+        disbursement
+            ? t("time.alerts.markedAsDisbursement")
+            : t("time.alerts.unmarkedAsDisbursement")
+    )
 }
 
 // Bulk update selected rows
@@ -254,29 +244,24 @@ const updateSelectedRows = async (field: "billed" | "disbursement", value: boole
         })
     )
 
-    try {
-        await Promise.all(promises)
-        emit("activities-updated")
-        const count = selectedRows.value.size
-        clearSelection()
+    await Promise.all(promises)
+    emit("activities-updated")
+    const count = selectedRows.value.size
+    clearSelection()
 
-        // Show appropriate success message based on field and value
-        if (field === "billed") {
-            successAlert(
-                value
-                    ? t("time.alerts.bulkMarkedAsBilled", { count })
-                    : t("time.alerts.bulkMarkedAsUnbilled", { count })
-            )
-        } else {
-            successAlert(
-                value
-                    ? t("time.alerts.bulkMarkedAsDisbursement", { count })
-                    : t("time.alerts.bulkUnmarkedAsDisbursement", { count })
-            )
-        }
-    } catch (error) {
-        console.error(`Error updating ${field} status:`, error)
-        errorAlert(t("time.alerts.bulkUpdateError"))
+    // Show appropriate success message based on field and value
+    if (field === "billed") {
+        successAlert(
+            value
+                ? t("time.alerts.bulkMarkedAsBilled", { count })
+                : t("time.alerts.bulkMarkedAsUnbilled", { count })
+        )
+    } else {
+        successAlert(
+            value
+                ? t("time.alerts.bulkMarkedAsDisbursement", { count })
+                : t("time.alerts.bulkUnmarkedAsDisbursement", { count })
+        )
     }
 }
 

@@ -14,11 +14,7 @@
             >
                 <template #cell:actions="{ item }">
                     <div class="flex justify-end gap-2">
-                        <Button
-                            variant="ghost-primary"
-                            size="sm"
-                            @click="openEditDialog(item)"
-                        >
+                        <Button variant="ghost-primary" size="sm" @click="openEditDialog(item)">
                             Modifier
                         </Button>
                         <Button
@@ -35,11 +31,7 @@
         </div>
 
         <!-- Create/Edit Dialog -->
-        <Dialog
-            v-model="showDialog"
-            :title="dialogTitle"
-            size="md"
-        >
+        <Dialog v-model="showDialog" :title="dialogTitle" size="md">
             <ProjectTypeForm
                 :project-type="selectedProjectType"
                 :loading="savingProjectType"
@@ -69,11 +61,11 @@ import Dialog from "@/components/molecules/Dialog.vue"
 import ConfirmDialog from "@/components/molecules/ConfirmDialog.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import ProjectTypeForm from "@/components/organisms/ProjectTypeForm.vue"
-import { 
-    useFetchProjectTypes, 
-    useCreateProjectType, 
+import {
+    useFetchProjectTypes,
+    useCreateProjectType,
     useUpdateProjectType,
-    useDeleteProjectType 
+    useDeleteProjectType,
 } from "@/composables/api/useProjectType"
 import { useAlert } from "@/composables/utils/useAlert"
 import type { ProjectTypeSchema } from "@beg/validations"
@@ -95,7 +87,9 @@ const projectTypeToDelete = ref<ProjectTypeSchema | null>(null)
 
 // Computed
 const savingProjectType = computed(() => creatingProjectType.value || updatingProjectType.value)
-const dialogTitle = computed(() => selectedProjectType.value ? 'Modifier le type de mandat' : 'Nouveau type de mandat')
+const dialogTitle = computed(() =>
+    selectedProjectType.value ? "Modifier le type de mandat" : "Nouveau type de mandat"
+)
 
 const columns = [
     { key: "id", label: "ID", width: "20%" },
@@ -126,32 +120,24 @@ const closeDialog = () => {
 
 // Save handler
 const handleSave = async (data: { name: string }) => {
-    try {
-        if (selectedProjectType.value) {
-            // Update existing project type
-            await updateProjectType({
-                params: { id: selectedProjectType.value.id },
-                body: data
-            })
-            successAlert(`Type de mandat '${data.name}' modifié avec succès`)
-        } else {
-            // Create new project type
-            await createProjectType({
-                body: data
-            })
-            successAlert(`Type de mandat '${data.name}' créé avec succès`)
-        }
-        
-        // Reload data and close dialog
-        await fetchProjectTypes({})
-        closeDialog()
-    } catch (error) {
-        console.error("Error saving project type:", error)
-        errorAlert(selectedProjectType.value ? 
-            "Erreur lors de la modification du type de mandat" : 
-            "Erreur lors de la création du type de mandat"
-        )
+    if (selectedProjectType.value) {
+        // Update existing project type
+        await updateProjectType({
+            params: { id: selectedProjectType.value.id },
+            body: data,
+        })
+        successAlert(`Type de mandat '${data.name}' modifié avec succès`)
+    } else {
+        // Create new project type
+        await createProjectType({
+            body: data,
+        })
+        successAlert(`Type de mandat '${data.name}' créé avec succès`)
     }
+
+    // Reload data and close dialog
+    await fetchProjectTypes({})
+    closeDialog()
 }
 
 // Delete handlers
@@ -170,8 +156,6 @@ const deleteProjectType = async () => {
         showDeleteDialog.value = false
         projectTypeToDelete.value = null
     } catch (error) {
-        console.error("Error deleting project type:", error)
-        errorAlert("Erreur lors de la suppression du type de mandat")
         showDeleteDialog.value = false
     }
 }

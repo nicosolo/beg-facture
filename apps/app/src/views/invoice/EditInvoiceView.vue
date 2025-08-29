@@ -41,20 +41,11 @@
         </div>
 
         <template #actions>
-            <Button
-                variant="secondary"
-                type="button"
-                @click="handleCancel"
-                :disabled="loading"
-            >
+            <Button variant="secondary" type="button" @click="handleCancel" :disabled="loading">
                 Annuler
             </Button>
-            <Button
-                variant="primary"
-                @click="handleSave"
-                :disabled="loading"
-            >
-                {{ loading ? "Enregistrement..." : "Enregistrer" }}
+            <Button variant="primary" @click="handleSave" :loading="loading">
+                {{ $t("common.save") }}
             </Button>
         </template>
     </FormLayout>
@@ -88,7 +79,7 @@ const loading = computed(() => fetchLoading.value || createLoading.value || upda
 const error = computed(() => fetchError.value || createError.value || updateError.value)
 const errorMessage = computed(() => {
     const err = error.value as any
-    if (typeof err === 'string') return err
+    if (typeof err === "string") return err
     if (err?.message) return err.message
     return err ? "Une erreur s'est produite" : null
 })

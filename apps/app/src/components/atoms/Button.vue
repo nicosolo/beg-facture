@@ -10,9 +10,10 @@
             disabled ? 'cursor-not-allowed opacity-60' : '',
             className,
         ]"
-        :disabled="to ? undefined : disabled"
+        :disabled="to ? undefined : disabled || loading"
         @click="$emit('click', $event)"
     >
+        <LoadingSpinner v-if="loading" size="sm" color="white" class="mr-2" />
         <slot></slot>
     </component>
 </template>
@@ -34,9 +35,10 @@ interface Props {
     disabled?: boolean
     className?: string
     to?: RouteLocationRaw
+    loading?: boolean
 }
 
-const { type = "button", variant, size, disabled, className, to } = defineProps<Props>()
+const { type = "button", variant, size, disabled, className, to, loading } = defineProps<Props>()
 
 defineEmits<{
     (e: "click", event: MouseEvent): void

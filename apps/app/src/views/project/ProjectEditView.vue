@@ -196,9 +196,9 @@
                 variant="primary"
                 type="submit"
                 form="projectForm"
-                :disabled="isSubmitting || loadingData"
+                :loading="isSubmitting || loadingData"
             >
-                {{ isSubmitting ? $t("common.saving") : $t("common.save") }}
+                {{ $t("common.save") }}
             </Button>
         </template>
     </FormLayout>

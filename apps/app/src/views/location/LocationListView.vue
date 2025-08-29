@@ -90,9 +90,9 @@
                     variant="primary"
                     class="ml-3 bg-red-600 hover:bg-red-700"
                     @click="deleteLocation"
-                    :disabled="deleting"
+                    :loading="deleting"
                 >
-                    {{ deleting ? $t("common.deleting") : $t("common.delete") }}
+                    {{ $t("common.delete") }}
                 </Button>
                 <Button variant="secondary" @click="showDeleteDialog = false">
                     {{ $t("common.cancel") }}
@@ -220,15 +220,10 @@ const confirmDelete = (location: Location) => {
 const deleteLocation = async () => {
     if (!currentLocationToDelete.value) return
 
-    try {
-        await deleteLocationApi({ params: { id: currentLocationToDelete.value.id } })
-        successAlert(t("common.deleteSuccess", { name: currentLocationToDelete.value.name }))
-        showDeleteDialog.value = false
-        await fetchLocations() // Reload data
-    } catch (error) {
-        errorAlert(t("common.deleteError", { name: currentLocationToDelete.value.name }))
-        console.error("Error deleting location:", error)
-    }
+    await deleteLocationApi({ params: { id: currentLocationToDelete.value.id } })
+    successAlert(t("common.deleteSuccess", { name: currentLocationToDelete.value.name }))
+    showDeleteDialog.value = false
+    await fetchLocations() // Reload data
 }
 
 // Open create modal

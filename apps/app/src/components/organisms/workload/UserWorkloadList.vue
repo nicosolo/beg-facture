@@ -269,7 +269,7 @@
                                 size="xs"
                                 @click="saveChanges(item)"
                                 :disabled="loadingUpdate"
-                                title="Enregistrer"
+                                :title="$t('common.save')"
                                 className="!p-1 text-green-600 hover:text-green-800 hover:bg-green-50"
                             >
                                 <svg

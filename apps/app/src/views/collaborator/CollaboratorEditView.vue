@@ -177,7 +177,7 @@
                 form="collaboratorForm"
                 :loading="loadingCreate || loadingUpdate"
             >
-                Enregistrer
+                {{ $t("common.save") }}
             </Button>
         </template>
     </FormLayout>
@@ -188,16 +188,10 @@ import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import Button from "@/components/atoms/Button.vue"
 import FormLayout from "@/components/templates/FormLayout.vue"
-import {
-    useFetchUser,
-    useFetchUsers,
-    useCreateUser,
-    useUpdateUser,
-} from "../../composables/api/useUser"
+import { useFetchUser, useCreateUser, useUpdateUser } from "../../composables/api/useUser"
 import { useFetchActivityTypes } from "../../composables/api/useActivityType"
 import UserWorkloadList from "@/components/organisms/workload/UserWorkloadList.vue"
-import type { UserCreateInput, UserUpdateInput, ActivityTypeResponse } from "@beg/validations"
-import LoadingSpinner from "@/components/atoms/LoadingSpinner.vue"
+import type { UserCreateInput, UserUpdateInput } from "@beg/validations"
 
 interface ActivityRate {
     activityId: number

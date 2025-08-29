@@ -49,9 +49,13 @@
             <Button type="button" variant="secondary" @click="$emit('cancel')" :disabled="loading">
                 Annuler
             </Button>
-            <Button type="submit" variant="primary" :disabled="loading || !isFormValid">
-                <LoadingSpinner v-if="loading" size="sm" color="white" class="mr-2" />
-                Enregistrer
+            <Button
+                type="submit"
+                variant="primary"
+                :disabled="loading || !isFormValid"
+                :loading="loading"
+            >
+                {{ $t("common.save") }}
             </Button>
         </div>
     </form>

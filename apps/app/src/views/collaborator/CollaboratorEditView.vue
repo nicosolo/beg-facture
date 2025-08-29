@@ -195,7 +195,7 @@ import {
     useUpdateUser,
 } from "../../composables/api/useUser"
 import { useFetchActivityTypes } from "../../composables/api/useActivityType"
-import UserWorkloadList from "@/components/organisms/UserWorkloadList.vue"
+import UserWorkloadList from "@/components/organisms/workload/UserWorkloadList.vue"
 import type { UserCreateInput, UserUpdateInput, ActivityTypeResponse } from "@beg/validations"
 import LoadingSpinner from "@/components/atoms/LoadingSpinner.vue"
 

@@ -356,7 +356,7 @@ import Button from "@/components/atoms/Button.vue"
 import LoadingSpinner from "@/components/atoms/LoadingSpinner.vue"
 import DataTable from "@/components/molecules/DataTable.vue"
 import ConfirmDialog from "@/components/molecules/ConfirmDialog.vue"
-import UserWorkloadCreate from "@/components/organisms/UserWorkloadCreate.vue"
+import UserWorkloadCreate from "@/components/organisms/workload/UserWorkloadCreate.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import {
     useFetchWorkloadList,

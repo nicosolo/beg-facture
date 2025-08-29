@@ -7,13 +7,11 @@ import CollaboratorListView from "../views/collaborator/CollaboratorListView.vue
 import CollaboratorEditView from "../views/collaborator/CollaboratorEditView.vue"
 import TimeListView from "../views/time/TimeListView.vue"
 import TariffListView from "../views/tariff/TariffListView.vue"
-import TariffEditView from "../views/tariff/TariffEditView.vue"
 import ProjectEditView from "../views/project/ProjectEditView.vue"
 import ProjectTypeListView from "../views/projectType/ProjectTypeListView.vue"
 import ProjectTypeEditView from "../views/projectType/ProjectTypeEditView.vue"
 import ProjectPreviewView from "../views/project/ProjectPreviewView.vue"
 import ActivityTypeListView from "../views/activityType/ActivityTypeListView.vue"
-import ActivityTypeEditView from "../views/activityType/ActivityTypeEditView.vue"
 import LocationListView from "../views/location/LocationListView.vue"
 import ClientListView from "../views/client/ClientListView.vue"
 import CompanyListView from "../views/company/CompanyListView.vue"
@@ -119,18 +117,6 @@ const router = createRouter({
         },
         // Activity routes
         {
-            path: "/activity/new",
-            name: "activity-new",
-            component: ActivityTypeEditView,
-            meta: { requiresAuth: true },
-        },
-        {
-            path: "/activity/:id/edit",
-            name: "activity-edit",
-            component: ActivityTypeEditView,
-            meta: { requiresAuth: true },
-        },
-        {
             path: "/activity",
             name: "activity-list",
             component: ActivityTypeListView,
@@ -144,18 +130,6 @@ const router = createRouter({
             meta: { requiresAuth: true },
         },
         // Tariff routes
-        {
-            path: "/tariff/new",
-            name: "tariff-new",
-            component: TariffEditView,
-            meta: { requiresAuth: true },
-        },
-        {
-            path: "/tariff/:id/edit",
-            name: "tariff-edit",
-            component: TariffEditView,
-            meta: { requiresAuth: true },
-        },
         {
             path: "/tariff",
             name: "tariff-list",
@@ -191,7 +165,7 @@ const router = createRouter({
 })
 
 // Navigation guard
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
     const authStore = useAuthStore()
     const requiresAuth = to.meta.requiresAuth !== false // Default to requiring auth
     const requiresAdmin = to.meta.requiresAdmin === true

@@ -28,6 +28,12 @@ export const successSchema = z.object({
 
 export type SuccessResponse = z.infer<typeof successSchema>
 
+export const messageSchema = z.object({
+    message: z.string(),
+})
+
+export type MessageResponse = z.infer<typeof messageSchema>
+
 // Timestamps schema for entities
 export const timestampsSchema = z.object({
     createdAt: nullableDateSchema,

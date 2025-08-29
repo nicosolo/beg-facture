@@ -96,4 +96,8 @@ export const activityTypeRepository = {
 
         return updatedActivityType
     },
+
+    delete: async (id: number): Promise<void> => {
+        await db.delete(activityTypes).where(eq(activityTypes.id, id))
+    },
 }

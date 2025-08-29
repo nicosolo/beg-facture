@@ -3,7 +3,7 @@
         <div class="container mx-auto">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-bold">Types d'activité</h1>
-                <Button variant="primary" :to="{ name: 'activity-new' }">
+                <Button variant="primary" @click="openCreateDialog">
                     Nouveau type d'activité
                 </Button>
             </div>
@@ -25,41 +25,164 @@
                         <Button
                             variant="ghost-primary"
                             size="sm"
-                            :to="{
-                                name: 'activity-edit',
-                                params: { id: item.id },
-                            }"
-                            className="text-indigo-600 hover:text-indigo-900"
+                            @click="openEditDialog(item)"
                         >
                             Modifier
+                        </Button>
+                        <Button
+                            variant="ghost-danger"
+                            size="sm"
+                            @click="confirmDelete(item)"
+                            :disabled="deletingActivityType"
+                        >
+                            Supprimer
                         </Button>
                     </div>
                 </template>
             </DataTable>
         </div>
+
+        <!-- Create/Edit Dialog -->
+        <Dialog
+            v-model="showDialog"
+            :title="dialogTitle"
+            size="md"
+        >
+            <ActivityTypeForm
+                :activity-type="selectedActivityType"
+                :loading="savingActivityType"
+                @submit="handleSave"
+                @cancel="closeDialog"
+            />
+        </Dialog>
+
+        <!-- Delete Confirmation Dialog -->
+        <ConfirmDialog
+            v-model="showDeleteDialog"
+            title="Confirmer la suppression"
+            :message="`Êtes-vous sûr de vouloir supprimer le type d'activité '${activityTypeToDelete?.name}' ?`"
+            type="danger"
+            confirm-text="Supprimer"
+            cancel-text="Annuler"
+            @confirm="deleteActivityType"
+        />
     </LoadingOverlay>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue"
-import Button from "../../components/atoms/Button.vue"
-import DataTable from "../../components/molecules/DataTable.vue"
+import { ref, computed, onMounted } from "vue"
+import Button from "@/components/atoms/Button.vue"
+import DataTable from "@/components/molecules/DataTable.vue"
+import Dialog from "@/components/molecules/Dialog.vue"
+import ConfirmDialog from "@/components/molecules/ConfirmDialog.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
-import { useFetchActivityTypes } from "@/composables/api/useActivityType"
+import ActivityTypeForm from "@/components/organisms/ActivityTypeForm.vue"
+import { 
+    useFetchActivityTypes, 
+    useCreateActivityType, 
+    useUpdateActivityType,
+    useDeleteActivityType 
+} from "@/composables/api/useActivityType"
+import { useAlert } from "@/composables/utils/useAlert"
+import type { ActivityTypeResponse } from "@beg/validations"
 
-// API client
+// API composables
 const { get: fetchActivityTypes, loading, data: activityTypes } = useFetchActivityTypes()
+const { post: createActivityType, loading: creatingActivityType } = useCreateActivityType()
+const { put: updateActivityType, loading: updatingActivityType } = useUpdateActivityType()
+const { delete: deleteActivityTypeApi, loading: deletingActivityType } = useDeleteActivityType()
+
+// Alert composable
+const { successAlert, errorAlert } = useAlert()
+
+// State
+const showDialog = ref(false)
+const showDeleteDialog = ref(false)
+const selectedActivityType = ref<ActivityTypeResponse | null>(null)
+const activityTypeToDelete = ref<ActivityTypeResponse | null>(null)
+
+// Computed
+const savingActivityType = computed(() => creatingActivityType.value || updatingActivityType.value)
+const dialogTitle = computed(() => selectedActivityType.value ? 'Modifier le type d\'activité' : 'Nouveau type d\'activité')
 
 const columns = [
-    { key: "id", label: "ID" },
-    { key: "name", label: "Nom" },
-    { key: "code", label: "Code" },
-    { key: "billable", label: "Facturable" },
-    { key: "actions", label: "Actions" },
+    { key: "id", label: "ID", width: "10%" },
+    { key: "name", label: "Nom", width: "35%" },
+    { key: "code", label: "Code", width: "20%" },
+    { key: "billable", label: "Facturable", width: "20%" },
+    { key: "actions", label: "Actions", width: "15%", actions: true },
 ]
 
 // Load activity types on mount
 onMounted(async () => {
     await fetchActivityTypes()
 })
+
+// Dialog handlers
+const openCreateDialog = () => {
+    selectedActivityType.value = null
+    showDialog.value = true
+}
+
+const openEditDialog = (activityType: ActivityTypeResponse) => {
+    selectedActivityType.value = activityType
+    showDialog.value = true
+}
+
+const closeDialog = () => {
+    showDialog.value = false
+    selectedActivityType.value = null
+}
+
+// Save handler
+const handleSave = async (data: { name: string; code: string; billable: boolean }) => {
+    try {
+        if (selectedActivityType.value) {
+            // Update existing activity type
+            await updateActivityType({
+                params: { id: selectedActivityType.value.id },
+                body: data
+            })
+            successAlert(`Type d'activité '${data.name}' modifié avec succès`)
+        } else {
+            // Create new activity type
+            await createActivityType({
+                body: data
+            })
+            successAlert(`Type d'activité '${data.name}' créé avec succès`)
+        }
+        
+        // Reload data and close dialog
+        await fetchActivityTypes()
+        closeDialog()
+    } catch (error) {
+        console.error("Error saving activity type:", error)
+        errorAlert(selectedActivityType.value ? 
+            "Erreur lors de la modification du type d'activité" : 
+            "Erreur lors de la création du type d'activité"
+        )
+    }
+}
+
+// Delete handlers
+const confirmDelete = (activityType: ActivityTypeResponse) => {
+    activityTypeToDelete.value = activityType
+    showDeleteDialog.value = true
+}
+
+const deleteActivityType = async () => {
+    if (!activityTypeToDelete.value) return
+
+    try {
+        await deleteActivityTypeApi({ params: { id: activityTypeToDelete.value.id } })
+        successAlert(`Type d'activité '${activityTypeToDelete.value.name}' supprimé avec succès`)
+        await fetchActivityTypes() // Reload data
+        showDeleteDialog.value = false
+        activityTypeToDelete.value = null
+    } catch (error) {
+        console.error("Error deleting activity type:", error)
+        errorAlert("Erreur lors de la suppression du type d'activité")
+        showDeleteDialog.value = false
+    }
+}
 </script>

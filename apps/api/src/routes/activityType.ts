@@ -6,7 +6,10 @@ import {
     activityTypeResponseSchema,
     activityTypesArrayResponseSchema,
     idParamSchema,
+    messageSchema,
     type ActivityTypeResponse,
+    createApiError,
+    ErrorCode,
 } from "@beg/validations"
 import { activityTypeRepository } from "../db/repositories/activityType.repository"
 import { authMiddleware } from "../tools/auth-middleware"
@@ -123,5 +126,27 @@ export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
 
             const updatedActivityType = await activityTypeRepository.update(id, activityTypeData)
             return c.render(updatedActivityType, 200)
+        }
+    )
+
+    // Delete activity type
+    .delete(
+        "/:id",
+        roleMiddleware("admin"),
+        zValidator("param", idParamSchema),
+        responseValidator({
+            200: messageSchema,
+        }),
+        async (c) => {
+            const { id } = c.req.valid("param")
+
+            // Check if activity type exists
+            const existingActivityType = await activityTypeRepository.findById(id)
+            if (!existingActivityType) {
+                throw createApiError(ErrorCode.NOT_FOUND, "Activity type not found")
+            }
+
+            await activityTypeRepository.delete(id)
+            return c.render({ message: "Activity type deleted successfully" }, 200)
         }
     )

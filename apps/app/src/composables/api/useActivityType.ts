@@ -4,7 +4,7 @@ import {
     activityTypeUpdateSchema,
     type ActivityTypeResponse,
 } from "@beg/validations"
-import { useGet, usePost, usePut } from "./useAPI"
+import { useGet, usePost, usePut, useDelete } from "./useAPI"
 
 export function useFetchActivityType() {
     return useGet<ActivityTypeResponse>("activity-type/:id", {
@@ -41,5 +41,16 @@ export function useUpdateActivityType() {
     >("activity-type/:id", {
         params: idParamSchema,
         body: activityTypeUpdateSchema,
+    })
+}
+
+export function useDeleteActivityType() {
+    return useDelete<
+        { message: string },
+        {
+            params: typeof idParamSchema
+        }
+    >("activity-type/:id", {
+        params: idParamSchema,
     })
 }

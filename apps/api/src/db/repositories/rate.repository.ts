@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm"
+import { and, asc, desc, eq } from "drizzle-orm"
 import { db } from "../index"
 import { rateClasses } from "../schema"
 import type {
@@ -18,7 +18,9 @@ export const rateRepository = {
                 year: rateClasses.year,
                 amount: rateClasses.amount,
             })
+
             .from(rateClasses)
+            .orderBy(desc(rateClasses.year), asc(rateClasses.class))
     },
 
     findById: async (id: number) => {

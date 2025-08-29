@@ -6,6 +6,7 @@
         :sort="sort"
         @sort-change="handleSortChange"
         :emptyMessage="$t('projects.noProjectsFound')"
+        :row-class="getRowClass"
     >
         <template #cell:name="{ item }">
             <div>
@@ -88,7 +89,15 @@ const emit = defineEmits<{
     (e: "sort-change", sort: { key: string; direction: "asc" | "desc" }): void
     (e: "add-hours", projectId: number): void
 }>()
-
+const getRowClass = (item: ProjectResponse) => {
+    if (item.lastActivityDate) {
+        const lastActivityDate = new Date(item.lastActivityDate)
+        if (lastActivityDate.getTime() < Date.now() - 7 * 24 * 60 * 60 * 1000) {
+            return "bg-red-100"
+        } // 1 week ago
+    }
+    return "bg-white"
+}
 const handleSortChange = (sort: { key: string; direction: "asc" | "desc" }) => {
     console.log("handleSortChange", sort)
     emit("sort-change", sort)

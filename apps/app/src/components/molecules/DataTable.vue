@@ -37,8 +37,8 @@
                         selectedRows?.has(getItemKey(item, index))
                             ? 'bg-blue-100 hover:bg-blue-200'
                             : 'hover:bg-gray-100',
+                        getRowClass(item, index),
                     ]"
-                    :style="getRowStyle(item, index)"
                     @click="handleRowClick(item, index, $event)"
                     @mousedown="handleMouseDown($event)"
                 >
@@ -168,7 +168,7 @@ interface Props<T = unknown> {
     showFooter?: boolean
     sort?: { key: string; direction: "asc" | "desc" }
     selectedRows?: Set<string | number>
-    rowColor?: (item: T, index: number) => string | undefined
+    rowClass?: (item: T, index: number) => string | undefined
 }
 const emit = defineEmits<{
     (e: "sort-change", sort: { key: string; direction: "asc" | "desc" }): void
@@ -182,7 +182,7 @@ const {
     showFooter = false,
     sort,
     selectedRows,
-    rowColor,
+    rowClass,
 } = defineProps<Props<T>>()
 
 // Generate grid template columns based on column widths
@@ -278,20 +278,17 @@ const getSortDirection = (column: Column): "asc" | "desc" | "none" => {
 }
 
 // Get row style based on rowColor function
-const getRowStyle = (item: T, index: number): { backgroundColor?: string } => {
+const getRowClass = (item: T, index: number): string | string[] | undefined => {
     // If row is selected, don't apply custom color (selection takes priority)
     if (selectedRows?.has(getItemKey(item, index))) {
-        return {}
+        return
     }
 
     // Apply custom color if rowColor function is provided
-    if (rowColor) {
-        const color = rowColor(item, index)
-        if (color) {
-            return { backgroundColor: color }
-        }
+    if (rowClass) {
+        return rowClass(item, index)
     }
 
-    return {}
+    return
 }
 </script>

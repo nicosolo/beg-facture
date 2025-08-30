@@ -60,6 +60,7 @@ import InvoiceGeneralInfo from "@/components/organisms/invoice/InvoiceGeneralInf
 import InvoiceDetails from "@/components/organisms/invoice/InvoiceDetails.vue"
 import { createEmptyInvoice, type Invoice, type InvoiceResponse } from "@beg/validations"
 import { useFetchInvoice, useCreateInvoice, useUpdateInvoice } from "@/composables/api/useInvoice"
+import { useFetchProject } from "@/composables/api/useProject"
 
 const route = useRoute()
 const router = useRouter()
@@ -69,12 +70,23 @@ const isNewInvoice = computed(() => !invoiceId.value)
 const activeTab = ref("general")
 
 // API composables
-const { get: fetchInvoice, loading: fetchLoading, error: fetchError } = useFetchInvoice()
+const {
+    get: fetchInvoice,
+    loading: fetchLoading,
+    error: fetchError,
+    data: invoiceResponse,
+} = useFetchInvoice()
 const { post: createInvoice, loading: createLoading, error: createError } = useCreateInvoice()
 const { put: updateInvoice, loading: updateLoading, error: updateError } = useUpdateInvoice()
+const {
+    get: fetchProject,
+    loading: fetchProjectLoading,
+    error: fetchProjectError,
+    data: projectResponse,
+} = useFetchProject()
 
 // Form state
-const invoice = ref<Invoice>(createEmptyInvoice())
+const invoice = ref<Invoice>(createEmptyInvoice({}))
 const loading = computed(() => fetchLoading.value || createLoading.value || updateLoading.value)
 const error = computed(() => fetchError.value || createError.value || updateError.value)
 const errorMessage = computed(() => {
@@ -83,12 +95,13 @@ const errorMessage = computed(() => {
     if (err?.message) return err.message
     return err ? "Une erreur s'est produite" : null
 })
-
+const projectId = computed<number | undefined>(() => parseInt(route.params.projectId as string))
 // Helper to convert API response to form data
 const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
     return {
-        ...createEmptyInvoice(),
+        ...createEmptyInvoice({}),
         id: response.id.toString(),
+        projectId: response.project.id,
         invoiceNumber: response.invoiceNumber || "",
         reference: response.reference || "",
         type: response.type || "Facture",
@@ -186,5 +199,14 @@ watch(
     () => {
         loadInvoice()
     }
+)
+watch(
+    () => projectId,
+    () => {
+        if (projectId.value) {
+            fetchProject({ params: { id: projectId.value } })
+        }
+    },
+    { immediate: true }
 )
 </script>

@@ -191,20 +191,20 @@ const invoiceCommonFields = z.object({
 // Frontend Invoice Schema (with defaults for forms)
 // ============================================================================
 
-export const InvoiceSchema = invoiceCommonFields
-    .extend({
-        id: z.string().default(""),
-        projectId: z.number().min(1),
-        status: InvoiceStatusEnum.default("draft"),
-        client: z.object({
-            name: z.string().default(""),
-            address: z.string().default(""),
-        }),
-        // Override with defaults for frontend
-        invoiceNumber: z.string().default(""),
-        reference: z.string().default(""),
-        description: z.string().default(""),
-        period: z.object({
+export const InvoiceSchema = invoiceCommonFields.extend({
+    id: z.string().default(""),
+    projectId: z.number().optional(),
+    status: InvoiceStatusEnum.default("draft"),
+    client: z.object({
+        name: z.string().default(""),
+        address: z.string().default(""),
+    }),
+    // Override with defaults for frontend
+    invoiceNumber: z.string().default(""),
+    reference: z.string().default(""),
+    description: z.string().default(""),
+    period: z
+        .object({
             startDate: z
                 .date()
                 .optional()
@@ -213,12 +213,16 @@ export const InvoiceSchema = invoiceCommonFields
                 .date()
                 .optional()
                 .or(z.string().transform((str) => (str ? new Date(str) : new Date()))),
-        }).default({}),
-        recipient: z.object({
+        })
+        .default({}),
+    recipient: z
+        .object({
             name: z.string().default(""),
             address: z.string().default(""),
-        }).default({}),
-        fees: z.object({
+        })
+        .default({}),
+    fees: z
+        .object({
             base: z.number().default(0),
             adjusted: z.number().default(0),
             total: z.number().default(0),
@@ -226,10 +230,11 @@ export const InvoiceSchema = invoiceCommonFields
             finalTotal: z.number().default(0),
             multiplicationFactor: z.number().default(1),
             rates: z.array(RateItemSchema).default([]),
-            discount: z.object({
-                percentage: z.number().default(0).nullable(),
-                amount: z.number().default(0).nullable(),
-            })
+            discount: z
+                .object({
+                    percentage: z.number().default(0).nullable(),
+                    amount: z.number().default(0).nullable(),
+                })
                 .refine(
                     (val) =>
                         (val.percentage != null && val.amount == null) ||
@@ -240,26 +245,35 @@ export const InvoiceSchema = invoiceCommonFields
                     }
                 )
                 .default({ percentage: null, amount: null }),
-        }).default({ discount: { percentage: null, amount: null } }),
-        expenses: z.object({
-            travel: z.object({
-                base: z.number().default(0),
-                adjusted: z.number().default(0),
-                rate: z.number().default(0),
-                amount: z.number().default(0),
-            }).default({}),
-            other: z.object({
-                base: z.number().default(0),
-                amount: z.number().default(0),
-            }).default({}),
+        })
+        .default({ discount: { percentage: null, amount: null } }),
+    expenses: z
+        .object({
+            travel: z
+                .object({
+                    base: z.number().default(0),
+                    adjusted: z.number().default(0),
+                    rate: z.number().default(0),
+                    amount: z.number().default(0),
+                })
+                .default({}),
+            other: z
+                .object({
+                    base: z.number().default(0),
+                    amount: z.number().default(0),
+                })
+                .default({}),
             total: z.number().default(0),
-            thirdParty: z.object({
-                amount: z.number().default(0),
-            }).default({}),
-            package: z.object({
-                percentage: z.number().default(0).nullable(),
-                amount: z.number().default(0).nullable(),
-            })
+            thirdParty: z
+                .object({
+                    amount: z.number().default(0),
+                })
+                .default({}),
+            package: z
+                .object({
+                    percentage: z.number().default(0).nullable(),
+                    amount: z.number().default(0).nullable(),
+                })
                 .refine(
                     (val) =>
                         (val.percentage != null && val.amount == null) ||
@@ -271,29 +285,37 @@ export const InvoiceSchema = invoiceCommonFields
                 )
                 .default({ percentage: null, amount: null }),
             totalExpenses: z.number().default(0),
-        }).default({
+        })
+        .default({
             travel: {},
             other: {},
             thirdParty: {},
             package: { percentage: null, amount: null },
         }),
-        totals: z.object({
+    totals: z
+        .object({
             ht: z.number().default(0),
-            vat: z.object({
-                rate: z.number().default(8.0),
-                amount: z.number().default(0),
-            }).default({}),
+            vat: z
+                .object({
+                    rate: z.number().default(8.0),
+                    amount: z.number().default(0),
+                })
+                .default({}),
             ttc: z.number().default(0),
-        }).default({ vat: {} }),
-        remarks: RemarksSchema.default({}),
-    })
+        })
+        .default({ vat: {} }),
+    remarks: RemarksSchema.default({}),
+})
 
 // Export TypeScript type
 export type Invoice = z.infer<typeof InvoiceSchema>
 
 // Helper function to create empty invoice with default values
-export const createEmptyInvoice = (): Invoice => {
-    return InvoiceSchema.parse({})
+export const createEmptyInvoice = (invoice: Partial<Invoice>): Invoice => {
+    return InvoiceSchema.parse({
+        ...invoice,
+        client: {},
+    } as Invoice)
 }
 
 // ============================================================================
@@ -325,7 +347,7 @@ export type InvoiceUpdateInput = z.infer<typeof invoiceUpdateSchema>
 // ============================================================================
 
 export const invoiceResponseSchema = invoiceCommonFields
-    .omit({ 
+    .omit({
         // Remove fields that are structured differently in response
     })
     .extend({
@@ -347,13 +369,11 @@ export const invoiceResponseSchema = invoiceCommonFields
         otherServices: z.string(),
         remarks: RemarksSchema,
         // Relations
-        project: z
-            .object({
-                id: z.number(),
-                name: z.string(),
-                projectNumber: z.string(),
-            })
-            .nullable(),
+        project: z.object({
+            id: z.number(),
+            name: z.string(),
+            projectNumber: z.string(),
+        }),
     })
     .merge(timestampsSchema)
 

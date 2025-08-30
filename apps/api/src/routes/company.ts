@@ -11,7 +11,8 @@ import { companyRepository } from "../db/repositories/company.repository"
 import { authMiddleware, adminOnlyMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import type { Variables } from "@src/types/global"
-import { createApiError, ErrorCode } from "@beg/validations"
+import { ErrorCode } from "@beg/validations"
+import { ApiException } from "@src/tools/error-handler"
 
 const companyResponseArraySchema = createPageResponseSchema(companySchema)
 
@@ -38,12 +39,12 @@ export const companyRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const id = parseInt(c.req.param("id"))
             if (isNaN(id)) {
-                throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
+                throw new ApiException(400, ErrorCode.BAD_REQUEST, "Invalid ID")
             }
 
             const company = await companyRepository.findById(id)
             if (!company) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Company not found")
+                throw new ApiException(404, ErrorCode.NOT_FOUND, "Company not found")
             }
 
             return c.render(company, 200)
@@ -74,13 +75,13 @@ export const companyRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const id = parseInt(c.req.param("id"))
             if (isNaN(id)) {
-                throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
+                throw new ApiException(400, ErrorCode.BAD_REQUEST, "Invalid ID")
             }
 
             const data = c.req.valid("json")
             const company = await companyRepository.update(id, data)
             if (!company) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Company not found")
+                throw new ApiException(404, ErrorCode.NOT_FOUND, "Company not found")
             }
 
             return c.render(company, 200)
@@ -93,20 +94,21 @@ export const companyRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const id = parseInt(c.req.param("id"))
             if (isNaN(id)) {
-                throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
+                throw new ApiException(400, ErrorCode.BAD_REQUEST, "Invalid ID")
             }
 
             // Check if company exists
             const company = await companyRepository.findById(id)
             if (!company) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Company not found")
+                throw new ApiException(404, ErrorCode.NOT_FOUND, "Company not found")
             }
 
             // Check if company has projects
             const hasProjects = await companyRepository.hasProjects(id)
             
             if (hasProjects) {
-                throw createApiError(
+                throw new ApiException(
+                    409,
                     ErrorCode.CONSTRAINT_VIOLATION,
                     "Cannot delete company with existing projects"
                 )

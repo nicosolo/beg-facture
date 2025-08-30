@@ -75,6 +75,8 @@ export const companyRepository = {
             .insert(companies)
             .values({
                 name: data.name,
+                createdAt: new Date(),
+                updatedAt: new Date(),
             })
             .returning({
                 id: companies.id,

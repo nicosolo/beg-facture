@@ -8,12 +8,13 @@ import {
     createPageResponseSchema,
     idParamSchema,
     successSchema,
+    ErrorCode,
 } from "@beg/validations"
 import { locationRepository } from "../db/repositories/location.repository"
 import { authMiddleware } from "../tools/auth-middleware"
 import { roleMiddleware } from "../tools/role-middleware"
 import { responseValidator } from "../tools/response-validator"
-import { z } from "zod"
+import { ApiException } from "../tools/error-handler"
 import type { Variables } from "@src/types/global"
 
 const locationResponseArraySchema = createPageResponseSchema(locationSchema)
@@ -29,7 +30,6 @@ export const locationRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const filter = c.req.valid("query")
             const result = await locationRepository.findAll(filter)
-            console.log(result)
             return c.render(result, 200)
         }
     )
@@ -111,12 +111,22 @@ export const locationRoutes = new Hono<{ Variables: Variables }>()
             // Check if location exists
             const existingLocation = await locationRepository.findById(id)
             if (!existingLocation) {
-                return c.json({ error: "Location not found" }, 404)
+                throw new ApiException(404, ErrorCode.NOT_FOUND, "Location not found")
+            }
+
+            // Check if location has associated projects
+            const hasProjects = await locationRepository.hasProjects(id)
+            if (hasProjects) {
+                throw new ApiException(
+                    409,
+                    ErrorCode.CONSTRAINT_VIOLATION,
+                    "Cannot delete location with existing projects"
+                )
             }
 
             const deleted = await locationRepository.delete(id)
             if (!deleted) {
-                return c.json({ error: "Failed to delete location" }, 500)
+                throw new ApiException(500, ErrorCode.INTERNAL_ERROR, "Failed to delete location")
             }
 
             return c.render({ success: true }, 204)

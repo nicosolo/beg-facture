@@ -7,11 +7,13 @@ import {
     projectTypesArraySchema,
     idParamSchema,
     messageSchema,
+    ErrorCode,
     type ProjectTypeSchema,
 } from "@beg/validations"
 import { projectTypeRepository } from "../db/repositories/projectType.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
+import { ApiException } from "@src/tools/error-handler"
 import type { Variables } from "@src/types/global"
 
 export const projectTypeRoutes = new Hono<{ Variables: Variables }>()
@@ -115,7 +117,17 @@ export const projectTypeRoutes = new Hono<{ Variables: Variables }>()
             // Check if project type exists
             const existingProjectType = await projectTypeRepository.findById(id)
             if (!existingProjectType) {
-                return c.json({ error: "Project type not found" }, 404)
+                throw new ApiException(404, ErrorCode.NOT_FOUND, "Project type not found")
+            }
+
+            // Check if project type has associated projects
+            const hasProjects = await projectTypeRepository.hasProjects(id)
+            if (hasProjects) {
+                throw new ApiException(
+                    409,
+                    ErrorCode.CONSTRAINT_VIOLATION,
+                    "Cannot delete project type with existing projects"
+                )
             }
 
             await projectTypeRepository.delete(id)

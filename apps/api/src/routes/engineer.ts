@@ -11,7 +11,8 @@ import { engineerRepository } from "../db/repositories/engineer.repository"
 import { authMiddleware, adminOnlyMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import type { Variables } from "@src/types/global"
-import { createApiError, ErrorCode } from "@beg/validations"
+import { ErrorCode } from "@beg/validations"
+import { ApiException } from "@src/tools/error-handler"
 
 const engineerResponseArraySchema = createPageResponseSchema(engineerSchema)
 
@@ -38,12 +39,12 @@ export const engineerRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const id = parseInt(c.req.param("id"))
             if (isNaN(id)) {
-                throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
+                throw new ApiException(400, ErrorCode.BAD_REQUEST, "Invalid ID")
             }
 
             const engineer = await engineerRepository.findById(id)
             if (!engineer) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Engineer not found")
+                throw new ApiException(404, ErrorCode.NOT_FOUND, "Engineer not found")
             }
 
             return c.render(engineer, 200)
@@ -74,13 +75,13 @@ export const engineerRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const id = parseInt(c.req.param("id"))
             if (isNaN(id)) {
-                throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
+                throw new ApiException(400, ErrorCode.BAD_REQUEST, "Invalid ID")
             }
 
             const data = c.req.valid("json")
             const engineer = await engineerRepository.update(id, data)
             if (!engineer) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Engineer not found")
+                throw new ApiException(404, ErrorCode.NOT_FOUND, "Engineer not found")
             }
 
             return c.render(engineer, 200)
@@ -90,20 +91,21 @@ export const engineerRoutes = new Hono<{ Variables: Variables }>()
     .delete("/:id", adminOnlyMiddleware, async (c) => {
         const id = parseInt(c.req.param("id"))
         if (isNaN(id)) {
-            throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
+            throw new ApiException(400, ErrorCode.BAD_REQUEST, "Invalid ID")
         }
 
         // Check if engineer exists
         const engineer = await engineerRepository.findById(id)
         if (!engineer) {
-            throw createApiError(ErrorCode.NOT_FOUND, "Engineer not found")
+            throw new ApiException(404, ErrorCode.NOT_FOUND, "Engineer not found")
         }
 
         // Check if engineer has projects
         const hasProjects = await engineerRepository.hasProjects(id)
 
         if (hasProjects) {
-            throw createApiError(
+            throw new ApiException(
+                409,
                 ErrorCode.CONSTRAINT_VIOLATION,
                 "Cannot delete engineer with existing projects"
             )

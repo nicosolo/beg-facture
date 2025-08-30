@@ -166,7 +166,8 @@ export default {
         MISSING_REQUIRED_FIELD: "Champ obligatoire manquant",
         INVALID_FORMAT: "Format invalide",
         DUPLICATE_ENTRY: "Cette entrée existe déjà",
-        CONSTRAINT_VIOLATION: "Violation de contrainte",
+        CONSTRAINT_VIOLATION:
+            "Impossible de supprimer cet élément car il est référencé par d'autres données",
         OPERATION_NOT_ALLOWED: "Opération non autorisée",
         INTERNAL_ERROR: "Erreur interne du serveur",
         DATABASE_ERROR: "Erreur de base de données",

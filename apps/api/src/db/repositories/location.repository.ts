@@ -1,6 +1,6 @@
 import { eq, sql, like, and, asc, desc } from "drizzle-orm"
 import { db } from "../index"
-import { locations } from "../schema"
+import { locations, projects } from "../schema"
 import type { Location, LocationCreate, LocationUpdate, LocationFilter } from "@beg/validations"
 
 export const locationRepository = {
@@ -172,5 +172,13 @@ export const locationRepository = {
             .returning({ id: locations.id })
 
         return result.length > 0
+    },
+
+    hasProjects: async (id: number): Promise<boolean> => {
+        const [result] = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(projects)
+            .where(eq(projects.locationId, id))
+        return result.count > 0
     },
 }

@@ -1,7 +1,7 @@
-import { createApiError } from "@beg/validations"
 import { db } from "../index"
 import { workloads, users } from "../schema"
 import { eq, and, gte, lte, sql, desc } from "drizzle-orm"
+import { ApiException } from "@src/tools/error-handler"
 
 export const workloadRepository = {
     async findAll(filters?: { userId?: number; year?: number; month?: number }) {
@@ -104,7 +104,8 @@ export const workloadRepository = {
         // Check if workload already exists for this user/year/month
         const existing = await this.findByUserYearMonth(data.userId, data.year, data.month)
         if (existing) {
-            throw createApiError(
+            throw new ApiException(
+                400,
                 "ALREADY_EXISTS",
                 `Workload already exists for user ${data.userId} in ${data.month}/${data.year}`
             )
@@ -135,7 +136,7 @@ export const workloadRepository = {
         if (data.userId !== undefined || data.year !== undefined || data.month !== undefined) {
             const current = await this.findById(id)
             if (!current) {
-                throw createApiError("NOT_FOUND", "Workload not found")
+                throw new ApiException(404, "NOT_FOUND", "Workload not found")
             }
 
             const userId = data.userId ?? current.userId
@@ -144,7 +145,8 @@ export const workloadRepository = {
 
             const existing = await this.findByUserYearMonth(userId, year, month)
             if (existing && existing.id !== id) {
-                throw createApiError(
+                throw new ApiException(
+                    400,
                     "ALREADY_EXISTS",
                     `Workload already exists for user ${userId} in ${month}/${year}`
                 )

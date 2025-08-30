@@ -10,12 +10,12 @@ import {
     users,
     projectAccess,
 } from "../schema"
-import type { 
-    ProjectFilter, 
-    ProjectListResponse, 
+import type {
+    ProjectFilter,
+    ProjectListResponse,
     ProjectResponse,
     ProjectCreateInput,
-    ProjectUpdateInput 
+    ProjectUpdateInput,
 } from "@beg/validations"
 import type { Variables } from "@src/types/global"
 
@@ -59,7 +59,6 @@ export const projectRepository = {
 
         // Date filters - filter by project start date
         if (fromDate) {
-            console.log(fromDate)
             whereConditions.push(gte(projects.startDate, fromDate))
         }
         if (toDate) {
@@ -389,9 +388,11 @@ export const projectRepository = {
         if (data.clientId !== undefined) updateData.clientId = data.clientId || null
         if (data.engineerId !== undefined) updateData.engineerId = data.engineerId || null
         if (data.companyId !== undefined) updateData.companyId = data.companyId || null
-        if (data.projectManagerId !== undefined) updateData.projectManagerId = data.projectManagerId || null
+        if (data.projectManagerId !== undefined)
+            updateData.projectManagerId = data.projectManagerId || null
         if (data.remark !== undefined) updateData.remark = data.remark || null
-        if (data.invoiceAddress !== undefined) updateData.invoiceAddress = data.invoiceAddress || null
+        if (data.invoiceAddress !== undefined)
+            updateData.invoiceAddress = data.invoiceAddress || null
         if (data.printFlag !== undefined) updateData.printFlag = data.printFlag
         if (data.ended !== undefined) updateData.ended = data.ended
         if (data.archived !== undefined) updateData.archived = data.archived

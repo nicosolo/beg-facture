@@ -8,12 +8,12 @@ import {
     idParamSchema,
     messageSchema,
     type ActivityTypeResponse,
-    createApiError,
     ErrorCode,
 } from "@beg/validations"
 import { activityTypeRepository } from "../db/repositories/activityType.repository"
 import { authMiddleware } from "../tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
+import { ApiException } from "@src/tools/error-handler"
 import type { Variables } from "@src/types/global"
 import { roleMiddleware } from "@src/tools/role-middleware"
 import { userRepository } from "@src/db/repositories/user.repository"
@@ -143,7 +143,17 @@ export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
             // Check if activity type exists
             const existingActivityType = await activityTypeRepository.findById(id)
             if (!existingActivityType) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Activity type not found")
+                throw new ApiException(404, ErrorCode.NOT_FOUND, "Activity type not found")
+            }
+
+            // Check if activity type has associated activities
+            const hasActivities = await activityTypeRepository.hasActivities(id)
+            if (hasActivities) {
+                throw new ApiException(
+                    409,
+                    ErrorCode.CONSTRAINT_VIOLATION,
+                    "Cannot delete activity type with existing activities"
+                )
             }
 
             await activityTypeRepository.delete(id)

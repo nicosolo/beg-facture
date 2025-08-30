@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
 import { db } from "../index"
-import { activityTypes } from "../schema"
+import { activityTypes, activities } from "../schema"
 import type {
     ActivityTypeResponse,
     ActivityTypeCreateInput,
@@ -99,5 +99,13 @@ export const activityTypeRepository = {
 
     delete: async (id: number): Promise<void> => {
         await db.delete(activityTypes).where(eq(activityTypes.id, id))
+    },
+
+    hasActivities: async (id: number): Promise<boolean> => {
+        const [result] = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(activities)
+            .where(eq(activities.activityTypeId, id))
+        return result.count > 0
     },
 }

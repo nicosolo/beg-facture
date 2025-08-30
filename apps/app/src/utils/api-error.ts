@@ -34,6 +34,12 @@ export class ApiError extends Error {
 
         // If no translation found, check for specific cases
         if (translated === errorKey) {
+            // For constraint violation errors, use the server message which is descriptive
+            if (this.code === ErrorCode.CONSTRAINT_VIOLATION) {
+                // The server provides specific messages like "Cannot delete location with existing projects"
+                return this.message || t("errors.CONSTRAINT_VIOLATION")
+            }
+
             // For duplicate entry errors, we can provide more context
             if (this.code === ErrorCode.DUPLICATE_ENTRY && this.details?.[0]) {
                 const detail = this.details[0]

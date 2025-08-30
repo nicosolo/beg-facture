@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
 import { db } from "../index"
-import { projectTypes } from "../schema"
+import { projectTypes, projects } from "../schema"
 import type {
     ProjectTypeSchema,
     ProjectTypeCreateInput,
@@ -87,5 +87,13 @@ export const projectTypeRepository = {
 
     delete: async (id: number): Promise<void> => {
         await db.delete(projectTypes).where(eq(projectTypes.id, id))
+    },
+
+    hasProjects: async (id: number): Promise<boolean> => {
+        const [result] = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(projects)
+            .where(eq(projects.typeId, id))
+        return result.count > 0
     },
 }

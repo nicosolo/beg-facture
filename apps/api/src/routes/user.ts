@@ -33,7 +33,6 @@ export const userRoutes = new Hono<{ Variables: Variables }>()
             const { email, password } = c.req.valid("json")
 
             const user = await userRepository.findByEmailOrInitials(email)
-            console.log(user)
             if (!user) {
                 return c.json({ error: "Invalid credentials" }, 401)
             }

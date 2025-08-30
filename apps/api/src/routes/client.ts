@@ -11,7 +11,8 @@ import { clientRepository } from "../db/repositories/client.repository"
 import { authMiddleware, adminOnlyMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import type { Variables } from "@src/types/global"
-import { createApiError, ErrorCode } from "@beg/validations"
+import { ErrorCode } from "@beg/validations"
+import { ApiException } from "@src/tools/error-handler"
 
 const clientResponseArraySchema = createPageResponseSchema(clientSchema)
 
@@ -38,12 +39,12 @@ export const clientRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const id = parseInt(c.req.param("id"))
             if (isNaN(id)) {
-                throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
+                throw new ApiException(400, ErrorCode.BAD_REQUEST, "Invalid ID")
             }
 
             const client = await clientRepository.findById(id)
             if (!client) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Client not found")
+                throw new ApiException(404, ErrorCode.NOT_FOUND, "Client not found")
             }
 
             return c.render(client, 200)
@@ -74,13 +75,13 @@ export const clientRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const id = parseInt(c.req.param("id"))
             if (isNaN(id)) {
-                throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
+                throw new ApiException(400, ErrorCode.BAD_REQUEST, "Invalid ID")
             }
 
             const data = c.req.valid("json")
             const client = await clientRepository.update(id, data)
             if (!client) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Client not found")
+                throw new ApiException(404, ErrorCode.NOT_FOUND, "Client not found")
             }
 
             return c.render(client, 200)
@@ -93,13 +94,13 @@ export const clientRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const id = parseInt(c.req.param("id"))
             if (isNaN(id)) {
-                throw createApiError(ErrorCode.BAD_REQUEST, "Invalid ID")
+                throw new ApiException(400, ErrorCode.BAD_REQUEST, "Invalid ID")
             }
 
             // Check if client exists
             const client = await clientRepository.findById(id)
             if (!client) {
-                throw createApiError(ErrorCode.NOT_FOUND, "Client not found")
+                throw new ApiException(404, ErrorCode.NOT_FOUND, "Client not found")
             }
 
             // Check if client has invoices or projects
@@ -107,7 +108,8 @@ export const clientRoutes = new Hono<{ Variables: Variables }>()
             const hasProjects = await clientRepository.hasProjects(id)
             
             if (hasInvoices || hasProjects) {
-                throw createApiError(
+                throw new ApiException(
+                    409,
                     ErrorCode.CONSTRAINT_VIOLATION,
                     "Cannot delete client with existing invoices or projects"
                 )

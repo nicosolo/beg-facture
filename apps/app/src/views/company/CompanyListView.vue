@@ -61,25 +61,15 @@
         </div>
 
         <!-- Delete Confirmation Dialog -->
-        <Dialog v-model="showDeleteDialog" :title="$t('common.confirmDelete')">
-            <p class="text-sm text-gray-500">
-                {{ $t("company.deleteConfirm", { name: currentCompanyToDelete?.name }) }}
-            </p>
-
-            <template #footer>
-                <Button
-                    variant="primary"
-                    class="ml-3 bg-red-600 hover:bg-red-700"
-                    @click="deleteCompany"
-                    :disabled="deleting"
-                >
-                    {{ deleting ? $t("common.deleting") : $t("common.delete") }}
-                </Button>
-                <Button variant="secondary" @click="showDeleteDialog = false">
-                    {{ $t("common.cancel") }}
-                </Button>
-            </template>
-        </Dialog>
+        <ConfirmDialog
+            v-model="showDeleteDialog"
+            :title="$t('common.confirmDelete')"
+            :message="$t('company.deleteConfirm', { name: currentCompanyToDelete?.name })"
+            type="danger"
+            :confirm-text="$t('common.delete')"
+            :cancel-text="$t('common.cancel')"
+            @confirm="deleteCompany"
+        />
 
         <!-- Company Edit Modal -->
         <CompanyEditModal
@@ -96,7 +86,7 @@ import { useI18n } from "vue-i18n"
 import Button from "@/components/atoms/Button.vue"
 import Input from "@/components/atoms/Input.vue"
 import DataTable, { type Column } from "@/components/molecules/DataTable.vue"
-import Dialog from "@/components/molecules/Dialog.vue"
+import ConfirmDialog from "@/components/molecules/ConfirmDialog.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import CompanyEditModal from "@/components/organisms/company/CompanyEditModal.vue"

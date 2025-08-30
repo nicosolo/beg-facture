@@ -80,25 +80,15 @@
         </div>
 
         <!-- Delete Confirmation Dialog -->
-        <Dialog v-model="showDeleteDialog" :title="$t('common.confirmDelete')">
-            <p class="text-sm text-gray-500">
-                {{ $t("location.deleteConfirm", { name: currentLocationToDelete?.name }) }}
-            </p>
-
-            <template #footer>
-                <Button
-                    variant="primary"
-                    class="ml-3 bg-red-600 hover:bg-red-700"
-                    @click="deleteLocation"
-                    :loading="deleting"
-                >
-                    {{ $t("common.delete") }}
-                </Button>
-                <Button variant="secondary" @click="showDeleteDialog = false">
-                    {{ $t("common.cancel") }}
-                </Button>
-            </template>
-        </Dialog>
+        <ConfirmDialog
+            v-model="showDeleteDialog"
+            :title="$t('common.confirmDelete')"
+            :message="$t('location.deleteConfirm', { name: currentLocationToDelete?.name })"
+            type="danger"
+            :confirm-text="$t('common.delete')"
+            :cancel-text="$t('common.cancel')"
+            @confirm="deleteLocation"
+        />
 
         <!-- Location Edit Modal -->
         <LocationEditModal
@@ -117,7 +107,7 @@ import Input from "@/components/atoms/Input.vue"
 import CountrySelect from "@/components/atoms/CountrySelect.vue"
 import CantonSelect from "@/components/atoms/CantonSelect.vue"
 import DataTable from "@/components/molecules/DataTable.vue"
-import Dialog from "@/components/molecules/Dialog.vue"
+import ConfirmDialog from "@/components/molecules/ConfirmDialog.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import LocationEditModal from "@/components/organisms/location/LocationEditModal.vue"

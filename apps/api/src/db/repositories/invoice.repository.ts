@@ -8,24 +8,26 @@ import {
     projects,
     clients,
 } from "../schema"
-import type {
-    InvoiceCreateInput,
-    InvoiceUpdateInput,
-    InvoiceFilter,
-    UserResponse,
-} from "@beg/validations"
-type User = UserResponse
+import type { InvoiceCreateInput, InvoiceUpdateInput, InvoiceFilter } from "@beg/validations"
 import { projectRepository } from "./project.repository"
 import type { Variables } from "@src/types/global"
 
 export const invoiceRepository = {
-    async findAll(user: User, filter: InvoiceFilter) {
+    async findAll(user: Variables["user"], filter: InvoiceFilter) {
         const where = []
 
         // Access control
         if (user.role !== "admin") {
             // Get all projects the user has access to
-            const userProjects = await projectRepository.findAll(user, {})
+            const userProjects = await projectRepository.findAll(user, {
+                sortBy: "name",
+                sortOrder: "asc",
+                page: 1,
+                limit: 1000,
+                hasUnbilledTime: false,
+                includeArchived: false,
+                includeEnded: true,
+            })
             const projectIds = userProjects.data.map((p) => p.id)
             if (projectIds.length === 0) {
                 return {
@@ -146,70 +148,62 @@ export const invoiceRepository = {
                     offers: offers.map((o) => ({
                         file: o.file,
                         date: o.date,
-                        amount: o.amount / 100, // Convert from cents
+                        amount: o.amount,
                         remark: o.remark || "",
                     })),
                     adjudications: adjudications.map((a) => ({
                         file: a.file,
                         date: a.date,
-                        amount: a.amount / 100, // Convert from cents
+                        amount: a.amount,
                         remark: a.remark || "",
                     })),
                     fees: {
-                        base: row.invoice.feesBase / 100,
-                        adjusted: row.invoice.feesAdjusted / 100,
-                        total: row.invoice.feesTotal / 100,
-                        others: row.invoice.feesOthers / 100,
-                        finalTotal: row.invoice.feesFinalTotal / 100,
-                        multiplicationFactor: row.invoice.feesMultiplicationFactor / 100,
+                        base: row.invoice.feesBase,
+                        adjusted: row.invoice.feesAdjusted,
+                        total: row.invoice.feesTotal,
+                        others: row.invoice.feesOthers,
+                        finalTotal: row.invoice.feesFinalTotal,
+                        multiplicationFactor: row.invoice.feesMultiplicationFactor,
                         discount: {
-                            percentage: row.invoice.feesDiscountPercentage
-                                ? row.invoice.feesDiscountPercentage / 100
-                                : null,
-                            amount: row.invoice.feesDiscountAmount
-                                ? row.invoice.feesDiscountAmount / 100
-                                : null,
+                            percentage: row.invoice.feesDiscountPercentage,
+                            amount: row.invoice.feesDiscountAmount,
                         },
                         rates: rates.map((r) => ({
                             rateClass: r.rateClass,
                             base: r.baseMinutes / 60, // Convert minutes to hours
                             adjusted: r.adjustedMinutes / 60,
-                            hourlyRate: r.hourlyRate / 100,
-                            amount: r.amount / 100,
+                            hourlyRate: r.hourlyRate,
+                            amount: r.amount,
                         })),
                     },
                     expenses: {
                         travel: {
-                            base: row.invoice.expensesTravelBase / 100,
-                            adjusted: row.invoice.expensesTravelAdjusted / 100,
-                            rate: row.invoice.expensesTravelRate / 100,
-                            amount: row.invoice.expensesTravelAmount / 100,
+                            base: row.invoice.expensesTravelBase,
+                            adjusted: row.invoice.expensesTravelAdjusted,
+                            rate: row.invoice.expensesTravelRate,
+                            amount: row.invoice.expensesTravelAmount,
                         },
                         other: {
-                            base: row.invoice.expensesOtherBase / 100,
-                            amount: row.invoice.expensesOtherAmount / 100,
+                            base: row.invoice.expensesOtherBase,
+                            amount: row.invoice.expensesOtherAmount,
                         },
-                        total: row.invoice.expensesTotal / 100,
+                        total: row.invoice.expensesTotal,
                         thirdParty: {
-                            amount: row.invoice.expensesThirdPartyAmount / 100,
+                            amount: row.invoice.expensesThirdPartyAmount,
                         },
                         package: {
-                            percentage: row.invoice.expensesPackagePercentage
-                                ? row.invoice.expensesPackagePercentage / 100
-                                : null,
-                            amount: row.invoice.expensesPackageAmount
-                                ? row.invoice.expensesPackageAmount / 100
-                                : null,
+                            percentage: row.invoice.expensesPackagePercentage,
+                            amount: row.invoice.expensesPackageAmount,
                         },
-                        totalExpenses: row.invoice.expensesTotalExpenses / 100,
+                        totalExpenses: row.invoice.expensesTotalExpenses,
                     },
                     totals: {
-                        ht: row.invoice.totalHT / 100,
+                        ht: row.invoice.totalHT,
                         vat: {
-                            rate: row.invoice.vatRate / 100,
-                            amount: row.invoice.vatAmount / 100,
+                            rate: row.invoice.vatRate,
+                            amount: row.invoice.vatAmount,
                         },
-                        ttc: row.invoice.totalTTC / 100,
+                        ttc: row.invoice.totalTTC,
                     },
                     otherServices: row.invoice.otherServices || "",
                     remarks: {
@@ -240,7 +234,7 @@ export const invoiceRepository = {
         }
     },
 
-    async findById(id: number, user: User) {
+    async findById(id: number, user: Variables["user"]) {
         const result = await db
             .select({
                 invoice: invoices,
@@ -308,70 +302,62 @@ export const invoiceRepository = {
             offers: offers.map((o) => ({
                 file: o.file,
                 date: o.date,
-                amount: o.amount / 100,
+                amount: o.amount,
                 remark: o.remark || "",
             })),
             adjudications: adjudications.map((a) => ({
                 file: a.file,
                 date: a.date,
-                amount: a.amount / 100,
+                amount: a.amount,
                 remark: a.remark || "",
             })),
             fees: {
-                base: row.invoice.feesBase / 100,
-                adjusted: row.invoice.feesAdjusted / 100,
-                total: row.invoice.feesTotal / 100,
-                others: row.invoice.feesOthers / 100,
-                finalTotal: row.invoice.feesFinalTotal / 100,
-                multiplicationFactor: row.invoice.feesMultiplicationFactor / 100,
+                base: row.invoice.feesBase,
+                adjusted: row.invoice.feesAdjusted,
+                total: row.invoice.feesTotal,
+                others: row.invoice.feesOthers,
+                finalTotal: row.invoice.feesFinalTotal,
+                multiplicationFactor: row.invoice.feesMultiplicationFactor,
                 discount: {
-                    percentage: row.invoice.feesDiscountPercentage
-                        ? row.invoice.feesDiscountPercentage / 100
-                        : null,
-                    amount: row.invoice.feesDiscountAmount
-                        ? row.invoice.feesDiscountAmount / 100
-                        : null,
+                    percentage: row.invoice.feesDiscountPercentage,
+                    amount: row.invoice.feesDiscountAmount,
                 },
                 rates: rates.map((r) => ({
                     rateClass: r.rateClass,
                     base: r.baseMinutes / 60,
                     adjusted: r.adjustedMinutes / 60,
-                    hourlyRate: r.hourlyRate / 100,
-                    amount: r.amount / 100,
+                    hourlyRate: r.hourlyRate,
+                    amount: r.amount,
                 })),
             },
             expenses: {
                 travel: {
-                    base: row.invoice.expensesTravelBase / 100,
-                    adjusted: row.invoice.expensesTravelAdjusted / 100,
-                    rate: row.invoice.expensesTravelRate / 100,
-                    amount: row.invoice.expensesTravelAmount / 100,
+                    base: row.invoice.expensesTravelBase,
+                    adjusted: row.invoice.expensesTravelAdjusted,
+                    rate: row.invoice.expensesTravelRate,
+                    amount: row.invoice.expensesTravelAmount,
                 },
                 other: {
-                    base: row.invoice.expensesOtherBase / 100,
-                    amount: row.invoice.expensesOtherAmount / 100,
+                    base: row.invoice.expensesOtherBase,
+                    amount: row.invoice.expensesOtherAmount,
                 },
-                total: row.invoice.expensesTotal / 100,
+                total: row.invoice.expensesTotal,
                 thirdParty: {
-                    amount: row.invoice.expensesThirdPartyAmount / 100,
+                    amount: row.invoice.expensesThirdPartyAmount,
                 },
                 package: {
-                    percentage: row.invoice.expensesPackagePercentage
-                        ? row.invoice.expensesPackagePercentage / 100
-                        : null,
-                    amount: row.invoice.expensesPackageAmount
-                        ? row.invoice.expensesPackageAmount / 100
-                        : null,
+                    percentage: row.invoice.expensesPackagePercentage,
+                    amount: row.invoice.expensesPackageAmount,
                 },
-                totalExpenses: row.invoice.expensesTotalExpenses / 100,
+                totalExpenses: row.invoice.expensesTotalExpenses,
             },
             totals: {
-                ht: row.invoice.totalHT / 100,
+                ht: row.invoice.totalHT,
                 vat: {
-                    rate: row.invoice.vatRate / 100,
-                    amount: row.invoice.vatAmount / 100,
+                    rate: row.invoice.vatRate,
+                    amount: row.invoice.vatAmount,
                 },
-                ttc: row.invoice.totalTTC / 100,
+                ttc: row.invoice.totalTTC,
             },
             otherServices: row.invoice.otherServices || "",
             remarks: {
@@ -419,38 +405,30 @@ export const invoiceRepository = {
                     recipientName: data.recipient.name,
                     recipientAddress: data.recipient.address,
                     description: data.description,
-                    // Convert to cents for storage
-                    feesBase: Math.round(data.fees.base * 100),
-                    feesAdjusted: Math.round(data.fees.adjusted * 100),
-                    feesTotal: Math.round(data.fees.total * 100),
-                    feesOthers: Math.round(data.fees.others * 100),
-                    feesFinalTotal: Math.round(data.fees.finalTotal * 100),
-                    feesMultiplicationFactor: Math.round(data.fees.multiplicationFactor * 100),
-                    feesDiscountPercentage: data.fees.discount?.percentage
-                        ? Math.round(data.fees.discount.percentage * 100)
-                        : null,
-                    feesDiscountAmount: data.fees.discount?.amount
-                        ? Math.round(data.fees.discount.amount * 100)
-                        : null,
-                    expensesTravelBase: Math.round(data.expenses.travel.base * 100),
-                    expensesTravelAdjusted: Math.round(data.expenses.travel.adjusted * 100),
-                    expensesTravelRate: Math.round(data.expenses.travel.rate * 100),
-                    expensesTravelAmount: Math.round(data.expenses.travel.amount * 100),
-                    expensesOtherBase: Math.round(data.expenses.other.base * 100),
-                    expensesOtherAmount: Math.round(data.expenses.other.amount * 100),
-                    expensesTotal: Math.round(data.expenses.total * 100),
-                    expensesThirdPartyAmount: Math.round(data.expenses.thirdParty.amount * 100),
-                    expensesPackagePercentage: data.expenses.package?.percentage
-                        ? Math.round(data.expenses.package.percentage * 100)
-                        : null,
-                    expensesPackageAmount: data.expenses.package?.amount
-                        ? Math.round(data.expenses.package.amount * 100)
-                        : null,
-                    expensesTotalExpenses: Math.round(data.expenses.totalExpenses * 100),
-                    totalHT: Math.round(data.totals.ht * 100),
-                    vatRate: Math.round(data.totals.vat.rate * 100),
-                    vatAmount: Math.round(data.totals.vat.amount * 100),
-                    totalTTC: Math.round(data.totals.ttc * 100),
+                    // Store real values directly
+                    feesBase: data.fees.base,
+                    feesAdjusted: data.fees.adjusted,
+                    feesTotal: data.fees.total,
+                    feesOthers: data.fees.others,
+                    feesFinalTotal: data.fees.finalTotal,
+                    feesMultiplicationFactor: data.fees.multiplicationFactor,
+                    feesDiscountPercentage: data.fees.discount?.percentage || null,
+                    feesDiscountAmount: data.fees.discount?.amount || null,
+                    expensesTravelBase: data.expenses.travel.base,
+                    expensesTravelAdjusted: data.expenses.travel.adjusted,
+                    expensesTravelRate: data.expenses.travel.rate,
+                    expensesTravelAmount: data.expenses.travel.amount,
+                    expensesOtherBase: data.expenses.other.base,
+                    expensesOtherAmount: data.expenses.other.amount,
+                    expensesTotal: data.expenses.total,
+                    expensesThirdPartyAmount: data.expenses.thirdParty.amount,
+                    expensesPackagePercentage: data.expenses.package?.percentage || null,
+                    expensesPackageAmount: data.expenses.package?.amount || null,
+                    expensesTotalExpenses: data.expenses.totalExpenses,
+                    totalHT: data.totals.ht,
+                    vatRate: data.totals.vat.rate,
+                    vatAmount: data.totals.vat.amount,
+                    totalTTC: data.totals.ttc,
                     otherServices: data.otherServices,
                     remarksOtherServices: data.remarks.otherServices,
                     remarksTravelExpenses: data.remarks.travelExpenses,
@@ -469,8 +447,8 @@ export const invoiceRepository = {
                         rateClass: rate.rateClass,
                         baseMinutes: Math.round(rate.base * 60), // Convert hours to minutes
                         adjustedMinutes: Math.round(rate.adjusted * 60),
-                        hourlyRate: Math.round(rate.hourlyRate * 100),
-                        amount: Math.round(rate.amount * 100),
+                        hourlyRate: rate.hourlyRate,
+                        amount: rate.amount,
                         createdAt: new Date(),
                         updatedAt: new Date(),
                     }))
@@ -483,9 +461,10 @@ export const invoiceRepository = {
                     data.offers.map((offer) => ({
                         invoiceId: invoice.id,
                         file: offer.file,
-                        date: offer.date,
-                        amount: Math.round(offer.amount * 100),
+                        date: offer.date || new Date(),
+                        amount: offer.amount,
                         remark: offer.remark,
+                        createdAt: new Date(),
                         updatedAt: new Date(),
                     }))
                 )
@@ -497,8 +476,8 @@ export const invoiceRepository = {
                     data.adjudications.map((adj) => ({
                         invoiceId: invoice.id,
                         file: adj.file,
-                        date: adj.date,
-                        amount: Math.round(adj.amount * 100),
+                        date: adj.date || new Date(),
+                        amount: adj.amount,
                         remark: adj.remark,
                         createdAt: new Date(),
                         updatedAt: new Date(),
@@ -511,7 +490,7 @@ export const invoiceRepository = {
         })
     },
 
-    async update(id: number, data: Partial<InvoiceUpdateInput>, user: User) {
+    async update(id: number, data: Partial<InvoiceUpdateInput>, user: Variables["user"]) {
         // Check access
         const existing = await this.findById(id, user)
         if (!existing) {
@@ -551,27 +530,17 @@ export const invoiceRepository = {
             }
 
             if (data.fees) {
-                if (data.fees.base !== undefined)
-                    updateData.feesBase = Math.round(data.fees.base * 100)
-                if (data.fees.adjusted !== undefined)
-                    updateData.feesAdjusted = Math.round(data.fees.adjusted * 100)
-                if (data.fees.total !== undefined)
-                    updateData.feesTotal = Math.round(data.fees.total * 100)
-                if (data.fees.others !== undefined)
-                    updateData.feesOthers = Math.round(data.fees.others * 100)
+                if (data.fees.base !== undefined) updateData.feesBase = data.fees.base
+                if (data.fees.adjusted !== undefined) updateData.feesAdjusted = data.fees.adjusted
+                if (data.fees.total !== undefined) updateData.feesTotal = data.fees.total
+                if (data.fees.others !== undefined) updateData.feesOthers = data.fees.others
                 if (data.fees.finalTotal !== undefined)
-                    updateData.feesFinalTotal = Math.round(data.fees.finalTotal * 100)
+                    updateData.feesFinalTotal = data.fees.finalTotal
                 if (data.fees.multiplicationFactor !== undefined)
-                    updateData.feesMultiplicationFactor = Math.round(
-                        data.fees.multiplicationFactor * 100
-                    )
+                    updateData.feesMultiplicationFactor = data.fees.multiplicationFactor
                 if (data.fees.discount) {
-                    updateData.feesDiscountPercentage = data.fees.discount.percentage
-                        ? Math.round(data.fees.discount.percentage * 100)
-                        : null
-                    updateData.feesDiscountAmount = data.fees.discount.amount
-                        ? Math.round(data.fees.discount.amount * 100)
-                        : null
+                    updateData.feesDiscountPercentage = data.fees.discount.percentage || null
+                    updateData.feesDiscountAmount = data.fees.discount.amount || null
                 }
 
                 // Update rates if provided
@@ -586,8 +555,8 @@ export const invoiceRepository = {
                                 rateClass: rate.rateClass,
                                 baseMinutes: Math.round(rate.base * 60),
                                 adjustedMinutes: Math.round(rate.adjusted * 60),
-                                hourlyRate: Math.round(rate.hourlyRate * 100),
-                                amount: Math.round(rate.amount * 100),
+                                hourlyRate: rate.hourlyRate,
+                                amount: rate.amount,
                                 createdAt: new Date(),
                                 updatedAt: new Date(),
                             }))
@@ -599,55 +568,41 @@ export const invoiceRepository = {
             if (data.expenses) {
                 if (data.expenses.travel) {
                     if (data.expenses.travel.base !== undefined)
-                        updateData.expensesTravelBase = Math.round(data.expenses.travel.base * 100)
+                        updateData.expensesTravelBase = data.expenses.travel.base
                     if (data.expenses.travel.adjusted !== undefined)
-                        updateData.expensesTravelAdjusted = Math.round(
-                            data.expenses.travel.adjusted * 100
-                        )
+                        updateData.expensesTravelAdjusted = data.expenses.travel.adjusted
                     if (data.expenses.travel.rate !== undefined)
-                        updateData.expensesTravelRate = Math.round(data.expenses.travel.rate * 100)
+                        updateData.expensesTravelRate = data.expenses.travel.rate
                     if (data.expenses.travel.amount !== undefined)
-                        updateData.expensesTravelAmount = Math.round(
-                            data.expenses.travel.amount * 100
-                        )
+                        updateData.expensesTravelAmount = data.expenses.travel.amount
                 }
                 if (data.expenses.other) {
                     if (data.expenses.other.base !== undefined)
-                        updateData.expensesOtherBase = Math.round(data.expenses.other.base * 100)
+                        updateData.expensesOtherBase = data.expenses.other.base
                     if (data.expenses.other.amount !== undefined)
-                        updateData.expensesOtherAmount = Math.round(
-                            data.expenses.other.amount * 100
-                        )
+                        updateData.expensesOtherAmount = data.expenses.other.amount
                 }
                 if (data.expenses.total !== undefined)
-                    updateData.expensesTotal = Math.round(data.expenses.total * 100)
+                    updateData.expensesTotal = data.expenses.total
                 if (data.expenses.thirdParty?.amount !== undefined)
-                    updateData.expensesThirdPartyAmount = Math.round(
-                        data.expenses.thirdParty.amount * 100
-                    )
+                    updateData.expensesThirdPartyAmount = data.expenses.thirdParty.amount
                 if (data.expenses.package) {
-                    updateData.expensesPackagePercentage = data.expenses.package.percentage
-                        ? Math.round(data.expenses.package.percentage * 100)
-                        : null
-                    updateData.expensesPackageAmount = data.expenses.package.amount
-                        ? Math.round(data.expenses.package.amount * 100)
-                        : null
+                    updateData.expensesPackagePercentage = data.expenses.package.percentage || null
+                    updateData.expensesPackageAmount = data.expenses.package.amount || null
                 }
                 if (data.expenses.totalExpenses !== undefined)
-                    updateData.expensesTotalExpenses = Math.round(data.expenses.totalExpenses * 100)
+                    updateData.expensesTotalExpenses = data.expenses.totalExpenses
             }
 
             if (data.totals) {
-                if (data.totals.ht !== undefined)
-                    updateData.totalHT = Math.round(data.totals.ht * 100)
+                if (data.totals.ht !== undefined) updateData.totalHT = data.totals.ht
                 if (data.totals.vat) {
                     if (data.totals.vat.rate !== undefined)
-                        updateData.vatRate = Math.round(data.totals.vat.rate * 100)
+                        updateData.vatRate = data.totals.vat.rate
                     if (data.totals.vat.amount !== undefined)
-                        updateData.vatAmount = Math.round(data.totals.vat.amount * 100)
+                        updateData.vatAmount = data.totals.vat.amount
                 }
-                if (data.totals.ttc !== undefined)
-                    updateData.totalTTC = Math.round(data.totals.ttc * 100)
+                if (data.totals.ttc !== undefined) updateData.totalTTC = data.totals.ttc
             }
 
             if (data.remarks) {
@@ -672,8 +627,8 @@ export const invoiceRepository = {
                         data.offers.map((offer) => ({
                             invoiceId: id,
                             file: offer.file,
-                            date: offer.date,
-                            amount: Math.round(offer.amount * 100),
+                            date: offer.date || new Date(),
+                            amount: offer.amount,
                             remark: offer.remark,
                             createdAt: new Date(),
                             updatedAt: new Date(),
@@ -690,8 +645,8 @@ export const invoiceRepository = {
                         data.adjudications.map((adj) => ({
                             invoiceId: id,
                             file: adj.file,
-                            date: adj.date,
-                            amount: Math.round(adj.amount * 100),
+                            date: adj.date || new Date(),
+                            amount: adj.amount,
                             remark: adj.remark,
                             createdAt: new Date(),
                             updatedAt: new Date(),
@@ -704,7 +659,7 @@ export const invoiceRepository = {
         })
     },
 
-    async delete(id: number, user: User) {
+    async delete(id: number, user: Variables["user"]) {
         const existing = await this.findById(id, user)
         if (!existing) {
             return false

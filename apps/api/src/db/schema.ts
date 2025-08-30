@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core"
+import { sqliteTable, text, integer, index, numeric, real } from "drizzle-orm/sqlite-core"
 
 import { timestamps } from "./column.helper"
 import type {
@@ -127,7 +127,6 @@ export const projects = sqliteTable(
             .notNull()
             .references(() => projectTypes.id, { onDelete: "set null" }),
         remark: text("remark"),
-        invoiceAddress: text("invoiceAddress"),
         projectManagerId: integer("projectManagerId").references(() => users.id, {
             onDelete: "set null",
         }),
@@ -279,31 +278,31 @@ export const invoices = sqliteTable(
         recipientAddress: text("recipientAddress").notNull(),
         description: text("description").notNull(),
         // Fee totals
-        feesBase: integer("feesBase").notNull().default(0),
-        feesAdjusted: integer("feesAdjusted").notNull().default(0),
-        feesTotal: integer("feesTotal").notNull().default(0),
-        feesOthers: integer("feesOthers").notNull().default(0),
-        feesFinalTotal: integer("feesFinalTotal").notNull().default(0),
-        feesMultiplicationFactor: integer("feesMultiplicationFactor").notNull().default(100), // stored as percentage
-        feesDiscountPercentage: integer("feesDiscountPercentage"),
-        feesDiscountAmount: integer("feesDiscountAmount"),
+        feesBase: real("feesBase").notNull().default(0),
+        feesAdjusted: real("feesAdjusted").notNull().default(0),
+        feesTotal: real("feesTotal").notNull().default(0),
+        feesOthers: real("feesOthers").notNull().default(0),
+        feesFinalTotal: real("feesFinalTotal").notNull().default(0),
+        feesMultiplicationFactor: real("feesMultiplicationFactor").notNull().default(100), // stored as percentage
+        feesDiscountPercentage: real("feesDiscountPercentage"),
+        feesDiscountAmount: real("feesDiscountAmount"),
         // Expense totals
-        expensesTravelBase: integer("expensesTravelBase").notNull().default(0),
-        expensesTravelAdjusted: integer("expensesTravelAdjusted").notNull().default(0),
-        expensesTravelRate: integer("expensesTravelRate").notNull().default(65), // stored as percentage
-        expensesTravelAmount: integer("expensesTravelAmount").notNull().default(0),
-        expensesOtherBase: integer("expensesOtherBase").notNull().default(0),
-        expensesOtherAmount: integer("expensesOtherAmount").notNull().default(0),
-        expensesTotal: integer("expensesTotal").notNull().default(0),
-        expensesThirdPartyAmount: integer("expensesThirdPartyAmount").notNull().default(0),
-        expensesPackagePercentage: integer("expensesPackagePercentage"),
-        expensesPackageAmount: integer("expensesPackageAmount"),
-        expensesTotalExpenses: integer("expensesTotalExpenses").notNull().default(0),
+        expensesTravelBase: real("expensesTravelBase").notNull().default(0),
+        expensesTravelAdjusted: real("expensesTravelAdjusted").notNull().default(0),
+        expensesTravelRate: real("expensesTravelRate").notNull().default(65), // stored as percentage
+        expensesTravelAmount: real("expensesTravelAmount").notNull().default(0),
+        expensesOtherBase: real("expensesOtherBase").notNull().default(0),
+        expensesOtherAmount: real("expensesOtherAmount").notNull().default(0),
+        expensesTotal: real("expensesTotal").notNull().default(0),
+        expensesThirdPartyAmount: real("expensesThirdPartyAmount").notNull().default(0),
+        expensesPackagePercentage: real("expensesPackagePercentage"),
+        expensesPackageAmount: real("expensesPackageAmount"),
+        expensesTotalExpenses: real("expensesTotalExpenses").notNull().default(0),
         // Final totals
-        totalHT: integer("totalHT").notNull().default(0),
-        vatRate: integer("vatRate").notNull().default(800), // stored as basis points (8.00% = 800)
-        vatAmount: integer("vatAmount").notNull().default(0),
-        totalTTC: integer("totalTTC").notNull().default(0),
+        totalHT: real("totalHT").notNull().default(0),
+        vatRate: real("vatRate").notNull().default(800), // stored as basis points (8.00% = 800)
+        vatAmount: real("vatAmount").notNull().default(0),
+        totalTTC: real("totalTTC").notNull().default(0),
         // Remarks
         otherServices: text("otherServices").default(""),
         remarksOtherServices: text("remarksOtherServices").default(""),

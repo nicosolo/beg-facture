@@ -1,1 +1,0 @@
-CREATE INDEX `activities_project_billed_idx` ON `activities` (`projectId`,`billed`);

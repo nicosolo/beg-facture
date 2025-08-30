@@ -1,89 +1,12 @@
 {
-  "version": "7",
+  "version": "1",
   "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
       "version": "6",
-      "when": 1748513222330,
-      "tag": "0000_shiny_vapor",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1748695584612,
-      "tag": "0001_legal_ares",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1748698407216,
-      "tag": "0002_sudden_the_hunter",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1748698905938,
-      "tag": "0003_secret_zarek",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1752325065200,
-      "tag": "0004_overrated_captain_universe",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1752925029597,
-      "tag": "0005_last_mentallo",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "6",
-      "when": 1752929438949,
-      "tag": "0006_flippant_rhino",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "6",
-      "when": 1752931261528,
-      "tag": "0007_legal_timeslip",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "6",
-      "when": 1752935133026,
-      "tag": "0008_melted_colleen_wing",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "6",
-      "when": 1754395492810,
-      "tag": "0009_zippy_madame_hydra",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "6",
-      "when": 1755698409420,
-      "tag": "0010_loving_jigsaw",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "6",
-      "when": 1756461992351,
-      "tag": "0011_unique_exiles",
+      "when": 1756585374552,
+      "tag": "0000_even_slapstick",
       "breakpoints": true
     }
   ]

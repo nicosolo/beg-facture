@@ -123,7 +123,6 @@ export const projectRepository = {
                 name: projects.name,
                 startDate: projects.startDate,
                 remark: projects.remark,
-                invoiceAddress: projects.invoiceAddress,
                 printFlag: projects.printFlag,
                 createdAt: projects.createdAt,
                 updatedAt: projects.updatedAt,
@@ -223,7 +222,6 @@ export const projectRepository = {
                 name: projects.name,
                 startDate: projects.startDate,
                 remark: projects.remark,
-                invoiceAddress: projects.invoiceAddress,
                 printFlag: projects.printFlag,
                 createdAt: projects.createdAt,
                 updatedAt: projects.updatedAt,
@@ -307,7 +305,6 @@ export const projectRepository = {
                 companyId: data.companyId || null,
                 projectManagerId: data.projectManagerId || null,
                 remark: data.remark || null,
-                invoiceAddress: data.invoiceAddress || null,
                 printFlag: data.printFlag || false,
                 ended: data.ended || false,
                 archived: data.archived || false,
@@ -391,8 +388,6 @@ export const projectRepository = {
         if (data.projectManagerId !== undefined)
             updateData.projectManagerId = data.projectManagerId || null
         if (data.remark !== undefined) updateData.remark = data.remark || null
-        if (data.invoiceAddress !== undefined)
-            updateData.invoiceAddress = data.invoiceAddress || null
         if (data.printFlag !== undefined) updateData.printFlag = data.printFlag
         if (data.ended !== undefined) updateData.ended = data.ended
         if (data.archived !== undefined) updateData.archived = data.archived

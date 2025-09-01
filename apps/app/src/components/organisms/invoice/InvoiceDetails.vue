@@ -28,23 +28,27 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200 text-sm">
-                            <tr v-for="(rate, index) in rates" :key="rate.id">
-                                <td class="px-4 py-2 text-gray-800">{{ rate.name }}</td>
-                                <td class="px-4 py-2 text-gray-600">{{ rate.abbreviation }}</td>
+                            <tr v-for="(rate, index) in rates" :key="index">
+                                <td class="px-4 py-2 text-gray-800">{{ rate.rateClass }}</td>
+                                <td class="px-4 py-2 text-gray-600">{{ rate.rateClass }}</td>
                                 <td class="px-4 py-2">
                                     <span>{{ formatDuration(rate.base) }}</span>
                                 </td>
                                 <td class="px-4 py-2">
                                     <InputDuration
                                         :modelValue="rate.adjusted"
-                                        @update:modelValue="(value) => updateRate(index, 'adjusted', value)"
+                                        @update:modelValue="
+                                            (value) => updateRate(index, 'adjusted', value)
+                                        "
                                         class="w-20"
                                     />
                                 </td>
                                 <td class="px-4 py-2">
                                     <InputNumber
                                         :modelValue="rate.hourlyRate"
-                                        @update:modelValue="(value) => updateRate(index, 'hourlyRate', value)"
+                                        @update:modelValue="
+                                            (value) => updateRate(index, 'hourlyRate', value)
+                                        "
                                         :currency="true"
                                         class="w-24"
                                     />
@@ -177,8 +181,14 @@
             >
                 <template #content>
                     <textarea
-                        :value="invoice.remarks?.otherServices || ''"
-                        @input="(e) => updateRemarks('otherServices', (e.target as HTMLTextAreaElement).value)"
+                        :value="invoice.remarksOtherServices || ''"
+                        @input="
+                            (e) =>
+                                updateRemarks(
+                                    'otherServices',
+                                    (e.target as HTMLTextAreaElement).value
+                                )
+                        "
                         rows="6"
                         class="w-full p-2 border border-gray-300 rounded"
                     ></textarea>
@@ -188,36 +198,45 @@
             <AccordionPanel id="deplacements" title="2. Déplacements (voiture)">
                 <template #content>
                     <textarea
-                        :value="invoice.remarks?.travelExpenses || ''"
-                        @input="(e) => updateRemarks('travelExpenses', (e.target as HTMLTextAreaElement).value)"
+                        :value="invoice.remarksTravelExpenses || ''"
+                        @input="
+                            (e) =>
+                                updateRemarks(
+                                    'travelExpenses',
+                                    (e.target as HTMLTextAreaElement).value
+                                )
+                        "
                         rows="6"
                         class="w-full p-2 border border-gray-300 rounded"
                     ></textarea>
                 </template>
             </AccordionPanel>
 
-            <AccordionPanel
-                id="frais-remboursables"
-                title="3. Frais remboursables (achats...)"
-            >
+            <AccordionPanel id="frais-remboursables" title="3. Frais remboursables (achats...)">
                 <template #content>
                     <textarea
-                        :value="invoice.remarks?.expenses || ''"
-                        @input="(e) => updateRemarks('expenses', (e.target as HTMLTextAreaElement).value)"
+                        :value="invoice.remarksExpenses || ''"
+                        @input="
+                            (e) =>
+                                updateRemarks('expenses', (e.target as HTMLTextAreaElement).value)
+                        "
                         rows="6"
                         class="w-full p-2 border border-gray-300 rounded"
                     ></textarea>
                 </template>
             </AccordionPanel>
 
-            <AccordionPanel
-                id="frais-laboratoire"
-                title="4. Frais de laboratoire, pelle, minage"
-            >
+            <AccordionPanel id="frais-laboratoire" title="4. Frais de laboratoire, pelle, minage">
                 <template #content>
                     <textarea
-                        :value="invoice.remarks?.thirdPartyExpenses || ''"
-                        @input="(e) => updateRemarks('thirdPartyExpenses', (e.target as HTMLTextAreaElement).value)"
+                        :value="invoice.remarksThirdPartyExpenses || ''"
+                        @input="
+                            (e) =>
+                                updateRemarks(
+                                    'thirdPartyExpenses',
+                                    (e.target as HTMLTextAreaElement).value
+                                )
+                        "
                         rows="6"
                         class="w-full p-2 border border-gray-300 rounded"
                     ></textarea>
@@ -242,7 +261,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-    'update:modelValue': [value: Invoice]
+    "update:modelValue": [value: Invoice]
 }>()
 
 const { formatCurrency, formatDuration } = useFormat()
@@ -250,68 +269,84 @@ const { formatCurrency, formatDuration } = useFormat()
 // Computed property for invoice
 const invoice = computed({
     get: () => props.modelValue,
-    set: (value) => emit('update:modelValue', value)
+    set: (value) => emit("update:modelValue", value),
 })
 
-// Computed properties for data
-const rates = computed(() => invoice.value.fees?.rates || [])
-const feesBase = computed(() => invoice.value.fees?.base || 0)
-const feesAdjusted = computed(() => invoice.value.fees?.adjusted || 0)
-const feesTotal = computed(() => invoice.value.fees?.totalAmount || 0)
+// Computed properties for data - using flat structure
+const rates = computed(() => invoice.value.rates || [])
+const feesBase = computed(() => invoice.value.feesBase || 0)
+const feesAdjusted = computed(() => invoice.value.feesAdjusted || 0)
+const feesTotal = computed(() => invoice.value.feesTotal || 0)
 
-const hasDiscount = computed(() => (invoice.value.discount?.percentage || 0) > 0)
-const discountPercentage = computed(() => invoice.value.discount?.percentage || 0)
-const discountAmount = computed(() => invoice.value.discount?.amount || 0)
+const hasDiscount = computed(() => (invoice.value.feesDiscountPercentage || 0) > 0)
+const discountPercentage = computed(() => invoice.value.feesDiscountPercentage || 0)
+const discountAmount = computed(() => invoice.value.feesDiscountAmount || 0)
 
-const otherServicesAmount = computed(() => invoice.value.otherServices?.amount || 0)
-const travelExpensesAmount = computed(() => invoice.value.travelExpenses?.amount || 0)
-const thirdPartyExpensesAmount = computed(() => invoice.value.thirdPartyExpenses?.amount || 0)
+const otherServicesAmount = computed(() => invoice.value.feesOthers || 0)
+const travelExpensesAmount = computed(() => invoice.value.expensesTravelAmount || 0)
+const thirdPartyExpensesAmount = computed(() => invoice.value.expensesThirdPartyAmount || 0)
 
-const totalHT = computed(() => invoice.value.subtotal || 0)
-const vatRate = computed(() => invoice.value.vat?.rate || 8.1)
-const vatAmount = computed(() => invoice.value.vat?.amount || 0)
-const totalTTC = computed(() => invoice.value.total || 0)
+const totalHT = computed(() => invoice.value.totalHT || 0)
+const vatRate = computed(() => invoice.value.vatRate || 8.0)
+const vatAmount = computed(() => invoice.value.vatAmount || 0)
+const totalTTC = computed(() => invoice.value.totalTTC || 0)
 
 // Helper function to update remarks
 const updateRemarks = (field: string, value: string) => {
-    const newInvoice = { ...invoice.value }
-    if (!newInvoice.remarks) newInvoice.remarks = {
-        expenses: '',
-        otherServices: '',
-        travelExpenses: '',
-        thirdPartyExpenses: ''
+    const newInvoice = { ...invoice.value } as any
+    // Map field names to flat structure
+    const fieldMap: Record<string, string> = {
+        'otherServices': 'remarksOtherServices',
+        'travelExpenses': 'remarksTravelExpenses',
+        'expenses': 'remarksExpenses',
+        'thirdPartyExpenses': 'remarksThirdPartyExpenses'
     }
-    newInvoice.remarks = { ...newInvoice.remarks, [field]: value }
+    const flatField = fieldMap[field]
+    if (flatField) {
+        newInvoice[flatField] = value
+    }
     invoice.value = newInvoice
 }
 
 // Update rate
 const updateRate = (index: number, field: string, value: any) => {
     const newInvoice = { ...invoice.value }
-    if (!newInvoice.fees) newInvoice.fees = { rates: [], base: 0, adjusted: 0, totalAmount: 0 }
-    if (!newInvoice.fees.rates) newInvoice.fees.rates = []
-    newInvoice.fees.rates = [...newInvoice.fees.rates]
-    newInvoice.fees.rates[index] = { ...newInvoice.fees.rates[index], [field]: value }
-    
+    if (!newInvoice.rates) newInvoice.rates = []
+    newInvoice.rates = [...newInvoice.rates]
+    newInvoice.rates[index] = { ...newInvoice.rates[index], [field]: value }
+
     // Recalculate amount
-    const rate = newInvoice.fees.rates[index]
+    const rate = newInvoice.rates[index]
     rate.amount = (rate.adjusted / 60) * rate.hourlyRate
-    
-    // Recalculate totals
-    newInvoice.fees.base = newInvoice.fees.rates.reduce((total, r) => total + (r.base || 0), 0)
-    newInvoice.fees.adjusted = newInvoice.fees.rates.reduce((total, r) => total + (r.adjusted || 0), 0)
-    newInvoice.fees.totalAmount = newInvoice.fees.rates.reduce((total, r) => total + (r.amount || 0), 0)
-    
+
+    // Recalculate totals using flat fields
+    newInvoice.feesBase = newInvoice.rates.reduce((total, r) => total + (r.base || 0), 0)
+    newInvoice.feesAdjusted = newInvoice.rates.reduce(
+        (total, r) => total + (r.adjusted || 0),
+        0
+    )
+    newInvoice.feesFinalTotal = newInvoice.rates.reduce(
+        (total, r) => total + (r.amount || 0),
+        0
+    )
+    newInvoice.feesTotal = newInvoice.feesFinalTotal - (newInvoice.feesDiscountAmount || 0)
+
     invoice.value = newInvoice
 }
 
 // Toggle discount
 const toggleDiscount = () => {
     const newInvoice = { ...invoice.value }
-    if (!newInvoice.discount) {
-        newInvoice.discount = { percentage: 10, amount: 0 }
+    if (newInvoice.feesDiscountPercentage) {
+        newInvoice.feesDiscountPercentage = newInvoice.feesDiscountPercentage > 0 ? 0 : 10
     } else {
-        newInvoice.discount.percentage = newInvoice.discount.percentage > 0 ? 0 : 10
+        newInvoice.feesDiscountPercentage = 10
+    }
+    // Calculate discount amount
+    if (newInvoice.feesDiscountPercentage && newInvoice.feesFinalTotal) {
+        newInvoice.feesDiscountAmount = (newInvoice.feesFinalTotal * newInvoice.feesDiscountPercentage) / 100
+    } else {
+        newInvoice.feesDiscountAmount = 0
     }
     invoice.value = newInvoice
 }
@@ -319,8 +354,13 @@ const toggleDiscount = () => {
 // Update discount percentage
 const updateDiscountPercentage = (value: number) => {
     const newInvoice = { ...invoice.value }
-    if (!newInvoice.discount) newInvoice.discount = { percentage: 0, amount: 0 }
-    newInvoice.discount.percentage = value
+    newInvoice.feesDiscountPercentage = value
+    // Calculate discount amount
+    if (value && newInvoice.feesFinalTotal) {
+        newInvoice.feesDiscountAmount = (newInvoice.feesFinalTotal * value) / 100
+    } else {
+        newInvoice.feesDiscountAmount = 0
+    }
     invoice.value = newInvoice
 }
 </script>

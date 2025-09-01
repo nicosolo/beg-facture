@@ -96,53 +96,130 @@ const errorMessage = computed(() => {
     return err ? "Une erreur s'est produite" : null
 })
 const projectId = computed<number | undefined>(() => parseInt(route.params.projectId as string))
-// Helper to convert API response to form data
+// Helper to convert API response to form data (response is already flat)
 const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
     return {
         ...createEmptyInvoice({}),
         id: response.id.toString(),
-        projectId: response.project.id,
+        projectId: response.projectId,
+        
+        // All fields are already flat in response
         invoiceNumber: response.invoiceNumber || "",
         reference: response.reference || "",
         type: response.type || "Facture",
         billingMode: response.billingMode,
-        period: {
-            startDate: response.period?.startDate ? new Date(response.period.startDate) : undefined,
-            endDate: response.period?.endDate ? new Date(response.period.endDate) : undefined,
-        },
-        client: {
-            name: response.client?.name || "",
-            address: response.client?.address || "",
-        },
-        recipient: {
-            name: response.recipient?.name || "",
-            address: response.recipient?.address || "",
-        },
         description: response.description || "",
+        
+        // Dates - flat
+        issueDate: response.issueDate ? new Date(response.issueDate) : undefined,
+        dueDate: response.dueDate ? new Date(response.dueDate) : undefined,
+        periodStart: response.periodStart ? new Date(response.periodStart) : undefined,
+        periodEnd: response.periodEnd ? new Date(response.periodEnd) : undefined,
+        
+        // Client and recipient - flat
+        clientId: response.clientId,
+        clientName: response.clientName || "",
+        clientAddress: response.clientAddress || "",
+        recipientName: response.recipientName || "",
+        recipientAddress: response.recipientAddress || "",
+        
+        // All flat fields from response
+        feesBase: response.feesBase || 0,
+        feesAdjusted: response.feesAdjusted || 0,
+        feesTotal: response.feesTotal || 0,
+        feesOthers: response.feesOthers || 0,
+        feesFinalTotal: response.feesFinalTotal || 0,
+        feesMultiplicationFactor: response.feesMultiplicationFactor || 1,
+        feesDiscountPercentage: response.feesDiscountPercentage || null,
+        feesDiscountAmount: response.feesDiscountAmount || null,
+        
+        expensesTravelBase: response.expensesTravelBase || 0,
+        expensesTravelAdjusted: response.expensesTravelAdjusted || 0,
+        expensesTravelRate: response.expensesTravelRate || 0.65,
+        expensesTravelAmount: response.expensesTravelAmount || 0,
+        expensesOtherBase: response.expensesOtherBase || 0,
+        expensesOtherAmount: response.expensesOtherAmount || 0,
+        expensesTotal: response.expensesTotal || 0,
+        expensesThirdPartyAmount: response.expensesThirdPartyAmount || 0,
+        expensesPackagePercentage: response.expensesPackagePercentage || null,
+        expensesPackageAmount: response.expensesPackageAmount || null,
+        expensesTotalExpenses: response.expensesTotalExpenses || 0,
+        
+        totalHT: response.totalHT || 0,
+        vatRate: response.vatRate || 8.0,
+        vatAmount: response.vatAmount || 0,
+        totalTTC: response.totalTTC || 0,
+        
+        otherServices: response.otherServices || "",
+        remarksOtherServices: response.remarksOtherServices || "",
+        remarksTravelExpenses: response.remarksTravelExpenses || "",
+        remarksExpenses: response.remarksExpenses || "",
+        remarksThirdPartyExpenses: response.remarksThirdPartyExpenses || "",
+        
+        // Arrays
+        rates: response.rates || [],
         offers: response.offers || [],
         adjudications: response.adjudications || [],
-        // Keep other fields from response as needed
     }
 }
 
 // Helper to convert form data to API input
 const convertInvoiceToInput = (invoice: Invoice): any => {
     return {
+        projectId: invoice.projectId,
         invoiceNumber: invoice.invoiceNumber,
         reference: invoice.reference,
         type: invoice.type,
         billingMode: invoice.billingMode,
-        status: "draft", // Status is managed by the backend
-        periodStartDate: invoice.period?.startDate,
-        periodEndDate: invoice.period?.endDate,
-        clientId: undefined, // This should be set from a client selector
-        clientName: invoice.client?.name,
-        recipientName: invoice.recipient?.name,
-        recipientAddress: invoice.recipient?.address,
+        status: "draft",
         description: invoice.description,
-        projectId: undefined, // This should be set from a project selector
+        
+        // Dates
         issueDate: new Date(),
         dueDate: undefined,
+        periodStart: invoice.periodStart,
+        periodEnd: invoice.periodEnd,
+        
+        // Client and recipient
+        clientId: invoice.clientId,
+        recipientName: invoice.recipientName,
+        recipientAddress: invoice.recipientAddress,
+        
+        // All flat fields
+        feesBase: invoice.feesBase,
+        feesAdjusted: invoice.feesAdjusted,
+        feesTotal: invoice.feesTotal,
+        feesOthers: invoice.feesOthers,
+        feesFinalTotal: invoice.feesFinalTotal,
+        feesMultiplicationFactor: invoice.feesMultiplicationFactor,
+        feesDiscountPercentage: invoice.feesDiscountPercentage,
+        feesDiscountAmount: invoice.feesDiscountAmount,
+        
+        expensesTravelBase: invoice.expensesTravelBase,
+        expensesTravelAdjusted: invoice.expensesTravelAdjusted,
+        expensesTravelRate: invoice.expensesTravelRate,
+        expensesTravelAmount: invoice.expensesTravelAmount,
+        expensesOtherBase: invoice.expensesOtherBase,
+        expensesOtherAmount: invoice.expensesOtherAmount,
+        expensesTotal: invoice.expensesTotal,
+        expensesThirdPartyAmount: invoice.expensesThirdPartyAmount,
+        expensesPackagePercentage: invoice.expensesPackagePercentage,
+        expensesPackageAmount: invoice.expensesPackageAmount,
+        expensesTotalExpenses: invoice.expensesTotalExpenses,
+        
+        totalHT: invoice.totalHT,
+        vatRate: invoice.vatRate,
+        vatAmount: invoice.vatAmount,
+        totalTTC: invoice.totalTTC,
+        
+        otherServices: invoice.otherServices,
+        remarksOtherServices: invoice.remarksOtherServices,
+        remarksTravelExpenses: invoice.remarksTravelExpenses,
+        remarksExpenses: invoice.remarksExpenses,
+        remarksThirdPartyExpenses: invoice.remarksThirdPartyExpenses,
+        
+        // Arrays
+        rates: invoice.rates || [],
         offers: invoice.offers || [],
         adjudications: invoice.adjudications || [],
     }

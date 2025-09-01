@@ -119,32 +119,75 @@ export const invoiceRepository = {
                     .where(eq(invoiceAdjudications.invoiceId, row.invoice.id))
 
                 return {
+                    // Basic fields
                     id: row.invoice.id,
+                    projectId: row.invoice.projectId,
                     invoiceNumber: row.invoice.invoiceNumber,
                     reference: row.invoice.reference,
                     type: row.invoice.type,
                     billingMode: row.invoice.billingMode,
                     status: row.invoice.status,
-                    period: {
-                        startDate: row.invoice.periodStart,
-                        endDate: row.invoice.periodEnd,
-                    },
-                    client: row.client
-                        ? {
-                              id: row.client.id,
-                              name: row.client.name,
-                              address: "", // Client address not in schema, would need to add
-                          }
-                        : {
-                              id: row.invoice.clientId,
-                              name: "",
-                              address: "",
-                          },
-                    recipient: {
-                        name: row.invoice.recipientName,
-                        address: row.invoice.recipientAddress,
-                    },
                     description: row.invoice.description,
+                    
+                    // Dates - flat
+                    issueDate: row.invoice.issueDate,
+                    dueDate: row.invoice.dueDate,
+                    periodStart: row.invoice.periodStart,
+                    periodEnd: row.invoice.periodEnd,
+                    
+                    // Client - flat
+                    clientId: row.invoice.clientId,
+                    clientName: row.client?.name || "",
+                    clientAddress: "", // Client address not in schema
+                    
+                    // Recipient - flat
+                    recipientName: row.invoice.recipientName,
+                    recipientAddress: row.invoice.recipientAddress,
+                    
+                    // Fees - flat
+                    feesBase: row.invoice.feesBase,
+                    feesAdjusted: row.invoice.feesAdjusted,
+                    feesTotal: row.invoice.feesTotal,
+                    feesOthers: row.invoice.feesOthers,
+                    feesFinalTotal: row.invoice.feesFinalTotal,
+                    feesMultiplicationFactor: row.invoice.feesMultiplicationFactor,
+                    feesDiscountPercentage: row.invoice.feesDiscountPercentage,
+                    feesDiscountAmount: row.invoice.feesDiscountAmount,
+                    
+                    // Expenses - flat
+                    expensesTravelBase: row.invoice.expensesTravelBase,
+                    expensesTravelAdjusted: row.invoice.expensesTravelAdjusted,
+                    expensesTravelRate: row.invoice.expensesTravelRate,
+                    expensesTravelAmount: row.invoice.expensesTravelAmount,
+                    expensesOtherBase: row.invoice.expensesOtherBase,
+                    expensesOtherAmount: row.invoice.expensesOtherAmount,
+                    expensesTotal: row.invoice.expensesTotal,
+                    expensesThirdPartyAmount: row.invoice.expensesThirdPartyAmount,
+                    expensesPackagePercentage: row.invoice.expensesPackagePercentage,
+                    expensesPackageAmount: row.invoice.expensesPackageAmount,
+                    expensesTotalExpenses: row.invoice.expensesTotalExpenses,
+                    
+                    // Totals - flat
+                    totalHT: row.invoice.totalHT,
+                    vatRate: row.invoice.vatRate,
+                    vatAmount: row.invoice.vatAmount,
+                    totalTTC: row.invoice.totalTTC,
+                    
+                    // Other services and remarks - flat
+                    otherServices: row.invoice.otherServices || "",
+                    remarksOtherServices: row.invoice.remarksOtherServices || "",
+                    remarksTravelExpenses: row.invoice.remarksTravelExpenses || "",
+                    remarksExpenses: row.invoice.remarksExpenses || "",
+                    remarksThirdPartyExpenses: row.invoice.remarksThirdPartyExpenses || "",
+                    
+                    // Arrays
+                    rates: rates.map((r) => ({
+                        rateClass: r.rateClass,
+                        base: r.baseMinutes / 60, // Convert minutes to hours
+                        adjusted: r.adjustedMinutes / 60,
+                        hourlyRate: r.hourlyRate,
+                        amount: r.amount,
+                    })),
                     offers: offers.map((o) => ({
                         file: o.file,
                         date: o.date,
@@ -157,70 +200,14 @@ export const invoiceRepository = {
                         amount: a.amount,
                         remark: a.remark || "",
                     })),
-                    fees: {
-                        base: row.invoice.feesBase,
-                        adjusted: row.invoice.feesAdjusted,
-                        total: row.invoice.feesTotal,
-                        others: row.invoice.feesOthers,
-                        finalTotal: row.invoice.feesFinalTotal,
-                        multiplicationFactor: row.invoice.feesMultiplicationFactor,
-                        discount: {
-                            percentage: row.invoice.feesDiscountPercentage,
-                            amount: row.invoice.feesDiscountAmount,
-                        },
-                        rates: rates.map((r) => ({
-                            rateClass: r.rateClass,
-                            base: r.baseMinutes / 60, // Convert minutes to hours
-                            adjusted: r.adjustedMinutes / 60,
-                            hourlyRate: r.hourlyRate,
-                            amount: r.amount,
-                        })),
-                    },
-                    expenses: {
-                        travel: {
-                            base: row.invoice.expensesTravelBase,
-                            adjusted: row.invoice.expensesTravelAdjusted,
-                            rate: row.invoice.expensesTravelRate,
-                            amount: row.invoice.expensesTravelAmount,
-                        },
-                        other: {
-                            base: row.invoice.expensesOtherBase,
-                            amount: row.invoice.expensesOtherAmount,
-                        },
-                        total: row.invoice.expensesTotal,
-                        thirdParty: {
-                            amount: row.invoice.expensesThirdPartyAmount,
-                        },
-                        package: {
-                            percentage: row.invoice.expensesPackagePercentage,
-                            amount: row.invoice.expensesPackageAmount,
-                        },
-                        totalExpenses: row.invoice.expensesTotalExpenses,
-                    },
-                    totals: {
-                        ht: row.invoice.totalHT,
-                        vat: {
-                            rate: row.invoice.vatRate,
-                            amount: row.invoice.vatAmount,
-                        },
-                        ttc: row.invoice.totalTTC,
-                    },
-                    otherServices: row.invoice.otherServices || "",
-                    remarks: {
-                        otherServices: row.invoice.remarksOtherServices || "",
-                        travelExpenses: row.invoice.remarksTravelExpenses || "",
-                        expenses: row.invoice.remarksExpenses || "",
-                        thirdPartyExpenses: row.invoice.remarksThirdPartyExpenses || "",
-                    },
+                    
+                    // Project info - flat
+                    projectName: row.project?.name || null,
+                    projectNumber: row.project?.projectNumber || null,
+                    
+                    // Timestamps
                     createdAt: row.invoice.createdAt,
                     updatedAt: row.invoice.updatedAt,
-                    project: row.project
-                        ? {
-                              id: row.project.id,
-                              name: row.project.name,
-                              projectNumber: row.project.projectNumber,
-                          }
-                        : null,
                 }
             })
         )
@@ -271,34 +258,77 @@ export const invoiceRepository = {
             .from(invoiceAdjudications)
             .where(eq(invoiceAdjudications.invoiceId, id))
 
-        // Transform and return
+        // Transform and return - fully flat structure
         return {
+            // Basic fields
             id: row.invoice.id,
+            projectId: row.invoice.projectId,
             invoiceNumber: row.invoice.invoiceNumber,
             reference: row.invoice.reference,
             type: row.invoice.type,
             billingMode: row.invoice.billingMode,
             status: row.invoice.status,
-            period: {
-                startDate: row.invoice.periodStart,
-                endDate: row.invoice.periodEnd,
-            },
-            client: row.client
-                ? {
-                      id: row.client.id,
-                      name: row.client.name,
-                      address: "",
-                  }
-                : {
-                      id: row.invoice.clientId,
-                      name: "",
-                      address: "",
-                  },
-            recipient: {
-                name: row.invoice.recipientName,
-                address: row.invoice.recipientAddress,
-            },
             description: row.invoice.description,
+            
+            // Dates - flat
+            issueDate: row.invoice.issueDate,
+            dueDate: row.invoice.dueDate,
+            periodStart: row.invoice.periodStart,
+            periodEnd: row.invoice.periodEnd,
+            
+            // Client - flat
+            clientId: row.invoice.clientId,
+            clientName: row.client?.name || "",
+            clientAddress: "", // Client address not in schema
+            
+            // Recipient - flat
+            recipientName: row.invoice.recipientName,
+            recipientAddress: row.invoice.recipientAddress,
+            
+            // Fees - flat
+            feesBase: row.invoice.feesBase,
+            feesAdjusted: row.invoice.feesAdjusted,
+            feesTotal: row.invoice.feesTotal,
+            feesOthers: row.invoice.feesOthers,
+            feesFinalTotal: row.invoice.feesFinalTotal,
+            feesMultiplicationFactor: row.invoice.feesMultiplicationFactor,
+            feesDiscountPercentage: row.invoice.feesDiscountPercentage,
+            feesDiscountAmount: row.invoice.feesDiscountAmount,
+            
+            // Expenses - flat
+            expensesTravelBase: row.invoice.expensesTravelBase,
+            expensesTravelAdjusted: row.invoice.expensesTravelAdjusted,
+            expensesTravelRate: row.invoice.expensesTravelRate,
+            expensesTravelAmount: row.invoice.expensesTravelAmount,
+            expensesOtherBase: row.invoice.expensesOtherBase,
+            expensesOtherAmount: row.invoice.expensesOtherAmount,
+            expensesTotal: row.invoice.expensesTotal,
+            expensesThirdPartyAmount: row.invoice.expensesThirdPartyAmount,
+            expensesPackagePercentage: row.invoice.expensesPackagePercentage,
+            expensesPackageAmount: row.invoice.expensesPackageAmount,
+            expensesTotalExpenses: row.invoice.expensesTotalExpenses,
+            
+            // Totals - flat
+            totalHT: row.invoice.totalHT,
+            vatRate: row.invoice.vatRate,
+            vatAmount: row.invoice.vatAmount,
+            totalTTC: row.invoice.totalTTC,
+            
+            // Other services and remarks - flat
+            otherServices: row.invoice.otherServices || "",
+            remarksOtherServices: row.invoice.remarksOtherServices || "",
+            remarksTravelExpenses: row.invoice.remarksTravelExpenses || "",
+            remarksExpenses: row.invoice.remarksExpenses || "",
+            remarksThirdPartyExpenses: row.invoice.remarksThirdPartyExpenses || "",
+            
+            // Arrays
+            rates: rates.map((r) => ({
+                rateClass: r.rateClass,
+                base: r.baseMinutes / 60, // Convert minutes to hours
+                adjusted: r.adjustedMinutes / 60,
+                hourlyRate: r.hourlyRate,
+                amount: r.amount,
+            })),
             offers: offers.map((o) => ({
                 file: o.file,
                 date: o.date,
@@ -311,70 +341,14 @@ export const invoiceRepository = {
                 amount: a.amount,
                 remark: a.remark || "",
             })),
-            fees: {
-                base: row.invoice.feesBase,
-                adjusted: row.invoice.feesAdjusted,
-                total: row.invoice.feesTotal,
-                others: row.invoice.feesOthers,
-                finalTotal: row.invoice.feesFinalTotal,
-                multiplicationFactor: row.invoice.feesMultiplicationFactor,
-                discount: {
-                    percentage: row.invoice.feesDiscountPercentage,
-                    amount: row.invoice.feesDiscountAmount,
-                },
-                rates: rates.map((r) => ({
-                    rateClass: r.rateClass,
-                    base: r.baseMinutes / 60,
-                    adjusted: r.adjustedMinutes / 60,
-                    hourlyRate: r.hourlyRate,
-                    amount: r.amount,
-                })),
-            },
-            expenses: {
-                travel: {
-                    base: row.invoice.expensesTravelBase,
-                    adjusted: row.invoice.expensesTravelAdjusted,
-                    rate: row.invoice.expensesTravelRate,
-                    amount: row.invoice.expensesTravelAmount,
-                },
-                other: {
-                    base: row.invoice.expensesOtherBase,
-                    amount: row.invoice.expensesOtherAmount,
-                },
-                total: row.invoice.expensesTotal,
-                thirdParty: {
-                    amount: row.invoice.expensesThirdPartyAmount,
-                },
-                package: {
-                    percentage: row.invoice.expensesPackagePercentage,
-                    amount: row.invoice.expensesPackageAmount,
-                },
-                totalExpenses: row.invoice.expensesTotalExpenses,
-            },
-            totals: {
-                ht: row.invoice.totalHT,
-                vat: {
-                    rate: row.invoice.vatRate,
-                    amount: row.invoice.vatAmount,
-                },
-                ttc: row.invoice.totalTTC,
-            },
-            otherServices: row.invoice.otherServices || "",
-            remarks: {
-                otherServices: row.invoice.remarksOtherServices || "",
-                travelExpenses: row.invoice.remarksTravelExpenses || "",
-                expenses: row.invoice.remarksExpenses || "",
-                thirdPartyExpenses: row.invoice.remarksThirdPartyExpenses || "",
-            },
+            
+            // Project info - flat
+            projectName: row.project?.name || null,
+            projectNumber: row.project?.projectNumber || null,
+            
+            // Timestamps
             createdAt: row.invoice.createdAt,
             updatedAt: row.invoice.updatedAt,
-            project: row.project
-                ? {
-                      id: row.project.id,
-                      name: row.project.name,
-                      projectNumber: row.project.projectNumber,
-                  }
-                : null,
         }
     },
 
@@ -399,50 +373,50 @@ export const invoiceRepository = {
                     status: data.status,
                     issueDate: data.issueDate,
                     dueDate: data.dueDate,
-                    periodStart: data.period.startDate,
-                    periodEnd: data.period.endDate,
-                    clientId: data.client.id,
-                    recipientName: data.recipient.name,
-                    recipientAddress: data.recipient.address,
+                    periodStart: data.periodStart,
+                    periodEnd: data.periodEnd,
+                    clientId: data.clientId,
+                    recipientName: data.recipientName,
+                    recipientAddress: data.recipientAddress,
                     description: data.description,
-                    // Store real values directly
-                    feesBase: data.fees.base,
-                    feesAdjusted: data.fees.adjusted,
-                    feesTotal: data.fees.total,
-                    feesOthers: data.fees.others,
-                    feesFinalTotal: data.fees.finalTotal,
-                    feesMultiplicationFactor: data.fees.multiplicationFactor,
-                    feesDiscountPercentage: data.fees.discount?.percentage || null,
-                    feesDiscountAmount: data.fees.discount?.amount || null,
-                    expensesTravelBase: data.expenses.travel.base,
-                    expensesTravelAdjusted: data.expenses.travel.adjusted,
-                    expensesTravelRate: data.expenses.travel.rate,
-                    expensesTravelAmount: data.expenses.travel.amount,
-                    expensesOtherBase: data.expenses.other.base,
-                    expensesOtherAmount: data.expenses.other.amount,
-                    expensesTotal: data.expenses.total,
-                    expensesThirdPartyAmount: data.expenses.thirdParty.amount,
-                    expensesPackagePercentage: data.expenses.package?.percentage || null,
-                    expensesPackageAmount: data.expenses.package?.amount || null,
-                    expensesTotalExpenses: data.expenses.totalExpenses,
-                    totalHT: data.totals.ht,
-                    vatRate: data.totals.vat.rate,
-                    vatAmount: data.totals.vat.amount,
-                    totalTTC: data.totals.ttc,
+                    // Store real values directly - all flat fields
+                    feesBase: data.feesBase,
+                    feesAdjusted: data.feesAdjusted,
+                    feesTotal: data.feesTotal,
+                    feesOthers: data.feesOthers,
+                    feesFinalTotal: data.feesFinalTotal,
+                    feesMultiplicationFactor: data.feesMultiplicationFactor,
+                    feesDiscountPercentage: data.feesDiscountPercentage || null,
+                    feesDiscountAmount: data.feesDiscountAmount || null,
+                    expensesTravelBase: data.expensesTravelBase,
+                    expensesTravelAdjusted: data.expensesTravelAdjusted,
+                    expensesTravelRate: data.expensesTravelRate,
+                    expensesTravelAmount: data.expensesTravelAmount,
+                    expensesOtherBase: data.expensesOtherBase,
+                    expensesOtherAmount: data.expensesOtherAmount,
+                    expensesTotal: data.expensesTotal,
+                    expensesThirdPartyAmount: data.expensesThirdPartyAmount,
+                    expensesPackagePercentage: data.expensesPackagePercentage || null,
+                    expensesPackageAmount: data.expensesPackageAmount || null,
+                    expensesTotalExpenses: data.expensesTotalExpenses,
+                    totalHT: data.totalHT,
+                    vatRate: data.vatRate,
+                    vatAmount: data.vatAmount,
+                    totalTTC: data.totalTTC,
                     otherServices: data.otherServices,
-                    remarksOtherServices: data.remarks.otherServices,
-                    remarksTravelExpenses: data.remarks.travelExpenses,
-                    remarksExpenses: data.remarks.expenses,
-                    remarksThirdPartyExpenses: data.remarks.thirdPartyExpenses,
+                    remarksOtherServices: data.remarksOtherServices,
+                    remarksTravelExpenses: data.remarksTravelExpenses,
+                    remarksExpenses: data.remarksExpenses,
+                    remarksThirdPartyExpenses: data.remarksThirdPartyExpenses,
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 })
                 .returning()
 
             // Create rates
-            if (data.fees.rates.length > 0) {
+            if (data.rates && data.rates.length > 0) {
                 await tx.insert(invoiceRates).values(
-                    data.fees.rates.map((rate) => ({
+                    data.rates.map((rate) => ({
                         invoiceId: invoice.id,
                         rateClass: rate.rateClass,
                         baseMinutes: Math.round(rate.base * 60), // Convert hours to minutes
@@ -456,7 +430,7 @@ export const invoiceRepository = {
             }
 
             // Create offers
-            if (data.offers.length > 0) {
+            if (data.offers && data.offers.length > 0) {
                 await tx.insert(invoiceOffers).values(
                     data.offers.map((offer) => ({
                         invoiceId: invoice.id,
@@ -471,7 +445,7 @@ export const invoiceRepository = {
             }
 
             // Create adjudications
-            if (data.adjudications.length > 0) {
+            if (data.adjudications && data.adjudications.length > 0) {
                 await tx.insert(invoiceAdjudications).values(
                     data.adjudications.map((adj) => ({
                         invoiceId: invoice.id,
@@ -503,7 +477,7 @@ export const invoiceRepository = {
                 updatedAt: new Date(),
             }
 
-            // Map nested fields to flat structure
+            // Map flat fields directly
             if (data.invoiceNumber !== undefined) updateData.invoiceNumber = data.invoiceNumber
             if (data.reference !== undefined) updateData.reference = data.reference
             if (data.type !== undefined) updateData.type = data.type
@@ -512,108 +486,71 @@ export const invoiceRepository = {
             if (data.issueDate !== undefined) updateData.issueDate = data.issueDate
             if (data.dueDate !== undefined) updateData.dueDate = data.dueDate
             if (data.description !== undefined) updateData.description = data.description
+            
+            // Period dates
+            if (data.periodStart !== undefined) updateData.periodStart = data.periodStart
+            if (data.periodEnd !== undefined) updateData.periodEnd = data.periodEnd
+            
+            // Client and recipient
+            if (data.clientId !== undefined) updateData.clientId = data.clientId
+            if (data.recipientName !== undefined) updateData.recipientName = data.recipientName
+            if (data.recipientAddress !== undefined) updateData.recipientAddress = data.recipientAddress
+            
+            // Fees - flat fields
+            if (data.feesBase !== undefined) updateData.feesBase = data.feesBase
+            if (data.feesAdjusted !== undefined) updateData.feesAdjusted = data.feesAdjusted
+            if (data.feesTotal !== undefined) updateData.feesTotal = data.feesTotal
+            if (data.feesOthers !== undefined) updateData.feesOthers = data.feesOthers
+            if (data.feesFinalTotal !== undefined) updateData.feesFinalTotal = data.feesFinalTotal
+            if (data.feesMultiplicationFactor !== undefined) updateData.feesMultiplicationFactor = data.feesMultiplicationFactor
+            if (data.feesDiscountPercentage !== undefined) updateData.feesDiscountPercentage = data.feesDiscountPercentage
+            if (data.feesDiscountAmount !== undefined) updateData.feesDiscountAmount = data.feesDiscountAmount
+            
+            // Expenses - flat fields  
+            if (data.expensesTravelBase !== undefined) updateData.expensesTravelBase = data.expensesTravelBase
+            if (data.expensesTravelAdjusted !== undefined) updateData.expensesTravelAdjusted = data.expensesTravelAdjusted
+            if (data.expensesTravelRate !== undefined) updateData.expensesTravelRate = data.expensesTravelRate
+            if (data.expensesTravelAmount !== undefined) updateData.expensesTravelAmount = data.expensesTravelAmount
+            if (data.expensesOtherBase !== undefined) updateData.expensesOtherBase = data.expensesOtherBase
+            if (data.expensesOtherAmount !== undefined) updateData.expensesOtherAmount = data.expensesOtherAmount
+            if (data.expensesTotal !== undefined) updateData.expensesTotal = data.expensesTotal
+            if (data.expensesThirdPartyAmount !== undefined) updateData.expensesThirdPartyAmount = data.expensesThirdPartyAmount
+            if (data.expensesPackagePercentage !== undefined) updateData.expensesPackagePercentage = data.expensesPackagePercentage
+            if (data.expensesPackageAmount !== undefined) updateData.expensesPackageAmount = data.expensesPackageAmount
+            if (data.expensesTotalExpenses !== undefined) updateData.expensesTotalExpenses = data.expensesTotalExpenses
+            
+            // Totals - flat fields
+            if (data.totalHT !== undefined) updateData.totalHT = data.totalHT
+            if (data.vatRate !== undefined) updateData.vatRate = data.vatRate
+            if (data.vatAmount !== undefined) updateData.vatAmount = data.vatAmount
+            if (data.totalTTC !== undefined) updateData.totalTTC = data.totalTTC
+            
+            // Other services and remarks
             if (data.otherServices !== undefined) updateData.otherServices = data.otherServices
-
-            if (data.period) {
-                if (data.period.startDate !== undefined)
-                    updateData.periodStart = data.period.startDate
-                if (data.period.endDate !== undefined) updateData.periodEnd = data.period.endDate
-            }
-
-            if (data.client?.id !== undefined) updateData.clientId = data.client.id
-
-            if (data.recipient) {
-                if (data.recipient.name !== undefined)
-                    updateData.recipientName = data.recipient.name
-                if (data.recipient.address !== undefined)
-                    updateData.recipientAddress = data.recipient.address
-            }
-
-            if (data.fees) {
-                if (data.fees.base !== undefined) updateData.feesBase = data.fees.base
-                if (data.fees.adjusted !== undefined) updateData.feesAdjusted = data.fees.adjusted
-                if (data.fees.total !== undefined) updateData.feesTotal = data.fees.total
-                if (data.fees.others !== undefined) updateData.feesOthers = data.fees.others
-                if (data.fees.finalTotal !== undefined)
-                    updateData.feesFinalTotal = data.fees.finalTotal
-                if (data.fees.multiplicationFactor !== undefined)
-                    updateData.feesMultiplicationFactor = data.fees.multiplicationFactor
-                if (data.fees.discount) {
-                    updateData.feesDiscountPercentage = data.fees.discount.percentage || null
-                    updateData.feesDiscountAmount = data.fees.discount.amount || null
+            if (data.remarksOtherServices !== undefined) updateData.remarksOtherServices = data.remarksOtherServices
+            if (data.remarksTravelExpenses !== undefined) updateData.remarksTravelExpenses = data.remarksTravelExpenses
+            if (data.remarksExpenses !== undefined) updateData.remarksExpenses = data.remarksExpenses
+            if (data.remarksThirdPartyExpenses !== undefined) updateData.remarksThirdPartyExpenses = data.remarksThirdPartyExpenses
+            
+            // Update rates if provided
+            if (data.rates) {
+                // Delete existing rates
+                await tx.delete(invoiceRates).where(eq(invoiceRates.invoiceId, id))
+                // Insert new rates
+                if (data.rates.length > 0) {
+                    await tx.insert(invoiceRates).values(
+                        data.rates.map((rate) => ({
+                            invoiceId: id,
+                            rateClass: rate.rateClass,
+                            baseMinutes: Math.round(rate.base * 60),
+                            adjustedMinutes: Math.round(rate.adjusted * 60),
+                            hourlyRate: rate.hourlyRate,
+                            amount: rate.amount,
+                            createdAt: new Date(),
+                            updatedAt: new Date(),
+                        }))
+                    )
                 }
-
-                // Update rates if provided
-                if (data.fees.rates) {
-                    // Delete existing rates
-                    await tx.delete(invoiceRates).where(eq(invoiceRates.invoiceId, id))
-                    // Insert new rates
-                    if (data.fees.rates.length > 0) {
-                        await tx.insert(invoiceRates).values(
-                            data.fees.rates.map((rate) => ({
-                                invoiceId: id,
-                                rateClass: rate.rateClass,
-                                baseMinutes: Math.round(rate.base * 60),
-                                adjustedMinutes: Math.round(rate.adjusted * 60),
-                                hourlyRate: rate.hourlyRate,
-                                amount: rate.amount,
-                                createdAt: new Date(),
-                                updatedAt: new Date(),
-                            }))
-                        )
-                    }
-                }
-            }
-
-            if (data.expenses) {
-                if (data.expenses.travel) {
-                    if (data.expenses.travel.base !== undefined)
-                        updateData.expensesTravelBase = data.expenses.travel.base
-                    if (data.expenses.travel.adjusted !== undefined)
-                        updateData.expensesTravelAdjusted = data.expenses.travel.adjusted
-                    if (data.expenses.travel.rate !== undefined)
-                        updateData.expensesTravelRate = data.expenses.travel.rate
-                    if (data.expenses.travel.amount !== undefined)
-                        updateData.expensesTravelAmount = data.expenses.travel.amount
-                }
-                if (data.expenses.other) {
-                    if (data.expenses.other.base !== undefined)
-                        updateData.expensesOtherBase = data.expenses.other.base
-                    if (data.expenses.other.amount !== undefined)
-                        updateData.expensesOtherAmount = data.expenses.other.amount
-                }
-                if (data.expenses.total !== undefined)
-                    updateData.expensesTotal = data.expenses.total
-                if (data.expenses.thirdParty?.amount !== undefined)
-                    updateData.expensesThirdPartyAmount = data.expenses.thirdParty.amount
-                if (data.expenses.package) {
-                    updateData.expensesPackagePercentage = data.expenses.package.percentage || null
-                    updateData.expensesPackageAmount = data.expenses.package.amount || null
-                }
-                if (data.expenses.totalExpenses !== undefined)
-                    updateData.expensesTotalExpenses = data.expenses.totalExpenses
-            }
-
-            if (data.totals) {
-                if (data.totals.ht !== undefined) updateData.totalHT = data.totals.ht
-                if (data.totals.vat) {
-                    if (data.totals.vat.rate !== undefined)
-                        updateData.vatRate = data.totals.vat.rate
-                    if (data.totals.vat.amount !== undefined)
-                        updateData.vatAmount = data.totals.vat.amount
-                }
-                if (data.totals.ttc !== undefined) updateData.totalTTC = data.totals.ttc
-            }
-
-            if (data.remarks) {
-                if (data.remarks.otherServices !== undefined)
-                    updateData.remarksOtherServices = data.remarks.otherServices
-                if (data.remarks.travelExpenses !== undefined)
-                    updateData.remarksTravelExpenses = data.remarks.travelExpenses
-                if (data.remarks.expenses !== undefined)
-                    updateData.remarksExpenses = data.remarks.expenses
-                if (data.remarks.thirdPartyExpenses !== undefined)
-                    updateData.remarksThirdPartyExpenses = data.remarks.thirdPartyExpenses
             }
 
             // Update invoice

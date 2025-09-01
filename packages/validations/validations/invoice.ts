@@ -32,10 +32,10 @@ export const InvoiceStatusEnum = z.enum(["draft", "sent", "paid", "overdue", "ca
 export type InvoiceStatus = z.infer<typeof InvoiceStatusEnum>
 
 // ============================================================================
-// Reusable Building Blocks
+// Reusable schemas for arrays only (since they're separate tables)
 // ============================================================================
 
-// Fee item schema
+// Fee item schema for rates array
 export const RateItemSchema = z.object({
     rateClass: z.string(),
     base: z.number().default(0),
@@ -66,245 +66,75 @@ export const AdjudicationSchema = z.object({
     remark: z.string().default(""),
 })
 
-// Remarks schema
-export const RemarksSchema = z.object({
-    otherServices: z.string().default(""),
-    travelExpenses: z.string().default(""),
-    expenses: z.string().default(""),
-    thirdPartyExpenses: z.string().default(""),
-})
-
-// Discount schema with validation
-export const DiscountSchema = z
-    .object({
-        percentage: z.number().nullable().default(null),
-        amount: z.number().nullable().default(null),
-    })
-    .refine(
-        (val) =>
-            (val.percentage != null && val.amount == null) ||
-            (val.percentage == null && val.amount != null) ||
-            (val.percentage == null && val.amount == null),
-        {
-            message: "Only one of percentage or amount can be provided, not both",
-        }
-    )
-
-// Period schema
-export const PeriodSchema = z.object({
-    startDate: dateSchema,
-    endDate: dateSchema,
-})
-
-// Client info schema
-export const ClientInfoSchema = z.object({
-    id: z.number(),
-    name: z.string(),
-    address: z.string(),
-})
-
-// Recipient schema
-export const RecipientSchema = z.object({
-    name: z.string(),
-    address: z.string(),
-})
-
-// Fees schema
-export const FeesSchema = z.object({
-    base: z.number().default(0),
-    adjusted: z.number().default(0),
-    total: z.number().default(0),
-    others: z.number().default(0),
-    finalTotal: z.number().default(0),
-    multiplicationFactor: z.number().default(1),
-    discount: DiscountSchema,
-    rates: z.array(RateItemSchema).default([]),
-})
-
-// Travel expenses schema
-export const TravelExpensesSchema = z.object({
-    base: z.number().default(0),
-    adjusted: z.number().default(0),
-    rate: z.number().default(0.65),
-    amount: z.number().default(0),
-})
-
-// Other expenses schema
-export const OtherExpensesSchema = z.object({
-    base: z.number().default(0),
-    amount: z.number().default(0),
-})
-
-// Third party expenses schema
-export const ThirdPartyExpensesSchema = z.object({
-    amount: z.number().default(0),
-})
-
-// Package expenses schema
-export const PackageExpensesSchema = DiscountSchema
-
-// Expenses schema
-export const ExpensesSchema = z.object({
-    travel: TravelExpensesSchema,
-    other: OtherExpensesSchema,
-    total: z.number().default(0),
-    thirdParty: ThirdPartyExpensesSchema,
-    package: PackageExpensesSchema,
-    totalExpenses: z.number().default(0),
-})
-
-// VAT schema
-export const VatSchema = z.object({
-    rate: z.number().default(8.0),
-    amount: z.number().default(0),
-})
-
-// Totals schema
-export const TotalsSchema = z.object({
-    ht: z.number().default(0),
-    vat: VatSchema,
-    ttc: z.number().default(0),
-})
-
 // ============================================================================
-// Base Invoice Schema (Common Fields)
+// Frontend Invoice Schema (with flat structure matching DB)
 // ============================================================================
 
-const invoiceCommonFields = z.object({
-    invoiceNumber: z.string(),
-    reference: z.string(),
-    type: z.string().default("Facture"),
-    billingMode: BillingModeEnum.default(BILLING_MODE_KEYS.ACCORDING_TO_DATA),
-    description: z.string(),
-    period: PeriodSchema,
-    recipient: RecipientSchema,
-    fees: FeesSchema,
-    expenses: ExpensesSchema,
-    totals: TotalsSchema,
-    offers: z.array(OfferSchema).default([]),
-    adjudications: z.array(AdjudicationSchema).default([]),
-    otherServices: z.string().default(""),
-    remarks: RemarksSchema,
-})
-
-// ============================================================================
-// Frontend Invoice Schema (with defaults for forms)
-// ============================================================================
-
-export const InvoiceSchema = invoiceCommonFields.extend({
+export const InvoiceSchema = z.object({
     id: z.string().default(""),
     projectId: z.number().optional(),
     status: InvoiceStatusEnum.default("draft"),
-    client: z.object({
-        name: z.string().default(""),
-        address: z.string().default(""),
-    }),
-    // Override with defaults for frontend
+    
+    // Basic fields
     invoiceNumber: z.string().default(""),
     reference: z.string().default(""),
+    type: z.string().default("Facture"),
+    billingMode: BillingModeEnum.default(BILLING_MODE_KEYS.ACCORDING_TO_DATA),
     description: z.string().default(""),
-    period: z
-        .object({
-            startDate: z
-                .date()
-                .optional()
-                .or(z.string().transform((str) => (str ? new Date(str) : new Date()))),
-            endDate: z
-                .date()
-                .optional()
-                .or(z.string().transform((str) => (str ? new Date(str) : new Date()))),
-        })
-        .default({}),
-    recipient: z
-        .object({
-            name: z.string().default(""),
-            address: z.string().default(""),
-        })
-        .default({}),
-    fees: z
-        .object({
-            base: z.number().default(0),
-            adjusted: z.number().default(0),
-            total: z.number().default(0),
-            others: z.number().default(0),
-            finalTotal: z.number().default(0),
-            multiplicationFactor: z.number().default(1),
-            rates: z.array(RateItemSchema).default([]),
-            discount: z
-                .object({
-                    percentage: z.number().default(0).nullable(),
-                    amount: z.number().default(0).nullable(),
-                })
-                .refine(
-                    (val) =>
-                        (val.percentage != null && val.amount == null) ||
-                        (val.percentage == null && val.amount != null) ||
-                        (val.percentage == null && val.amount == null),
-                    {
-                        message: "Only one of percentage or amount can be provided, not both",
-                    }
-                )
-                .default({ percentage: null, amount: null }),
-        })
-        .default({ discount: { percentage: null, amount: null } }),
-    expenses: z
-        .object({
-            travel: z
-                .object({
-                    base: z.number().default(0),
-                    adjusted: z.number().default(0),
-                    rate: z.number().default(0),
-                    amount: z.number().default(0),
-                })
-                .default({}),
-            other: z
-                .object({
-                    base: z.number().default(0),
-                    amount: z.number().default(0),
-                })
-                .default({}),
-            total: z.number().default(0),
-            thirdParty: z
-                .object({
-                    amount: z.number().default(0),
-                })
-                .default({}),
-            package: z
-                .object({
-                    percentage: z.number().default(0).nullable(),
-                    amount: z.number().default(0).nullable(),
-                })
-                .refine(
-                    (val) =>
-                        (val.percentage != null && val.amount == null) ||
-                        (val.percentage == null && val.amount != null) ||
-                        (val.percentage == null && val.amount == null),
-                    {
-                        message: "Only one of percentage or amount can be provided, not both",
-                    }
-                )
-                .default({ percentage: null, amount: null }),
-            totalExpenses: z.number().default(0),
-        })
-        .default({
-            travel: {},
-            other: {},
-            thirdParty: {},
-            package: { percentage: null, amount: null },
-        }),
-    totals: z
-        .object({
-            ht: z.number().default(0),
-            vat: z
-                .object({
-                    rate: z.number().default(8.0),
-                    amount: z.number().default(0),
-                })
-                .default({}),
-            ttc: z.number().default(0),
-        })
-        .default({ vat: {} }),
-    remarks: RemarksSchema.default({}),
+    
+    // Dates
+    issueDate: z.date().optional().or(z.string().transform((str) => str ? new Date(str) : new Date())),
+    dueDate: z.date().optional().or(z.string().transform((str) => str ? new Date(str) : undefined)),
+    periodStart: z.date().optional().or(z.string().transform((str) => str ? new Date(str) : new Date())),
+    periodEnd: z.date().optional().or(z.string().transform((str) => str ? new Date(str) : new Date())),
+    
+    // Client and recipient
+    clientId: z.number().optional(),
+    clientName: z.string().default(""),
+    clientAddress: z.string().default(""),
+    recipientName: z.string().default(""),
+    recipientAddress: z.string().default(""),
+    
+    // Fees - flat structure
+    feesBase: z.number().default(0),
+    feesAdjusted: z.number().default(0),
+    feesTotal: z.number().default(0),
+    feesOthers: z.number().default(0),
+    feesFinalTotal: z.number().default(0),
+    feesMultiplicationFactor: z.number().default(1),
+    feesDiscountPercentage: z.number().nullable().default(null),
+    feesDiscountAmount: z.number().nullable().default(null),
+    
+    // Expenses - flat structure
+    expensesTravelBase: z.number().default(0),
+    expensesTravelAdjusted: z.number().default(0),
+    expensesTravelRate: z.number().default(0.65),
+    expensesTravelAmount: z.number().default(0),
+    expensesOtherBase: z.number().default(0),
+    expensesOtherAmount: z.number().default(0),
+    expensesTotal: z.number().default(0),
+    expensesThirdPartyAmount: z.number().default(0),
+    expensesPackagePercentage: z.number().nullable().default(null),
+    expensesPackageAmount: z.number().nullable().default(null),
+    expensesTotalExpenses: z.number().default(0),
+    
+    // Totals - flat structure
+    totalHT: z.number().default(0),
+    vatRate: z.number().default(8.0),
+    vatAmount: z.number().default(0),
+    totalTTC: z.number().default(0),
+    
+    // Other services and remarks
+    otherServices: z.string().default(""),
+    remarksOtherServices: z.string().default(""),
+    remarksTravelExpenses: z.string().default(""),
+    remarksExpenses: z.string().default(""),
+    remarksThirdPartyExpenses: z.string().default(""),
+    
+    // Related arrays (kept as arrays since they're separate tables)
+    rates: z.array(RateItemSchema).default([]),
+    offers: z.array(OfferSchema).default([]),
+    adjudications: z.array(AdjudicationSchema).default([]),
 })
 
 // Export TypeScript type
@@ -312,24 +142,70 @@ export type Invoice = z.infer<typeof InvoiceSchema>
 
 // Helper function to create empty invoice with default values
 export const createEmptyInvoice = (invoice: Partial<Invoice>): Invoice => {
-    return InvoiceSchema.parse({
-        ...invoice,
-        client: {},
-    } as Invoice)
+    return InvoiceSchema.parse(invoice)
 }
 
 // ============================================================================
 // API Create Schema
 // ============================================================================
 
-export const invoiceCreateSchema = invoiceCommonFields.extend({
+export const invoiceCreateSchema = z.object({
     projectId: z.number(),
+    invoiceNumber: z.string(),
+    reference: z.string(),
+    type: z.string().default("Facture"),
+    billingMode: BillingModeEnum.default(BILLING_MODE_KEYS.ACCORDING_TO_DATA),
     status: InvoiceStatusEnum.default("draft"),
+    description: z.string(),
+    
+    // Dates
     issueDate: dateSchema,
     dueDate: dateSchema.optional(),
-    client: z.object({
-        id: z.number(),
-    }),
+    periodStart: dateSchema,
+    periodEnd: dateSchema,
+    
+    // Client and recipient
+    clientId: z.number(),
+    recipientName: z.string(),
+    recipientAddress: z.string(),
+    
+    // All flat fields with defaults
+    feesBase: z.number().default(0),
+    feesAdjusted: z.number().default(0),
+    feesTotal: z.number().default(0),
+    feesOthers: z.number().default(0),
+    feesFinalTotal: z.number().default(0),
+    feesMultiplicationFactor: z.number().default(1),
+    feesDiscountPercentage: z.number().nullable().optional(),
+    feesDiscountAmount: z.number().nullable().optional(),
+    
+    expensesTravelBase: z.number().default(0),
+    expensesTravelAdjusted: z.number().default(0),
+    expensesTravelRate: z.number().default(0.65),
+    expensesTravelAmount: z.number().default(0),
+    expensesOtherBase: z.number().default(0),
+    expensesOtherAmount: z.number().default(0),
+    expensesTotal: z.number().default(0),
+    expensesThirdPartyAmount: z.number().default(0),
+    expensesPackagePercentage: z.number().nullable().optional(),
+    expensesPackageAmount: z.number().nullable().optional(),
+    expensesTotalExpenses: z.number().default(0),
+    
+    totalHT: z.number().default(0),
+    vatRate: z.number().default(8.0),
+    vatAmount: z.number().default(0),
+    totalTTC: z.number().default(0),
+    
+    otherServices: z.string().default(""),
+    remarksOtherServices: z.string().default(""),
+    remarksTravelExpenses: z.string().default(""),
+    remarksExpenses: z.string().default(""),
+    remarksThirdPartyExpenses: z.string().default(""),
+    
+    // Arrays
+    rates: z.array(RateItemSchema).default([]),
+    offers: z.array(OfferSchema).default([]),
+    adjudications: z.array(AdjudicationSchema).default([]),
 })
 
 export type InvoiceCreateInput = z.infer<typeof invoiceCreateSchema>
@@ -343,39 +219,79 @@ export const invoiceUpdateSchema = invoiceCreateSchema.partial()
 export type InvoiceUpdateInput = z.infer<typeof invoiceUpdateSchema>
 
 // ============================================================================
-// API Response Schema
+// API Response Schema (fully flattened)
 // ============================================================================
 
-export const invoiceResponseSchema = invoiceCommonFields
-    .omit({
-        // Remove fields that are structured differently in response
-    })
-    .extend({
-        id: z.number(),
-        invoiceNumber: z.string(),
-        reference: z.string(),
-        type: z.string(),
-        billingMode: BillingModeEnum,
-        status: InvoiceStatusEnum,
-        period: PeriodSchema,
-        client: ClientInfoSchema,
-        recipient: RecipientSchema,
-        description: z.string(),
-        offers: z.array(OfferSchema),
-        adjudications: z.array(AdjudicationSchema),
-        fees: FeesSchema,
-        expenses: ExpensesSchema,
-        totals: TotalsSchema,
-        otherServices: z.string(),
-        remarks: RemarksSchema,
-        // Relations
-        project: z.object({
-            id: z.number(),
-            name: z.string(),
-            projectNumber: z.string(),
-        }),
-    })
-    .merge(timestampsSchema)
+export const invoiceResponseSchema = z.object({
+    id: z.number(),
+    projectId: z.number(),
+    invoiceNumber: z.string(),
+    reference: z.string(),
+    type: z.string(),
+    billingMode: BillingModeEnum,
+    status: InvoiceStatusEnum,
+    description: z.string(),
+    
+    // Dates - flat
+    issueDate: z.date().nullable(),
+    dueDate: z.date().nullable(),
+    periodStart: z.date().nullable(),
+    periodEnd: z.date().nullable(),
+    
+    // Client - flat
+    clientId: z.number(),
+    clientName: z.string(),
+    clientAddress: z.string(),
+    
+    // Recipient - flat
+    recipientName: z.string(),
+    recipientAddress: z.string(),
+    
+    // Fees - flat
+    feesBase: z.number(),
+    feesAdjusted: z.number(),
+    feesTotal: z.number(),
+    feesOthers: z.number(),
+    feesFinalTotal: z.number(),
+    feesMultiplicationFactor: z.number(),
+    feesDiscountPercentage: z.number().nullable(),
+    feesDiscountAmount: z.number().nullable(),
+    
+    // Expenses - flat
+    expensesTravelBase: z.number(),
+    expensesTravelAdjusted: z.number(),
+    expensesTravelRate: z.number(),
+    expensesTravelAmount: z.number(),
+    expensesOtherBase: z.number(),
+    expensesOtherAmount: z.number(),
+    expensesTotal: z.number(),
+    expensesThirdPartyAmount: z.number(),
+    expensesPackagePercentage: z.number().nullable(),
+    expensesPackageAmount: z.number().nullable(),
+    expensesTotalExpenses: z.number(),
+    
+    // Totals - flat
+    totalHT: z.number(),
+    vatRate: z.number(),
+    vatAmount: z.number(),
+    totalTTC: z.number(),
+    
+    // Other services and remarks - flat
+    otherServices: z.string(),
+    remarksOtherServices: z.string(),
+    remarksTravelExpenses: z.string(),
+    remarksExpenses: z.string(),
+    remarksThirdPartyExpenses: z.string(),
+    
+    // Arrays (kept as arrays since they're separate tables)
+    rates: z.array(RateItemSchema),
+    offers: z.array(OfferSchema),
+    adjudications: z.array(AdjudicationSchema),
+    
+    // Relations - flat
+    projectName: z.string().nullable(),
+    projectNumber: z.string().nullable(),
+}).merge(timestampsSchema)
 
 export type InvoiceResponse = z.infer<typeof invoiceResponseSchema>
 

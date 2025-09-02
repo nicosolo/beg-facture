@@ -1,9 +1,11 @@
 # Project Preview View - Implementation Tasks
 
 ## Overview
+
 Enhance the ProjectPreviewView component to display comprehensive project information including latest time entries, billing summary, and related activities.
 
 ## Current State
+
 - ✅ Basic project details display
 - ✅ Layout structure with responsive grid
 - ⚠️ Time entries section present but not connected
@@ -17,7 +19,9 @@ Enhance the ProjectPreviewView component to display comprehensive project inform
 ## Task 1: Backend API Enhancements
 
 ### 1.1 Extend Project Response
+
 **File:** `packages/validations/validations/project.ts`
+
 - [ ] Add billing summary fields to project response
 - [ ] Add activity statistics to response
 
@@ -28,48 +32,54 @@ export const projectDetailResponseSchema = projectResponseSchema.extend({
     totalUnbilledAmount: z.number().nullable(),
     lastInvoiceDate: z.coerce.date().nullable(),
     lastInvoiceNumber: z.string().nullable(),
-    
+
     // Activity summary
     totalActivities: z.number(),
-    activeCollaborators: z.array(z.object({
-        id: z.number(),
-        name: z.string(),
-        totalHours: z.number(),
-    })),
-    
-    // Client details
-    clientInvoiceAddress: z.string().nullable(),
+    activeCollaborators: z.array(
+        z.object({
+            id: z.number(),
+            name: z.string(),
+            totalHours: z.number(),
+        })
+    ),
 })
 ```
 
 ### 1.2 Create Time Entries Endpoint for Project
+
 **File:** `apps/api/src/routes/project.ts`
+
 - [ ] Add GET `/project/:id/time-entries` endpoint
 - [ ] Add pagination support
 - [ ] Add date range filtering
 - [ ] Add sorting by date
 
 ### 1.3 Create Activity Summary Endpoint
+
 **File:** `apps/api/src/routes/project.ts`
+
 - [ ] Add GET `/project/:id/activity-summary` endpoint
 - [ ] Return aggregated data by activity type
 - [ ] Include unbilled hours per activity
 - [ ] Include last activity date
 
 ### 1.4 Repository Methods
+
 **File:** `apps/api/src/db/repositories/project.repository.ts`
+
 - [ ] Add `findTimeEntriesByProjectId` method
 - [ ] Add `getActivitySummary` method
 - [ ] Add `getBillingSummary` method
-- [ ] Add `getClientInvoiceAddress` method
 
 ## Task 2: Frontend API Integration
 
 ### 2.1 Create Time Entries Composable
+
 **File:** `apps/app/src/composables/api/useProjectTimeEntries.ts`
+
 ```typescript
 export function useFetchProjectTimeEntries() {
-    return useGet<TimeEntriesResponse>('project/:id/time-entries', {
+    return useGet<TimeEntriesResponse>("project/:id/time-entries", {
         params: idParamSchema,
         query: timeEntriesFilterSchema,
     })
@@ -77,10 +87,12 @@ export function useFetchProjectTimeEntries() {
 ```
 
 ### 2.2 Create Activity Summary Composable
+
 **File:** `apps/app/src/composables/api/useProjectActivity.ts`
+
 ```typescript
 export function useFetchProjectActivitySummary() {
-    return useGet<ActivitySummaryResponse>('project/:id/activity-summary', {
+    return useGet<ActivitySummaryResponse>("project/:id/activity-summary", {
         params: idParamSchema,
     })
 }
@@ -89,8 +101,10 @@ export function useFetchProjectActivitySummary() {
 ## Task 3: Enhanced Preview Components
 
 ### 3.1 Project Information Card
+
 **Current:** Basic project details
 **Enhanced:**
+
 - [ ] Add project status badge (active/ended/archived)
 - [ ] Add progress indicator for project completion
 - [ ] Add last updated timestamp
@@ -99,8 +113,10 @@ export function useFetchProjectActivitySummary() {
 - [ ] Add total budget vs spent (if applicable)
 
 ### 3.2 Time Entries Section
+
 **Current:** Empty placeholder
 **Enhanced:**
+
 - [ ] Connect to real time entries API
 - [ ] Display latest 10 time entries by default
 - [ ] Add pagination for viewing more
@@ -110,7 +126,9 @@ export function useFetchProjectActivitySummary() {
 - [ ] Add export to Excel/CSV
 
 ### 3.3 Billing Summary Card
+
 **New Component:** Create billing overview
+
 - [ ] Total billed hours
 - [ ] Total unbilled hours
 - [ ] Unbilled amount estimate
@@ -119,7 +137,9 @@ export function useFetchProjectActivitySummary() {
 - [ ] Billing rate information
 
 ### 3.4 Activity Statistics Card
+
 **New Component:** Create activity overview
+
 - [ ] Chart showing hours by activity type
 - [ ] Top 5 activities by hours
 - [ ] Activity trend over time
@@ -127,7 +147,9 @@ export function useFetchProjectActivitySummary() {
 - [ ] Collaborator contribution chart
 
 ### 3.5 Team Members Card
+
 **New Component:** Display project team
+
 - [ ] List of collaborators with hours
 - [ ] Project manager highlight
 - [ ] Access level indicators
@@ -137,6 +159,7 @@ export function useFetchProjectActivitySummary() {
 ## Task 4: Interactive Features
 
 ### 4.1 Quick Actions Toolbar
+
 - [ ] Add time entry button
 - [ ] Generate invoice button
 - [ ] Export project report
@@ -145,6 +168,7 @@ export function useFetchProjectActivitySummary() {
 - [ ] Print project summary
 
 ### 4.2 Inline Editing
+
 - [ ] Enable inline edit for remarks
 - [ ] Enable inline edit for project manager
 - [ ] Enable inline edit for status
@@ -152,6 +176,7 @@ export function useFetchProjectActivitySummary() {
 - [ ] Add validation feedback
 
 ### 4.3 Tab Navigation
+
 - [ ] Overview tab (current view)
 - [ ] Time entries tab (detailed list)
 - [ ] Documents tab (future feature)
@@ -161,15 +186,14 @@ export function useFetchProjectActivitySummary() {
 ## Task 5: Update ProjectPreviewView Component
 
 ### 5.1 Component Structure
+
 ```vue
 <template>
     <div class="project-preview">
         <!-- Header with actions -->
         <div class="flex justify-between items-center mb-6">
             <div>
-                <h1 class="text-2xl font-bold">
-                    {{ project.projectNumber }} - {{ project.name }}
-                </h1>
+                <h1 class="text-2xl font-bold">{{ project.projectNumber }} - {{ project.name }}</h1>
                 <StatusBadge :status="project.status" />
             </div>
             <QuickActions :project="project" />
@@ -183,21 +207,18 @@ export function useFetchProjectActivitySummary() {
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Project Details Card -->
                 <ProjectDetailsCard :project="project" />
-                
+
                 <!-- Billing Summary Card -->
                 <BillingSummaryCard :project="project" />
-                
+
                 <!-- Activity Statistics Card -->
                 <ActivityStatsCard :project="project" />
-                
+
                 <!-- Recent Time Entries -->
                 <div class="lg:col-span-2">
-                    <RecentTimeEntries 
-                        :projectId="project.id"
-                        :limit="10"
-                    />
+                    <RecentTimeEntries :projectId="project.id" :limit="10" />
                 </div>
-                
+
                 <!-- Team Members -->
                 <TeamMembersCard :project="project" />
             </div>
@@ -221,12 +242,12 @@ const route = useRoute()
 const projectId = computed(() => parseInt(route.params.id as string))
 
 // Tabs
-const activeTab = ref('overview')
+const activeTab = ref("overview")
 const tabs = [
-    { key: 'overview', label: 'Overview', icon: 'dashboard' },
-    { key: 'time', label: 'Time Entries', icon: 'clock' },
-    { key: 'invoices', label: 'Invoices', icon: 'receipt' },
-    { key: 'activity', label: 'Activity Log', icon: 'history' },
+    { key: "overview", label: "Overview", icon: "dashboard" },
+    { key: "time", label: "Time Entries", icon: "clock" },
+    { key: "invoices", label: "Invoices", icon: "receipt" },
+    { key: "activity", label: "Activity Log", icon: "history" },
 ]
 
 // Fetch project data
@@ -239,9 +260,9 @@ onMounted(async () => {
         // Fetch all data in parallel
         await Promise.all([
             fetchProject({ id: projectId.value }),
-            fetchTimeEntries({ 
+            fetchTimeEntries({
                 id: projectId.value,
-                query: { limit: 10, sortBy: 'date', sortOrder: 'desc' }
+                query: { limit: 10, sortBy: "date", sortOrder: "desc" },
             }),
             fetchActivitySummary({ id: projectId.value }),
         ])
@@ -253,6 +274,7 @@ onMounted(async () => {
 ## Task 6: Data Visualization
 
 ### 6.1 Charts Integration
+
 - [ ] Install chart library (Chart.js or similar)
 - [ ] Create activity distribution pie chart
 - [ ] Create time trend line chart
@@ -260,6 +282,7 @@ onMounted(async () => {
 - [ ] Add chart export functionality
 
 ### 6.2 Statistics Components
+
 - [ ] Create StatCard component for metrics
 - [ ] Create ProgressBar component for completion
 - [ ] Create Timeline component for activity history
@@ -268,12 +291,14 @@ onMounted(async () => {
 ## Task 7: Real-time Updates
 
 ### 7.1 Auto-refresh
+
 - [ ] Implement polling for time entries
 - [ ] Update billing summary on changes
 - [ ] Refresh activity statistics
 - [ ] Show notification for new entries
 
 ### 7.2 Optimistic Updates
+
 - [ ] Update UI immediately on actions
 - [ ] Rollback on error
 - [ ] Show sync status indicator

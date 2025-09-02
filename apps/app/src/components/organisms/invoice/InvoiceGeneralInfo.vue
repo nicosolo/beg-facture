@@ -8,7 +8,13 @@
                 <input
                     type="text"
                     :value="invoice.reference"
-                    @input="(e) => invoice = { ...invoice, reference: (e.target as HTMLInputElement).value }"
+                    @input="
+                        (e) =>
+                            (invoice = {
+                                ...invoice,
+                                reference: (e.target as HTMLInputElement).value,
+                            })
+                    "
                     class="w-full p-2 border border-gray-300 rounded"
                 />
             </div>
@@ -39,7 +45,16 @@
                 <textarea
                     id="invoiceClientAddress"
                     :value="invoice.client?.address || ''"
-                    @input="(e) => invoice = { ...invoice, client: { ...invoice.client, address: (e.target as HTMLTextAreaElement).value } }"
+                    @input="
+                        (e) =>
+                            (invoice = {
+                                ...invoice,
+                                client: {
+                                    ...invoice.client,
+                                    address: (e.target as HTMLTextAreaElement).value,
+                                },
+                            })
+                    "
                     rows="4"
                     placeholder="Adresse de facturation (société)"
                     class="w-full p-2 border border-gray-300 rounded"
@@ -54,7 +69,13 @@
                 <textarea
                     id="invoiceDescription"
                     :value="invoice.description"
-                    @input="(e) => invoice = { ...invoice, description: (e.target as HTMLTextAreaElement).value }"
+                    @input="
+                        (e) =>
+                            (invoice = {
+                                ...invoice,
+                                description: (e.target as HTMLTextAreaElement).value,
+                            })
+                    "
                     rows="6"
                     class="w-full p-2 border border-gray-300 rounded"
                 ></textarea>
@@ -89,7 +110,13 @@
                     id="invoiceBillingMode"
                     class="w-full p-2 border border-gray-300 rounded"
                     :value="invoice.billingMode"
-                    @change="(e) => invoice = { ...invoice, billingMode: (e.target as HTMLSelectElement).value }"
+                    @change="
+                        (e) =>
+                            (invoice = {
+                                ...invoice,
+                                billingMode: (e.target as HTMLSelectElement).value,
+                            })
+                    "
                 >
                     <option :value="BILLING_MODE_KEYS.ACCORDING_TO_DATA">
                         {{ BILLING_MODE_LABELS[BILLING_MODE_KEYS.ACCORDING_TO_DATA] }}
@@ -110,7 +137,7 @@
                 </label>
                 <textarea
                     id="invoiceRecipientAddress"
-                    v-model="invoice.recipient.address"
+                    v-model="invoice.recipientAddress"
                     placeholder="Adresse d'envoi de la facture"
                     rows="4"
                     class="w-full p-2 border border-gray-300 rounded"
@@ -147,12 +174,19 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="(offer, index) in (invoice.offers || [])" :key="index">
+                            <tr v-for="(offer, index) in invoice.offers || []" :key="index">
                                 <td class="px-4 py-2 text-sm text-gray-900">
                                     <input
                                         type="text"
                                         :value="offer.file"
-                                        @input="(e) => updateOffer(index, 'file', (e.target as HTMLInputElement).value)"
+                                        @input="
+                                            (e) =>
+                                                updateOffer(
+                                                    index,
+                                                    'file',
+                                                    (e.target as HTMLInputElement).value
+                                                )
+                                        "
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
@@ -160,7 +194,14 @@
                                     <input
                                         type="text"
                                         :value="offer.date"
-                                        @input="(e) => updateOffer(index, 'date', (e.target as HTMLInputElement).value)"
+                                        @input="
+                                            (e) =>
+                                                updateOffer(
+                                                    index,
+                                                    'date',
+                                                    (e.target as HTMLInputElement).value
+                                                )
+                                        "
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
@@ -168,7 +209,16 @@
                                     <input
                                         type="number"
                                         :value="offer.amount"
-                                        @input="(e) => updateOffer(index, 'amount', parseFloat((e.target as HTMLInputElement).value) || 0)"
+                                        @input="
+                                            (e) =>
+                                                updateOffer(
+                                                    index,
+                                                    'amount',
+                                                    parseFloat(
+                                                        (e.target as HTMLInputElement).value
+                                                    ) || 0
+                                                )
+                                        "
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
@@ -176,7 +226,14 @@
                                     <input
                                         type="text"
                                         :value="offer.remark"
-                                        @input="(e) => updateOffer(index, 'remark', (e.target as HTMLInputElement).value)"
+                                        @input="
+                                            (e) =>
+                                                updateOffer(
+                                                    index,
+                                                    'remark',
+                                                    (e.target as HTMLInputElement).value
+                                                )
+                                        "
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
@@ -224,14 +281,21 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr
-                                v-for="(adjudication, index) in (invoice.adjudications || [])"
+                                v-for="(adjudication, index) in invoice.adjudications || []"
                                 :key="`adjudication-${index}`"
                             >
                                 <td class="px-4 py-2 text-sm text-gray-900">
                                     <input
                                         type="text"
                                         :value="adjudication.file"
-                                        @input="(e) => updateAdjudication(index, 'file', (e.target as HTMLInputElement).value)"
+                                        @input="
+                                            (e) =>
+                                                updateAdjudication(
+                                                    index,
+                                                    'file',
+                                                    (e.target as HTMLInputElement).value
+                                                )
+                                        "
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
@@ -239,7 +303,14 @@
                                     <input
                                         type="text"
                                         :value="adjudication.date"
-                                        @input="(e) => updateAdjudication(index, 'date', (e.target as HTMLInputElement).value)"
+                                        @input="
+                                            (e) =>
+                                                updateAdjudication(
+                                                    index,
+                                                    'date',
+                                                    (e.target as HTMLInputElement).value
+                                                )
+                                        "
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
@@ -247,7 +318,16 @@
                                     <input
                                         type="number"
                                         :value="adjudication.amount"
-                                        @input="(e) => updateAdjudication(index, 'amount', parseFloat((e.target as HTMLInputElement).value) || 0)"
+                                        @input="
+                                            (e) =>
+                                                updateAdjudication(
+                                                    index,
+                                                    'amount',
+                                                    parseFloat(
+                                                        (e.target as HTMLInputElement).value
+                                                    ) || 0
+                                                )
+                                        "
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
@@ -255,7 +335,14 @@
                                     <input
                                         type="text"
                                         :value="adjudication.remark"
-                                        @input="(e) => updateAdjudication(index, 'remark', (e.target as HTMLInputElement).value)"
+                                        @input="
+                                            (e) =>
+                                                updateAdjudication(
+                                                    index,
+                                                    'remark',
+                                                    (e.target as HTMLInputElement).value
+                                                )
+                                        "
                                         class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
@@ -301,16 +388,16 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-    'update:modelValue': [value: Invoice]
+    "update:modelValue": [value: Invoice]
 }>()
 
 const invoice = computed({
     get: () => props.modelValue,
-    set: (value) => emit('update:modelValue', value),
+    set: (value) => emit("update:modelValue", value),
 })
 
 const startDate = computed({
-    get: () => invoice.value.period?.startDate?.toISOString().split("T")[0] || '',
+    get: () => invoice.value.period?.startDate?.toISOString().split("T")[0] || "",
     set: (value: string) => {
         const newInvoice = { ...invoice.value }
         if (!newInvoice.period) newInvoice.period = {}
@@ -320,7 +407,7 @@ const startDate = computed({
 })
 
 const endDate = computed({
-    get: () => invoice.value.period?.endDate?.toISOString().split("T")[0] || '',
+    get: () => invoice.value.period?.endDate?.toISOString().split("T")[0] || "",
     set: (value: string) => {
         const newInvoice = { ...invoice.value }
         if (!newInvoice.period) newInvoice.period = {}

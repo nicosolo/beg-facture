@@ -1,7 +1,12 @@
 import { eq, or } from "drizzle-orm"
 import { db } from "../index"
 import { users } from "../schema"
-import type { UserResponse, UserCreateInput, UserUpdateInput } from "@beg/validations"
+import type {
+    UserResponse,
+    UserCreateInput,
+    UserUpdateInput,
+    UserDetailResponse,
+} from "@beg/validations"
 import { hashPassword } from "../../tools/auth"
 
 export const userRepository = {
@@ -52,6 +57,23 @@ export const userRepository = {
                 archived: users.archived,
                 createdAt: users.createdAt,
                 updatedAt: users.updatedAt,
+            })
+            .from(users)
+    },
+
+    findAllDetails: async (): Promise<UserDetailResponse[]> => {
+        return await db
+            .select({
+                id: users.id,
+                email: users.email,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                initials: users.initials,
+                role: users.role,
+                archived: users.archived,
+                createdAt: users.createdAt,
+                updatedAt: users.updatedAt,
+                activityRates: users.activityRates,
             })
             .from(users)
     },

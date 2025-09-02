@@ -2,6 +2,10 @@ import { classSchema } from "./base"
 import { z } from "zod"
 
 // Rate Class schema
+export const rateClassFilterSchema = z.object({
+    year: z.coerce.number().optional(),
+})
+// Rate Class schema
 export const rateClassSchema = z.object({
     id: z.number(),
     class: classSchema,

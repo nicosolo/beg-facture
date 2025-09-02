@@ -98,9 +98,9 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
 
             const activityRate = await rateRepository.findByClassAndYear(
                 userClass.class,
-                project.startDate.getFullYear()
+                activityData.date.getFullYear()
             )
-
+            console.log(activityRate, userClass)
             // Add the current user's ID to the activity data
             const newActivity = await activityRepository.create({
                 activityTypeId: activityData.activityTypeId,
@@ -111,6 +111,7 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 kilometers: activityData.kilometers ?? 0,
                 expenses: activityData.expenses ?? 0,
                 rate: activityRate.amount,
+                rateClass: userClass.class,
                 disbursement: activityData.disbursement ?? false,
                 billed: activityData.billed ?? false,
                 description: activityData.description ?? "",
@@ -151,6 +152,7 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                     : user.id
                 : (existingActivity.user?.id ?? 0)
             let rate = existingActivity.rate
+            let rateClass = existingActivity.rateClass
             if (
                 activityData.activityTypeId &&
                 existingActivity.activityType?.id !== activityData.activityTypeId
@@ -189,12 +191,14 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                     userClass.class,
                     project.startDate.getFullYear()
                 )
+                rateClass = userClass.class
                 rate = activityRate.amount
             }
 
             const updatedActivity = await activityRepository.update(id, {
                 ...activityData,
                 rate: rate,
+                rateClass: rateClass,
                 userId: userId,
             })
 

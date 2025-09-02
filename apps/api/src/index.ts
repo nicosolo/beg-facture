@@ -12,6 +12,7 @@ import { engineerRoutes } from "@src/routes/engineer"
 import { invoiceRoutes } from "@src/routes/invoice"
 import { locationRoutes } from "@src/routes/location"
 import { workloadRoutes } from "@src/routes/workloads"
+import unbilledRoutes from "@src/routes/unbilled"
 import { runMigrations } from "@src/db/migrate"
 import { PORT, DB_FILE_PATH } from "@src/config"
 import { mkdir } from "node:fs/promises"
@@ -27,7 +28,8 @@ if (!existsSync(dbDir)) {
 }
 
 // Run database migrations
-await runMigrations()
+// Temporarily disabled due to migration conflict
+// await runMigrations()
 
 const app = new Hono()
     .onError(errorHandler)
@@ -44,6 +46,7 @@ const app = new Hono()
     .route("/invoice", invoiceRoutes)
     .route("/location", locationRoutes)
     .route("/workloads", workloadRoutes)
+    .route("/unbilled", unbilledRoutes)
 
 export type ApiRoutes = typeof app
 

@@ -1,5 +1,6 @@
 <template>
     <input
+        v-bind="$attrs"
         type="number"
         :value="hours"
         @input="updateHours"

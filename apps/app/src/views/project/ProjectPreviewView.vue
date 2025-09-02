@@ -49,23 +49,27 @@
                             <p class="font-medium">{{ project.type.name }}</p>
                         </div>
 
-                        <div v-if="invoiceAddress">
-                            <p class="text-sm text-gray-500">{{ $t("projects.invoice") }}</p>
-                            <p class="font-medium whitespace-pre-line">{{ invoiceAddress }}</p>
-                        </div>
-
                         <div v-if="project.remark">
                             <p class="text-sm text-gray-500">{{ $t("projects.remark") }}</p>
                             <p class="font-medium whitespace-pre-line">{{ project.remark }}</p>
                         </div>
                     </div>
 
-                    <div class="mt-6">
+                    <div class="mt-6 space-y-2">
                         <Button
                             variant="primary"
                             :to="{ name: 'project-edit', params: { id: project.id } }"
+                            class="w-full"
                         >
                             {{ $t("common.edit") }}
+                        </Button>
+                        <Button
+                            v-if="project.unBilledDuration && project.unBilledDuration > 0"
+                            variant="secondary"
+                            :to="{ name: 'invoice-new', query: { projectId: project.id } }"
+                            class="w-full"
+                        >
+                            Créer une facture
                         </Button>
                     </div>
                 </div>
@@ -142,11 +146,9 @@ const project = computed(() => {
         type: projectData.value.type,
         projectManager: projectData.value.projectManager,
         printFlag: projectData.value.printFlag,
+        unBilledDuration: projectData.value.unBilledDuration,
     }
 })
-
-// Get client invoice address (TODO: This should come from a separate API endpoint)
-const invoiceAddress = ref("")
 
 // TODO: Fetch time entries from API when endpoint is available
 const timeEntries = ref<TimeEntry[]>([])
@@ -156,14 +158,6 @@ onMounted(async () => {
     console.log("projectId", projectId.value)
     if (projectId.value && !isNaN(projectId.value)) {
         await fetchProject({ params: { id: projectId.value } })
-    }
-})
-
-// Watch for project data changes
-watch(projectData, (newData) => {
-    if (newData && newData.client) {
-        // TODO: Format invoice address from client data
-        invoiceAddress.value = `${newData.client.name}`
     }
 })
 </script>

@@ -40,9 +40,9 @@ export async function updateProjectActivityDates(projectId: number) {
         .set({
             firstActivityDate: firstDate ? new Date(firstDate * 1000) : null,
             lastActivityDate: lastDate ? new Date(lastDate * 1000) : null,
-            totalDuration: Math.round(totalDuration || 0),
-            unBilledDuration: Math.round(unbilledDuration || 0),
-            unBilledDisbursementDuration: Math.round(unbilledDisbursementDuration || 0),
+            totalDuration: totalDuration || 0,
+            unBilledDuration: unbilledDuration || 0,
+            unBilledDisbursementDuration: unbilledDisbursementDuration || 0,
             updatedAt: new Date(),
         })
         .where(eq(projects.id, projectId))
@@ -117,6 +117,7 @@ export const activityRepository = {
                 kilometers: activities.kilometers,
                 expenses: activities.expenses,
                 rate: activities.rate,
+                rateClass: activities.rateClass,
                 description: activities.description,
                 billed: activities.billed,
                 disbursement: activities.disbursement,
@@ -226,6 +227,7 @@ export const activityRepository = {
                 kilometers: activities.kilometers,
                 expenses: activities.expenses,
                 rate: activities.rate,
+                rateClass: activities.rateClass,
                 description: activities.description,
                 billed: activities.billed,
                 disbursement: activities.disbursement,

@@ -7,6 +7,7 @@ import {
     invoiceAdjudications,
     projects,
     clients,
+    activities,
 } from "../schema"
 import type { InvoiceCreateInput, InvoiceUpdateInput, InvoiceFilter } from "@beg/validations"
 import { projectRepository } from "./project.repository"
@@ -457,6 +458,17 @@ export const invoiceRepository = {
                         updatedAt: new Date(),
                     }))
                 )
+            }
+
+            // Mark activities as billed if activity IDs provided
+            if (data.activityIds && data.activityIds.length > 0) {
+                await tx.update(activities)
+                    .set({
+                        billed: true,
+                        invoiceId: invoice.id,
+                        updatedAt: new Date(),
+                    })
+                    .where(sql`${activities.id} IN (${sql.join(data.activityIds.map(id => sql`${id}`), sql`, `)})`)
             }
 
             // Return the created invoice

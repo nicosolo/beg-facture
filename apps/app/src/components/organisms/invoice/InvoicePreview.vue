@@ -50,7 +50,7 @@
                             Remarques
                         </td>
                         <td class="info2 border border-gray-300">
-                            {{ invoice.remarks?.otherServices }}
+                            {{ invoice.remarksOtherServices }}
                         </td>
                     </tr>
                     <tr>
@@ -72,7 +72,7 @@
                             Adresse de facturation
                         </td>
                         <td class="info2 border border-gray-300">
-                            {{ invoice.client.name }}<br />{{ invoice.client.address }}<br /><br />
+                            {{ invoice.clientName }}<br />{{ invoice.clientAddress }}<br /><br />
                         </td>
                     </tr>
                     <tr>
@@ -80,7 +80,7 @@
                             Adresse d'envoi
                         </td>
                         <td class="info2 border border-gray-300">
-                            {{ invoice.recipient.name }}<br />{{ invoice.recipient.address
+                            {{ invoice.recipientName }}<br />{{ invoice.recipientAddress
                             }}<br /><br />
                         </td>
                     </tr>
@@ -138,10 +138,10 @@
                     <tr>
                         <td class="fac1 border border-gray-300" colspan="2">Total h.</td>
                         <td class="fac3 text-right border border-gray-300">
-                            {{ formatDuration(invoice.fees.adjusted).split("h")[0] }}
+                            {{ formatDuration(invoice.feesAdjusted).split("h")[0] }}
                         </td>
                         <td class="fac4 text-right border border-gray-300">
-                            {{ formatCurrency(invoice.fees.total) }}
+                            {{ formatCurrency(invoice.feesTotal) }}
                         </td>
                     </tr>
                 </tbody>
@@ -155,14 +155,14 @@
                     <tr>
                         <td class="fac1 border border-gray-300" colspan="2">Frais BEG au %</td>
                         <td class="fac3 text-right border border-gray-300 w-1/4">
-                            {{ invoice.expenses.package.percentage || 0 }}%
+                            {{ invoice.expensesPackagePercentage || 0 }}%
                         </td>
                         <td class="fac4 text-right border border-gray-300 w-1/4">
                             {{
                                 formatCurrency(
-                                    invoice.expenses.package.amount ||
-                                        (invoice.fees.total *
-                                            (invoice.expenses.package.percentage || 0)) /
+                                    invoice.expensesPackageAmount ||
+                                        (invoice.feesTotal *
+                                            (invoice.expensesPackagePercentage || 0)) /
                                             100
                                 )
                             }}
@@ -171,7 +171,7 @@
                     <tr>
                         <td class="fac1 border border-gray-300" colspan="3">Total des frais</td>
                         <td class="fac4 text-right border border-gray-300">
-                            {{ formatCurrency(invoice.expenses.totalExpenses) }}
+                            {{ formatCurrency(invoice.expensesTotalExpenses) }}
                         </td>
                     </tr>
                 </tbody>
@@ -185,22 +185,22 @@
                     <tr>
                         <td class="fac1 border border-gray-300" colspan="3">TOTAL HT</td>
                         <td class="fac4 text-right border border-gray-300 w-1/4">
-                            {{ formatCurrency(invoice.totals.ht) }}
+                            {{ formatCurrency(invoice.totalHT) }}
                         </td>
                     </tr>
                     <tr>
                         <td class="fac1 border border-gray-300" colspan="2">TVA</td>
                         <td class="fac3 text-right border border-gray-300 w-1/4">
-                            {{ invoice.totals.vat.rate }}%
+                            {{ invoice.vatRate }}%
                         </td>
                         <td class="fac4 text-right border border-gray-300">
-                            {{ formatCurrency(invoice.totals.vat.amount) }}
+                            {{ formatCurrency(invoice.vatAmount) }}
                         </td>
                     </tr>
                     <tr>
                         <td class="fac1 border border-gray-300" colspan="3">TOTAL TTC</td>
                         <td class="fac4 text-right border border-gray-300">
-                            {{ formatCurrency(invoice.totals.ttc) }}
+                            {{ formatCurrency(invoice.totalTTC) }}
                         </td>
                     </tr>
                 </tbody>
@@ -265,12 +265,12 @@ const { formatCurrency, formatDuration, formatDate } = useFormat()
 
 const formattedDescription = computed(() => {
     // Replace line breaks with <br> tags for HTML rendering
-    return props.invoice.description.replace(/\n/g, "<br>")
+    return ""
 })
 
 const filteredRates = computed(() => {
     // Only show rates with hours > 0
-    return props.invoice.fees.rates.filter((rate) => rate.adjusted > 0)
+    return ""
 })
 
 const billingModeLabel = computed(() => {

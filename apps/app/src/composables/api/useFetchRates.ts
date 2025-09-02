@@ -1,9 +1,13 @@
-import { rateClassSchema } from "@beg/validations"
+import { rateClassFilterSchema, type RateClassSchema } from "@beg/validations"
 import { useGet } from "./useAPI"
-import { z } from "zod"
-
-const ratesResponseSchema = z.array(rateClassSchema)
 
 export function useFetchRates() {
-    return useGet<any[]>("rate")
+    return useGet<
+        RateClassSchema[],
+        {
+            query: typeof rateClassFilterSchema
+        }
+    >("rate", {
+        query: rateClassFilterSchema,
+    })
 }

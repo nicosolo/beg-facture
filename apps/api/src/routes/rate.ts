@@ -7,6 +7,7 @@ import {
     rateClassesArraySchema,
     idParamSchema,
     type RateClassSchema,
+    rateClassFilterSchema,
 } from "@beg/validations"
 import { rateRepository } from "../db/repositories/rate.repository"
 import { z } from "zod"
@@ -22,11 +23,13 @@ export const rateRoutes = new Hono<{ Variables: Variables }>()
     // Get all rates
     .get(
         "/",
+        zValidator("query", rateClassFilterSchema),
         responseValidator({
             200: rateClassesArraySchema,
         }),
         async (c) => {
-            const rates = await rateRepository.findAll()
+            const filter = c.req.valid("query")
+            const rates = await rateRepository.findAll(filter.year)
             return c.render(rates as RateClassSchema[], 200)
         }
     )

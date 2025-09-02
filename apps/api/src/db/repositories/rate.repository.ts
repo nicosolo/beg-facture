@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from "drizzle-orm"
+import { and, asc, desc, eq, inArray } from "drizzle-orm"
 import { db } from "../index"
 import { rateClasses } from "../schema"
 import type {
@@ -10,19 +10,23 @@ import type {
 } from "@beg/validations"
 
 export const rateRepository = {
-    findAll: async (): Promise<RateClassSchema[]> => {
-        return await db
+    findAll: async (year?: number): Promise<RateClassSchema[]> => {
+        const query = db
             .select({
                 id: rateClasses.id,
                 class: rateClasses.class,
                 year: rateClasses.year,
                 amount: rateClasses.amount,
             })
-
             .from(rateClasses)
             .orderBy(desc(rateClasses.year), asc(rateClasses.class))
-    },
 
+        if (year) {
+            query.where(eq(rateClasses.year, year))
+        }
+
+        return await query
+    },
     findById: async (id: number) => {
         const results = await db
             .select({
@@ -47,6 +51,19 @@ export const rateRepository = {
             .from(rateClasses)
             .where(and(eq(rateClasses.class, classType), eq(rateClasses.year, year)))
         return results[0] || null
+    },
+
+    findByYears: async (years: number[]) => {
+        const results = await db
+            .select({
+                id: rateClasses.id,
+                class: rateClasses.class,
+                year: rateClasses.year,
+                amount: rateClasses.amount,
+            })
+            .from(rateClasses)
+            .where(and(inArray(rateClasses.year, years)))
+        return results
     },
 
     create: async (rateData: RateClassCreateInput): Promise<RateClassSchema> => {

@@ -1,7 +1,7 @@
 <template>
     <FormLayout
         :title="isNewInvoice ? 'Créer une facture' : 'Modifier la facture'"
-        :loading="loading"
+        :loading="fetchProjectLoading || fetchUnbilledLoading"
         :error-message="errorMessage"
     >
         <!-- Tabs Navigation -->
@@ -39,7 +39,6 @@
             <InvoiceGeneralInfo v-if="activeTab === 'general'" v-model="invoice" />
             <InvoiceDetails v-if="activeTab === 'details'" v-model="invoice" />
         </div>
-
         <template #actions>
             <Button variant="secondary" type="button" @click="handleCancel" :disabled="loading">
                 Annuler
@@ -61,6 +60,7 @@ import InvoiceDetails from "@/components/organisms/invoice/InvoiceDetails.vue"
 import { createEmptyInvoice, type Invoice, type InvoiceResponse } from "@beg/validations"
 import { useFetchInvoice, useCreateInvoice, useUpdateInvoice } from "@/composables/api/useInvoice"
 import { useFetchProject } from "@/composables/api/useProject"
+import { useFetchUnbilledActivities } from "@/composables/api/useUnbilled"
 
 const route = useRoute()
 const router = useRouter()
@@ -85,6 +85,8 @@ const {
     data: projectResponse,
 } = useFetchProject()
 
+const { get: fetchUnbilledActivities, loading: fetchUnbilledLoading } = useFetchUnbilledActivities()
+
 // Form state
 const invoice = ref<Invoice>(createEmptyInvoice({}))
 const loading = computed(() => fetchLoading.value || createLoading.value || updateLoading.value)
@@ -95,34 +97,44 @@ const errorMessage = computed(() => {
     if (err?.message) return err.message
     return err ? "Une erreur s'est produite" : null
 })
-const projectId = computed<number | undefined>(() => parseInt(route.params.projectId as string))
+const projectId = computed<number | undefined>(() => {
+    // Check route params first
+    if (route.params.projectId) {
+        return parseInt(route.params.projectId as string)
+    }
+    // Check query params for new invoice
+    if (route.query.projectId) {
+        return parseInt(route.query.projectId as string)
+    }
+    return undefined
+})
 // Helper to convert API response to form data (response is already flat)
 const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
     return {
         ...createEmptyInvoice({}),
         id: response.id.toString(),
         projectId: response.projectId,
-        
+
         // All fields are already flat in response
         invoiceNumber: response.invoiceNumber || "",
         reference: response.reference || "",
         type: response.type || "Facture",
         billingMode: response.billingMode,
         description: response.description || "",
-        
+
         // Dates - flat
         issueDate: response.issueDate ? new Date(response.issueDate) : undefined,
         dueDate: response.dueDate ? new Date(response.dueDate) : undefined,
         periodStart: response.periodStart ? new Date(response.periodStart) : undefined,
         periodEnd: response.periodEnd ? new Date(response.periodEnd) : undefined,
-        
+
         // Client and recipient - flat
         clientId: response.clientId,
         clientName: response.clientName || "",
         clientAddress: response.clientAddress || "",
         recipientName: response.recipientName || "",
         recipientAddress: response.recipientAddress || "",
-        
+
         // All flat fields from response
         feesBase: response.feesBase || 0,
         feesAdjusted: response.feesAdjusted || 0,
@@ -132,7 +144,7 @@ const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
         feesMultiplicationFactor: response.feesMultiplicationFactor || 1,
         feesDiscountPercentage: response.feesDiscountPercentage || null,
         feesDiscountAmount: response.feesDiscountAmount || null,
-        
+
         expensesTravelBase: response.expensesTravelBase || 0,
         expensesTravelAdjusted: response.expensesTravelAdjusted || 0,
         expensesTravelRate: response.expensesTravelRate || 0.65,
@@ -144,18 +156,18 @@ const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
         expensesPackagePercentage: response.expensesPackagePercentage || null,
         expensesPackageAmount: response.expensesPackageAmount || null,
         expensesTotalExpenses: response.expensesTotalExpenses || 0,
-        
+
         totalHT: response.totalHT || 0,
         vatRate: response.vatRate || 8.0,
         vatAmount: response.vatAmount || 0,
         totalTTC: response.totalTTC || 0,
-        
+
         otherServices: response.otherServices || "",
         remarksOtherServices: response.remarksOtherServices || "",
         remarksTravelExpenses: response.remarksTravelExpenses || "",
         remarksExpenses: response.remarksExpenses || "",
         remarksThirdPartyExpenses: response.remarksThirdPartyExpenses || "",
-        
+
         // Arrays
         rates: response.rates || [],
         offers: response.offers || [],
@@ -173,18 +185,18 @@ const convertInvoiceToInput = (invoice: Invoice): any => {
         billingMode: invoice.billingMode,
         status: "draft",
         description: invoice.description,
-        
+
         // Dates
         issueDate: new Date(),
         dueDate: undefined,
         periodStart: invoice.periodStart,
         periodEnd: invoice.periodEnd,
-        
+
         // Client and recipient
         clientId: invoice.clientId,
         recipientName: invoice.recipientName,
         recipientAddress: invoice.recipientAddress,
-        
+
         // All flat fields
         feesBase: invoice.feesBase,
         feesAdjusted: invoice.feesAdjusted,
@@ -194,7 +206,7 @@ const convertInvoiceToInput = (invoice: Invoice): any => {
         feesMultiplicationFactor: invoice.feesMultiplicationFactor,
         feesDiscountPercentage: invoice.feesDiscountPercentage,
         feesDiscountAmount: invoice.feesDiscountAmount,
-        
+
         expensesTravelBase: invoice.expensesTravelBase,
         expensesTravelAdjusted: invoice.expensesTravelAdjusted,
         expensesTravelRate: invoice.expensesTravelRate,
@@ -206,22 +218,25 @@ const convertInvoiceToInput = (invoice: Invoice): any => {
         expensesPackagePercentage: invoice.expensesPackagePercentage,
         expensesPackageAmount: invoice.expensesPackageAmount,
         expensesTotalExpenses: invoice.expensesTotalExpenses,
-        
+
         totalHT: invoice.totalHT,
         vatRate: invoice.vatRate,
         vatAmount: invoice.vatAmount,
         totalTTC: invoice.totalTTC,
-        
+
         otherServices: invoice.otherServices,
         remarksOtherServices: invoice.remarksOtherServices,
         remarksTravelExpenses: invoice.remarksTravelExpenses,
         remarksExpenses: invoice.remarksExpenses,
         remarksThirdPartyExpenses: invoice.remarksThirdPartyExpenses,
-        
+
         // Arrays
         rates: invoice.rates || [],
         offers: invoice.offers || [],
         adjudications: invoice.adjudications || [],
+
+        // Activity IDs if present
+        activityIds: invoice.activityIds,
     }
 }
 
@@ -266,8 +281,73 @@ const handleCancel = () => {
     router.push({ name: "invoice-list" })
 }
 
-onMounted(() => {
-    loadInvoice()
+// Load unbilled activities for new invoice
+const loadUnbilledActivities = async () => {
+    if (!projectId.value) return
+
+    try {
+        const unbilledData = await fetchUnbilledActivities({
+            params: { projectId: projectId.value },
+        })
+
+        if (unbilledData) {
+            // Pre-populate invoice with calculated data from API
+            invoice.value = {
+                ...createEmptyInvoice({
+                    projectId: projectId.value,
+
+                    // Period from API calculation
+                    periodStart: unbilledData.periodStart
+                        ? new Date(unbilledData.periodStart)
+                        : new Date(),
+                    periodEnd: unbilledData.periodEnd
+                        ? new Date(unbilledData.periodEnd)
+                        : new Date(),
+
+                    // Fees from API calculation
+                    feesBase: unbilledData.feesBase,
+                    feesAdjusted: unbilledData.feesAdjusted,
+                    feesTotal: unbilledData.feesTotal,
+                    feesFinalTotal: unbilledData.feesFinalTotal,
+                    feesMultiplicationFactor: 1,
+
+                    // Expenses from API calculation
+                    expensesTravelBase: unbilledData.totalKilometers || 0,
+                    expensesTravelAdjusted: unbilledData.totalKilometers || 0,
+                    expensesTravelRate: 0.65,
+                    expensesTravelAmount: unbilledData.expensesTravelAmount,
+                    expensesOtherBase: unbilledData.expensesOtherAmount,
+                    expensesOtherAmount: unbilledData.expensesOtherAmount,
+                    expensesTotal: unbilledData.expensesTotal,
+                    expensesThirdPartyAmount: unbilledData.expensesThirdPartyAmount,
+                    expensesTotalExpenses: unbilledData.expensesTotalExpenses,
+
+                    // Totals from API calculation
+                    totalHT: unbilledData.totalHT,
+                    vatRate: unbilledData.vatRate,
+                    vatAmount: unbilledData.vatAmount,
+                    totalTTC: unbilledData.totalTTC,
+
+                    // Rates array
+                    rates: unbilledData.rates,
+
+                    // Store activity IDs for later marking as billed
+                    activityIds: unbilledData.activityIds,
+                }),
+            }
+        }
+    } catch (err: any) {
+        console.error("Failed to load unbilled activities:", err)
+    }
+}
+
+onMounted(async () => {
+    // If it's a new invoice with a projectId, fetch unbilled activities
+    if (isNewInvoice.value && projectId.value) {
+        await loadUnbilledActivities()
+    } else {
+        await loadInvoice()
+    }
 })
 
 // Reload when route changes

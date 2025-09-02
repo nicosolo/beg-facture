@@ -28,7 +28,6 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             const filter = c.req.valid("query")
             const user = c.get("user")
             const result = await projectRepository.findAll(user, filter)
-
             return c.render(result as ProjectListResponse, 200)
         }
     )

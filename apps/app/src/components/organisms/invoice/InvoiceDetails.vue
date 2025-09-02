@@ -35,12 +35,12 @@
                                     <span>{{ formatDuration(rate.base) }}</span>
                                 </td>
                                 <td class="px-4 py-2">
-                                    <InputDuration
+                                    <InputNumber
                                         :modelValue="rate.adjusted"
                                         @update:modelValue="
                                             (value) => updateRate(index, 'adjusted', value)
                                         "
-                                        class="w-20"
+                                        class="w-24"
                                     />
                                 </td>
                                 <td class="px-4 py-2">
@@ -250,11 +250,9 @@
 import { type Invoice } from "@beg/validations"
 import AccordionPanel from "../../molecules/AccordionPanel.vue"
 import { PercentBadgeIcon, CurrencyDollarIcon, CalculatorIcon } from "@heroicons/vue/24/outline"
-import Button from "@/components/atoms/Button.vue"
 import { useFormat } from "@/composables/utils/useFormat"
+import { computed } from "vue"
 import InputNumber from "@/components/atoms/InputNumber.vue"
-import InputDuration from "@/components/atoms/InputDuration.vue"
-import { computed, ref, watch, watchEffect } from "vue"
 
 const props = defineProps<{
     modelValue: Invoice
@@ -296,10 +294,10 @@ const updateRemarks = (field: string, value: string) => {
     const newInvoice = { ...invoice.value } as any
     // Map field names to flat structure
     const fieldMap: Record<string, string> = {
-        'otherServices': 'remarksOtherServices',
-        'travelExpenses': 'remarksTravelExpenses',
-        'expenses': 'remarksExpenses',
-        'thirdPartyExpenses': 'remarksThirdPartyExpenses'
+        otherServices: "remarksOtherServices",
+        travelExpenses: "remarksTravelExpenses",
+        expenses: "remarksExpenses",
+        thirdPartyExpenses: "remarksThirdPartyExpenses",
     }
     const flatField = fieldMap[field]
     if (flatField) {
@@ -317,18 +315,12 @@ const updateRate = (index: number, field: string, value: any) => {
 
     // Recalculate amount
     const rate = newInvoice.rates[index]
-    rate.amount = (rate.adjusted / 60) * rate.hourlyRate
+    rate.amount = rate.adjusted * rate.hourlyRate
 
     // Recalculate totals using flat fields
     newInvoice.feesBase = newInvoice.rates.reduce((total, r) => total + (r.base || 0), 0)
-    newInvoice.feesAdjusted = newInvoice.rates.reduce(
-        (total, r) => total + (r.adjusted || 0),
-        0
-    )
-    newInvoice.feesFinalTotal = newInvoice.rates.reduce(
-        (total, r) => total + (r.amount || 0),
-        0
-    )
+    newInvoice.feesAdjusted = newInvoice.rates.reduce((total, r) => total + (r.adjusted || 0), 0)
+    newInvoice.feesFinalTotal = newInvoice.rates.reduce((total, r) => total + (r.amount || 0), 0)
     newInvoice.feesTotal = newInvoice.feesFinalTotal - (newInvoice.feesDiscountAmount || 0)
 
     invoice.value = newInvoice
@@ -344,7 +336,8 @@ const toggleDiscount = () => {
     }
     // Calculate discount amount
     if (newInvoice.feesDiscountPercentage && newInvoice.feesFinalTotal) {
-        newInvoice.feesDiscountAmount = (newInvoice.feesFinalTotal * newInvoice.feesDiscountPercentage) / 100
+        newInvoice.feesDiscountAmount =
+            (newInvoice.feesFinalTotal * newInvoice.feesDiscountPercentage) / 100
     } else {
         newInvoice.feesDiscountAmount = 0
     }

@@ -117,20 +117,6 @@
                 </FormField>
             </div>
 
-            <!-- Invoice Address -->
-            <div class="mb-6">
-                <FormField :label="$t('projects.invoice')" :error="errors.invoiceAddress">
-                    <template #input>
-                        <textarea
-                            v-model="form.invoiceAddress"
-                            rows="4"
-                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            :placeholder="$t('projects.invoiceAddressPlaceholder')"
-                        ></textarea>
-                    </template>
-                </FormField>
-            </div>
-
             <!-- Remark -->
             <div class="mb-6">
                 <FormField :label="$t('projects.remark')" :error="errors.remark">
@@ -282,7 +268,6 @@ const form = ref<ProjectCreateInput>({
     engineerId: undefined,
     companyId: undefined,
     projectManagerId: undefined,
-    invoiceAddress: "",
     remark: "",
     printFlag: false,
     ended: false,
@@ -368,7 +353,6 @@ const saveProject = async () => {
             engineerId: form.value.engineerId || undefined,
             companyId: form.value.companyId || undefined,
             projectManagerId: form.value.projectManagerId || undefined,
-            invoiceAddress: form.value.invoiceAddress || undefined,
             remark: form.value.remark || undefined,
         }
 
@@ -438,7 +422,6 @@ onMounted(async () => {
                     engineerId: projectData.value.engineer?.id,
                     companyId: projectData.value.company?.id,
                     projectManagerId: projectData.value.projectManager?.id,
-                    invoiceAddress: "", // This field doesn't exist in current response
                     remark: projectData.value.remark || "",
                     printFlag: projectData.value.printFlag || false,
                     ended: projectData.value.ended || false,

@@ -1,9 +1,11 @@
 # Project Edit View - Implementation Tasks
 
 ## Overview
+
 Fix and implement the ProjectEditView component to connect with real API endpoints and provide full CRUD functionality for project management.
 
 ## Current Issues
+
 - ❌ Using hardcoded/mock data instead of real API data
 - ❌ Select dropdowns have empty options arrays
 - ❌ No API endpoints for create/update operations
@@ -14,7 +16,9 @@ Fix and implement the ProjectEditView component to connect with real API endpoin
 ## Task 1: Backend API Implementation
 
 ### 1.1 Create Validation Schemas
+
 **File:** `packages/validations/validations/project.ts`
+
 - [ ] Add `projectCreateSchema` with proper field validation
 - [ ] Add `projectUpdateSchema` with partial fields
 - [ ] Export input/output types for both schemas
@@ -30,7 +34,6 @@ export const projectCreateSchema = z.object({
     engineerId: z.number().positive().optional(),
     companyId: z.number().positive().optional(),
     projectManagerId: z.number().positive().optional(),
-    invoiceAddress: z.string().optional(),
     remark: z.string().optional(),
     printFlag: z.boolean().optional().default(false),
 })
@@ -39,14 +42,18 @@ export const projectUpdateSchema = projectCreateSchema.partial()
 ```
 
 ### 1.2 Repository Methods
+
 **File:** `apps/api/src/db/repositories/project.repository.ts`
+
 - [ ] Implement `create` method with proper field mapping
 - [ ] Implement `update` method with partial updates
 - [ ] Add validation for duplicate project numbers
 - [ ] Add proper error handling and transaction support
 
 ### 1.3 API Routes
+
 **File:** `apps/api/src/routes/project.ts`
+
 - [ ] Add POST `/project` endpoint for creation
 - [ ] Add PUT `/project/:id` endpoint for updates
 - [ ] Add proper request validation with zValidator
@@ -56,21 +63,24 @@ export const projectUpdateSchema = projectCreateSchema.partial()
 ## Task 2: Frontend Composables
 
 ### 2.1 Create CRUD Composables
+
 **File:** `apps/app/src/composables/api/useProject.ts`
 
 - [ ] Add `useCreateProject` composable
+
 ```typescript
 export function useCreateProject() {
-    return usePost<ProjectResponse, ProjectCreateInput>('project', {
+    return usePost<ProjectResponse, ProjectCreateInput>("project", {
         body: projectCreateSchema,
     })
 }
 ```
 
 - [ ] Add `useUpdateProject` composable
+
 ```typescript
 export function useUpdateProject() {
-    return usePut<ProjectResponse, ProjectUpdateInput>('project/:id', {
+    return usePut<ProjectResponse, ProjectUpdateInput>("project/:id", {
         params: idParamSchema,
         body: projectUpdateSchema,
     })
@@ -78,6 +88,7 @@ export function useUpdateProject() {
 ```
 
 ### 2.2 Create Select Options Composables
+
 - [ ] Create `apps/app/src/composables/api/useClient.ts`
 - [ ] Create `apps/app/src/composables/api/useEngineer.ts`
 - [ ] Create `apps/app/src/composables/api/useCompany.ts`
@@ -88,30 +99,32 @@ export function useUpdateProject() {
 ## Task 3: Fix ProjectEditView Component
 
 ### 3.1 Update Data Structure
+
 **File:** `apps/app/src/views/project/ProjectEditView.vue`
 
 - [ ] Replace legacy `MandatProject` interface with proper types
 - [ ] Update field names to match current schema:
-  - `Mandat` → `projectNumber`
-  - `Début` → `startDate`
-  - `Désignation` → `name`
-  - `IDlocalité` → `locationId`
-  - `IDmandant` → `clientId`
-  - `IDingénieur` → `engineerId`
-  - `IDentreprise` → `companyId`
-  - `IDtype` → `typeId`
-  - `Responsable` → `projectManagerId`
-  - `Facture` → `invoiceAddress`
-  - `Remarque` → `remark`
-  - `Imprimer` → `printFlag`
+    - `Mandat` → `projectNumber`
+    - `Début` → `startDate`
+    - `Désignation` → `name`
+    - `IDlocalité` → `locationId`
+    - `IDmandant` → `clientId`
+    - `IDingénieur` → `engineerId`
+    - `IDentreprise` → `companyId`
+    - `IDtype` → `typeId`
+    - `Responsable` → `projectManagerId`
+    - `Remarque` → `remark`
+    - `Imprimer` → `printFlag`
 
 ### 3.2 Connect to Real Data
+
 - [ ] Import and use composables for fetching select options
 - [ ] Load existing project data when editing
 - [ ] Remove all hardcoded/mock data
 - [ ] Implement proper loading states
 
 ### 3.3 Implement Form Functionality
+
 - [ ] Connect save function to real API endpoints
 - [ ] Add proper form validation
 - [ ] Implement error handling with user feedback
@@ -119,18 +132,20 @@ export function useUpdateProject() {
 - [ ] Add loading overlays during save
 
 ### 3.4 Update Select Components
+
 - [ ] Replace Input with Select for project manager field
 - [ ] Populate all Select components with real options:
-  - Location select with locations list
-  - Client select with clients list
-  - Engineer select with engineers list
-  - Company select with companies list
-  - Project Type select with types list
-  - Project Manager select with users list
+    - Location select with locations list
+    - Client select with clients list
+    - Engineer select with engineers list
+    - Company select with companies list
+    - Project Type select with types list
+    - Project Manager select with users list
 
 ## Task 4: Enhanced Features
 
 ### 4.1 Form Improvements
+
 - [ ] Add project number auto-generation for new projects
 - [ ] Add project number uniqueness validation
 - [ ] Add date picker component for better UX
@@ -138,6 +153,7 @@ export function useUpdateProject() {
 - [ ] Add invoice address autocomplete from client
 
 ### 4.2 User Experience
+
 - [ ] Add form dirty state tracking
 - [ ] Add confirmation dialog for unsaved changes
 - [ ] Add success toast after saving
@@ -145,6 +161,7 @@ export function useUpdateProject() {
 - [ ] Add breadcrumb navigation
 
 ### 4.3 Validation
+
 - [ ] Client-side validation with immediate feedback
 - [ ] Server-side validation with clear error messages
 - [ ] Field-level error display
@@ -157,11 +174,7 @@ export function useUpdateProject() {
 import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
-import { 
-    useFetchProject, 
-    useCreateProject, 
-    useUpdateProject 
-} from "@/composables/api/useProject"
+import { useFetchProject, useCreateProject, useUpdateProject } from "@/composables/api/useProject"
 import { useFetchClientList } from "@/composables/api/useClient"
 import { useFetchEngineerList } from "@/composables/api/useEngineer"
 import { useFetchCompanyList } from "@/composables/api/useCompany"
@@ -175,9 +188,7 @@ const router = useRouter()
 const { t } = useI18n()
 
 // Get project ID from route
-const projectId = computed(() => 
-    route.params.id ? parseInt(route.params.id as string) : null
-)
+const projectId = computed(() => (route.params.id ? parseInt(route.params.id as string) : null))
 const isNewProject = computed(() => !projectId.value)
 
 // API composables
@@ -195,8 +206,8 @@ const { get: fetchUsers, data: users } = useFetchUserList()
 
 // Form state
 const form = ref<ProjectCreateInput>({
-    projectNumber: '',
-    name: '',
+    projectNumber: "",
+    name: "",
     startDate: new Date(),
     typeId: undefined,
     locationId: undefined,
@@ -204,8 +215,7 @@ const form = ref<ProjectCreateInput>({
     engineerId: undefined,
     companyId: undefined,
     projectManagerId: undefined,
-    invoiceAddress: '',
-    remark: '',
+    remark: "",
     printFlag: false,
 })
 
@@ -220,7 +230,7 @@ onMounted(async () => {
         fetchProjectTypes(),
         fetchUsers(),
     ])
-    
+
     // Load existing project if editing
     if (projectId.value) {
         const project = await fetchProject({ id: projectId.value })
@@ -236,8 +246,7 @@ onMounted(async () => {
                 engineerId: project.engineer?.id,
                 companyId: project.company?.id,
                 projectManagerId: project.projectManager?.id,
-                invoiceAddress: project.invoiceAddress || '',
-                remark: project.remark || '',
+                remark: project.remark || "",
                 printFlag: project.printFlag || false,
             }
         }
@@ -250,18 +259,18 @@ const saveProject = async () => {
         if (isNewProject.value) {
             await createProject({ body: form.value })
         } else {
-            await updateProject({ 
-                id: projectId.value!, 
-                body: form.value 
+            await updateProject({
+                id: projectId.value!,
+                body: form.value,
             })
         }
-        
+
         // Show success message
         // Navigate back to list
-        router.push({ name: 'project-list' })
+        router.push({ name: "project-list" })
     } catch (error) {
         // Handle error
-        console.error('Failed to save project:', error)
+        console.error("Failed to save project:", error)
     }
 }
 </script>

@@ -60,6 +60,16 @@
                 </Button>
 
                 <Button
+                    v-if="item.unBilledDuration > 0"
+                    :to="{ name: 'invoice-new', query: { projectId: item.id } }"
+                    variant="ghost-primary"
+                    size="sm"
+                    class="whitespace-nowrap w-fit"
+                >
+                    Facturer
+                </Button>
+
+                <Button
                     :to="{ name: 'project-view', params: { id: item.id } }"
                     variant="primary"
                     size="sm"

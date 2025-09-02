@@ -67,10 +67,12 @@
                             >{{ $t("time.columns.duration") }}
                             <span class="text-red-500">*</span></Label
                         >
-                        <DurationInput
-                            v-model="activity.duration"
+                        <InputNumber
+                            type="time"
+                            v-model.number="activity.duration"
                             :disabled="loading"
                             :required="true"
+                            class="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         />
                     </div>
                     <div>
@@ -156,6 +158,7 @@ import { useFetchActivityTypeFiltered } from "@/composables/api/useActivityType"
 import { useAuthStore } from "@/stores/auth"
 import { ApiError } from "@/utils/api-error"
 import type { ActivityCreateInput, ActivityUpdateInput, ActivityResponse } from "@beg/validations"
+import InputNumber from "@/components/atoms/InputNumber.vue"
 
 interface Props {
     modelValue: boolean

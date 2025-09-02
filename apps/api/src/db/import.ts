@@ -474,6 +474,18 @@ async function importActivities() {
     const activityData = await readJsonFile("Heures")
     if (activityData.length === 0) return
 
+    // Load all users with their activity rates
+    const allUsers = await db.select().from(users)
+    const userMap = new Map(allUsers.map((u) => [u.id, u]))
+
+    // Load all rate classes for rate lookup
+    const allRateClasses = await db.select().from(rateClasses)
+    // Create a map for quick lookups: "class-year" -> amount
+    const rateMap = new Map<string, number>()
+    allRateClasses.forEach((rate) => {
+        rateMap.set(`${rate.class}-${rate.year}`, rate.amount)
+    })
+
     // Process in chunks due to potentially large size
     const chunkSize = 3000
     let imported = 0
@@ -494,16 +506,38 @@ async function importActivities() {
                 activityDate = parseAccessDate(rawActivity.Date)
             }
 
+            // Calculate rate based on user's rate class for this activity type
+            let calculatedRate = 0
+            const user = userMap.get(userId)
+            let userClass: ClassSchema | undefined = undefined
+            if (user && activityDate && user.activityRates) {
+                // Find the user's rate class for this activity type
+                userClass = user.activityRates.find((rate) => rate.activityId === activityTypeId)
+                    ?.class as ClassSchema | undefined
+
+                if (userClass) {
+                    // Get the rate for this class and year
+                    const year = activityDate.getFullYear()
+                    const rateKey = `${userClass}-${year}`
+                    calculatedRate = rateMap.get(rateKey) || 0
+                }
+            }
+
+            // Use calculated rate if available, otherwise fall back to the original rate from the data
+            const finalRate =
+                calculatedRate > 0 ? calculatedRate : parseFloat(rawActivity.Tarif) || 0
+
             const activity = {
                 // id: rawActivity.IDHeure,
+                rateClass: userClass,
                 userId,
                 projectId,
                 activityTypeId,
                 date: activityDate,
-                duration: Math.round((parseFloat(rawActivity.Heures) || 0) * 60),
+                duration: Math.round(parseFloat(rawActivity.Heures) * 100) / 100,
                 kilometers: parseInt(rawActivity.Km) || 0,
                 expenses: parseFloat(rawActivity.Frais) || 0,
-                rate: parseFloat(rawActivity.Tarif) || 0,
+                rate: finalRate,
                 description: rawActivity.Remarque,
                 billed: rawActivity.Facturé === 1,
                 disbursement: rawActivity.Débours === 1,
@@ -522,7 +556,6 @@ async function importActivities() {
     // Update all project dates after bulk import
     console.log("Updating project activity dates...")
     const allProjects = await db.select({ id: projects.id, name: projects.name }).from(projects)
-
     for (const project of allProjects) {
         await updateProjectActivityDates(project.id)
     }

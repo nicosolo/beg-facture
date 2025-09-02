@@ -1,6 +1,5 @@
 import { db } from "./index"
 import { resolve } from "node:path"
-import { sql } from "drizzle-orm"
 import { existsSync } from "node:fs"
 import { dirname } from "node:path"
 import { mkdir } from "node:fs/promises"

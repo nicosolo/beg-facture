@@ -32,7 +32,6 @@ export const projectResponseSchema = z
         name: z.string(),
         startDate: dateSchema,
         remark: z.string().nullable(),
-        invoiceAddress: z.string().nullable(),
         printFlag: z.boolean().nullable(),
         location: z
             .object({
@@ -98,7 +97,6 @@ export const projectCreateSchema = z.object({
     engineerId: z.number().positive().optional(),
     companyId: z.number().positive().optional(),
     projectManagerId: z.number().positive().optional(),
-    invoiceAddress: z.string().optional(),
     remark: z.string().optional(),
     printFlag: z.boolean().optional().default(false),
     ended: z.boolean().optional().default(false),

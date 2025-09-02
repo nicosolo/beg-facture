@@ -133,9 +133,9 @@ export const projects = sqliteTable(
         printFlag: integer("printFlag", { mode: "boolean" }).default(false),
         firstActivityDate: integer("firstActivityDate", { mode: "timestamp" }),
         lastActivityDate: integer("lastActivityDate", { mode: "timestamp" }),
-        totalDuration: integer("totalDuration").default(0),
-        unBilledDuration: integer("unBilledDuration").default(0),
-        unBilledDisbursementDuration: integer("unBilledDisbursementDuration").default(0),
+        totalDuration: real("totalDuration").default(0),
+        unBilledDuration: real("unBilledDuration").default(0),
+        unBilledDisbursementDuration: real("unBilledDisbursementDuration").default(0),
         ended: integer("ended", { mode: "boolean" }).default(false),
         archived: integer("archived", { mode: "boolean" }).default(false),
         ...timestamps,
@@ -218,10 +218,10 @@ export const activities = sqliteTable(
             .notNull()
             .references(() => users.id, { onDelete: "set null" }),
         date: integer("date", { mode: "timestamp" }).notNull(),
-        duration: integer("duration").notNull(),
-        kilometers: integer("kilometers").notNull(),
-        expenses: integer("expenses").notNull(),
-        rate: integer("rate").notNull(),
+        duration: real("duration").notNull(),
+        kilometers: real("kilometers").notNull(),
+        expenses: real("expenses").notNull(),
+        rate: real("rate").notNull(),
         projectId: integer("projectId")
             .notNull()
             .references(() => projects.id, { onDelete: "set null" }),
@@ -235,6 +235,7 @@ export const activities = sqliteTable(
         }),
         // Disbursement flag (if this activity is a disbursement)
         disbursement: integer("disbursement", { mode: "boolean" }).notNull().default(false),
+        rateClass: text("rateClass").$type<ClassSchema>(),
         ...timestamps,
     },
     (table) => [

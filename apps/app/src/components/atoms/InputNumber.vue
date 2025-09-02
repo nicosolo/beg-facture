@@ -1,31 +1,19 @@
 <template>
-    <div :class="['w-24', 'flex', 'items-center', 'gap-1']">
-        <input
-            v-bind="$attrs"
-            type="number"
-            :value="modelValue"
-            @input="
-                $emit('update:modelValue', parseFloat(($event.target as HTMLInputElement).value))
-            "
-            :step="computedStep"
-            :class="[computedClass, className]"
-        />
-        <span v-if="type === 'percentage'">%</span>
-        <span v-if="type === 'distance'">km</span>
-    </div>
+    <input
+        type="number"
+        :value="modelValue"
+        @input="$emit('update:modelValue', parseFloat(($event.target as HTMLInputElement).value))"
+        :step="computedStep"
+        :class="[computedClass, $attrs.class]"
+    />
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
 
-const {
-    modelValue,
-    className,
-    type = "number",
-} = defineProps<{
+const { modelValue, type = "number" } = defineProps<{
     modelValue: number | null
-    className?: string
-    type?: "percentage" | "amount" | "number" | "distance"
+    type?: "percentage" | "amount" | "number" | "distance" | "time"
 }>()
 
 defineEmits<{
@@ -54,6 +42,9 @@ const computedStep = computed(() => {
     }
     if (type === "distance") {
         return 1
+    }
+    if (type === "time") {
+        return 0.25
     }
     return 0.1
 })

@@ -35,7 +35,7 @@
         </div>
 
         <!-- Tab Content -->
-        <div class="tab-content">
+        <div class="tab-content" v-if="invoice">
             <InvoiceGeneralInfo v-if="activeTab === 'general'" v-model="invoice" />
             <InvoiceDetails v-if="activeTab === 'details'" v-model="invoice" />
         </div>
@@ -68,6 +68,7 @@ const invoiceId = computed(() => route.params.id as string | undefined)
 const isNewInvoice = computed(() => !invoiceId.value)
 
 const activeTab = ref("general")
+const isUpdatingFromApi = ref(false)
 
 // API composables
 const {
@@ -88,7 +89,7 @@ const {
 const { get: fetchUnbilledActivities, loading: fetchUnbilledLoading } = useFetchUnbilledActivities()
 
 // Form state
-const invoice = ref<Invoice>(createEmptyInvoice({}))
+const invoice = ref<Invoice | null>(null)
 const loading = computed(() => fetchLoading.value || createLoading.value || updateLoading.value)
 const error = computed(() => fetchError.value || createError.value || updateError.value)
 const errorMessage = computed(() => {
@@ -258,12 +259,12 @@ const loadInvoice = async () => {
 // Save invoice
 const handleSave = async () => {
     try {
-        if (isNewInvoice.value) {
+        if (isNewInvoice.value && invoice.value) {
             const data = await createInvoice({ body: convertInvoiceToInput(invoice.value) })
             if (data) {
                 router.push({ name: "invoice-edit", params: { id: data.id } })
             }
-        } else if (invoiceId.value) {
+        } else if (invoiceId.value && invoice.value) {
             await updateInvoice({
                 params: { id: parseInt(invoiceId.value) },
                 body: convertInvoiceToInput(invoice.value),
@@ -289,7 +290,7 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
         const queryParams: any = {}
         if (periodStart) queryParams.periodStart = periodStart.toISOString()
         if (periodEnd) queryParams.periodEnd = periodEnd.toISOString()
-        
+
         const unbilledData = await fetchUnbilledActivities({
             params: { projectId: projectId.value },
             query: queryParams,
@@ -297,53 +298,53 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
 
         if (unbilledData) {
             // Keep the original period if it was passed, otherwise use API calculation
-            const finalPeriodStart = periodStart || (unbilledData.periodStart 
-                ? new Date(unbilledData.periodStart) 
-                : new Date())
-            const finalPeriodEnd = periodEnd || (unbilledData.periodEnd 
-                ? new Date(unbilledData.periodEnd) 
-                : new Date())
-            
-            // Pre-populate invoice with calculated data from API
-            invoice.value = {
-                ...createEmptyInvoice({
-                    projectId: projectId.value,
+            const finalPeriodStart =
+                periodStart ||
+                (unbilledData.periodStart ? new Date(unbilledData.periodStart) : new Date())
+            const finalPeriodEnd =
+                periodEnd ||
+                (unbilledData.periodEnd ? new Date(unbilledData.periodEnd) : new Date())
 
+            // Pre-populate invoice with calculated data from API
+            if (!invoice.value) {
+                invoice.value = createEmptyInvoice({
                     // Use final period
                     periodStart: finalPeriodStart,
                     periodEnd: finalPeriodEnd,
-
-                    // Fees from API calculation
-                    feesBase: unbilledData.feesBase,
-                    feesAdjusted: unbilledData.feesAdjusted,
-                    feesTotal: unbilledData.feesTotal,
-                    feesFinalTotal: unbilledData.feesFinalTotal,
-                    feesMultiplicationFactor: 1,
-
-                    // Expenses from API calculation
-                    expensesTravelBase: unbilledData.totalKilometers || 0,
-                    expensesTravelAdjusted: unbilledData.totalKilometers || 0,
-                    expensesTravelRate: 0.65,
-                    expensesTravelAmount: unbilledData.expensesTravelAmount,
-                    expensesOtherBase: unbilledData.expensesOtherAmount,
-                    expensesOtherAmount: unbilledData.expensesOtherAmount,
-                    expensesTotal: unbilledData.expensesTotal,
-                    expensesThirdPartyAmount: unbilledData.expensesThirdPartyAmount,
-                    expensesTotalExpenses: unbilledData.expensesTotalExpenses,
-
-                    // Totals from API calculation
-                    totalHT: unbilledData.totalHT,
-                    vatRate: unbilledData.vatRate,
-                    vatAmount: unbilledData.vatAmount,
-                    totalTTC: unbilledData.totalTTC,
-
-                    // Rates array
-                    rates: unbilledData.rates,
-
-                    // Store activity IDs for later marking as billed
-                    activityIds: unbilledData.activityIds,
-                }),
+                    projectId: projectId.value,
+                })
             }
+            invoice.value.projectId = projectId.value
+
+            // Fees from API calculation
+            invoice.value.feesBase = unbilledData.feesBase
+            invoice.value.feesAdjusted = unbilledData.feesAdjusted
+            invoice.value.feesTotal = unbilledData.feesTotal
+            invoice.value.feesFinalTotal = unbilledData.feesFinalTotal
+            invoice.value.feesMultiplicationFactor = 1
+
+            // Expenses from API calculation
+            invoice.value.expensesTravelBase = unbilledData.totalKilometers || 0
+            invoice.value.expensesTravelAdjusted = unbilledData.totalKilometers || 0
+            invoice.value.expensesTravelRate = 0.65
+            invoice.value.expensesTravelAmount = unbilledData.expensesTravelAmount
+            invoice.value.expensesOtherBase = unbilledData.expensesOtherAmount
+            invoice.value.expensesOtherAmount = unbilledData.expensesOtherAmount
+            invoice.value.expensesTotal = unbilledData.expensesTotal
+            invoice.value.expensesThirdPartyAmount = unbilledData.expensesThirdPartyAmount
+            invoice.value.expensesTotalExpenses = unbilledData.expensesTotalExpenses
+
+            // Totals from API calculation
+            invoice.value.totalHT = unbilledData.totalHT
+            invoice.value.vatRate = unbilledData.vatRate
+            invoice.value.vatAmount = unbilledData.vatAmount
+            invoice.value.totalTTC = unbilledData.totalTTC
+
+            // Rates array
+            invoice.value.rates = unbilledData.rates
+
+            // Store activity IDs for later marking as billed
+            invoice.value.activityIds = unbilledData.activityIds
         }
     } catch (err: any) {
         console.error("Failed to load unbilled activities:", err)
@@ -378,14 +379,17 @@ watch(
 
 // Watch for period changes and refetch unbilled activities
 watch(
-    () => [invoice.value.periodStart, invoice.value.periodEnd],
+    () => [invoice.value?.periodStart, invoice.value?.periodEnd],
     ([newStart, newEnd]) => {
+        // Skip if we're updating from API to prevent infinite loop
+        if (isUpdatingFromApi.value) {
+            return
+        }
+
         // Only refetch if we're creating a new invoice and have a project
-        if (isNewInvoice.value && projectId.value && (newStart || newEnd)) {
-            loadUnbilledActivities(
-                newStart as Date | undefined,
-                newEnd as Date | undefined
-            )
+        if (invoice.value && isNewInvoice.value && projectId.value && (newStart || newEnd)) {
+            console.log("Refetching unbilled activities:", newStart, newEnd)
+            loadUnbilledActivities(newStart as Date | undefined, newEnd as Date | undefined)
         }
     }
 )

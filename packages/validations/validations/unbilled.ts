@@ -1,13 +1,7 @@
 import { z } from "zod"
 import { activityResponseSchema } from "./activity"
 import { RateItemSchema } from "./invoice"
-
-// Request schema for fetching unbilled activities
-export const UnbilledActivitiesRequestSchema = z.object({
-    projectId: z.number(),
-    periodStart: z.date().optional(),
-    periodEnd: z.date().optional(),
-})
+import { dateSchema } from "./base"
 
 // Response schema for unbilled activities with calculations
 export const UnbilledActivitiesResponseSchema = z.object({
@@ -35,6 +29,17 @@ export const UnbilledActivitiesResponseSchema = z.object({
     periodEnd: z.date().nullable(),
 })
 
-export type UnbilledActivitiesRequest = z.infer<typeof UnbilledActivitiesRequestSchema>
+// Schema for unbilled activities query parameters
+export const unbilledQuerySchema = z.object({
+    periodStart: dateSchema.optional(),
+    periodEnd: dateSchema.optional(),
+})
+
+// Schema for unbilled activities params
+export const unbilledParamsSchema = z.object({
+    projectId: z.number(),
+})
+
+export type UnbilledActivitiesRequest = z.infer<typeof unbilledQuerySchema>
 export type RateItem = z.infer<typeof RateItemSchema>
 export type UnbilledActivitiesResponse = z.infer<typeof UnbilledActivitiesResponseSchema>

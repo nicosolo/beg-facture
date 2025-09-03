@@ -1,17 +1,10 @@
 import { z } from "zod"
 import { useGet } from "./useAPI"
-import type { UnbilledActivitiesResponse } from "@beg/validations"
-
-// Schema for unbilled activities query parameters
-const unbilledQuerySchema = z.object({
-    periodStart: z.date().optional(),
-    periodEnd: z.date().optional(),
-})
-
-// Schema for unbilled activities params
-const unbilledParamsSchema = z.object({
-    projectId: z.number(),
-})
+import {
+    unbilledParamsSchema,
+    unbilledQuerySchema,
+    type UnbilledActivitiesResponse,
+} from "@beg/validations"
 
 export function useFetchUnbilledActivities() {
     return useGet<

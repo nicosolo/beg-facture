@@ -72,6 +72,7 @@ const printInvoice = () => {
 }
 
 onMounted(() => {
+    document.title = 'BEG - Aperçu de facture'
     loadInvoice()
 })
 </script>

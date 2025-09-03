@@ -197,6 +197,7 @@ watch(
 
 // Load locations on mount
 onMounted(() => {
+    document.title = 'BEG - Lieux'
     fetchLocations()
 })
 

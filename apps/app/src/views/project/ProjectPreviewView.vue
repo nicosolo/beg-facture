@@ -79,7 +79,7 @@
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-lg p-6 border border-gray-200">
                     <h2 class="text-lg font-semibold mb-4">{{ $t("timeEntries.title") }}</h2>
-                    <TimeEntriesManager 
+                    <TimeEntriesManager
                         :project-id="projectId"
                         :show-project-filter="false"
                         empty-message="Aucune entrée d'heure trouvée pour ce projet"
@@ -140,9 +140,9 @@ const project = computed(() => {
     }
 })
 
-
 // Load project data on mount
 onMounted(async () => {
+    document.title = "BEG - Aperçu du projet"
     console.log("projectId", projectId.value)
     if (projectId.value && !isNaN(projectId.value)) {
         await fetchProject({ params: { id: projectId.value } })

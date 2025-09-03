@@ -109,6 +109,7 @@ const columns = [
 
 // Load activity types on mount
 onMounted(async () => {
+    document.title = 'BEG - Types d\'activité'
     await fetchActivityTypes()
 })
 

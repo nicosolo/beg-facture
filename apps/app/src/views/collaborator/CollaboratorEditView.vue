@@ -236,6 +236,7 @@ const errorMessage = ref<string | null>(null)
 
 // Load user data and activity types
 onMounted(async () => {
+    document.title = 'BEG - Modifier le collaborateur'
     // Load activity types
     await getActivityTypes()
 

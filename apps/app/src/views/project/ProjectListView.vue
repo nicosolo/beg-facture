@@ -148,6 +148,7 @@ watch(
 
 // Initial load
 onMounted(() => {
+    document.title = "BEG - Mandats"
     loadProjects()
 })
 

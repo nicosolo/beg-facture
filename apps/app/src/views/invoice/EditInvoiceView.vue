@@ -352,6 +352,9 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
 }
 
 onMounted(async () => {
+    // Set page title
+    document.title = isNewInvoice.value ? 'BEG - Créer une facture' : 'BEG - Modifier la facture'
+    
     // If it's a new invoice with a projectId, fetch unbilled activities
     if (isNewInvoice.value && projectId.value) {
         await loadUnbilledActivities()

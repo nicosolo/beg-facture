@@ -168,6 +168,7 @@ watch(currentPage, () => {
 
 // Load engineers on mount
 onMounted(() => {
+    document.title = 'BEG - Ingénieurs'
     fetchEngineers()
 })
 

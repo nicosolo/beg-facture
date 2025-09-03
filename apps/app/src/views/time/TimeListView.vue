@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, onMounted } from "vue"
 import { useRoute } from "vue-router"
 import TimeEntriesManager from "@/components/organisms/time/TimeEntriesManager.vue"
 
@@ -30,4 +30,8 @@ const showProjectFilter = computed(() => !projectId.value)
 const initialFilter = computed(() => ({
     projectId: projectId.value,
 }))
+
+onMounted(() => {
+    document.title = 'BEG - Saisie des heures'
+})
 </script>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, onMounted } from "vue"
 import { useAuthStore } from "../stores/auth"
 import { useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
@@ -39,6 +39,10 @@ async function handleLogin() {
         isLoading.value = false
     }
 }
+
+onMounted(() => {
+    document.title = 'BEG - Connexion'
+})
 </script>
 
 <template>

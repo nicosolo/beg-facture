@@ -58,6 +58,7 @@ const columns: Column[] = [
 
 // Load users on mount
 onMounted(async () => {
+    document.title = 'BEG - Liste des collaborateurs'
     await fetchUsers({})
 })
 </script>

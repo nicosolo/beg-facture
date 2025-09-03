@@ -163,6 +163,7 @@ watch(currentPage, () => {
 
 // Load companies on mount
 onMounted(() => {
+    document.title = 'BEG - Entreprises'
     fetchCompanies()
 })
 

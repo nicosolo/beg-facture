@@ -393,6 +393,7 @@ const saveProject = async () => {
 
 // Load data on mount
 onMounted(async () => {
+    document.title = 'BEG - Modifier le projet'
     try {
         loadingData.value = true
 

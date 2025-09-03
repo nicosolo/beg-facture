@@ -163,6 +163,7 @@ watch(currentPage, () => {
 
 // Load clients on mount
 onMounted(() => {
+    document.title = 'BEG - Clients'
     fetchClients()
 })
 

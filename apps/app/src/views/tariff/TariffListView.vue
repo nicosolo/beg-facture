@@ -103,6 +103,7 @@ const columns = [
 
 // Load rates on mount
 onMounted(async () => {
+    document.title = 'BEG - Tarifs'
     await fetchRates({})
 })
 

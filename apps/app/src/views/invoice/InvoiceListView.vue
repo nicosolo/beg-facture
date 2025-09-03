@@ -132,6 +132,7 @@ const handleDelete = async (id: number) => {
 }
 
 onMounted(() => {
+    document.title = 'BEG - Liste des factures'
     loadInvoices()
 })
 

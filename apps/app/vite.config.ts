@@ -7,6 +7,7 @@ import tailwindcss from "@tailwindcss/vite"
 
 export default defineConfig({
     plugins: [vue(), vueDevTools(), tailwindcss()],
+    publicDir: 'public',
     server: {
         port: 8080,
         host: true,

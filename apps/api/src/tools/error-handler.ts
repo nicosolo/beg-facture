@@ -73,7 +73,7 @@ export async function errorHandler(err: Error, c: Context) {
     // Handle our custom API exceptions
     if (err instanceof ApiException) {
         const errorResponse = createApiError(err.errorCode, err.message, err.details)
-
+        console.log(errorResponse)
         return c.json(errorResponse, err.statusCode as any)
     }
 

@@ -1,4 +1,4 @@
-import { eq, sql, like, and, or, gte, lte, asc, desc, inArray, lt, gt } from "drizzle-orm"
+import { eq, sql, like, and, or, gte, lte, asc, desc, inArray, lt, gt, ne } from "drizzle-orm"
 import { db } from "../index"
 import {
     projects,
@@ -10,14 +10,17 @@ import {
     users,
     projectAccess,
 } from "../schema"
-import type {
-    ProjectFilter,
-    ProjectListResponse,
-    ProjectResponse,
-    ProjectCreateInput,
-    ProjectUpdateInput,
+import {
+    type ProjectFilter,
+    type ProjectListResponse,
+    type ProjectResponse,
+    type ProjectCreateInput,
+    type ProjectUpdateInput,
+    ErrorCode,
 } from "@beg/validations"
 import type { Variables } from "@src/types/global"
+import { ApiException, throwDuplicateEntry, throwForbidden } from "@src/tools/error-handler"
+import { STATUS_CODES } from "http"
 
 export const projectRepository = {
     findAll: async (
@@ -355,25 +358,7 @@ export const projectRepository = {
                 .execute()
 
             if (access.length === 0) {
-                throw new Error("Insufficient permissions to update this project")
-            }
-        }
-
-        // If updating project number, check uniqueness
-        if (data.projectNumber) {
-            const existing = await db
-                .select({ id: projects.id })
-                .from(projects)
-                .where(
-                    and(
-                        eq(projects.projectNumber, data.projectNumber),
-                        sql`${projects.id} != ${id}`
-                    )
-                )
-                .execute()
-
-            if (existing.length > 0) {
-                throw new Error("Project number already exists")
+                throw throwForbidden("You do not have permission to update this project")
             }
         }
 

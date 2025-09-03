@@ -15,6 +15,7 @@ import { projectRepository } from "../db/repositories/project.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import type { Variables } from "@src/types/global"
+import { throwNotFound } from "@src/tools/error-handler"
 
 export const projectRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
@@ -39,14 +40,14 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const id = parseInt(c.req.param("id"))
             if (isNaN(id)) {
-                return c.json({ error: "Invalid ID" }, 400)
+                throw throwNotFound("Project not found")
             }
 
             const user = c.get("user")
 
             const project = await projectRepository.findById(id, user)
             if (!project) {
-                return c.json({ error: "Project not found" }, 404)
+                throw throwNotFound("Project not found")
             }
 
             return c.render(project as ProjectResponse, 200)
@@ -88,20 +89,7 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             const data = c.req.valid("json")
             const user = c.get("user")
 
-            try {
-                const project = await projectRepository.update(id, data, user)
-                return c.render(project as ProjectResponse, 200)
-            } catch (error: any) {
-                if (error.message === "Insufficient permissions to update this project") {
-                    return c.json({ error: error.message }, 403)
-                }
-                if (error.message === "Project number already exists") {
-                    return c.json({ error: error.message }, 409)
-                }
-                if (error.message === "Project not found") {
-                    return c.json({ error: error.message }, 404)
-                }
-                return c.json({ error: "Failed to update project" }, 500)
-            }
+            const project = await projectRepository.update(id, data, user)
+            return c.render(project as ProjectResponse, 200)
         }
     )

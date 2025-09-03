@@ -78,15 +78,11 @@
             <!-- Time Entries -->
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-lg p-6 border border-gray-200">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-semibold">{{ $t("timeEntries.title") }}</h2>
-                    </div>
-                    <TimeFilterPanel />
-                    <TimeEntriesList
-                        :timeEntries="timeEntries"
-                        :emptyMessage="$t('timeEntries.empty')"
-                        editRoute="time-new"
-                        :hideColumns="['IDHeure']"
+                    <h2 class="text-lg font-semibold mb-4">{{ $t("timeEntries.title") }}</h2>
+                    <TimeEntriesManager 
+                        :project-id="projectId"
+                        :show-project-filter="false"
+                        empty-message="Aucune entrée d'heure trouvée pour ce projet"
                     />
                 </div>
             </div>
@@ -95,20 +91,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue"
+import { computed, onMounted } from "vue"
 import { useRoute } from "vue-router"
-import { useI18n } from "vue-i18n"
 import Button from "@/components/atoms/Button.vue"
-import TimeEntriesList from "@/components/organisms/time/TimeEntriesList.vue"
-import { useFormat } from "@/composables/utils/useFormat"
-import type { TimeEntry } from "@/components/organisms/time/TimeEntriesList.vue"
-import TimeFilterPanel from "@/components/organisms/time/TimeFilterPanel.vue"
+import TimeEntriesManager from "@/components/organisms/time/TimeEntriesManager.vue"
 import { useFetchProject } from "@/composables/api/useProject"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 
-const { t } = useI18n()
 const route = useRoute()
-const { formatDuration } = useFormat()
 
 // API client
 const { get: fetchProject, loading, data: projectData } = useFetchProject()
@@ -150,8 +140,6 @@ const project = computed(() => {
     }
 })
 
-// TODO: Fetch time entries from API when endpoint is available
-const timeEntries = ref<TimeEntry[]>([])
 
 // Load project data on mount
 onMounted(async () => {

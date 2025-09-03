@@ -26,13 +26,22 @@ app.get(
             projectId: z.string().transform((val) => parseInt(val, 10)),
         })
     ),
-
+    zValidator(
+        "query",
+        z.object({
+            periodStart: z.string().optional(),
+            periodEnd: z.string().optional(),
+        })
+    ),
     responseValidator({ 200: UnbilledActivitiesResponseSchema }),
     async (c) => {
         const { projectId } = c.req.valid("param")
+        const query = c.req.valid("query")
         const user = c.get("user")
 
         // Parse dates if provided
+        const periodStart = query.periodStart ? new Date(query.periodStart) : null
+        const periodEnd = query.periodEnd ? new Date(query.periodEnd) : null
 
         // Get project to verify access and get start date
         const project = await projectRepository.findById(projectId, user)
@@ -40,7 +49,8 @@ app.get(
             return c.json({ error: "Project not found" }, 404)
         }
 
-        const activities = await activityRepository.findAll(user, {
+        // Fetch ALL unbilled activities for display
+        const allActivities = await activityRepository.findAll(user, {
             projectId,
             sortBy: "date",
             sortOrder: "asc",
@@ -51,8 +61,24 @@ app.get(
             includeUnbilled: true,
         })
 
+        // Fetch activities within period for calculation
+        const activitiesInPeriod = await activityRepository.findAll(user, {
+            projectId,
+            sortBy: "date",
+            sortOrder: "asc",
+            page: 1,
+            limit: 10000,
+            includeBilled: false,
+            includeDisbursement: false,
+            includeUnbilled: true,
+            fromDate: periodStart || undefined,
+            toDate: periodEnd || undefined,
+        })
+
         // Filter to only unbilled activities
-        const unbilledActivities = activities.data.filter((a) => !a.billed)
+        const unbilledActivities = allActivities.data.filter((a) => !a.billed)
+        const activitiesForCalculation = activitiesInPeriod.data.filter((a) => !a.billed)
+
         const allUsers = await userRepository.findAllDetails()
         const userMap = new Map<number, (typeof allUsers)[0]>(allUsers.map((u) => [u.id, u]))
         // Calculate totals by rate class
@@ -62,7 +88,7 @@ app.get(
         let totalDisbursements = 0
 
         const allYears = [
-            ...new Set<number>(unbilledActivities.map((a) => new Date(a.date).getFullYear())),
+            ...new Set<number>(activitiesForCalculation.map((a) => new Date(a.date).getFullYear())),
         ]
         const rateClasses = await rateRepository.findByYears(allYears)
         const rateClassesMaps = new Map<string, number>()
@@ -70,8 +96,8 @@ app.get(
             rateClassesMaps.set(`${rate.class}-${rate.year}`, rate.amount)
         }
 
-        // Process activities
-        for (const activity of unbilledActivities) {
+        // Process activities (use filtered activities for calculation)
+        for (const activity of activitiesForCalculation) {
             // Get user's rate class for this activity type
             let rateClass = "" // Default
             let hourlyRate = 0
@@ -144,18 +170,19 @@ app.get(
         const vatAmount = totalHT * (vatRate / 100)
         const totalTTC = totalHT + vatAmount
 
-        // Calculate period from activities
-        let periodStartDate: Date | null = null
-        let periodEndDate: Date | null = null
+        // Calculate period from filtered activities or use provided period
+        let periodStartDate: Date | null = periodStart
+        let periodEndDate: Date | null = periodEnd
 
-        if (unbilledActivities.length > 0) {
-            const dates = unbilledActivities.map((a) => new Date(a.date).getTime())
+        // If no period provided, calculate from filtered activities
+        if (!periodStart && !periodEnd && activitiesForCalculation.length > 0) {
+            const dates = activitiesForCalculation.map((a) => new Date(a.date).getTime())
             periodStartDate = new Date(Math.min(...dates))
             periodEndDate = new Date(Math.max(...dates))
         }
 
-        // Get activity IDs for marking as billed later
-        const activityIds = unbilledActivities.map((a) => a.id)
+        // Get activity IDs for marking as billed later (only from filtered activities)
+        const activityIds = activitiesForCalculation.map((a) => a.id)
 
         const response: UnbilledActivitiesResponse = {
             activities: unbilledActivities,

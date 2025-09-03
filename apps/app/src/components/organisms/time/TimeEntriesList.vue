@@ -47,7 +47,7 @@
             :items="activities"
             :columns="columns"
             item-key="id"
-            :empty-message="emptyMessage"
+            :empty-message="$t('timeEntries.empty')"
             :sort="sort"
             @sort-change="handleSort"
             v-model="selectedRows"
@@ -119,10 +119,14 @@
 
             <!-- Total row customizations -->
             <template #total:duration>
-                {{ formatDuration(totals?.duration || 0) }}
+                {{ totals?.duration !== undefined && formatDuration(totals?.duration || 0) }}
             </template>
-            <template #total:kilometers> {{ formatNumber(totals?.kilometers || 0) }} km </template>
-            <template #total:expenses>{{ formatCurrency(totals?.expenses || 0) }} </template>
+            <template #total:kilometers>
+                {{ totals?.kilometers !== undefined && formatNumber(totals?.kilometers || 0) }} km
+            </template>
+            <template #total:expenses
+                >{{ totals?.expenses !== undefined && formatCurrency(totals?.expenses || 0) }}
+            </template>
         </DataTable>
     </div>
 </template>
@@ -134,6 +138,7 @@ import DataTable, { type Column } from "@/components/molecules/DataTable.vue"
 import Button from "@/components/atoms/Button.vue"
 import { useFormat } from "@/composables/utils/useFormat"
 import { useUpdateActivity } from "@/composables/api/useActivity"
+import { useBulkUpdateActivities } from "@/composables/api/useActivityBulk"
 import type { ActivityResponse } from "@beg/validations"
 import { truncateText } from "@/utils/text"
 import TruncateWithTooltip from "@/components/atoms/TruncateWithTooltip.vue"
@@ -150,7 +155,6 @@ interface Props {
         kilometers: number
         expenses: number
     }
-    emptyMessage?: string
     editRoute?: string
     hideColumns?: string[]
     sort?: {
@@ -169,6 +173,7 @@ const emit = defineEmits<{
 
 // API composables
 const updateActivityApi = useUpdateActivity()
+const bulkUpdateApi = useBulkUpdateActivities()
 
 // Selection state
 const selectedRows = ref<Set<string | number>>(new Set())
@@ -237,31 +242,38 @@ const updateDisbursementStatus = async (activityId: number, disbursement: boolea
 
 // Bulk update selected rows
 const updateSelectedRows = async (field: "billed" | "disbursement", value: boolean) => {
-    const promises = Array.from(selectedRows.value).map((id) =>
-        updateActivityApi.put({
-            params: { id: Number(id) },
-            body: { [field]: value },
+    const ids = Array.from(selectedRows.value).map(id => Number(id))
+    const count = ids.length
+    
+    try {
+        // Use bulk update endpoint
+        await bulkUpdateApi.patch({
+            body: {
+                ids,
+                updates: { [field]: value }
+            }
         })
-    )
+        
+        emit("activities-updated")
+        clearSelection()
 
-    await Promise.all(promises)
-    emit("activities-updated")
-    const count = selectedRows.value.size
-    clearSelection()
-
-    // Show appropriate success message based on field and value
-    if (field === "billed") {
-        successAlert(
-            value
-                ? t("time.alerts.bulkMarkedAsBilled", { count })
-                : t("time.alerts.bulkMarkedAsUnbilled", { count })
-        )
-    } else {
-        successAlert(
-            value
-                ? t("time.alerts.bulkMarkedAsDisbursement", { count })
-                : t("time.alerts.bulkUnmarkedAsDisbursement", { count })
-        )
+        // Show appropriate success message based on field and value
+        if (field === "billed") {
+            successAlert(
+                value
+                    ? t("time.alerts.bulkMarkedAsBilled", { count })
+                    : t("time.alerts.bulkMarkedAsUnbilled", { count })
+            )
+        } else {
+            successAlert(
+                value
+                    ? t("time.alerts.bulkMarkedAsDisbursement", { count })
+                    : t("time.alerts.bulkUnmarkedAsDisbursement", { count })
+            )
+        }
+    } catch (error) {
+        errorAlert(t("time.alerts.bulkUpdateFailed"))
+        console.error("Bulk update failed:", error)
     }
 }
 

@@ -6,8 +6,9 @@ import {
     activityResponseSchema,
     activityCreateSchema,
     activityUpdateSchema,
+    activityBulkUpdateSchema,
+    activityBulkUpdateResponseSchema,
     idParamSchema,
-    createPageResponseSchema,
     activityListResponse,
 } from "@beg/validations"
 import { activityRepository } from "../db/repositories/activity.repository"
@@ -207,6 +208,46 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
             }
 
             return c.render(updatedActivity, 200)
+        }
+    )
+
+    // Bulk update activities
+    .patch(
+        "/bulk",
+        zValidator("json", activityBulkUpdateSchema),
+        responseValidator({
+            200: activityBulkUpdateResponseSchema,
+        }),
+        async (c) => {
+            const { ids, updates } = c.req.valid("json")
+            const user = c.get("user")
+
+            // Verify user has access to all activities
+            const activities = await Promise.all(
+                ids.map((id) => activityRepository.findById(id, user))
+            )
+
+            // Check if any activity was not found or not accessible
+            const inaccessibleIds = ids.filter((id, index) => !activities[index])
+            if (inaccessibleIds.length > 0) {
+                throwValidationError("Some activities not found or not accessible", [
+                    {
+                        field: "ids",
+                        message: `Activities not found: ${inaccessibleIds.join(", ")}`,
+                    },
+                ])
+            }
+
+            // Perform bulk update
+            const updatedCount = await activityRepository.bulkUpdate(ids, updates)
+
+            return c.json(
+                {
+                    updated: updatedCount,
+                    ids: ids,
+                },
+                200
+            )
         }
     )
 

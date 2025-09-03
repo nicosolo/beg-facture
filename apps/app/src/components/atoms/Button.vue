@@ -20,6 +20,7 @@
 
 <script setup lang="ts">
 import type { RouteLocationRaw } from "vue-router"
+import LoadingSpinner from "./LoadingSpinner.vue"
 
 interface Props {
     type?: "button" | "submit" | "reset"

@@ -44,6 +44,25 @@ export const activityUpdateSchema = activityCreateSchema.partial()
 
 export type ActivityUpdateInput = z.infer<typeof activityUpdateSchema>
 
+// Bulk update schema
+export const activityBulkUpdateSchema = z.object({
+    ids: z.array(z.number()).min(1),
+    updates: z.object({
+        billed: z.boolean().optional(),
+        disbursement: z.boolean().optional(),
+    })
+})
+
+export type ActivityBulkUpdateInput = z.infer<typeof activityBulkUpdateSchema>
+
+// Response for bulk operations
+export const activityBulkUpdateResponseSchema = z.object({
+    updated: z.number(),
+    ids: z.array(z.number()),
+})
+
+export type ActivityBulkUpdateResponse = z.infer<typeof activityBulkUpdateResponseSchema>
+
 // Activity response schema with nested objects
 export const activityResponseSchema = z
     .object({

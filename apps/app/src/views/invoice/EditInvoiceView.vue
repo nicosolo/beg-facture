@@ -39,7 +39,6 @@
             <InvoiceGeneralInfo v-if="activeTab === 'general'" v-model="invoice" />
             <InvoiceDetails v-if="activeTab === 'details'" v-model="invoice" />
         </div>
-        <pre>{{ invoice }}</pre>
         <template #actions>
             <Button variant="secondary" type="button" @click="handleCancel" :disabled="loading">
                 Annuler
@@ -283,27 +282,36 @@ const handleCancel = () => {
 }
 
 // Load unbilled activities for new invoice
-const loadUnbilledActivities = async () => {
+const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
     if (!projectId.value) return
 
     try {
+        const queryParams: any = {}
+        if (periodStart) queryParams.periodStart = periodStart.toISOString()
+        if (periodEnd) queryParams.periodEnd = periodEnd.toISOString()
+        
         const unbilledData = await fetchUnbilledActivities({
             params: { projectId: projectId.value },
+            query: queryParams,
         })
 
         if (unbilledData) {
+            // Keep the original period if it was passed, otherwise use API calculation
+            const finalPeriodStart = periodStart || (unbilledData.periodStart 
+                ? new Date(unbilledData.periodStart) 
+                : new Date())
+            const finalPeriodEnd = periodEnd || (unbilledData.periodEnd 
+                ? new Date(unbilledData.periodEnd) 
+                : new Date())
+            
             // Pre-populate invoice with calculated data from API
             invoice.value = {
                 ...createEmptyInvoice({
                     projectId: projectId.value,
 
-                    // Period from API calculation
-                    periodStart: unbilledData.periodStart
-                        ? new Date(unbilledData.periodStart)
-                        : new Date(),
-                    periodEnd: unbilledData.periodEnd
-                        ? new Date(unbilledData.periodEnd)
-                        : new Date(),
+                    // Use final period
+                    periodStart: finalPeriodStart,
+                    periodEnd: finalPeriodEnd,
 
                     // Fees from API calculation
                     feesBase: unbilledData.feesBase,
@@ -366,5 +374,19 @@ watch(
         }
     },
     { immediate: true }
+)
+
+// Watch for period changes and refetch unbilled activities
+watch(
+    () => [invoice.value.periodStart, invoice.value.periodEnd],
+    ([newStart, newEnd]) => {
+        // Only refetch if we're creating a new invoice and have a project
+        if (isNewInvoice.value && projectId.value && (newStart || newEnd)) {
+            loadUnbilledActivities(
+                newStart as Date | undefined,
+                newEnd as Date | undefined
+            )
+        }
+    }
 )
 </script>

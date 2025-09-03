@@ -338,4 +338,43 @@ export const activityRepository = {
 
         return true
     },
+
+    bulkUpdate: async (ids: number[], updates: { billed?: boolean; disbursement?: boolean }) => {
+        if (ids.length === 0) {
+            return 0
+        }
+
+        // Perform the bulk update
+        await db
+            .update(activities)
+            .set({
+                ...updates,
+                updatedAt: new Date(),
+            })
+            .where(
+                sql`${activities.id} IN (${sql.join(
+                    ids.map((id) => sql`${id}`),
+                    sql`, `
+                )})`
+            )
+
+        // Get all affected project IDs
+        const affectedProjects = await db
+            .select({ projectId: activities.projectId })
+            .from(activities)
+            .where(
+                sql`${activities.id} IN (${sql.join(
+                    ids.map((id) => sql`${id}`),
+                    sql`, `
+                )})`
+            )
+            .groupBy(activities.projectId)
+
+        // Update project dates for all affected projects
+        for (const project of affectedProjects) {
+            await updateProjectActivityDates(project.projectId)
+        }
+
+        return ids.length
+    },
 }

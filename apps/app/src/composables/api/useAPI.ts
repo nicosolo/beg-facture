@@ -19,7 +19,7 @@ const createRequest = () => {
     const client = hc<ApiRoutes>(baseUrl)
 
     return async (
-        method: "get" | "post" | "put" | "delete",
+        method: "get" | "post" | "put" | "delete" | "patch",
         endpoint: string,
         schemas?: ApiSchemas,
         options?: {
@@ -233,6 +233,59 @@ export function usePut<
         error,
         data,
         put,
+    }
+}
+
+export function usePatch<
+    TResponse,
+    TSchemas extends {
+        body?: z.ZodType<any>
+        params?: z.ZodType<any>
+    } = {},
+>(
+    endpoint: string,
+    schemas?: {
+        body?: TSchemas["body"]
+        params?: TSchemas["params"]
+    }
+) {
+    const { t } = useI18n()
+    const { errorAlert } = useAlert()
+    const loading = ref(false)
+    const error = ref<string | null>(null)
+    const data = ref<TResponse | null>(null)
+    const request = createRequest()
+
+    type BodyType = TSchemas["body"] extends z.ZodType<any> ? z.input<TSchemas["body"]> : void
+    type ParamsType = TSchemas["params"] extends z.ZodType<any> ? z.input<TSchemas["params"]> : void
+
+    type PatchOptions = {} & (BodyType extends void ? {} : { body?: BodyType }) &
+        (ParamsType extends void ? {} : { params?: ParamsType })
+
+    const patch = async (options?: PatchOptions) => {
+        loading.value = true
+        error.value = null
+
+        try {
+            const result = await request("patch", endpoint, schemas, options)
+            data.value = result as TResponse
+            return result as TResponse
+        } catch (e) {
+            error.value = e instanceof Error ? e.message : "Unknown error"
+            if (e instanceof ApiError) {
+                errorAlert(e.getLocalizedMessage(t))
+            }
+            throw e
+        } finally {
+            loading.value = false
+        }
+    }
+
+    return {
+        loading,
+        error,
+        data,
+        patch,
     }
 }
 

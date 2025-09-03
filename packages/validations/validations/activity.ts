@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { createPageResponseSchema, paginationSchema } from "./pagination"
-import { booleanSchema, dateSchema, timestampsSchema } from "./base"
+import { booleanSchema, classSchema, dateSchema, timestampsSchema } from "./base"
 
 // Create a schema that parses query string values
 export const activityFilterSchema = z
@@ -53,6 +53,7 @@ export const activityResponseSchema = z
         kilometers: z.number(),
         expenses: z.number(),
         rate: z.number(),
+        rateClass: classSchema.nullable(),
         description: z.string().nullable(),
         billed: z.boolean(),
         disbursement: z.boolean(),

@@ -83,22 +83,10 @@ export const InvoiceSchema = z.object({
     description: z.string().default(""),
 
     // Dates
-    issueDate: z
-        .date()
-        .optional()
-        .or(z.string().transform((str) => (str ? new Date(str) : new Date()))),
-    dueDate: z
-        .date()
-        .optional()
-        .or(z.string().transform((str) => (str ? new Date(str) : undefined))),
-    periodStart: z
-        .date()
-        .optional()
-        .or(z.string().transform((str) => (str ? new Date(str) : new Date()))),
-    periodEnd: z
-        .date()
-        .optional()
-        .or(z.string().transform((str) => (str ? new Date(str) : new Date()))),
+    issueDate: dateSchema.optional(),
+    dueDate: dateSchema.nullable().optional(),
+    periodStart: dateSchema.optional(),
+    periodEnd: dateSchema.optional(),
 
     // Client and recipient
     clientId: z.number().optional(),

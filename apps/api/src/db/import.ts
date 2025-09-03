@@ -535,7 +535,7 @@ async function importActivities() {
                 activityTypeId,
                 date: activityDate,
                 duration: Math.round(parseFloat(rawActivity.Heures) * 100) / 100,
-                kilometers: parseInt(rawActivity.Km) || 0,
+                kilometers: parseFloat(rawActivity.Km) || 0,
                 expenses: parseFloat(rawActivity.Frais) || 0,
                 rate: finalRate,
                 description: rawActivity.Remarque,

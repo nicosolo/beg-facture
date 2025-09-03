@@ -119,7 +119,9 @@ app.get(
         }
 
         // Calculate amounts for each rate class
-        const rates = Array.from(rateClassTotals.values())
+        const rates = Array.from(rateClassTotals.values()).sort((a, b) =>
+            a.rateClass.localeCompare(b.rateClass)
+        )
         rates.forEach((rate) => {
             rate.amount = rate.adjusted * rate.hourlyRate
         })

@@ -7,14 +7,7 @@
                 <h3 class="text-sm font-medium text-gray-700 mb-1">Objet de la facture</h3>
                 <input
                     type="text"
-                    :value="invoice.reference"
-                    @input="
-                        (e) =>
-                            (invoice = {
-                                ...invoice,
-                                reference: (e.target as HTMLInputElement).value,
-                            })
-                    "
+                    v-model="invoice.reference"
                     class="w-full p-2 border border-gray-300 rounded"
                 />
             </div>
@@ -44,17 +37,7 @@
                 </label>
                 <textarea
                     id="invoiceClientAddress"
-                    :value="invoice.client?.address || ''"
-                    @input="
-                        (e) =>
-                            (invoice = {
-                                ...invoice,
-                                client: {
-                                    ...invoice.client,
-                                    address: (e.target as HTMLTextAreaElement).value,
-                                },
-                            })
-                    "
+                    v-model="invoice.clientAddress"
                     rows="4"
                     placeholder="Adresse de facturation (société)"
                     class="w-full p-2 border border-gray-300 rounded"
@@ -68,14 +51,7 @@
                 </label>
                 <textarea
                     id="invoiceDescription"
-                    :value="invoice.description"
-                    @input="
-                        (e) =>
-                            (invoice = {
-                                ...invoice,
-                                description: (e.target as HTMLTextAreaElement).value,
-                            })
-                    "
+                    v-model="invoice.description"
                     rows="6"
                     class="w-full p-2 border border-gray-300 rounded"
                 ></textarea>
@@ -110,13 +86,6 @@
                     id="invoiceBillingMode"
                     class="w-full p-2 border border-gray-300 rounded"
                     :value="invoice.billingMode"
-                    @change="
-                        (e) =>
-                            (invoice = {
-                                ...invoice,
-                                billingMode: (e.target as HTMLSelectElement).value,
-                            })
-                    "
                 >
                     <option :value="BILLING_MODE_KEYS.ACCORDING_TO_DATA">
                         {{ BILLING_MODE_LABELS[BILLING_MODE_KEYS.ACCORDING_TO_DATA] }}
@@ -397,21 +366,18 @@ const invoice = computed({
 })
 
 const startDate = computed({
-    get: () => invoice.value.period?.startDate?.toISOString().split("T")[0] || "",
+    get: () => invoice.value.periodStart?.toISOString().split("T")[0] || "",
     set: (value: string) => {
         const newInvoice = { ...invoice.value }
-        if (!newInvoice.period) newInvoice.period = {}
-        newInvoice.period.startDate = value ? new Date(value) : undefined
-        invoice.value = newInvoice
+        invoice.value.periodStart = value ? new Date(value) : undefined
     },
 })
 
 const endDate = computed({
-    get: () => invoice.value.period?.endDate?.toISOString().split("T")[0] || "",
+    get: () => invoice.value.periodEnd?.toISOString().split("T")[0] || "",
     set: (value: string) => {
         const newInvoice = { ...invoice.value }
-        if (!newInvoice.period) newInvoice.period = {}
-        newInvoice.period.endDate = value ? new Date(value) : undefined
+        newInvoice.periodEnd = value ? new Date(value) : undefined
         invoice.value = newInvoice
     },
 })

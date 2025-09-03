@@ -24,8 +24,8 @@ export const useFormat = () => {
     const formatDuration = (duration: number | null | undefined) => {
         if (duration === undefined || duration === null) return "-"
 
-        const hours = duration / 60
-        const roundedHours = Math.round(hours * 100) / 100
+        // Round to nearest 0.25 (quarter hour)
+        const roundedHours = Math.round(duration * 4) / 4
         return roundedHours
     }
 

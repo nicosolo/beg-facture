@@ -39,6 +39,7 @@
             <InvoiceGeneralInfo v-if="activeTab === 'general'" v-model="invoice" />
             <InvoiceDetails v-if="activeTab === 'details'" v-model="invoice" />
         </div>
+        <pre>{{ invoice }}</pre>
         <template #actions>
             <Button variant="secondary" type="button" @click="handleCancel" :disabled="loading">
                 Annuler

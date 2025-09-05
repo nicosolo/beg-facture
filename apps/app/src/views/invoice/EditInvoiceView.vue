@@ -37,7 +37,11 @@
         <!-- Tab Content -->
         <div class="tab-content" v-if="invoice">
             <InvoiceGeneralInfo v-if="activeTab === 'general'" v-model="invoice" />
-            <InvoiceDetails v-if="activeTab === 'details'" v-model="invoice" />
+            <InvoiceDetails
+                v-if="activeTab === 'details'"
+                v-model="invoice"
+                :unbilledActivities="unbilledActivities"
+            />
         </div>
         <template #actions>
             <Button variant="secondary" type="button" @click="handleCancel" :disabled="loading">
@@ -57,7 +61,12 @@ import FormLayout from "@/components/templates/FormLayout.vue"
 import Button from "@/components/atoms/Button.vue"
 import InvoiceGeneralInfo from "@/components/organisms/invoice/InvoiceGeneralInfo.vue"
 import InvoiceDetails from "@/components/organisms/invoice/InvoiceDetails.vue"
-import { createEmptyInvoice, type Invoice, type InvoiceResponse } from "@beg/validations"
+import {
+    createEmptyInvoice,
+    type ActivityResponse,
+    type Invoice,
+    type InvoiceResponse,
+} from "@beg/validations"
 import { useFetchInvoice, useCreateInvoice, useUpdateInvoice } from "@/composables/api/useInvoice"
 import { useFetchProject } from "@/composables/api/useProject"
 import { useFetchUnbilledActivities } from "@/composables/api/useUnbilled"
@@ -91,6 +100,7 @@ const { get: fetchUnbilledActivities, loading: fetchUnbilledLoading } = useFetch
 
 // Form state
 const invoice = ref<Invoice | null>(null)
+const unbilledActivities = ref<ActivityResponse[]>([])
 const loading = computed(() => fetchLoading.value || createLoading.value || updateLoading.value)
 const error = computed(() => fetchError.value || createError.value || updateError.value)
 const errorMessage = computed(() => {
@@ -297,6 +307,7 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
         })
 
         if (unbilledData) {
+            unbilledActivities.value = unbilledData.activities || []
             // Keep the original period if it was passed, otherwise use API calculation
             const finalPeriodStart =
                 periodStart ||
@@ -500,11 +511,6 @@ watch(
             projectId.value &&
             (invoice.value.periodStart || invoice.value.periodEnd)
         ) {
-            console.log(
-                "Refetching unbilled activities:",
-                invoice.value.periodStart,
-                invoice.value.periodEnd
-            )
             loadUnbilledActivities(invoice.value.periodStart, invoice.value.periodEnd)
         }
     }

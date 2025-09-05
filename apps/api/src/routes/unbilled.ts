@@ -5,6 +5,7 @@ import {
     UnbilledActivitiesResponseSchema,
     type UnbilledActivitiesResponse,
     type RateItem,
+    type ClassSchema,
 } from "@beg/validations"
 import { activityRepository } from "../db/repositories/activity.repository"
 import { projectRepository } from "../db/repositories/project.repository"
@@ -144,12 +145,25 @@ app.get(
             }
         }
 
-        // Calculate amounts for each rate class
-        const rates = Array.from(rateClassTotals.values()).sort((a, b) =>
-            a.rateClass.localeCompare(b.rateClass)
-        )
-        rates.forEach((rate) => {
-            rate.amount = rate.adjusted * rate.hourlyRate
+        // Define all possible rate classes
+        const allRateClasses: ClassSchema[] = ["A", "B", "C", "D", "E", "F", "G", "R", "Z"]
+        
+        // Ensure all rate classes are present in the response
+        const rates: RateItem[] = allRateClasses.map(rateClass => {
+            const existingRate = rateClassTotals.get(rateClass)
+            if (existingRate) {
+                // Calculate amount for existing rate
+                existingRate.amount = existingRate.adjusted * existingRate.hourlyRate
+                return existingRate
+            }
+            // Return empty rate for classes with no activities
+            return {
+                rateClass,
+                base: 0,
+                adjusted: 0,
+                hourlyRate: 0,
+                amount: 0
+            }
         })
 
         // Calculate invoice totals

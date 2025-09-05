@@ -64,6 +64,7 @@ function parseAccessDate(dateString: string): Date {
 async function resetDatabase() {
     console.log("Dropping all existing data...")
 
+    await db.delete(invoices)
     await db.delete(activities)
     await db.delete(projectAccess)
     await db.delete(projects)
@@ -76,7 +77,6 @@ async function resetDatabase() {
     await db.delete(locations)
     await db.delete(workloads)
     await db.delete(users)
-    await db.delete(invoices)
     await db.delete(vatRates)
 
     console.log("Database reset complete")

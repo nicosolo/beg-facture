@@ -10,9 +10,6 @@
                                 <th
                                     class="px-4 py-2 text-xs font-medium text-gray-500 uppercase"
                                 ></th>
-                                <th
-                                    class="px-4 py-2 text-xs font-medium text-gray-500 uppercase"
-                                ></th>
                                 <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
                                     base
                                 </th>
@@ -29,8 +26,9 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200 text-sm">
                             <tr v-for="(rate, index) in rates" :key="index">
-                                <td class="px-4 py-2 text-gray-800">{{ rate.rateClass }}</td>
-                                <td class="px-4 py-2 text-gray-600">{{ rate.rateClass }}</td>
+                                <td class="px-4 py-2 text-gray-800 bg-gray-100">
+                                    {{ rate.rateClass }}
+                                </td>
                                 <td class="px-4 py-2">
                                     <span>{{ formatDuration(rate.base) }}</span>
                                 </td>
@@ -57,84 +55,98 @@
                                     {{ formatCurrency(rate.amount || 0) }}
                                 </td>
                             </tr>
-                            <tr class="font-medium">
-                                <td class="px-4 py-2">TOTAL HONORAIRES</td>
-                                <td class="px-4 py-2"></td>
+                            <!-- Subtotal row before discount -->
+                            <tr class="font-medium bg-gray-50">
+                                <td class="px-4 py-2">Sous-total</td>
                                 <td class="px-4 py-2">{{ formatDuration(feesBase) }}</td>
                                 <td class="px-4 py-2">{{ formatDuration(feesAdjusted) }}</td>
                                 <td class="px-4 py-2"></td>
                                 <td class="px-4 py-2 text-right">
+                                    {{ formatCurrency(feesFinalTotal) }}
+                                </td>
+                            </tr>
+                            <!-- Discount row -->
+                            <tr>
+                                <td class="px-4 py-2">
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            :checked="hasDiscount"
+                                            @change="toggleDiscount"
+                                            class="h-4 w-4"
+                                        />
+                                        <span>Remise</span>
+                                    </label>
+                                </td>
+                                <td class="px-4 py-2" colspan="2">
+                                    <div v-if="hasDiscount" class="flex items-center gap-2">
+                                        <label class="flex items-center gap-1">
+                                            <input
+                                                type="radio"
+                                                name="discountType"
+                                                value="percentage"
+                                                :checked="discountType === 'percentage'"
+                                                @change="setDiscountType('percentage')"
+                                                class="h-3 w-3"
+                                            />
+                                            <span class="text-xs">%</span>
+                                        </label>
+                                        <label class="flex items-center gap-1">
+                                            <input
+                                                type="radio"
+                                                name="discountType"
+                                                value="fixed"
+                                                :checked="discountType === 'fixed'"
+                                                @change="setDiscountType('fixed')"
+                                                class="h-3 w-3"
+                                            />
+                                            <span class="text-xs">CHF</span>
+                                        </label>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-2">
+                                    <div v-if="hasDiscount" class="flex items-center gap-1">
+                                        <InputNumber
+                                            v-if="discountType === 'percentage'"
+                                            :modelValue="discountPercentage"
+                                            @update:modelValue="updateDiscountPercentage"
+                                            :min="0"
+                                            :max="100"
+                                            :step="1"
+                                            class="w-20"
+                                        />
+                                        <span v-if="discountType === 'percentage'" class="text-sm"
+                                            >%</span
+                                        >
+                                        <InputNumber
+                                            v-if="discountType === 'fixed'"
+                                            :modelValue="discountAmount"
+                                            @update:modelValue="updateDiscountAmount"
+                                            :min="0"
+                                            :step="100"
+                                            :currency="true"
+                                            class="w-24"
+                                        />
+                                    </div>
+                                </td>
+                                <td class="px-4 py-2 text-right text-red-600">
+                                    <span v-if="hasDiscount"
+                                        >- {{ formatCurrency(discountAmount) }}</span
+                                    >
+                                </td>
+                            </tr>
+                            <!-- Final total row -->
+                            <tr class="font-medium bg-gray-100">
+                                <td class="px-4 py-2">TOTAL HONORAIRES</td>
+                                <td class="px-4 py-2"></td>
+                                <td class="px-4 py-2"></td>
+                                <td class="px-4 py-2"></td>
+                                <td class="px-4 py-2 text-right font-bold">
                                     {{ formatCurrency(feesTotal) }}
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
-                <!-- Discount Section -->
-                <div class="mt-4 p-4 bg-gray-50 rounded">
-                    <div class="flex items-center justify-between">
-                        <label class="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                :checked="hasDiscount"
-                                @change="toggleDiscount"
-                                class="h-4 w-4"
-                            />
-                            <span class="text-sm font-medium">Appliquer une remise</span>
-                        </label>
-                    </div>
-                    <div v-if="hasDiscount" class="mt-3 space-y-3">
-                        <!-- Discount type selection -->
-                        <div class="flex gap-4">
-                            <label class="flex items-center gap-2">
-                                <input
-                                    type="radio"
-                                    name="discountType"
-                                    value="percentage"
-                                    :checked="discountType === 'percentage'"
-                                    @change="setDiscountType('percentage')"
-                                    class="h-4 w-4"
-                                />
-                                <span class="text-sm">Pourcentage</span>
-                            </label>
-                            <label class="flex items-center gap-2">
-                                <input
-                                    type="radio"
-                                    name="discountType"
-                                    value="fixed"
-                                    :checked="discountType === 'fixed'"
-                                    @change="setDiscountType('fixed')"
-                                    class="h-4 w-4"
-                                />
-                                <span class="text-sm">Au forfait</span>
-                            </label>
-                        </div>
-                        <!-- Input based on type -->
-                        <div class="flex items-center gap-2">
-                            <InputNumber
-                                v-if="discountType === 'percentage'"
-                                :modelValue="discountPercentage"
-                                @update:modelValue="updateDiscountPercentage"
-                                :min="0"
-                                :max="100"
-                                :step="1"
-                                class="w-24"
-                            />
-                            <span v-if="discountType === 'percentage'" class="text-sm">%</span>
-                            <InputNumber
-                                v-if="discountType === 'fixed'"
-                                :modelValue="discountAmount"
-                                @update:modelValue="updateDiscountAmount"
-                                :min="0"
-                                :step="100"
-                                class="w-32"
-                            />
-                            <span v-if="discountType === 'fixed'" class="text-sm">CHF</span>
-                        </div>
-                        <div class="text-sm text-gray-600">
-                            Montant de la remise: {{ formatCurrency(discountAmount) }}
-                        </div>
-                    </div>
                 </div>
             </section>
 
@@ -274,14 +286,18 @@
                                             <div class="flex items-center gap-2">
                                                 <InputNumber
                                                     v-if="packageType === 'percentage'"
-                                                    :modelValue="invoice.expensesPackagePercentage || 0"
+                                                    :modelValue="
+                                                        invoice.expensesPackagePercentage || 0
+                                                    "
                                                     @update:modelValue="updatePackagePercentage"
                                                     :min="0"
                                                     :max="100"
                                                     :step="1"
                                                     class="w-20"
                                                 />
-                                                <span v-if="packageType === 'percentage'">% des honoraires</span>
+                                                <span v-if="packageType === 'percentage'"
+                                                    >% des honoraires</span
+                                                >
                                                 <InputNumber
                                                     v-if="packageType === 'fixed'"
                                                     :modelValue="invoice.expensesPackageAmount || 0"
@@ -293,7 +309,12 @@
                                                 <span v-if="packageType === 'fixed'">CHF</span>
                                             </div>
                                             <div class="text-sm text-gray-600">
-                                                Montant forfait: {{ formatCurrency(invoice.expensesPackageAmount || 0) }}
+                                                Montant forfait:
+                                                {{
+                                                    formatCurrency(
+                                                        invoice.expensesPackageAmount || 0
+                                                    )
+                                                }}
                                             </div>
                                         </div>
                                     </div>
@@ -326,38 +347,6 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200 text-sm">
-                            <tr>
-                                <td class="px-4 py-2">TOTAL HONORAIRES</td>
-                                <td class="px-4 py-2 text-right">
-                                    {{ formatCurrency(feesTotal) }}
-                                </td>
-                            </tr>
-                            <tr v-if="hasDiscount">
-                                <td class="px-4 py-2">
-                                    REMISE HONORAIRES ({{ discountPercentage }}%)
-                                </td>
-                                <td class="px-4 py-2 text-right">
-                                    -{{ formatCurrency(discountAmount) }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 py-2">AUTRES PRESTATIONS</td>
-                                <td class="px-4 py-2 text-right">
-                                    {{ formatCurrency(otherServicesAmount) }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 py-2">DÉPLACEMENTS</td>
-                                <td class="px-4 py-2 text-right">
-                                    {{ formatCurrency(travelExpensesAmount) }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="px-4 py-2">FRAIS REMBOURSABLES</td>
-                                <td class="px-4 py-2 text-right">
-                                    {{ formatCurrency(thirdPartyExpensesAmount) }}
-                                </td>
-                            </tr>
                             <tr class="font-medium">
                                 <td class="px-4 py-2">TOTAL HT</td>
                                 <td class="px-4 py-2 text-right">
@@ -453,19 +442,55 @@
                 </template>
             </AccordionPanel>
         </div>
+        <!-- Activities Section - Full Width Below -->
+        <div v-if="(isNewInvoice && invoice.projectId) || (!isNewInvoice && invoice.id)">
+            <h2 class="text-lg font-medium mb-4 bg-gray-100 p-2 text-center">
+                {{
+                    isNewInvoice
+                        ? "ACTIVITÉS À INCLURE DANS LA FACTURE"
+                        : "ACTIVITÉS INCLUSES DANS LA FACTURE"
+                }}
+            </h2>
+            <TimeEntriesManager
+                :initial-filter="
+                    isNewInvoice
+                        ? {
+                              projectId: invoice.projectId,
+                              includeBilled: false,
+                              includeUnbilled: true,
+                              fromDate: invoice.periodStart,
+                              toDate: invoice.periodEnd,
+                          }
+                        : {
+                              invoiceId: parseInt(invoice.id),
+                              includeBilled: true,
+                              includeUnbilled: false,
+                          }
+                "
+                :show-project-filter="false"
+                :hide-columns="['project', 'billed', 'disbursement', 'actions']"
+                hide-header
+                :empty-message="
+                    isNewInvoice
+                        ? 'Aucune activité non facturée pour cette période'
+                        : 'Aucune activité dans cette facture'
+                "
+            />
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { type Invoice } from "@beg/validations"
+import { type Invoice, type ActivityResponse } from "@beg/validations"
 import AccordionPanel from "../../molecules/AccordionPanel.vue"
-import { PercentBadgeIcon, CurrencyDollarIcon, CalculatorIcon } from "@heroicons/vue/24/outline"
 import { useFormat } from "@/composables/utils/useFormat"
 import { computed, ref } from "vue"
 import InputNumber from "@/components/atoms/InputNumber.vue"
+import TimeEntriesManager from "../time/TimeEntriesManager.vue"
 
 const props = defineProps<{
     modelValue: Invoice
+    unbilledActivities?: ActivityResponse[]
 }>()
 
 const emit = defineEmits<{
@@ -480,29 +505,40 @@ const invoice = computed({
     set: (value) => emit("update:modelValue", value),
 })
 
+const isNewInvoice = computed(() => !invoice.value.id || invoice.value.id === "")
+
 // Computed properties for data - using flat structure
 const rates = computed(() => invoice.value.rates || [])
 const feesBase = computed(() => invoice.value.feesBase || 0)
 const feesAdjusted = computed(() => invoice.value.feesAdjusted || 0)
+const feesFinalTotal = computed(() => invoice.value.feesFinalTotal || 0)
 const feesTotal = computed(() => invoice.value.feesTotal || 0)
 
-const hasDiscount = computed(() => (invoice.value.feesDiscountPercentage || 0) > 0 || (invoice.value.feesDiscountAmount || 0) > 0)
+const hasDiscount = computed(
+    () =>
+        (invoice.value.feesDiscountPercentage || 0) > 0 ||
+        (invoice.value.feesDiscountAmount || 0) > 0
+)
 const discountPercentage = computed(() => invoice.value.feesDiscountPercentage || 0)
 const discountAmount = computed(() => invoice.value.feesDiscountAmount || 0)
 
-const hasPackage = computed(() => (invoice.value.expensesPackagePercentage || 0) > 0 || (invoice.value.expensesPackageAmount || 0) > 0)
+const hasPackage = computed(
+    () =>
+        (invoice.value.expensesPackagePercentage || 0) > 0 ||
+        (invoice.value.expensesPackageAmount || 0) > 0
+)
 
 // Discount and package type states
-const discountType = ref<'percentage' | 'fixed'>(
-    invoice.value.feesDiscountPercentage && invoice.value.feesDiscountPercentage > 0 ? 'percentage' : 'fixed'
+const discountType = ref<"percentage" | "fixed">(
+    invoice.value.feesDiscountPercentage && invoice.value.feesDiscountPercentage > 0
+        ? "percentage"
+        : "fixed"
 )
-const packageType = ref<'percentage' | 'fixed'>(
-    invoice.value.expensesPackagePercentage && invoice.value.expensesPackagePercentage > 0 ? 'percentage' : 'fixed'
+const packageType = ref<"percentage" | "fixed">(
+    invoice.value.expensesPackagePercentage && invoice.value.expensesPackagePercentage > 0
+        ? "percentage"
+        : "fixed"
 )
-
-const otherServicesAmount = computed(() => invoice.value.feesOthers || 0)
-const travelExpensesAmount = computed(() => invoice.value.expensesTravelAmount || 0)
-const thirdPartyExpensesAmount = computed(() => invoice.value.expensesThirdPartyAmount || 0)
 
 const totalHT = computed(() => invoice.value.totalHT || 0)
 const vatRate = computed(() => invoice.value.vatRate || 8.0)
@@ -549,27 +585,36 @@ const updateRate = (index: number, field: string, value: any) => {
 // Toggle discount
 const toggleDiscount = () => {
     const newInvoice = { ...invoice.value }
-    if (newInvoice.feesDiscountPercentage) {
-        newInvoice.feesDiscountPercentage = newInvoice.feesDiscountPercentage > 0 ? 0 : 10
-    } else {
-        newInvoice.feesDiscountPercentage = 10
-    }
-    // Calculate discount amount
-    if (newInvoice.feesDiscountPercentage && newInvoice.feesFinalTotal) {
-        newInvoice.feesDiscountAmount =
-            (newInvoice.feesFinalTotal * newInvoice.feesDiscountPercentage) / 100
-    } else {
+
+    // Check if there's any discount currently applied
+    const hasExistingDiscount =
+        (newInvoice.feesDiscountPercentage || 0) > 0 || (newInvoice.feesDiscountAmount || 0) > 0
+
+    if (hasExistingDiscount) {
+        // Remove discount
+        newInvoice.feesDiscountPercentage = 0
         newInvoice.feesDiscountAmount = 0
+    } else {
+        // Apply default discount based on current type
+        if (discountType.value === "percentage") {
+            newInvoice.feesDiscountPercentage = 10
+            newInvoice.feesDiscountAmount = (newInvoice.feesFinalTotal * 10) / 100
+        } else {
+            newInvoice.feesDiscountAmount = 1000
+            newInvoice.feesDiscountPercentage = 0
+        }
     }
+
+    recalculateTotals(newInvoice)
     invoice.value = newInvoice
 }
 
 // Set discount type
-const setDiscountType = (type: 'percentage' | 'fixed') => {
+const setDiscountType = (type: "percentage" | "fixed") => {
     discountType.value = type
     const newInvoice = { ...invoice.value }
-    
-    if (type === 'percentage') {
+
+    if (type === "percentage") {
         // Convert to percentage if was fixed
         if (!newInvoice.feesDiscountPercentage || newInvoice.feesDiscountPercentage === 0) {
             newInvoice.feesDiscountPercentage = 10
@@ -652,11 +697,11 @@ const togglePackage = () => {
 }
 
 // Set package type
-const setPackageType = (type: 'percentage' | 'fixed') => {
+const setPackageType = (type: "percentage" | "fixed") => {
     packageType.value = type
     const newInvoice = { ...invoice.value }
-    
-    if (type === 'percentage') {
+
+    if (type === "percentage") {
         // Convert to percentage if was fixed
         if (!newInvoice.expensesPackagePercentage || newInvoice.expensesPackagePercentage === 0) {
             newInvoice.expensesPackagePercentage = 10

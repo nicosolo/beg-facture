@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="mb-4">
+        <div class="mb-4" v-if="!hideHeader">
             <div class="flex justify-between items-start mb-4">
                 <h2 class="text-lg font-semibold">{{ $t("time.title") }}</h2>
                 <Button variant="primary" size="md" @click="openAddModal">
@@ -61,11 +61,13 @@ interface Props {
     showProjectFilter?: boolean
     initialFilter?: Partial<TimeFilterModel>
     hideColumns?: string[]
+    hideHeader?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
     emptyMessage: "Aucune entrée d'heure trouvée",
     showProjectFilter: true,
+    hideHeader: false,
 })
 
 // API client

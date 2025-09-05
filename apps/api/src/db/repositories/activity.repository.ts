@@ -22,7 +22,14 @@ export async function updateProjectActivityDates(projectId: number) {
             unbilledDuration: sql<number>`COALESCE(SUM(${activities.duration}), 0)`,
         })
         .from(activities)
-        .where(and(eq(activities.billed, false), eq(activities.projectId, projectId)))
+        .innerJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
+        .where(
+            and(
+                eq(activities.billed, false),
+                eq(activities.projectId, projectId),
+                eq(activityTypes.billable, true)
+            )
+        )
 
     const { unbilledDuration } = resultUnbilled[0]
 

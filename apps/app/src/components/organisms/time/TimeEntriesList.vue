@@ -2,7 +2,7 @@
     <div>
         <!-- Bulk actions bar -->
         <div
-            v-if="selectedRows.size > 0"
+            v-if="selectedRows.size > 0 && !disableSelection"
             class="bg-blue-100 border border-blue-300 rounded-lg p-4 mb-4 shadow-sm"
         >
             <div class="flex items-center justify-between">
@@ -51,7 +51,7 @@
             @sort-change="handleSort"
             v-model="selectedRows"
             @selection-change="handleSelectionChange"
-            selectable
+            :selectable="!disableSelection"
         >
             <template #cell:user="{ item }">
                 {{ item.user ? `${item.user.initials}` : "-" }}
@@ -121,15 +121,21 @@
         <div v-if="totals" class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div class="flex flex-wrap gap-6 text-sm">
                 <div v-if="totals.duration !== undefined" class="flex items-center gap-2">
-                    <span class="font-semibold text-gray-700">{{ $t('time.columns.duration') }}:</span>
+                    <span class="font-semibold text-gray-700"
+                        >{{ $t("time.columns.duration") }}:</span
+                    >
                     <span class="text-gray-900">{{ formatDuration(totals.duration || 0) }}</span>
                 </div>
                 <div v-if="totals.kilometers !== undefined" class="flex items-center gap-2">
-                    <span class="font-semibold text-gray-700">{{ $t('time.columns.kilometers') }}:</span>
+                    <span class="font-semibold text-gray-700"
+                        >{{ $t("time.columns.kilometers") }}:</span
+                    >
                     <span class="text-gray-900">{{ formatNumber(totals.kilometers || 0) }} km</span>
                 </div>
                 <div v-if="totals.expenses !== undefined" class="flex items-center gap-2">
-                    <span class="font-semibold text-gray-700">{{ $t('time.columns.expenses') }}:</span>
+                    <span class="font-semibold text-gray-700"
+                        >{{ $t("time.columns.expenses") }}:</span
+                    >
                     <span class="text-gray-900">{{ formatCurrency(totals.expenses || 0) }}</span>
                 </div>
             </div>
@@ -167,6 +173,7 @@ interface Props {
         key: string
         direction: "asc" | "desc"
     }
+    disableSelection?: boolean
 }
 
 const props = defineProps<Props>()

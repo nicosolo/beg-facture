@@ -1,5 +1,14 @@
 <template>
-    <h1 class="text-2xl font-bold mb-6">{{ $t("projects.title") }}</h1>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">{{ $t("projects.title") }}</h1>
+        <Button 
+            :to="{ name: 'project-new' }" 
+            variant="primary"
+            size="md"
+        >
+            {{ $t("projects.new") }}
+        </Button>
+    </div>
 
     <ProjectFilterPanel v-model:filter="filter" />
     <LoadingOverlay :loading="loading">
@@ -41,6 +50,7 @@ import ProjectTable from "@/components/organisms/project/ProjectTable.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
+import Button from "@/components/atoms/Button.vue"
 import type { PageResponse, ProjectFilter, ProjectResponse } from "@beg/validations"
 
 // Initialize i18n

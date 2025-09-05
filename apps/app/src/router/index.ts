@@ -46,6 +46,12 @@ const router = createRouter({
             meta: { requiresAuth: true },
         },
         {
+            path: "/project/new",
+            name: "project-new",
+            component: ProjectEditView,
+            meta: { requiresAuth: true },
+        },
+        {
             path: "/project/:id/view",
             name: "project-view",
             component: ProjectPreviewView,

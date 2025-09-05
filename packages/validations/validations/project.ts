@@ -29,6 +29,7 @@ export const projectResponseSchema = z
     .object({
         id: z.number(),
         projectNumber: z.string(),
+        subProjectName: z.string().nullable(),
         name: z.string(),
         startDate: dateSchema,
         remark: z.string().nullable(),
@@ -89,6 +90,8 @@ export type ProjectAccessLevel = z.infer<typeof projectAccessLevelSchema>
 // Project create schema
 export const projectCreateSchema = z.object({
     projectNumber: z.string().min(1),
+    subProjectName: z.string().optional(),
+    parentProjectId: z.number().positive().optional(),
     name: z.string().min(1),
     startDate: dateSchema,
     typeId: z.number().positive(),

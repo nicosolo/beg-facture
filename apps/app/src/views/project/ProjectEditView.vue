@@ -5,14 +5,61 @@
         :error-message="errorMessage"
     >
         <form @submit.prevent="saveProject" id="projectForm">
+            <!-- Parent Project Selection (for new sub-projects) -->
+            <div v-if="isNewProject" class="mb-6">
+                <FormField :label="$t('projects.parentProject')" :error="errors.parentProjectId">
+                    <template #input>
+                        <ProjectSelect
+                            v-model="form.parentProjectId"
+                            :placeholder="$t('projects.selectParentProject')"
+                            :include-ended="false"
+                            :include-archived="false"
+                            @update:model-value="handleParentProjectChange"
+                        />
+                    </template>
+                </FormField>
+            </div>
+
             <!-- Basic Information -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <FormField :label="$t('projects.mandat')" :error="errors.projectNumber" required>
                     <template #input>
-                        <Input type="text" v-model="form.projectNumber" required />
+                        <Input
+                            type="text"
+                            v-model="form.projectNumber"
+                            :disabled="!!form.parentProjectId"
+                            required
+                        />
                     </template>
                 </FormField>
 
+                <FormField
+                    v-if="form.parentProjectId || (!isNewProject && form.subProjectName)"
+                    :label="$t('projects.subProjectName')"
+                    :error="errors.subProjectName"
+                >
+                    <template #input>
+                        <Input
+                            type="text"
+                            v-model="form.subProjectName"
+                            :placeholder="$t('projects.subProjectNamePlaceholder')"
+                            required
+                        />
+                    </template>
+                </FormField>
+
+                <FormField v-else :label="$t('projects.date')" :error="errors.startDate" required>
+                    <template #input>
+                        <Input type="date" v-model="formattedDate" required />
+                    </template>
+                </FormField>
+            </div>
+
+            <!-- Date field when sub-project name is shown -->
+            <div
+                v-if="form.parentProjectId || (!isNewProject && form.subProjectName)"
+                class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"
+            >
                 <FormField :label="$t('projects.date')" :error="errors.startDate" required>
                     <template #input>
                         <Input type="date" v-model="formattedDate" required />
@@ -33,39 +80,24 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <FormField :label="$t('projects.locality')" :error="errors.locationId">
                     <template #input>
-                        <AutocompleteSelect
+                        <LocationSelect
                             v-model="form.locationId"
-                            :options="locationsData?.data || []"
-                            :display-field="(item: any) => item.name"
-                            :search-fields="['name']"
                             :placeholder="$t('common.select')"
-                            mode="static"
                         />
                     </template>
                 </FormField>
 
                 <FormField :label="$t('projects.client')" :error="errors.clientId">
                     <template #input>
-                        <AutocompleteSelect
-                            v-model="form.clientId"
-                            :options="clientsData?.data || []"
-                            :display-field="(item: any) => item.name"
-                            :search-fields="['name']"
-                            :placeholder="$t('common.select')"
-                            mode="static"
-                        />
+                        <ClientSelect v-model="form.clientId" :placeholder="$t('common.select')" />
                     </template>
                 </FormField>
 
                 <FormField :label="$t('projects.engineer')" :error="errors.engineerId">
                     <template #input>
-                        <AutocompleteSelect
+                        <EngineerSelect
                             v-model="form.engineerId"
-                            :options="engineersData?.data || []"
-                            :display-field="(item: any) => item.name"
-                            :search-fields="['name']"
                             :placeholder="$t('common.select')"
-                            mode="static"
                         />
                     </template>
                 </FormField>
@@ -75,27 +107,19 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <FormField :label="$t('projects.enterprise')" :error="errors.companyId">
                     <template #input>
-                        <AutocompleteSelect
+                        <CompanySelect
                             v-model="form.companyId"
-                            :options="companiesData?.data || []"
-                            :display-field="(item: any) => item.name"
-                            :search-fields="['name']"
                             :placeholder="$t('common.select')"
-                            mode="static"
                         />
                     </template>
                 </FormField>
 
                 <FormField :label="$t('projects.type')" :error="errors.typeId" required>
                     <template #input>
-                        <AutocompleteSelect
+                        <ProjectTypeSelect
                             v-model="form.typeId"
-                            :options="projectTypesData || []"
-                            :display-field="(item: any) => item.name"
-                            :search-fields="['name']"
                             :placeholder="$t('common.select')"
                             :required="true"
-                            mode="static"
                         />
                     </template>
                 </FormField>
@@ -105,13 +129,9 @@
             <div class="mb-6">
                 <FormField :label="$t('projects.responsible')" :error="errors.projectManagerId">
                     <template #input>
-                        <AutocompleteSelect
+                        <UserSelect
                             v-model="form.projectManagerId"
-                            :options="usersData || []"
-                            :display-field="(item: any) => `${item.firstName} ${item.lastName}`"
-                            :search-fields="['firstName', 'lastName', 'initials']"
                             :placeholder="$t('common.select')"
-                            mode="static"
                         />
                     </template>
                 </FormField>
@@ -199,16 +219,16 @@ import Button from "@/components/atoms/Button.vue"
 import FormField from "@/components/molecules/FormField.vue"
 import FormLayout from "@/components/templates/FormLayout.vue"
 import Input from "@/components/atoms/Input.vue"
-import AutocompleteSelect from "@/components/atoms/AutocompleteSelect.vue"
+import ProjectSelect from "@/components/organisms/project/ProjectSelect.vue"
+import LocationSelect from "@/components/organisms/location/LocationSelect.vue"
+import ClientSelect from "@/components/organisms/client/ClientSelect.vue"
+import EngineerSelect from "@/components/organisms/engineer/EngineerSelect.vue"
+import CompanySelect from "@/components/organisms/company/CompanySelect.vue"
+import ProjectTypeSelect from "@/components/organisms/projectType/ProjectTypeSelect.vue"
+import UserSelect from "@/components/organisms/user/UserSelect.vue"
 
 // API Composables
 import { useFetchProject, useCreateProject, useUpdateProject } from "@/composables/api/useProject"
-import { useFetchClientList } from "@/composables/api/useClient"
-import { useFetchEngineerList } from "@/composables/api/useEngineer"
-import { useFetchCompanyList } from "@/composables/api/useCompany"
-import { useFetchLocationList } from "@/composables/api/useLocation"
-import { useFetchProjectTypes } from "@/composables/api/useProjectType"
-import { useFetchUsers } from "@/composables/api/useUser"
 import type { ProjectCreateInput, ProjectUpdateInput } from "@beg/validations"
 
 const { t } = useI18n()
@@ -229,37 +249,19 @@ const errors = ref<Record<string, string>>({})
 const errorMessage = ref<string | null>(null)
 
 // API composables
-const { get: fetchProject, loading: loadingProject, data: projectData } = useFetchProject()
+const { get: fetchProject, data: projectData } = useFetchProject()
 const { post: createProject, loading: creating } = useCreateProject()
 const { put: updateProject, loading: updating } = useUpdateProject()
 
-// Select options composables
-const { get: fetchClients, data: clientsData, loading: loadingClients } = useFetchClientList()
-const {
-    get: fetchEngineers,
-    data: engineersData,
-    loading: loadingEngineers,
-} = useFetchEngineerList()
-const {
-    get: fetchCompanies,
-    data: companiesData,
-    loading: loadingCompanies,
-} = useFetchCompanyList()
-const {
-    get: fetchLocations,
-    data: locationsData,
-    loading: loadingLocations,
-} = useFetchLocationList()
-const {
-    get: fetchProjectTypes,
-    data: projectTypesData,
-    loading: loadingProjectTypes,
-} = useFetchProjectTypes()
-const { get: fetchUsers, data: usersData, loading: loadingUsers } = useFetchUsers()
+// Note: Select components handle their own data fetching
 
-// Form state
-const form = ref<ProjectCreateInput>({
+// Form state - Using partial type to allow undefined typeId
+const form = ref<
+    Partial<ProjectCreateInput> & { projectNumber: string; name: string; startDate: Date }
+>({
     projectNumber: "",
+    subProjectName: "",
+    parentProjectId: undefined,
     name: "",
     startDate: new Date(),
     typeId: undefined,
@@ -301,6 +303,33 @@ const generateProjectNumber = () => {
         .toString()
         .padStart(4, "0")
     return `${year}${random}`
+}
+
+// Create a separate instance for fetching parent project
+const { get: fetchParentProjectData, data: parentProjectData } = useFetchProject()
+
+// Handle parent project selection
+const handleParentProjectChange = async (parentProjectId: number | undefined) => {
+    if (parentProjectId && isNewProject.value) {
+        // Fetch the parent project details
+        await fetchParentProjectData({ params: { id: parentProjectId } })
+
+        if (parentProjectData.value) {
+            // Copy parent project data
+            form.value.projectNumber = parentProjectData.value.projectNumber
+            form.value.typeId = parentProjectData.value.type?.id
+            form.value.name = parentProjectData.value.name
+            form.value.locationId = parentProjectData.value.location?.id
+            form.value.clientId = parentProjectData.value.client?.id
+            form.value.engineerId = parentProjectData.value.engineer?.id
+            form.value.companyId = parentProjectData.value.company?.id
+            form.value.projectManagerId = parentProjectData.value.projectManager?.id
+        }
+    } else if (!parentProjectId) {
+        // Clear copied data when parent is deselected
+        form.value.projectNumber = generateProjectNumber()
+        form.value.subProjectName = ""
+    }
 }
 
 // Validate form
@@ -346,19 +375,29 @@ const saveProject = async () => {
 
         // Prepare data for submission
         const submitData = {
-            ...form.value,
-            // Convert undefined to null for optional fields
+            projectNumber: form.value.projectNumber,
+            name: form.value.name,
+            startDate: form.value.startDate,
+            typeId: form.value.typeId!, // We validated it exists
+            subProjectName: form.value.subProjectName,
+            parentProjectId: form.value.parentProjectId,
             locationId: form.value.locationId || undefined,
             clientId: form.value.clientId || undefined,
             engineerId: form.value.engineerId || undefined,
             companyId: form.value.companyId || undefined,
             projectManagerId: form.value.projectManagerId || undefined,
             remark: form.value.remark || undefined,
+            printFlag: form.value.printFlag || false,
+            ended: form.value.ended || false,
+            archived: form.value.archived || false,
         }
+
+        let savedProjectId = projectId.value
 
         if (isNewProject.value) {
             // Create new project
-            await createProject({ body: submitData })
+            const response = await createProject({ body: submitData as ProjectCreateInput })
+            savedProjectId = response?.id
             showSuccess(t("projects.createSuccess"))
         } else {
             // Update existing project
@@ -369,8 +408,12 @@ const saveProject = async () => {
             showSuccess(t("projects.updateSuccess"))
         }
 
-        // Redirect to project list after saving
-        router.push({ name: "project-list" })
+        // Redirect to project preview after saving
+        if (savedProjectId) {
+            router.push({ name: "project-view", params: { id: savedProjectId } })
+        } else {
+            router.push({ name: "project-list" })
+        }
     } catch (error: any) {
         console.error("Error saving project:", error)
 
@@ -393,28 +436,22 @@ const saveProject = async () => {
 
 // Load data on mount
 onMounted(async () => {
-    document.title = 'BEG - Modifier le projet'
+    document.title = "BEG - Modifier le projet"
     try {
         loadingData.value = true
 
-        // Load select options in parallel
-        await Promise.all([
-            fetchClients({ query: { limit: 1000 } }),
-            fetchEngineers({ query: { limit: 1000 } }),
-            fetchCompanies({ query: { limit: 1000 } }),
-            fetchLocations({ query: { limit: 1000 } }),
-            fetchProjectTypes(),
-            fetchUsers({ query: { includeArchived: false } }),
-        ])
+        // No need to load select options - dedicated components handle their own data
 
         // Load existing project if editing
         if (projectId.value && !isNaN(projectId.value)) {
-            const response = await fetchProject({ params: { id: projectId.value } })
+            await fetchProject({ params: { id: projectId.value } })
 
             if (projectData.value) {
                 // Map API response to form
                 form.value = {
                     projectNumber: projectData.value.projectNumber,
+                    subProjectName: projectData.value.subProjectName || "",
+                    parentProjectId: undefined,
                     name: projectData.value.name,
                     startDate: projectData.value.startDate,
                     typeId: projectData.value.type?.id,

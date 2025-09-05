@@ -10,6 +10,7 @@
                 @sort-change="handleSortChange"
                 @edit="openEditModal"
                 @activities-updated="loadActivities"
+                :hide-columns="hideColumns"
             />
 
             <Pagination
@@ -46,10 +47,10 @@ import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@beg/validations"
 
 interface Props {
-    projectId?: number
     emptyMessage?: string
     showProjectFilter?: boolean
     initialFilter?: Partial<TimeFilterModel>
+    hideColumns?: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -75,15 +76,13 @@ const selectedActivityId = ref<number | null>(null)
 // Filter state
 const filter = ref<TimeFilterModel>({
     userId: undefined,
-    projectId: props.projectId || props.initialFilter?.projectId,
     activityTypeId: undefined,
-    fromDate: props.initialFilter?.fromDate,
-    toDate: props.initialFilter?.toDate,
-    includeBilled: props.initialFilter?.includeBilled ?? false,
-    includeUnbilled: props.initialFilter?.includeUnbilled ?? false,
-    includeDisbursement: props.initialFilter?.includeDisbursement ?? false,
-    sortBy: props.initialFilter?.sortBy ?? "date",
-    sortOrder: props.initialFilter?.sortOrder ?? "desc",
+    includeBilled: false,
+    includeUnbilled: false,
+    includeDisbursement: false,
+    sortBy: "date",
+    sortOrder: "desc",
+    ...props.initialFilter,
 })
 
 const sort = computed(() => ({
@@ -123,16 +122,6 @@ watch(
         }
     },
     { deep: true }
-)
-
-// Watch for projectId changes from props
-watch(
-    () => props.projectId,
-    (newProjectId) => {
-        if (newProjectId !== undefined) {
-            filter.value.projectId = newProjectId
-        }
-    }
 )
 
 const loadActivities = async () => {

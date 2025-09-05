@@ -15,9 +15,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, watch, onMounted } from "vue"
 import { useI18n } from "vue-i18n"
-import { useFetchLocationList } from "@/composables/api/useLocation"
+import { useFetchLocationList, useFetchLocation } from "@/composables/api/useLocation"
 import AutocompleteSelect from "@/components/atoms/AutocompleteSelect.vue"
 import { COUNTRIES, SWISS_CANTONS, type Location } from "@beg/validations"
 
@@ -29,7 +29,7 @@ interface LocationSelectProps {
     required?: boolean
 }
 
-defineProps<LocationSelectProps>()
+const props = defineProps<LocationSelectProps>()
 
 defineEmits<{
     "update:modelValue": [value: number | undefined]
@@ -37,6 +37,7 @@ defineEmits<{
 
 const {} = useI18n()
 const { get, loading } = useFetchLocationList()
+const { get: fetchSingleLocation } = useFetchLocation()
 
 // Local state for locations
 const locations = ref<Location[]>([])
@@ -44,21 +45,21 @@ const locations = ref<Location[]>([])
 // Format location display with country and canton
 const formatLocationDisplay = (location: Location): string => {
     let display = location.name
-    
+
     // Add country name
     const countryName = COUNTRIES[location.country as keyof typeof COUNTRIES]
     if (countryName) {
         display += ` - ${countryName}`
     }
-    
+
     // Add canton for Swiss locations
-    if (location.country === 'CH' && location.canton) {
+    if (location.country === "CH" && location.canton) {
         const cantonName = SWISS_CANTONS[location.canton as keyof typeof SWISS_CANTONS]
         if (cantonName) {
             display += ` (${cantonName})`
         }
     }
-    
+
     return display
 }
 
@@ -70,7 +71,26 @@ const fetchLocations = async (searchText: string) => {
             limit: 20,
         },
     })
-    
+
     locations.value = response?.data || []
 }
+
+// Fetch selected item when modelValue changes
+const fetchSelectedItem = async () => {
+    if (props.modelValue && !locations.value.find((l) => l.id === props.modelValue)) {
+        const data = await fetchSingleLocation({ params: { id: props.modelValue } })
+        if (data) {
+            // Add the selected item to the locations array if not already there
+            locations.value = [data, ...locations.value.filter((l) => l.id !== data!.id)]
+        }
+    }
+}
+
+// Watch for modelValue changes
+watch(() => props.modelValue, fetchSelectedItem, { immediate: true })
+
+// Load initial data
+onMounted(() => {
+    fetchLocations("")
+})
 </script>

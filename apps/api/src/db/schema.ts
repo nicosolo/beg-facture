@@ -115,6 +115,7 @@ export const projects = sqliteTable(
     {
         id: integer("id").primaryKey({ autoIncrement: true }),
         projectNumber: text("projectNumber").notNull(),
+        subProjectName: text("subProjectName"),
         name: text("name").notNull(),
         startDate: integer("startDate", { mode: "timestamp" }).notNull(),
         locationId: integer("locationId").references(() => locations.id, {

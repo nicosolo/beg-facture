@@ -17,13 +17,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { ref, watch, onMounted } from "vue"
 import AutocompleteSelect from "@/components/atoms/AutocompleteSelect.vue"
-import { useFetchCompanyList } from "@/composables/api/useCompany"
+import { useFetchCompanyList, useFetchCompany } from "@/composables/api/useCompany"
 import type { Company } from "@beg/validations"
 
 interface Props {
-    modelValue?: number | null
+    modelValue?: number | undefined
     placeholder?: string
     required?: boolean
     disabled?: boolean
@@ -35,26 +35,40 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-    "update:modelValue": [value: number | null]
+    "update:modelValue": [value: number | undefined]
 }>()
 
 const { get: fetchCompanyListApi, loading } = useFetchCompanyList()
-const selected = ref<number | null>(props.modelValue || null)
+const { get: fetchSingleCompany } = useFetchCompany()
+const selected = ref<number | undefined>(props.modelValue || undefined)
 const companies = ref<Company[]>([])
+
+// Fetch selected item when modelValue changes
+const fetchSelectedItem = async () => {
+    if (props.modelValue && !companies.value.find((c) => c.id === props.modelValue)) {
+        const data = await fetchSingleCompany({ params: { id: props.modelValue } })
+        if (data) {
+            // Add the selected item to the companies array if not already there
+            companies.value = [data, ...companies.value.filter((c) => c.id !== data!.id)]
+        }
+    }
+}
 
 // Watch for external changes
 watch(
     () => props.modelValue,
-    (newValue) => {
+    async (newValue) => {
         if (newValue !== selected.value) {
-            selected.value = newValue || null
+            selected.value = newValue || undefined
+            await fetchSelectedItem()
         }
-    }
+    },
+    { immediate: true }
 )
 
 // Emit changes
-const handleChange = (value: number | null) => {
-    emit("update:modelValue", value)
+const handleChange = (value: string | number | undefined) => {
+    emit("update:modelValue", typeof value === 'string' ? parseInt(value) : value as number | undefined)
 }
 
 // Fetch companies for autocomplete
@@ -70,4 +84,10 @@ const fetchCompanies = async (search: string) => {
     if (response?.data) {
         companies.value = response.data
     }
-}</script>
+}
+
+// Load initial data
+onMounted(() => {
+    fetchCompanies("")
+})
+</script>

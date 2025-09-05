@@ -43,7 +43,6 @@
 
         <DataTable
             ref="dataTableRef"
-            showFooter
             :items="activities"
             :columns="columns"
             item-key="id"
@@ -116,18 +115,25 @@
                     </slot>
                 </div>
             </template>
-
-            <!-- Total row customizations -->
-            <template #total:duration>
-                {{ totals?.duration !== undefined && formatDuration(totals?.duration || 0) }}
-            </template>
-            <template #total:kilometers>
-                {{ totals?.kilometers !== undefined && formatNumber(totals?.kilometers || 0) }} km
-            </template>
-            <template #total:expenses
-                >{{ totals?.expenses !== undefined && formatCurrency(totals?.expenses || 0) }}
-            </template>
         </DataTable>
+
+        <!-- Totals section below the table -->
+        <div v-if="totals" class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div class="flex flex-wrap gap-6 text-sm">
+                <div v-if="totals.duration !== undefined" class="flex items-center gap-2">
+                    <span class="font-semibold text-gray-700">{{ $t('time.columns.duration') }}:</span>
+                    <span class="text-gray-900">{{ formatDuration(totals.duration || 0) }}</span>
+                </div>
+                <div v-if="totals.kilometers !== undefined" class="flex items-center gap-2">
+                    <span class="font-semibold text-gray-700">{{ $t('time.columns.kilometers') }}:</span>
+                    <span class="text-gray-900">{{ formatNumber(totals.kilometers || 0) }} km</span>
+                </div>
+                <div v-if="totals.expenses !== undefined" class="flex items-center gap-2">
+                    <span class="font-semibold text-gray-700">{{ $t('time.columns.expenses') }}:</span>
+                    <span class="text-gray-900">{{ formatCurrency(totals.expenses || 0) }}</span>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -183,13 +189,13 @@ const defaultColumns: Column[] = [
     { key: "date", label: t("time.columns.date"), sortKey: "date", width: "7rem" },
     { key: "user", label: t("time.columns.user"), width: "3rem" },
     { key: "project", label: t("time.columns.project"), width: "11rem" },
-    { key: "activityType", label: t("time.columns.activityType"), width: "7rem" },
-    { key: "duration", label: t("time.columns.duration"), sortKey: "duration", width: "7rem" },
+    { key: "activityType", label: t("time.columns.activityType"), width: "4rem" },
+    { key: "duration", label: t("time.columns.duration"), sortKey: "duration", width: "5rem" },
     {
         key: "kilometers",
         label: t("time.columns.kilometers"),
         sortKey: "kilometers",
-        width: "7rem",
+        width: "5rem",
     },
     { key: "expenses", label: t("time.columns.expenses"), sortKey: "expenses", width: "6rem" },
     { key: "description", label: t("time.columns.description"), tooltip: true, fullWidth: true },
@@ -242,18 +248,18 @@ const updateDisbursementStatus = async (activityId: number, disbursement: boolea
 
 // Bulk update selected rows
 const updateSelectedRows = async (field: "billed" | "disbursement", value: boolean) => {
-    const ids = Array.from(selectedRows.value).map(id => Number(id))
+    const ids = Array.from(selectedRows.value).map((id) => Number(id))
     const count = ids.length
-    
+
     try {
         // Use bulk update endpoint
         await bulkUpdateApi.patch({
             body: {
                 ids,
-                updates: { [field]: value }
-            }
+                updates: { [field]: value },
+            },
         })
-        
+
         emit("activities-updated")
         clearSelection()
 

@@ -53,3 +53,7 @@ export function useUpdateProject() {
         body: projectUpdateSchema,
     })
 }
+
+export function useFetchParentProjects() {
+    return useGet<ProjectListResponse>("project/parent-projects")
+}

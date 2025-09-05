@@ -17,13 +17,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { ref, watch, onMounted } from "vue"
 import AutocompleteSelect from "@/components/atoms/AutocompleteSelect.vue"
-import { useFetchClientList } from "@/composables/api/useClient"
+import { useFetchClientList, useFetchClient } from "@/composables/api/useClient"
 import type { Client } from "@beg/validations"
 
 interface Props {
-    modelValue?: number | null
+    modelValue?: number | undefined
     placeholder?: string
     required?: boolean
     disabled?: boolean
@@ -35,26 +35,40 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-    "update:modelValue": [value: number | null]
+    "update:modelValue": [value: number | undefined]
 }>()
 
 const { get: fetchClientListApi, loading } = useFetchClientList()
-const selected = ref<number | null>(props.modelValue || null)
+const { get: fetchSingleClient } = useFetchClient()
+const selected = ref<number | undefined>(props.modelValue || undefined)
 const clients = ref<Client[]>([])
+
+// Fetch selected item when modelValue changes
+const fetchSelectedItem = async () => {
+    if (props.modelValue && !clients.value.find((c) => c.id === props.modelValue)) {
+        const data = await fetchSingleClient({ params: { id: props.modelValue } })
+        if (data) {
+            // Add the selected item to the clients array if not already there
+            clients.value = [data, ...clients.value.filter((c) => c.id !== data!.id)]
+        }
+    }
+}
 
 // Watch for external changes
 watch(
     () => props.modelValue,
-    (newValue) => {
+    async (newValue) => {
         if (newValue !== selected.value) {
-            selected.value = newValue || null
+            selected.value = newValue || undefined
+            await fetchSelectedItem()
         }
-    }
+    },
+    { immediate: true }
 )
 
 // Emit changes
-const handleChange = (value: number | null) => {
-    emit("update:modelValue", value)
+const handleChange = (value: string | number | undefined) => {
+    emit("update:modelValue", typeof value === 'string' ? parseInt(value) : value as number | undefined)
 }
 
 // Fetch clients for autocomplete
@@ -71,4 +85,9 @@ const fetchClients = async (search: string) => {
         clients.value = response.data
     }
 }
+
+// Load initial data
+onMounted(() => {
+    fetchClients("")
+})
 </script>

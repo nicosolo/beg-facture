@@ -123,6 +123,7 @@ export const projectRepository = {
             .select({
                 id: projects.id,
                 projectNumber: projects.projectNumber,
+                subProjectName: projects.subProjectName,
                 name: projects.name,
                 startDate: projects.startDate,
                 remark: projects.remark,
@@ -223,6 +224,7 @@ export const projectRepository = {
             .select({
                 id: projects.id,
                 projectNumber: projects.projectNumber,
+                subProjectName: projects.subProjectName,
                 name: projects.name,
                 startDate: projects.startDate,
                 remark: projects.remark,
@@ -285,35 +287,97 @@ export const projectRepository = {
     },
 
     create: async (data: ProjectCreateInput, user: Variables["user"]): Promise<ProjectResponse> => {
-        // Check if project number already exists
-        const existing = await db
-            .select({ id: projects.id })
-            .from(projects)
-            .where(eq(projects.projectNumber, data.projectNumber))
-            .execute()
+        // Handle parent project data copying if parentProjectId is provided
+        let parentProjectData = null
+        if (data.parentProjectId) {
+            const [parent] = await db
+                .select()
+                .from(projects)
+                .where(eq(projects.id, data.parentProjectId))
+                .execute()
 
-        if (existing.length > 0) {
-            throw new Error("Project number already exists")
+            if (!parent) {
+                throw new Error("Parent project not found")
+            }
+            parentProjectData = parent
         }
 
-        // Insert the new project
+        // Check for duplicate project number + subProjectName combination
+        const whereConditions = [eq(projects.projectNumber, data.projectNumber)]
+        if (data.subProjectName) {
+            whereConditions.push(eq(projects.subProjectName, data.subProjectName))
+        } else {
+            // If no subProjectName, check if main project exists
+            const existing = await db
+                .select({ id: projects.id })
+                .from(projects)
+                .where(
+                    and(
+                        eq(projects.projectNumber, data.projectNumber),
+                        sql`${projects.subProjectName} IS NULL`
+                    )
+                )
+                .execute()
+
+            if (existing.length > 0) {
+                throw new Error("Project number already exists")
+            }
+        }
+
+        if (data.subProjectName) {
+            const existing = await db
+                .select({ id: projects.id })
+                .from(projects)
+                .where(and(...whereConditions))
+                .execute()
+
+            if (existing.length > 0) {
+                throw new Error("Sub-project with this name already exists for this project number")
+            }
+        }
+
+        // Insert the new project, using parent data if provided
+        const projectData = parentProjectData
+            ? {
+                  projectNumber: parentProjectData.projectNumber,
+                  subProjectName: data.subProjectName || null,
+                  name: data.name,
+                  startDate: data.startDate || parentProjectData.startDate,
+                  typeId: data.typeId || parentProjectData.typeId,
+                  locationId: data.locationId || parentProjectData.locationId,
+                  clientId: data.clientId || parentProjectData.clientId,
+                  engineerId: data.engineerId || parentProjectData.engineerId,
+                  companyId: data.companyId || parentProjectData.companyId,
+                  projectManagerId: data.projectManagerId || parentProjectData.projectManagerId,
+                  remark: data.remark || parentProjectData.remark,
+                  printFlag: data.printFlag ?? parentProjectData.printFlag,
+                  ended: data.ended ?? parentProjectData.ended,
+                  archived: data.archived ?? parentProjectData.archived,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+              }
+            : {
+                  projectNumber: data.projectNumber,
+                  subProjectName: data.subProjectName || null,
+                  name: data.name,
+                  startDate: data.startDate,
+                  typeId: data.typeId,
+                  locationId: data.locationId || null,
+                  clientId: data.clientId || null,
+                  engineerId: data.engineerId || null,
+                  companyId: data.companyId || null,
+                  projectManagerId: data.projectManagerId || null,
+                  remark: data.remark || null,
+                  printFlag: data.printFlag || false,
+                  ended: data.ended || false,
+                  archived: data.archived || false,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+              }
+
         const [newProject] = await db
             .insert(projects)
-            .values({
-                projectNumber: data.projectNumber,
-                name: data.name,
-                startDate: data.startDate,
-                typeId: data.typeId,
-                locationId: data.locationId || null,
-                clientId: data.clientId || null,
-                engineerId: data.engineerId || null,
-                companyId: data.companyId || null,
-                projectManagerId: data.projectManagerId || null,
-                remark: data.remark || null,
-                printFlag: data.printFlag || false,
-                ended: data.ended || false,
-                archived: data.archived || false,
-            })
+            .values(projectData)
             .returning({ id: projects.id })
             .execute()
 
@@ -365,6 +429,8 @@ export const projectRepository = {
         // Build update object, filtering out undefined values
         const updateData: any = {}
         if (data.projectNumber !== undefined) updateData.projectNumber = data.projectNumber
+        if (data.subProjectName !== undefined)
+            updateData.subProjectName = data.subProjectName || null
         if (data.name !== undefined) updateData.name = data.name
         if (data.startDate !== undefined) updateData.startDate = data.startDate
         if (data.typeId !== undefined) updateData.typeId = data.typeId
@@ -396,5 +462,81 @@ export const projectRepository = {
         }
 
         return updated
+    },
+
+    findMainProjects: async (user: Variables["user"]): Promise<ProjectListResponse> => {
+        // Get main projects (projects without subProjectName)
+        const query = db
+            .select({
+                id: projects.id,
+                projectNumber: projects.projectNumber,
+                subProjectName: projects.subProjectName,
+                name: projects.name,
+                startDate: projects.startDate,
+                remark: projects.remark,
+                printFlag: projects.printFlag,
+                archived: projects.archived,
+                createdAt: projects.createdAt,
+                updatedAt: projects.updatedAt,
+                firstActivityDate: projects.firstActivityDate,
+                lastActivityDate: projects.lastActivityDate,
+                totalDuration: projects.totalDuration,
+                unBilledDuration: projects.unBilledDuration,
+                unBilledDisbursementDuration: projects.unBilledDisbursementDuration,
+                ended: projects.ended,
+                location: {
+                    id: locations.id,
+                    name: locations.name,
+                },
+                client: {
+                    id: clients.id,
+                    name: clients.name,
+                },
+                engineer: {
+                    id: engineers.id,
+                    name: engineers.name,
+                },
+                company: {
+                    id: companies.id,
+                    name: companies.name,
+                },
+                type: {
+                    id: projectTypes.id,
+                    name: projectTypes.name,
+                },
+                projectManager: {
+                    id: users.id,
+                    firstName: users.firstName,
+                    lastName: users.lastName,
+                    initials: users.initials,
+                },
+            })
+            .from(projects)
+            .leftJoin(locations, eq(projects.locationId, locations.id))
+            .leftJoin(clients, eq(projects.clientId, clients.id))
+            .leftJoin(engineers, eq(projects.engineerId, engineers.id))
+            .leftJoin(companies, eq(projects.companyId, companies.id))
+            .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
+            .leftJoin(users, eq(projects.projectManagerId, users.id))
+
+        if (user.role !== "admin") {
+            query.innerJoin(
+                projectAccess,
+                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+            )
+        }
+
+        const data = await query
+            .where(sql`${projects.subProjectName} IS NULL`)
+            .orderBy(asc(projects.name))
+            .execute()
+
+        return {
+            data,
+            total: data.length,
+            page: 1,
+            limit: 1000,
+            totalPages: 1,
+        }
     },
 }

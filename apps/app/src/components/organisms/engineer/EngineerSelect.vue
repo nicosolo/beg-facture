@@ -17,13 +17,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { ref, watch, onMounted } from "vue"
 import AutocompleteSelect from "@/components/atoms/AutocompleteSelect.vue"
-import { useFetchEngineerList } from "@/composables/api/useEngineer"
+import { useFetchEngineerList, useFetchEngineer } from "@/composables/api/useEngineer"
 import type { Engineer } from "@beg/validations"
 
 interface Props {
-    modelValue?: number | null
+    modelValue?: number | undefined
     placeholder?: string
     required?: boolean
     disabled?: boolean
@@ -35,26 +35,40 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-    "update:modelValue": [value: number | null]
+    "update:modelValue": [value: number | undefined]
 }>()
 
 const { get: fetchEngineerListApi, loading } = useFetchEngineerList()
-const selected = ref<number | null>(props.modelValue || null)
+const { get: fetchSingleEngineer } = useFetchEngineer()
+const selected = ref<number | undefined>(props.modelValue || undefined)
 const engineers = ref<Engineer[]>([])
+
+// Fetch selected item when modelValue changes
+const fetchSelectedItem = async () => {
+    if (props.modelValue && !engineers.value.find((e) => e.id === props.modelValue)) {
+        const data = await fetchSingleEngineer({ params: { id: props.modelValue } })
+        if (data) {
+            // Add the selected item to the engineers array if not already there
+            engineers.value = [data, ...engineers.value.filter((e) => e.id !== data!.id)]
+        }
+    }
+}
 
 // Watch for external changes
 watch(
     () => props.modelValue,
-    (newValue) => {
+    async (newValue) => {
         if (newValue !== selected.value) {
-            selected.value = newValue || null
+            selected.value = newValue || undefined
+            await fetchSelectedItem()
         }
-    }
+    },
+    { immediate: true }
 )
 
 // Emit changes
-const handleChange = (value: number | null) => {
-    emit("update:modelValue", value)
+const handleChange = (value: string | number | undefined) => {
+    emit("update:modelValue", typeof value === 'string' ? parseInt(value) : value as number | undefined)
 }
 
 // Fetch engineers for autocomplete
@@ -70,4 +84,10 @@ const fetchEngineers = async (search: string) => {
     if (response?.data) {
         engineers.value = response.data
     }
-}</script>
+}
+
+// Load initial data
+onMounted(() => {
+    fetchEngineers("")
+})
+</script>

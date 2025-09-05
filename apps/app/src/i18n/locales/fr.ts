@@ -35,6 +35,7 @@ export default {
         archived: "Archivé",
         deleteSuccess: "{name} supprimé avec succès",
         deleteError: "Erreur lors de la suppression de {name}",
+        select: "Sélectionner",
     },
     navigation: {
         home: "Accueil",
@@ -101,6 +102,20 @@ export default {
         notes: "Notes",
         statusLabel: "Statut",
         startDate: "Date de début",
+        subProjectName: "Nom du sous-projet",
+        subProjectNamePlaceholder: "Ex: Phase 1, Étape A, etc.",
+        parentProject: "Projet parent",
+        selectParentProject: "Sélectionner un projet parent",
+        printFlag: "Impression",
+        enablePrint: "Activer l'impression",
+        markAsEnded: "Terminé",
+        archive: "Archivage",
+        markAsArchived: "Archivé",
+        createSuccess: "Projet créé avec succès",
+        updateSuccess: "Projet mis à jour avec succès",
+        projectNumberExists: "Ce numéro de projet existe déjà",
+        preview: "Aperçu du projet",
+        remarkPlaceholder: "Ajoutez des notes ou commentaires sur le projet",
         endDate: "Date de fin",
         budget: "Budget",
         totalDuration: "Durée totale",
@@ -144,6 +159,10 @@ export default {
         next: "Suivant",
         previous: "Précédent",
         page: "Page",
+    },
+    timeEntries: {
+        title: "Heures",
+        empty: "Aucune heures trouvée",
     },
     errors: {
         // General errors
@@ -225,9 +244,9 @@ export default {
             disbursement: "Débours",
         },
         actions: {
-            markAsBilled: "Marquer comme facturé",
-            markAsUnbilled: "Marquer comme non facturé",
-            markAsDisbursement: "Marquer comme débours",
+            markAsBilled: "Facturé",
+            markAsUnbilled: "Non facturé",
+            markAsDisbursement: "Débours",
             unmarkAsDisbursement: "Retirer le débours",
         },
         alerts: {

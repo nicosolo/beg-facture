@@ -19,7 +19,7 @@
                     @click="handleSort(column)"
                 >
                     <div class="flex items-center space-x-2 min-w-0">
-                        <span class="truncate">{{ column.label }}</span>
+                        <div class="truncate">{{ column.label }}</div>
                         <span v-if="column.sortKey" class="ml-auto flex-shrink-0">
                             <SortIcon :direction="getSortDirection(column)" />
                         </span>
@@ -288,12 +288,12 @@ const handleRowClick = (item: T, index: number, event: MouseEvent) => {
     if (window.getSelection()?.toString()) {
         return
     }
-    
+
     // Handle selection if enabled
     if (selectable || modelValue !== undefined || externalSelectedRows !== undefined) {
         handleSelection(item, index, event)
     }
-    
+
     emit("row-click", item, index, event)
 }
 
@@ -332,7 +332,7 @@ const handleSelection = (item: T, index: number, event: MouseEvent) => {
     } else if (selectable) {
         internalSelection.value = newSelection
     }
-    
+
     emit("selection-change", newSelection)
     lastClickedIndex.value = index
 }
@@ -340,13 +340,13 @@ const handleSelection = (item: T, index: number, event: MouseEvent) => {
 // Clear selection
 const clearSelection = () => {
     const newSelection = new Set<string | number>()
-    
+
     if (modelValue !== undefined) {
         emit("update:modelValue", newSelection)
     } else if (selectable) {
         internalSelection.value = newSelection
     }
-    
+
     emit("selection-change", newSelection)
     lastClickedIndex.value = null
 }
@@ -355,10 +355,8 @@ const clearSelection = () => {
 const getSelectedItems = (): T[] => {
     const selection = selectedRows.value
     if (!selection) return []
-    
-    return items.filter((item, index) => 
-        selection.has(getItemKey(item, index))
-    )
+
+    return items.filter((item, index) => selection.has(getItemKey(item, index)))
 }
 
 // Expose methods for parent components

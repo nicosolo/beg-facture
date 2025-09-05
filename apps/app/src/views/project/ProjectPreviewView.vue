@@ -13,12 +13,18 @@
                     <div class="space-y-4">
                         <div>
                             <p class="text-sm text-gray-500">{{ $t("projects.mandat") }}</p>
-                            <p class="font-medium">{{ project.projectNumber }}</p>
+                            <p class="font-medium">
+                                {{ project.projectNumber }}
+                                {{ project.subProjectName ? ` ${project.subProjectName}` : "" }}
+                            </p>
                         </div>
 
                         <div>
                             <p class="text-sm text-gray-500">{{ $t("projects.designation") }}</p>
-                            <p class="font-medium">{{ project.name }}</p>
+                            <p class="font-medium">
+                                {{ project.subProjectName ? `${project.subProjectName} - ` : ""
+                                }}{{ project.name }}
+                            </p>
                         </div>
 
                         <div>
@@ -80,8 +86,9 @@
                 <div class="bg-white rounded-lg p-6 border border-gray-200">
                     <h2 class="text-lg font-semibold mb-4">{{ $t("timeEntries.title") }}</h2>
                     <TimeEntriesManager
-                        :project-id="projectId"
                         :show-project-filter="false"
+                        :initial-filter="{ projectId: projectId }"
+                        :hide-columns="['project']"
                         empty-message="Aucune entrée d'heure trouvée pour ce projet"
                     />
                 </div>
@@ -126,6 +133,7 @@ const project = computed(() => {
     return {
         id: projectData.value.id,
         projectNumber: projectData.value.projectNumber,
+        subProjectName: projectData.value.subProjectName,
         name: projectData.value.name,
         startDate: projectData.value.startDate,
         remark: projectData.value.remark,

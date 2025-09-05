@@ -21,17 +21,7 @@ export const responseValidator = (params: Params) =>
                     const result = schema.safeParse(data)
 
                     if (!result.success) {
-                        const fieldErrors = result.error.flatten().fieldErrors
-                        const errors = Object.keys(fieldErrors).flatMap((key) => {
-                            const keyErrors = fieldErrors[key as keyof typeof fieldErrors]
-                            if (!keyErrors) return []
-                            return keyErrors.map((error: string) => ({
-                                field: key,
-                                message: error,
-                                code: undefined,
-                            }))
-                        })
-                        throwResponseValidationError("Validation response error", errors)
+                        throwResponseValidationError("Validation response error", result.error)
                     }
                     return c.json(result.data)
                 }

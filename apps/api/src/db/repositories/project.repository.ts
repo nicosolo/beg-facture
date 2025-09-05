@@ -140,6 +140,10 @@ export const projectRepository = {
                 location: {
                     id: locations.id,
                     name: locations.name,
+                    country: locations.country,
+                    canton: locations.canton,
+                    region: locations.region,
+                    address: locations.address,
                 },
                 client: {
                     id: clients.id,
@@ -241,6 +245,10 @@ export const projectRepository = {
                 location: {
                     id: locations.id,
                     name: locations.name,
+                    country: locations.country,
+                    canton: locations.canton,
+                    region: locations.region,
+                    address: locations.address,
                 },
                 client: {
                     id: clients.id,
@@ -487,6 +495,10 @@ export const projectRepository = {
                 location: {
                     id: locations.id,
                     name: locations.name,
+                    country: locations.country,
+                    canton: locations.canton,
+                    region: locations.region,
+                    address: locations.address,
                 },
                 client: {
                     id: clients.id,

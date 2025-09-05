@@ -261,8 +261,8 @@ export const invoices = sqliteTable(
         projectId: integer("projectId")
             .notNull()
             .references(() => projects.id, { onDelete: "set null" }),
-        invoiceNumber: text("invoiceNumber").notNull().unique(),
-        reference: text("reference").notNull(),
+        invoiceNumber: text("invoiceNumber"),
+        reference: text("reference"),
         type: text("type")
             .$type<"invoice" | "credit_note" | "proforma" | "quote">()
             .notNull()
@@ -279,9 +279,11 @@ export const invoices = sqliteTable(
         dueDate: integer("dueDate", { mode: "timestamp" }),
         periodStart: integer("periodStart", { mode: "timestamp" }).notNull(),
         periodEnd: integer("periodEnd", { mode: "timestamp" }).notNull(),
+        period: text("period"),
         clientAddress: text("clientAddress"),
         recipientAddress: text("recipientAddress"),
         description: text("description"),
+        note: text("note"),
         // Fee totals
         feesBase: real("feesBase").notNull().default(0),
         feesAdjusted: real("feesAdjusted").notNull().default(0),
@@ -388,6 +390,23 @@ export const invoiceAdjudications = sqliteTable(
     (table) => [
         // Index for invoice queries
         index("invoice_adjudications_invoice_idx").on(table.invoiceId),
+    ]
+)
+
+// VAT rates table
+export const vatRates = sqliteTable(
+    "vat_rates",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        year: integer("year").notNull(),
+        rate: real("rate").notNull(), // Store as percentage (e.g., 8.0 for 8%)
+        ...timestamps,
+    },
+    (table) => [
+        // Index for year queries
+        index("vat_rates_year_idx").on(table.year),
+        // Unique constraint on year
+        index("vat_rates_year_unique").on(table.year),
     ]
 )
 

@@ -46,11 +46,13 @@ export function throwValidationError(message: string, details?: ValidationErrorD
     throw new ApiException(400, ErrorCode.VALIDATION_ERROR, message, details)
 }
 
-export function throwResponseValidationError(
-    message: string,
-    details?: ValidationErrorDetail[]
-): never {
-    throw new ApiException(400, ErrorCode.RESPONSE_VALIDATION_ERROR, message, details)
+export function throwResponseValidationError(message: string, details?: ZodError): never {
+    throw new ApiException(
+        400,
+        ErrorCode.RESPONSE_VALIDATION_ERROR,
+        message,
+        details ? parseZodError(details) : []
+    )
 }
 
 export function throwInternalError(message = "Internal server error"): never {

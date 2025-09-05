@@ -9,6 +9,7 @@
                     type="text"
                     v-model="invoice.reference"
                     class="w-full p-2 border border-gray-300 rounded"
+                    required
                 />
             </div>
             <!-- Invoice Period -->
@@ -28,6 +29,20 @@
                         class="w-1/2 p-2 border border-gray-300 rounded"
                     />
                 </div>
+            </div>
+
+            <!-- Period String -->
+            <div class="mb-4">
+                <label class="text-sm font-medium text-gray-700 mb-1" for="invoicePeriod">
+                    Période (optionnel)
+                </label>
+                <input
+                    id="invoicePeriod"
+                    type="text"
+                    v-model="invoice.period"
+                    placeholder="Ex: Janvier 2025 - Mars 2025"
+                    class="w-full p-2 border border-gray-300 rounded"
+                />
             </div>
 
             <!-- Client Information -->
@@ -56,6 +71,20 @@
                     class="w-full p-2 border border-gray-300 rounded"
                 ></textarea>
             </div>
+
+            <!-- Note -->
+            <div class="mb-4">
+                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceNote">
+                    Note (optionnel)
+                </label>
+                <textarea
+                    id="invoiceNote"
+                    v-model="invoice.note"
+                    rows="4"
+                    placeholder="Note additionnelle pour la facture"
+                    class="w-full p-2 border border-gray-300 rounded"
+                ></textarea>
+            </div>
         </div>
 
         <!-- Right Column -->
@@ -70,10 +99,10 @@
                     v-model="invoice.type"
                     class="w-full p-2 border border-gray-300 rounded"
                 >
-                    <option value="invoice">{{ $t('invoice.type.invoice') }}</option>
-                    <option value="credit_note">{{ $t('invoice.type.credit_note') }}</option>
-                    <option value="proforma">{{ $t('invoice.type.proforma') }}</option>
-                    <option value="quote">{{ $t('invoice.type.quote') }}</option>
+                    <option value="invoice">{{ $t("invoice.type.invoice") }}</option>
+                    <option value="credit_note">{{ $t("invoice.type.credit_note") }}</option>
+                    <option value="proforma">{{ $t("invoice.type.proforma") }}</option>
+                    <option value="quote">{{ $t("invoice.type.quote") }}</option>
                 </select>
             </div>
 
@@ -87,9 +116,13 @@
                     class="w-full p-2 border border-gray-300 rounded"
                     v-model="invoice.billingMode"
                 >
-                    <option value="accordingToData">{{ $t('invoice.billingMode.accordingToData') }}</option>
-                    <option value="accordingToInvoice">{{ $t('invoice.billingMode.accordingToInvoice') }}</option>
-                    <option value="fixedPrice">{{ $t('invoice.billingMode.fixedPrice') }}</option>
+                    <option value="accordingToData">
+                        {{ $t("invoice.billingMode.accordingToData") }}
+                    </option>
+                    <option value="accordingToInvoice">
+                        {{ $t("invoice.billingMode.accordingToInvoice") }}
+                    </option>
+                    <option value="fixedPrice">{{ $t("invoice.billingMode.fixedPrice") }}</option>
                 </select>
             </div>
 
@@ -363,7 +396,8 @@ const startDate = computed({
     get: () => invoice.value.periodStart?.toISOString().split("T")[0] || "",
     set: (value: string) => {
         const newInvoice = { ...invoice.value }
-        invoice.value.periodStart = value ? new Date(value) : undefined
+        newInvoice.periodStart = value ? new Date(value) : undefined
+        invoice.value = newInvoice
     },
 })
 

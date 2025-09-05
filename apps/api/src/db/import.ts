@@ -13,8 +13,8 @@ import {
     activities,
     invoices,
     workloads,
+    vatRates,
 } from "./schema"
-import bcrypt from "bcrypt"
 import { eq, and } from "drizzle-orm"
 import fs from "fs/promises"
 import path from "path"
@@ -77,6 +77,7 @@ async function resetDatabase() {
     await db.delete(workloads)
     await db.delete(users)
     await db.delete(invoices)
+    await db.delete(vatRates)
 
     console.log("Database reset complete")
 }
@@ -670,6 +671,60 @@ async function importWorkloads() {
     )
 }
 
+async function importVatRates() {
+    console.log("Importing historical VAT rates...")
+
+    const historicalVatRates = [
+        // 1995-2000: 6.5%
+        { year: 1995, rate: 6.5 },
+        { year: 1996, rate: 6.5 },
+        { year: 1997, rate: 6.5 },
+        { year: 1998, rate: 6.5 },
+        { year: 1999, rate: 6.5 },
+        { year: 2000, rate: 6.5 },
+        // 2001-2010: 7.6%
+        { year: 2001, rate: 7.6 },
+        { year: 2002, rate: 7.6 },
+        { year: 2003, rate: 7.6 },
+        { year: 2004, rate: 7.6 },
+        { year: 2005, rate: 7.6 },
+        { year: 2006, rate: 7.6 },
+        { year: 2007, rate: 7.6 },
+        { year: 2008, rate: 7.6 },
+        { year: 2009, rate: 7.6 },
+        { year: 2010, rate: 7.6 },
+        // 2011-2017: 8.0%
+        { year: 2011, rate: 8.0 },
+        { year: 2012, rate: 8.0 },
+        { year: 2013, rate: 8.0 },
+        { year: 2014, rate: 8.0 },
+        { year: 2015, rate: 8.0 },
+        { year: 2016, rate: 8.0 },
+        { year: 2017, rate: 8.0 },
+        // 2018-2023: 7.7%
+        { year: 2018, rate: 7.7 },
+        { year: 2019, rate: 7.7 },
+        { year: 2020, rate: 7.7 },
+        { year: 2021, rate: 7.7 },
+        { year: 2022, rate: 7.7 },
+        { year: 2023, rate: 7.7 },
+        // 2024-present: 8.1%
+        { year: 2024, rate: 8.1 },
+    ]
+
+    const vatRatesToInsert = historicalVatRates.map((rate) => ({
+        year: rate.year,
+        rate: rate.rate,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    }))
+
+    await db.insert(vatRates).values(vatRatesToInsert)
+
+    const importedVatRates = await db.select().from(vatRates)
+    console.log(`Imported ${importedVatRates.length} VAT rates from 1995 to 2024`)
+}
+
 const importFunctions = [
     resetDatabase, // Add database reset as the first function to run
     importUsers,
@@ -684,6 +739,7 @@ const importFunctions = [
     importActivities,
     importProjectAccess,
     importWorkloads,
+    importVatRates,
 ]
 for (const importFunction of importFunctions) {
     console.log(`Running ${importFunction.name}`)

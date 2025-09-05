@@ -15,6 +15,7 @@ import LocationListView from "../views/location/LocationListView.vue"
 import ClientListView from "../views/client/ClientListView.vue"
 import CompanyListView from "../views/company/CompanyListView.vue"
 import EngineerListView from "../views/engineer/EngineerListView.vue"
+import VatRateListView from "../views/vatRate/VatRateListView.vue"
 import LoginView from "../views/LoginView.vue"
 import { useAuthStore } from "../stores/auth"
 
@@ -152,6 +153,12 @@ const router = createRouter({
             path: "/engineer",
             name: "engineer-list",
             component: EngineerListView,
+            meta: { requiresAuth: true },
+        },
+        {
+            path: "/vat-rate",
+            name: "vat-rate-list",
+            component: VatRateListView,
             meta: { requiresAuth: true },
         },
     ],

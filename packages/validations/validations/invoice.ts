@@ -7,21 +7,12 @@ import { dateSchema, timestampsSchema } from "./base"
 // ============================================================================
 
 // Invoice type enum
-export const InvoiceTypeEnum = z.enum([
-    "invoice",
-    "credit_note",
-    "proforma",
-    "quote",
-])
+export const InvoiceTypeEnum = z.enum(["invoice", "credit_note", "proforma", "quote"])
 
 export type InvoiceType = z.infer<typeof InvoiceTypeEnum>
 
 // Billing mode enum
-export const BillingModeEnum = z.enum([
-    "accordingToData",
-    "accordingToInvoice",
-    "fixedPrice",
-])
+export const BillingModeEnum = z.enum(["accordingToData", "accordingToInvoice", "fixedPrice"])
 
 export type BillingMode = z.infer<typeof BillingModeEnum>
 
@@ -86,12 +77,14 @@ export const InvoiceSchema = z.object({
     type: InvoiceTypeEnum.default("invoice"),
     billingMode: BillingModeEnum.default("accordingToData"),
     description: z.string().default(""),
+    note: z.string().default(""),
 
     // Dates
     issueDate: dateSchema.optional(),
     dueDate: dateSchema.nullable().optional(),
     periodStart: dateSchema.optional(),
     periodEnd: dateSchema.optional(),
+    period: z.string().default(""),
 
     clientAddress: z.string().default(""),
     recipientAddress: z.string().default(""),
@@ -155,20 +148,23 @@ export const createEmptyInvoice = (invoice: Partial<Invoice>): Invoice => {
 
 export const invoiceCreateSchema = z.object({
     projectId: z.number(),
-    invoiceNumber: z.string(),
-    reference: z.string(),
+    invoiceNumber: z.string().optional(),
+    reference: z.string().optional(),
     type: InvoiceTypeEnum.default("invoice"),
     billingMode: BillingModeEnum.default("accordingToData"),
     status: InvoiceStatusEnum.default("draft"),
     description: z.string(),
+    note: z.string().optional(),
 
     // Dates
     issueDate: dateSchema,
     dueDate: dateSchema.optional(),
     periodStart: dateSchema,
     periodEnd: dateSchema,
+    period: z.string().optional(),
 
-    recipientAddress: z.string(),
+    clientAddress: z.string().optional(),
+    recipientAddress: z.string().optional(),
 
     // All flat fields with defaults
     feesBase: z.number().default(0),
@@ -236,12 +232,14 @@ export const invoiceResponseSchema = z
         billingMode: BillingModeEnum,
         status: InvoiceStatusEnum,
         description: z.string(),
+        note: z.string().optional(),
 
         // Dates - flat
         issueDate: z.date().nullable(),
         dueDate: z.date().nullable(),
         periodStart: z.date().nullable(),
         periodEnd: z.date().nullable(),
+        period: z.string().optional(),
 
         // Client - flat
         clientAddress: z.string(),

@@ -38,6 +38,10 @@ export const projectResponseSchema = z
             .object({
                 id: z.number(),
                 name: z.string(),
+                country: z.string().nullable(),
+                canton: z.string().nullable(),
+                region: z.string().nullable(),
+                address: z.string().nullable(),
             })
             .nullable(),
         client: z

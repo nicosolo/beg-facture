@@ -31,7 +31,7 @@ export const useFormat = () => {
 
     const formatDate = (date: Date | null | undefined) => {
         if (!date) return "N/A"
-        return new Date(date).toLocaleDateString()
+        return new Date(date).toLocaleDateString("fr-CH")
     }
 
     return { formatCurrency, formatPercentage, formatDuration, formatDate, formatNumber }

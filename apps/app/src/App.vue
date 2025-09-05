@@ -100,6 +100,12 @@ const navigation = computed(() =>
                     current: route.name === "engineer-list",
                     visible: authStore.user?.role === "admin",
                 },
+                {
+                    name: "Taux TVA",
+                    to: { name: "vat-rate-list" },
+                    current: route.name === "vat-rate-list",
+                    visible: authStore.user?.role === "admin",
+                },
             ].filter((item) => item.visible !== false),
             // Mark parent as current if any child is current
             get current() {

@@ -61,12 +61,13 @@ import { createEmptyInvoice, type Invoice, type InvoiceResponse } from "@beg/val
 import { useFetchInvoice, useCreateInvoice, useUpdateInvoice } from "@/composables/api/useInvoice"
 import { useFetchProject } from "@/composables/api/useProject"
 import { useFetchUnbilledActivities } from "@/composables/api/useUnbilled"
+import { useFormat } from "@/composables/utils/useFormat"
 
 const route = useRoute()
 const router = useRouter()
 const invoiceId = computed(() => route.params.id as string | undefined)
 const isNewInvoice = computed(() => !invoiceId.value)
-
+const { formatDate } = useFormat()
 const activeTab = ref("general")
 const isUpdatingFromApi = ref(false)
 
@@ -122,12 +123,14 @@ const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
         type: response.type || "invoice",
         billingMode: response.billingMode,
         description: response.description || "",
+        note: response.note || "",
 
         // Dates - flat
         issueDate: response.issueDate ? new Date(response.issueDate) : undefined,
         dueDate: response.dueDate ? new Date(response.dueDate) : undefined,
         periodStart: response.periodStart ? new Date(response.periodStart) : undefined,
         periodEnd: response.periodEnd ? new Date(response.periodEnd) : undefined,
+        period: response.period || "",
 
         // Client and recipient - flat
         clientAddress: response.clientAddress || "",
@@ -183,12 +186,14 @@ const convertInvoiceToInput = (invoice: Invoice): any => {
         billingMode: invoice.billingMode,
         status: "draft",
         description: invoice.description,
+        note: invoice.note,
 
         // Dates
         issueDate: new Date(),
         dueDate: undefined,
         periodStart: invoice.periodStart,
         periodEnd: invoice.periodEnd,
+        period: invoice.period,
 
         // Recipient
         recipientAddress: invoice.recipientAddress,
@@ -311,6 +316,58 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
             }
             invoice.value.projectId = projectId.value
 
+            // Set reference from project data (projectNumber + subProjectName + name)
+            if (projectResponse.value && isNewInvoice.value) {
+                const referenceParts = []
+                if (projectResponse.value.projectNumber) {
+                    referenceParts.push(projectResponse.value.projectNumber)
+                }
+                if (projectResponse.value.subProjectName) {
+                    referenceParts.push(projectResponse.value.subProjectName)
+                }
+                if (projectResponse.value.name) {
+                    referenceParts.push(projectResponse.value.name)
+                }
+                invoice.value.reference = referenceParts.join(" - ")
+            }
+
+            // Set period string from dates
+            if (invoice.value.periodStart && invoice.value.periodEnd) {
+                invoice.value.period = `Travaux du ${formatDate(finalPeriodStart)} au ${formatDate(finalPeriodEnd)}`
+            }
+
+            // Set client address from project if available
+            if (projectResponse.value) {
+                const addressParts = []
+
+                if (projectResponse.value.client?.name) {
+                    addressParts.push(projectResponse.value.client.name)
+                }
+
+                if (projectResponse.value.location) {
+                    if (projectResponse.value.location.address) {
+                        addressParts.push(projectResponse.value.location.address)
+                    }
+
+                    const cityLine = []
+                    if (projectResponse.value.location.name) {
+                        cityLine.push(projectResponse.value.location.name)
+                    }
+                    if (projectResponse.value.location.canton) {
+                        cityLine.push(projectResponse.value.location.canton)
+                    }
+                    if (cityLine.length > 0) {
+                        addressParts.push(cityLine.join(", "))
+                    }
+
+                    if (projectResponse.value.location.country) {
+                        addressParts.push(projectResponse.value.location.country)
+                    }
+                }
+
+                invoice.value.clientAddress = addressParts.join("\n")
+            }
+
             // Fees from API calculation
             invoice.value.feesBase = unbilledData.feesBase
             invoice.value.feesAdjusted = unbilledData.feesAdjusted
@@ -348,8 +405,8 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
 
 onMounted(async () => {
     // Set page title
-    document.title = isNewInvoice.value ? 'BEG - Créer une facture' : 'BEG - Modifier la facture'
-    
+    document.title = isNewInvoice.value ? "BEG - Créer une facture" : "BEG - Modifier la facture"
+
     // If it's a new invoice with a projectId, fetch unbilled activities
     if (isNewInvoice.value && projectId.value) {
         await loadUnbilledActivities()
@@ -367,9 +424,56 @@ watch(
 )
 watch(
     () => projectId,
-    () => {
+    async () => {
         if (projectId.value) {
-            fetchProject({ params: { id: projectId.value } })
+            const project = await fetchProject({ params: { id: projectId.value } })
+
+            // Build client address from project location
+            if (project && invoice.value) {
+                const addressParts = []
+
+                if (project.client?.name) {
+                    addressParts.push(project.client.name)
+                }
+
+                if (project.location) {
+                    if (project.location.address) {
+                        addressParts.push(project.location.address)
+                    }
+
+                    const cityLine = []
+                    if (project.location.name) {
+                        cityLine.push(project.location.name)
+                    }
+                    if (project.location.canton) {
+                        cityLine.push(project.location.canton)
+                    }
+                    if (cityLine.length > 0) {
+                        addressParts.push(cityLine.join(", "))
+                    }
+
+                    if (project.location.country) {
+                        addressParts.push(project.location.country)
+                    }
+                }
+
+                invoice.value.clientAddress = addressParts.join("\n")
+
+                // Set reference from project data for new invoices
+                if (isNewInvoice.value) {
+                    const referenceParts = []
+                    if (project.projectNumber) {
+                        referenceParts.push(project.projectNumber)
+                    }
+                    if (project.subProjectName) {
+                        referenceParts.push(project.subProjectName)
+                    }
+                    if (project.name) {
+                        referenceParts.push(project.name)
+                    }
+                    invoice.value.reference = referenceParts.join(" - ")
+                }
+            }
         }
     },
     { immediate: true }
@@ -390,8 +494,17 @@ watch(
         }
 
         // Only refetch if we're creating a new invoice and have a project
-        if (invoice.value && isNewInvoice.value && projectId.value && (invoice.value.periodStart || invoice.value.periodEnd)) {
-            console.log("Refetching unbilled activities:", invoice.value.periodStart, invoice.value.periodEnd)
+        if (
+            invoice.value &&
+            isNewInvoice.value &&
+            projectId.value &&
+            (invoice.value.periodStart || invoice.value.periodEnd)
+        ) {
+            console.log(
+                "Refetching unbilled activities:",
+                invoice.value.periodStart,
+                invoice.value.periodEnd
+            )
             loadUnbilledActivities(invoice.value.periodStart, invoice.value.periodEnd)
         }
     }

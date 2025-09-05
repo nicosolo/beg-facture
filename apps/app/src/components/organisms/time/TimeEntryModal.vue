@@ -19,7 +19,7 @@
                     <div>
                         <Label>{{ $t("projects.title") }}</Label>
                         <ProjectSelect
-                            v-if="isNewEntry && !props.projectId"
+                            v-if="isNewEntry && !props.projectId && !props.defaultProjectId"
                             v-model="activity.projectId"
                             :disabled="loading"
                             required
@@ -163,6 +163,7 @@ interface Props {
     modelValue: boolean
     activityId?: number | null
     projectId?: number | null
+    defaultProjectId?: number | null
 }
 
 const props = defineProps<Props>()
@@ -190,7 +191,7 @@ const formRef = ref<HTMLFormElement | null>(null)
 
 // Activity data
 const activity = ref<ActivityCreateInput>({
-    projectId: props.projectId || 0,
+    projectId: props.projectId || props.defaultProjectId || 0,
     activityTypeId: "" as any, // Start with empty string for validation
     date: new Date(),
     duration: 0,
@@ -349,7 +350,7 @@ const closeModal = () => {
 const resetForm = () => {
     errorMessage.value = null
     activity.value = {
-        projectId: props.projectId || 0,
+        projectId: props.projectId || props.defaultProjectId || 0,
         activityTypeId: "" as any, // Start with empty string for validation
         date: new Date(),
         duration: 0,

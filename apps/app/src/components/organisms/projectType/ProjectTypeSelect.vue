@@ -6,7 +6,7 @@
         :loading="loading"
         :fetch-function="fetchProjectTypes"
         :display-field="(type: ProjectTypeSchema) => type.name"
-        :placeholder="placeholder || $t('common.selectProjectType')"
+        :placeholder="placeholder || $t('common.select')"
         :disabled="disabled"
         :required="required"
         :class-name="className"

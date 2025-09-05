@@ -1,6 +1,14 @@
 <template>
     <div>
-        <TimeFilterPanel v-model:filter="filter" :show-project-filter="showProjectFilter" />
+        <div class="mb-4">
+            <div class="flex justify-between items-start mb-4">
+                <h2 class="text-lg font-semibold">{{ $t("time.title") }}</h2>
+                <Button variant="primary" size="md" @click="openAddModal">
+                    {{ $t("time.new") }}
+                </Button>
+            </div>
+            <TimeFilterPanel v-model:filter="filter" :show-project-filter="showProjectFilter" />
+        </div>
         <LoadingOverlay :loading="loading">
             <TimeEntriesList
                 :activities="activities"
@@ -29,6 +37,7 @@
         <TimeEntryModal
             v-model="showTimeEntryModal"
             :activity-id="selectedActivityId"
+            :default-project-id="defaultProjectId"
             @saved="onTimeEntrySaved"
         />
     </div>
@@ -44,6 +53,7 @@ import TimeEntriesList from "@/components/organisms/time/TimeEntriesList.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
+import Button from "@/components/atoms/Button.vue"
 import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@beg/validations"
 
 interface Props {
@@ -72,6 +82,7 @@ const totals = ref<{ duration: number; kilometers: number; expenses: number } | 
 // Modal state
 const showTimeEntryModal = ref(false)
 const selectedActivityId = ref<number | null>(null)
+const defaultProjectId = ref<number | undefined>(undefined)
 
 // Filter state
 const filter = ref<TimeFilterModel>({
@@ -164,6 +175,14 @@ onMounted(() => {
 // Modal handlers
 const openEditModal = (activityId: number) => {
     selectedActivityId.value = activityId
+    defaultProjectId.value = undefined // Don't override project when editing
+    showTimeEntryModal.value = true
+}
+
+const openAddModal = () => {
+    selectedActivityId.value = null
+    // Use the project ID from filter if available
+    defaultProjectId.value = filter.value.projectId
     showTimeEntryModal.value = true
 }
 

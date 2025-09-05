@@ -80,7 +80,7 @@ export default {
         details: "Détails du mandat",
         name: "Nom du mandat",
         mandat: "Numéro mandat",
-        date: "Date de début",
+        date: "Date",
         designation: "Désignation",
         locality: "Localité",
         client: "Client",

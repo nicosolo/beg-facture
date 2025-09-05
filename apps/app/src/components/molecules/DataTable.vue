@@ -29,17 +29,19 @@
 
             <!-- Data rows -->
             <div class="divide-y divide-gray-200">
-                <div
+                <component
                     v-for="(item, index) in items"
                     :key="getItemKey(item, index)"
+                    :is="rowLink && rowLink(item) ? RouterLink : 'div'"
+                    :to="rowLink && rowLink(item)"
+                    :data-row-link="rowLink && rowLink(item) ? true : undefined"
                     :class="[
-                        'cursor-pointer transition-colors',
+                        'block cursor-pointer transition-colors',
                         selectedRows && selectedRows.has(getItemKey(item, index))
                             ? 'bg-blue-100 hover:bg-blue-200'
                             : 'hover:bg-gray-100',
                         getRowClass(item, index),
                     ]"
-                    @click="handleRowClick(item, index, $event)"
                     @mousedown="handleMouseDown($event)"
                 >
                     <div class="flex flex-col md:hidden">
@@ -94,7 +96,7 @@
                             </slot>
                         </div>
                     </div>
-                </div>
+                </component>
             </div>
 
             <!-- Footer row with totals -->
@@ -133,8 +135,10 @@
 
 <script setup lang="ts" generic="T = unknown">
 import { computed, ref, watch } from "vue"
+import { RouterLink } from "vue-router"
 import SortIcon from "../atoms/SortIcon.vue"
 import TruncateWithTooltip from "../atoms/TruncateWithTooltip.vue"
+import type { RouteLocationRaw } from "vue-router"
 export interface Column {
     key: string
     label: string
@@ -171,6 +175,7 @@ interface Props<T = unknown> {
     rowClass?: (item: T, index: number) => string | undefined
     selectable?: boolean
     modelValue?: Set<string | number>
+    rowLink?: (item: T) => RouteLocationRaw | undefined
 }
 const emit = defineEmits<{
     (e: "sort-change", sort: { key: string; direction: "asc" | "desc" }): void
@@ -189,6 +194,7 @@ const {
     rowClass,
     selectable = false,
     modelValue,
+    rowLink,
 } = defineProps<Props<T>>()
 
 // Internal selection state
@@ -284,17 +290,34 @@ const handleSort = (column: Column) => {
 
 // Handle row click
 const handleRowClick = (item: T, index: number, event: MouseEvent) => {
+    // If clicking on a button or link inside the row, stop propagation
+    const target = event.target as HTMLElement
+    if (target.closest('button, a[href]:not([data-row-link]), [role="button"]')) {
+        // Stop the RouterLink from navigating when clicking on interactive elements
+        event.preventDefault()
+        event.stopPropagation()
+        return
+    }
+
     // Ignore click if user has selected text
     if (window.getSelection()?.toString()) {
+        event.preventDefault()
         return
     }
 
     // Handle selection if enabled
     if (selectable || modelValue !== undefined || externalSelectedRows !== undefined) {
+        // Prevent navigation when selecting with modifier keys
+        if (event.ctrlKey || event.metaKey || event.shiftKey) {
+            event.preventDefault()
+        }
         handleSelection(item, index, event)
     }
 
-    emit("row-click", item, index, event)
+    // If no rowLink, emit row-click event
+    if (!rowLink || !rowLink(item)) {
+        emit("row-click", item, index, event)
+    }
 }
 
 // Handle selection logic

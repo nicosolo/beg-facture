@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "08dc7571-e8de-4e01-bcc7-a72cba547253",
+  "id": "47440fe9-e8d1-4399-acdb-b38510531674",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activities": {
@@ -30,28 +30,28 @@
         },
         "duration": {
           "name": "duration",
-          "type": "integer",
+          "type": "real",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "kilometers": {
           "name": "kilometers",
-          "type": "integer",
+          "type": "real",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "expenses": {
           "name": "expenses",
-          "type": "integer",
+          "type": "real",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "rate": {
           "name": "rate",
-          "type": "integer",
+          "type": "real",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -99,6 +99,13 @@
           "notNull": true,
           "autoincrement": false,
           "default": false
+        },
+        "rateClass": {
+          "name": "rateClass",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -712,7 +719,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'Facture'"
+          "default": "'invoice'"
         },
         "billingMode": {
           "name": "billingMode",
@@ -758,32 +765,25 @@
           "notNull": true,
           "autoincrement": false
         },
-        "clientId": {
-          "name": "clientId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "recipientName": {
-          "name": "recipientName",
+        "clientAddress": {
+          "name": "clientAddress",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
         "recipientAddress": {
           "name": "recipientAddress",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
         "description": {
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
         "feesBase": {
@@ -1045,13 +1045,6 @@
           ],
           "isUnique": false
         },
-        "invoices_client_idx": {
-          "name": "invoices_client_idx",
-          "columns": [
-            "clientId"
-          ],
-          "isUnique": false
-        },
         "invoices_status_idx": {
           "name": "invoices_status_idx",
           "columns": [
@@ -1082,19 +1075,6 @@
           "tableTo": "projects",
           "columnsFrom": [
             "projectId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "invoices_clientId_clients_id_fk": {
-          "name": "invoices_clientId_clients_id_fk",
-          "tableFrom": "invoices",
-          "tableTo": "clients",
-          "columnsFrom": [
-            "clientId"
           ],
           "columnsTo": [
             "id"
@@ -1343,6 +1323,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "subProjectName": {
+          "name": "subProjectName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "name": {
           "name": "name",
           "type": "text",
@@ -1430,7 +1417,7 @@
         },
         "totalDuration": {
           "name": "totalDuration",
-          "type": "integer",
+          "type": "real",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
@@ -1438,7 +1425,7 @@
         },
         "unBilledDuration": {
           "name": "unBilledDuration",
-          "type": "integer",
+          "type": "real",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
@@ -1446,7 +1433,7 @@
         },
         "unBilledDisbursementDuration": {
           "name": "unBilledDisbursementDuration",
-          "type": "integer",
+          "type": "real",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,

@@ -10,10 +10,11 @@
     >
         <template #cell:name="{ item }">
             <div>
-                <span class="text-md font-medium mr-2">{{ item.projectNumber }}</span>
-                <span v-if="item.subProjectName" class="text-sm text-gray-500 mr-2"
-                    >({{ item.subProjectName }})</span
+                <span class="text-md font-medium mr-2"
+                    >{{ item.projectNumber
+                    }}{{ item.subProjectName ? ` ${item.subProjectName}` : "" }}</span
                 >
+
                 <span class="text-sm text-gray-600">{{ item.name }}</span>
             </div>
         </template>

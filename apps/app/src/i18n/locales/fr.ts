@@ -324,4 +324,27 @@ export default {
         createSuccess: "Ingénieur créé avec succès",
         updateSuccess: "Ingénieur mis à jour avec succès",
     },
+    invoice: {
+        title: "Factures",
+        titleSingular: "Facture",
+        type: {
+            invoice: "Facture",
+            credit_note: "Note de crédit",
+            proforma: "Facture proforma",
+            quote: "Devis",
+        },
+        status: {
+            draft: "Brouillon",
+            controle: "Contrôle",
+            sent: "Envoyée",
+            paid: "Payée",
+            overdue: "En retard",
+            cancelled: "Annulée",
+        },
+        billingMode: {
+            accordingToData: "Selon données présentes",
+            accordingToInvoice: "Selon facture annexée",
+            fixedPrice: "Au forfait (voir notes)",
+        },
+    },
 }

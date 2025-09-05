@@ -2,16 +2,17 @@ CREATE TABLE `activities` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`userId` integer NOT NULL,
 	`date` integer NOT NULL,
-	`duration` integer NOT NULL,
-	`kilometers` integer NOT NULL,
-	`expenses` integer NOT NULL,
-	`rate` integer NOT NULL,
+	`duration` real NOT NULL,
+	`kilometers` real NOT NULL,
+	`expenses` real NOT NULL,
+	`rate` real NOT NULL,
 	`projectId` integer NOT NULL,
 	`activityTypeId` integer NOT NULL,
 	`description` text,
 	`billed` integer DEFAULT false NOT NULL,
 	`invoiceId` integer,
 	`disbursement` integer DEFAULT false NOT NULL,
+	`rateClass` text,
 	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
 	`createdAt` integer DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null,
@@ -100,17 +101,16 @@ CREATE TABLE `invoices` (
 	`projectId` integer NOT NULL,
 	`invoiceNumber` text NOT NULL,
 	`reference` text NOT NULL,
-	`type` text DEFAULT 'Facture' NOT NULL,
+	`type` text DEFAULT 'invoice' NOT NULL,
 	`billingMode` text DEFAULT 'accordingToData' NOT NULL,
 	`status` text DEFAULT 'draft' NOT NULL,
 	`issueDate` integer NOT NULL,
 	`dueDate` integer,
 	`periodStart` integer NOT NULL,
 	`periodEnd` integer NOT NULL,
-	`clientId` integer NOT NULL,
-	`recipientName` text NOT NULL,
-	`recipientAddress` text NOT NULL,
-	`description` text NOT NULL,
+	`clientAddress` text,
+	`recipientAddress` text,
+	`description` text,
 	`feesBase` real DEFAULT 0 NOT NULL,
 	`feesAdjusted` real DEFAULT 0 NOT NULL,
 	`feesTotal` real DEFAULT 0 NOT NULL,
@@ -141,14 +141,12 @@ CREATE TABLE `invoices` (
 	`remarksThirdPartyExpenses` text DEFAULT '',
 	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
 	`createdAt` integer DEFAULT CURRENT_TIMESTAMP,
-	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`clientId`) REFERENCES `clients`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `invoices_invoiceNumber_unique` ON `invoices` (`invoiceNumber`);--> statement-breakpoint
 CREATE INDEX `invoices_invoice_number_idx` ON `invoices` (`invoiceNumber`);--> statement-breakpoint
 CREATE INDEX `invoices_project_idx` ON `invoices` (`projectId`);--> statement-breakpoint
-CREATE INDEX `invoices_client_idx` ON `invoices` (`clientId`);--> statement-breakpoint
 CREATE INDEX `invoices_status_idx` ON `invoices` (`status`);--> statement-breakpoint
 CREATE INDEX `invoices_issue_date_idx` ON `invoices` (`issueDate`);--> statement-breakpoint
 CREATE INDEX `invoices_project_status_idx` ON `invoices` (`projectId`,`status`);--> statement-breakpoint
@@ -188,6 +186,7 @@ CREATE TABLE `project_types` (
 CREATE TABLE `projects` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`projectNumber` text NOT NULL,
+	`subProjectName` text,
 	`name` text NOT NULL,
 	`startDate` integer NOT NULL,
 	`locationId` integer,
@@ -200,9 +199,9 @@ CREATE TABLE `projects` (
 	`printFlag` integer DEFAULT false,
 	`firstActivityDate` integer,
 	`lastActivityDate` integer,
-	`totalDuration` integer DEFAULT 0,
-	`unBilledDuration` integer DEFAULT 0,
-	`unBilledDisbursementDuration` integer DEFAULT 0,
+	`totalDuration` real DEFAULT 0,
+	`unBilledDuration` real DEFAULT 0,
+	`unBilledDisbursementDuration` real DEFAULT 0,
 	`ended` integer DEFAULT false,
 	`archived` integer DEFAULT false,
 	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,

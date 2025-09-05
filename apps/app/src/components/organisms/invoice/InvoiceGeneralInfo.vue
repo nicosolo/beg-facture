@@ -70,10 +70,10 @@
                     v-model="invoice.type"
                     class="w-full p-2 border border-gray-300 rounded"
                 >
-                    <option value="Facture finale">Facture finale</option>
-                    <option value="Facture">Facture</option>
-                    <option value="Situation">Situation</option>
-                    <option value="Acompte">Acompte</option>
+                    <option value="invoice">{{ $t('invoice.type.invoice') }}</option>
+                    <option value="credit_note">{{ $t('invoice.type.credit_note') }}</option>
+                    <option value="proforma">{{ $t('invoice.type.proforma') }}</option>
+                    <option value="quote">{{ $t('invoice.type.quote') }}</option>
                 </select>
             </div>
 
@@ -85,17 +85,11 @@
                 <select
                     id="invoiceBillingMode"
                     class="w-full p-2 border border-gray-300 rounded"
-                    :value="invoice.billingMode"
+                    v-model="invoice.billingMode"
                 >
-                    <option :value="BILLING_MODE_KEYS.ACCORDING_TO_DATA">
-                        {{ BILLING_MODE_LABELS[BILLING_MODE_KEYS.ACCORDING_TO_DATA] }}
-                    </option>
-                    <option :value="BILLING_MODE_KEYS.ACCORDING_TO_INVOICE">
-                        {{ BILLING_MODE_LABELS[BILLING_MODE_KEYS.ACCORDING_TO_INVOICE] }}
-                    </option>
-                    <option :value="BILLING_MODE_KEYS.FIXED_PRICE">
-                        {{ BILLING_MODE_LABELS[BILLING_MODE_KEYS.FIXED_PRICE] }}
-                    </option>
+                    <option value="accordingToData">{{ $t('invoice.billingMode.accordingToData') }}</option>
+                    <option value="accordingToInvoice">{{ $t('invoice.billingMode.accordingToInvoice') }}</option>
+                    <option value="fixedPrice">{{ $t('invoice.billingMode.fixedPrice') }}</option>
                 </select>
             </div>
 
@@ -332,7 +326,7 @@
 </template>
 
 <script setup lang="ts">
-import { type Invoice, BILLING_MODE_KEYS, BILLING_MODE_LABELS } from "@beg/validations"
+import { type Invoice } from "@beg/validations"
 import { computed } from "vue"
 
 // Helper functions for updating nested arrays

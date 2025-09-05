@@ -6,29 +6,34 @@ import { dateSchema, timestampsSchema } from "./base"
 // Enums and Constants
 // ============================================================================
 
-// Billing mode enum with keys
-export const BILLING_MODE_KEYS = {
-    ACCORDING_TO_DATA: "accordingToData",
-    ACCORDING_TO_INVOICE: "accordingToInvoice",
-    FIXED_PRICE: "fixedPrice",
-} as const
+// Invoice type enum
+export const InvoiceTypeEnum = z.enum([
+    "invoice",
+    "credit_note",
+    "proforma",
+    "quote",
+])
 
-export const BILLING_MODE_LABELS = {
-    [BILLING_MODE_KEYS.ACCORDING_TO_DATA]: "selon données présentes",
-    [BILLING_MODE_KEYS.ACCORDING_TO_INVOICE]: "selon facture annexée",
-    [BILLING_MODE_KEYS.FIXED_PRICE]: "au forfait (voir notes)",
-} as const
+export type InvoiceType = z.infer<typeof InvoiceTypeEnum>
 
+// Billing mode enum
 export const BillingModeEnum = z.enum([
-    BILLING_MODE_KEYS.ACCORDING_TO_DATA,
-    BILLING_MODE_KEYS.ACCORDING_TO_INVOICE,
-    BILLING_MODE_KEYS.FIXED_PRICE,
+    "accordingToData",
+    "accordingToInvoice",
+    "fixedPrice",
 ])
 
 export type BillingMode = z.infer<typeof BillingModeEnum>
 
-// Invoice status enum
-export const InvoiceStatusEnum = z.enum(["draft", "sent", "paid", "overdue", "cancelled"])
+// Invoice status enum - added "controle"
+export const InvoiceStatusEnum = z.enum([
+    "draft",
+    "controle",
+    "sent",
+    "paid",
+    "overdue",
+    "cancelled",
+])
 export type InvoiceStatus = z.infer<typeof InvoiceStatusEnum>
 
 // ============================================================================
@@ -78,8 +83,8 @@ export const InvoiceSchema = z.object({
     // Basic fields
     invoiceNumber: z.string().default(""),
     reference: z.string().default(""),
-    type: z.string().default("Facture"),
-    billingMode: BillingModeEnum.default(BILLING_MODE_KEYS.ACCORDING_TO_DATA),
+    type: InvoiceTypeEnum.default("invoice"),
+    billingMode: BillingModeEnum.default("accordingToData"),
     description: z.string().default(""),
 
     // Dates
@@ -88,11 +93,7 @@ export const InvoiceSchema = z.object({
     periodStart: dateSchema.optional(),
     periodEnd: dateSchema.optional(),
 
-    // Client and recipient
-    clientId: z.number().optional(),
-    clientName: z.string().default(""),
     clientAddress: z.string().default(""),
-    recipientName: z.string().default(""),
     recipientAddress: z.string().default(""),
 
     // Fees - flat structure
@@ -156,8 +157,8 @@ export const invoiceCreateSchema = z.object({
     projectId: z.number(),
     invoiceNumber: z.string(),
     reference: z.string(),
-    type: z.string().default("Facture"),
-    billingMode: BillingModeEnum.default(BILLING_MODE_KEYS.ACCORDING_TO_DATA),
+    type: InvoiceTypeEnum.default("invoice"),
+    billingMode: BillingModeEnum.default("accordingToData"),
     status: InvoiceStatusEnum.default("draft"),
     description: z.string(),
 
@@ -167,9 +168,6 @@ export const invoiceCreateSchema = z.object({
     periodStart: dateSchema,
     periodEnd: dateSchema,
 
-    // Client and recipient
-    clientId: z.number(),
-    recipientName: z.string(),
     recipientAddress: z.string(),
 
     // All flat fields with defaults
@@ -234,7 +232,7 @@ export const invoiceResponseSchema = z
         projectId: z.number(),
         invoiceNumber: z.string(),
         reference: z.string(),
-        type: z.string(),
+        type: InvoiceTypeEnum,
         billingMode: BillingModeEnum,
         status: InvoiceStatusEnum,
         description: z.string(),
@@ -246,12 +244,9 @@ export const invoiceResponseSchema = z
         periodEnd: z.date().nullable(),
 
         // Client - flat
-        clientId: z.number(),
-        clientName: z.string(),
         clientAddress: z.string(),
 
         // Recipient - flat
-        recipientName: z.string(),
         recipientAddress: z.string(),
 
         // Fees - flat
@@ -310,7 +305,6 @@ export type InvoiceResponse = z.infer<typeof invoiceResponseSchema>
 export const invoiceFilterSchema = z
     .object({
         projectId: z.coerce.number().optional(),
-        clientId: z.coerce.number().optional(),
         status: InvoiceStatusEnum.optional(),
         fromDate: z.coerce.date().optional(),
         toDate: z.coerce.date().optional(),

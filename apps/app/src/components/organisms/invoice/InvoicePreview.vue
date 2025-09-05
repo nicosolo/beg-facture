@@ -19,7 +19,7 @@
                         <td class="info1 font-bold pr-8 text-right w-[4cm] border border-gray-300">
                             Type de facture
                         </td>
-                        <td class="info2 border border-gray-300">{{ invoice.type }}</td>
+                        <td class="info2 border border-gray-300">{{ $t(`invoice.type.${invoice.type}`) }}</td>
                     </tr>
                     <tr>
                         <td class="info1 font-bold pr-8 text-right w-[4cm] border border-gray-300">
@@ -72,7 +72,7 @@
                             Adresse de facturation
                         </td>
                         <td class="info2 border border-gray-300">
-                            {{ invoice.clientName }}<br />{{ invoice.clientAddress }}<br /><br />
+                            {{ invoice.clientAddress }}<br /><br />
                         </td>
                     </tr>
                     <tr>
@@ -80,8 +80,7 @@
                             Adresse d'envoi
                         </td>
                         <td class="info2 border border-gray-300">
-                            {{ invoice.recipientName }}<br />{{ invoice.recipientAddress
-                            }}<br /><br />
+                            {{ invoice.recipientAddress }}<br /><br />
                         </td>
                     </tr>
                     <tr>
@@ -97,8 +96,8 @@
                             Période de facturation
                         </td>
                         <td class="info2 border border-gray-300">
-                            Travaux du {{ formatDate(invoice.period.startDate) }} au
-                            {{ formatDate(invoice.period.endDate) }}
+                            Travaux du {{ formatDate(invoice.periodStart) }} au
+                            {{ formatDate(invoice.periodEnd) }}
                         </td>
                     </tr>
                     <tr>
@@ -253,8 +252,9 @@
 
 <script setup lang="ts">
 import { defineProps, computed } from "vue"
-import { type Invoice, BILLING_MODE_LABELS } from "@beg/validations"
+import { type Invoice } from "@beg/validations"
 import { useFormat } from "@/composables/utils/useFormat"
+import { useI18n } from "vue-i18n"
 
 interface InvoiceProps {
     invoice: Invoice
@@ -262,6 +262,7 @@ interface InvoiceProps {
 
 const props = defineProps<InvoiceProps>()
 const { formatCurrency, formatDuration, formatDate } = useFormat()
+const { t } = useI18n()
 
 const formattedDescription = computed(() => {
     // Replace line breaks with <br> tags for HTML rendering
@@ -274,10 +275,7 @@ const filteredRates = computed(() => {
 })
 
 const billingModeLabel = computed(() => {
-    return (
-        BILLING_MODE_LABELS[props.invoice.billingMode as keyof typeof BILLING_MODE_LABELS] ||
-        props.invoice.billingMode
-    )
+    return t(`invoice.billingMode.${props.invoice.billingMode}`)
 })
 
 const printInvoice = () => {

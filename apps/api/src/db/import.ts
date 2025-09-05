@@ -435,6 +435,7 @@ async function importProjects() {
                 createdAt: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
                 updatedAt: new Date(),
                 ended: rawProject.Etat === "Terminé",
+                subProjectName: rawProject["Sous-mandat"] || null,
             } satisfies typeof projects.$inferInsert
 
             chunkProjects.push(project)

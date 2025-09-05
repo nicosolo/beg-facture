@@ -263,22 +263,25 @@ export const invoices = sqliteTable(
             .references(() => projects.id, { onDelete: "set null" }),
         invoiceNumber: text("invoiceNumber").notNull().unique(),
         reference: text("reference").notNull(),
-        type: text("type").notNull().default("Facture"),
-        billingMode: text("billingMode").notNull().default("accordingToData"),
+        type: text("type")
+            .$type<"invoice" | "credit_note" | "proforma" | "quote">()
+            .notNull()
+            .default("invoice"),
+        billingMode: text("billingMode")
+            .$type<"accordingToData" | "accordingToInvoice" | "fixedPrice">()
+            .notNull()
+            .default("accordingToData"),
         status: text("status")
-            .$type<"draft" | "sent" | "paid" | "overdue" | "cancelled">()
+            .$type<"draft" | "controle" | "sent" | "paid" | "overdue" | "cancelled">()
             .notNull()
             .default("draft"),
         issueDate: integer("issueDate", { mode: "timestamp" }).notNull(),
         dueDate: integer("dueDate", { mode: "timestamp" }),
         periodStart: integer("periodStart", { mode: "timestamp" }).notNull(),
         periodEnd: integer("periodEnd", { mode: "timestamp" }).notNull(),
-        clientId: integer("clientId")
-            .notNull()
-            .references(() => clients.id, { onDelete: "set null" }),
-        recipientName: text("recipientName").notNull(),
-        recipientAddress: text("recipientAddress").notNull(),
-        description: text("description").notNull(),
+        clientAddress: text("clientAddress"),
+        recipientAddress: text("recipientAddress"),
+        description: text("description"),
         // Fee totals
         feesBase: real("feesBase").notNull().default(0),
         feesAdjusted: real("feesAdjusted").notNull().default(0),
@@ -318,8 +321,6 @@ export const invoices = sqliteTable(
         index("invoices_invoice_number_idx").on(table.invoiceNumber),
         // Index for project queries
         index("invoices_project_idx").on(table.projectId),
-        // Index for client queries
-        index("invoices_client_idx").on(table.clientId),
         // Index for status queries
         index("invoices_status_idx").on(table.status),
         // Index for date queries

@@ -119,7 +119,7 @@ const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
         // All fields are already flat in response
         invoiceNumber: response.invoiceNumber || "",
         reference: response.reference || "",
-        type: response.type || "Facture",
+        type: response.type || "invoice",
         billingMode: response.billingMode,
         description: response.description || "",
 
@@ -130,10 +130,7 @@ const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
         periodEnd: response.periodEnd ? new Date(response.periodEnd) : undefined,
 
         // Client and recipient - flat
-        clientId: response.clientId,
-        clientName: response.clientName || "",
         clientAddress: response.clientAddress || "",
-        recipientName: response.recipientName || "",
         recipientAddress: response.recipientAddress || "",
 
         // All flat fields from response
@@ -193,9 +190,7 @@ const convertInvoiceToInput = (invoice: Invoice): any => {
         periodStart: invoice.periodStart,
         periodEnd: invoice.periodEnd,
 
-        // Client and recipient
-        clientId: invoice.clientId,
-        recipientName: invoice.recipientName,
+        // Recipient
         recipientAddress: invoice.recipientAddress,
 
         // All flat fields
@@ -382,17 +377,22 @@ watch(
 
 // Watch for period changes and refetch unbilled activities
 watch(
-    () => [invoice.value?.periodStart, invoice.value?.periodEnd],
-    ([newStart, newEnd]) => {
+    () => [invoice.value?.periodStart?.getTime(), invoice.value?.periodEnd?.getTime()],
+    ([newStartTime, newEndTime], [oldStartTime, oldEndTime]) => {
         // Skip if we're updating from API to prevent infinite loop
         if (isUpdatingFromApi.value) {
             return
         }
 
+        // Only refetch if the period actually changed
+        if (newStartTime === oldStartTime && newEndTime === oldEndTime) {
+            return
+        }
+
         // Only refetch if we're creating a new invoice and have a project
-        if (invoice.value && isNewInvoice.value && projectId.value && (newStart || newEnd)) {
-            console.log("Refetching unbilled activities:", newStart, newEnd)
-            loadUnbilledActivities(newStart as Date | undefined, newEnd as Date | undefined)
+        if (invoice.value && isNewInvoice.value && projectId.value && (invoice.value.periodStart || invoice.value.periodEnd)) {
+            console.log("Refetching unbilled activities:", invoice.value.periodStart, invoice.value.periodEnd)
+            loadUnbilledActivities(invoice.value.periodStart, invoice.value.periodEnd)
         }
     }
 )

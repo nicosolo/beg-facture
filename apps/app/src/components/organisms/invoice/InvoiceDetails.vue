@@ -677,18 +677,24 @@ const updateExpense = (field: string, value: number) => {
 // Toggle package
 const togglePackage = () => {
     const newInvoice = { ...invoice.value }
-    if (newInvoice.expensesPackagePercentage) {
-        newInvoice.expensesPackagePercentage = newInvoice.expensesPackagePercentage > 0 ? 0 : 10
-    } else {
-        newInvoice.expensesPackagePercentage = 10
-    }
+    
+    // Check if there's any package currently applied
+    const hasExistingPackage =
+        (newInvoice.expensesPackagePercentage || 0) > 0 || (newInvoice.expensesPackageAmount || 0) > 0
 
-    // Calculate package amount
-    if (newInvoice.expensesPackagePercentage && newInvoice.feesFinalTotal) {
-        newInvoice.expensesPackageAmount =
-            (newInvoice.feesFinalTotal * newInvoice.expensesPackagePercentage) / 100
-    } else {
+    if (hasExistingPackage) {
+        // Remove package
+        newInvoice.expensesPackagePercentage = 0
         newInvoice.expensesPackageAmount = 0
+    } else {
+        // Apply default package based on current type
+        if (packageType.value === "percentage") {
+            newInvoice.expensesPackagePercentage = 10
+            newInvoice.expensesPackageAmount = (newInvoice.feesTotal * 10) / 100
+        } else {
+            newInvoice.expensesPackageAmount = 500
+            newInvoice.expensesPackagePercentage = 0
+        }
     }
 
     recalculateExpensesTotal(newInvoice)
@@ -705,7 +711,7 @@ const setPackageType = (type: "percentage" | "fixed") => {
         // Convert to percentage if was fixed
         if (!newInvoice.expensesPackagePercentage || newInvoice.expensesPackagePercentage === 0) {
             newInvoice.expensesPackagePercentage = 10
-            newInvoice.expensesPackageAmount = (newInvoice.feesFinalTotal * 10) / 100
+            newInvoice.expensesPackageAmount = (newInvoice.feesTotal * 10) / 100
         }
     } else {
         // Convert to fixed if was percentage
@@ -724,9 +730,9 @@ const updatePackagePercentage = (value: number) => {
     const newInvoice = { ...invoice.value }
     newInvoice.expensesPackagePercentage = value
 
-    // Calculate package amount
-    if (value && newInvoice.feesFinalTotal) {
-        newInvoice.expensesPackageAmount = (newInvoice.feesFinalTotal * value) / 100
+    // Calculate package amount based on fees total (after discount)
+    if (value && newInvoice.feesTotal) {
+        newInvoice.expensesPackageAmount = (newInvoice.feesTotal * value) / 100
     } else {
         newInvoice.expensesPackageAmount = 0
     }
@@ -749,8 +755,9 @@ const updatePackageAmount = (value: number) => {
 
 // Helper to recalculate expenses total
 const recalculateExpensesTotal = (inv: any) => {
-    if (inv.expensesPackagePercentage && inv.expensesPackagePercentage > 0) {
-        // If using package, only use package amount
+    if ((inv.expensesPackagePercentage && inv.expensesPackagePercentage > 0) || 
+        (inv.expensesPackageAmount && inv.expensesPackageAmount > 0)) {
+        // If using package (either percentage or fixed), only use package amount
         inv.expensesTotalExpenses = inv.expensesPackageAmount || 0
     } else {
         // Otherwise sum all individual expenses

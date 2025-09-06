@@ -134,11 +134,7 @@ export const invoiceRepository = {
 
                     // Client - flat
                     clientAddress: row.invoice.clientAddress || "",
-
-                    // Recipient - flat
-                    recipientName: "", // Not stored in invoice table
                     recipientAddress: row.invoice.recipientAddress || "",
-
                     // Fees - flat
                     feesBase: row.invoice.feesBase,
                     feesAdjusted: row.invoice.feesAdjusted,
@@ -272,9 +268,6 @@ export const invoiceRepository = {
 
             // Client - flat
             clientAddress: row.invoice.clientAddress || "",
-
-            // Recipient - flat
-            recipientName: "", // Not stored in invoice table
             recipientAddress: row.invoice.recipientAddress || "",
 
             // Fees - flat
@@ -371,7 +364,7 @@ export const invoiceRepository = {
                     periodStart: data.periodStart,
                     periodEnd: data.periodEnd,
                     period: data.period || null,
-                    clientAddress: data.clientAddress || null,
+                    clientAddress: data.clientAddress,
                     recipientAddress: data.recipientAddress,
                     description: data.description,
                     note: data.note,

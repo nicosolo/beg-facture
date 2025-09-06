@@ -11,7 +11,7 @@
             </div>
 
             <!-- Header -->
-            <div class="px-6 py-4 border-b border-gray-200">
+            <div class="py-2 border-b border-gray-200 mb-4">
                 <h1 class="text-xl font-semibold text-gray-900">
                     {{ title }}
                 </h1>

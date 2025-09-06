@@ -5,58 +5,20 @@
             <!-- Invoice Reference -->
             <div class="mb-4">
                 <h3 class="text-sm font-medium text-gray-700 mb-1">Objet de la facture</h3>
-                <input
-                    type="text"
-                    v-model="invoice.reference"
-                    class="w-full p-2 border border-gray-300 rounded"
-                    required
-                />
+                <Input v-model="invoice.reference" type="text" required />
             </div>
             <!-- Invoice Period -->
             <div class="mb-4">
                 <h3 class="text-sm font-medium text-gray-700 mb-1">Période de facturation</h3>
                 <div class="flex gap-2">
-                    <input
-                        type="date"
+                    <Input
                         v-model="startDate"
-                        placeholder="Date début"
-                        class="w-1/2 p-2 border border-gray-300 rounded"
-                    />
-                    <input
                         type="date"
-                        v-model="endDate"
-                        placeholder="Date fin"
-                        class="w-1/2 p-2 border border-gray-300 rounded"
+                        placeholder="Date début"
+                        className="w-1/2"
                     />
+                    <Input v-model="endDate" type="date" placeholder="Date fin" className="w-1/2" />
                 </div>
-            </div>
-
-            <!-- Period String -->
-            <div class="mb-4">
-                <label class="text-sm font-medium text-gray-700 mb-1" for="invoicePeriod">
-                    Période (optionnel)
-                </label>
-                <input
-                    id="invoicePeriod"
-                    type="text"
-                    v-model="invoice.period"
-                    placeholder="Ex: Janvier 2025 - Mars 2025"
-                    class="w-full p-2 border border-gray-300 rounded"
-                />
-            </div>
-
-            <!-- Client Information -->
-            <div class="mb-4">
-                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceClientAddress">
-                    Adresse de facturation (société)
-                </label>
-                <textarea
-                    id="invoiceClientAddress"
-                    v-model="invoice.clientAddress"
-                    rows="4"
-                    placeholder="Adresse de facturation (société)"
-                    class="w-full p-2 border border-gray-300 rounded"
-                ></textarea>
             </div>
 
             <!-- Description -->
@@ -64,12 +26,7 @@
                 <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceDescription">
                     Description des prestations
                 </label>
-                <textarea
-                    id="invoiceDescription"
-                    v-model="invoice.description"
-                    rows="6"
-                    class="w-full p-2 border border-gray-300 rounded"
-                ></textarea>
+                <Textarea id="invoiceDescription" v-model="invoice.description" :rows="6" />
             </div>
 
             <!-- Note -->
@@ -77,67 +34,69 @@
                 <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceNote">
                     Note (optionnel)
                 </label>
-                <textarea
+                <Textarea
                     id="invoiceNote"
                     v-model="invoice.note"
-                    rows="4"
+                    :rows="4"
                     placeholder="Note additionnelle pour la facture"
-                    class="w-full p-2 border border-gray-300 rounded"
-                ></textarea>
+                />
             </div>
         </div>
 
         <!-- Right Column -->
         <div>
-            <!-- Invoice Type -->
-            <div class="mb-4">
-                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceType">
-                    Type de facture
-                </label>
-                <select
-                    id="invoiceType"
-                    v-model="invoice.type"
-                    class="w-full p-2 border border-gray-300 rounded"
-                >
-                    <option value="invoice">{{ $t("invoice.type.invoice") }}</option>
-                    <option value="credit_note">{{ $t("invoice.type.credit_note") }}</option>
-                    <option value="proforma">{{ $t("invoice.type.proforma") }}</option>
-                    <option value="quote">{{ $t("invoice.type.quote") }}</option>
-                </select>
-            </div>
+            <!-- Invoice Type and Billing Mode on same line -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <!-- Invoice Type -->
+                <div>
+                    <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceType">
+                        Type de facture
+                    </label>
+                    <Select
+                        id="invoiceType"
+                        v-model="invoice.type"
+                        :options="[
+                            { value: 'invoice', label: $t('invoice.type.invoice') },
+                            { value: 'credit_note', label: $t('invoice.type.credit_note') },
+                            { value: 'proforma', label: $t('invoice.type.proforma') },
+                            { value: 'quote', label: $t('invoice.type.quote') },
+                        ]"
+                    />
+                </div>
 
-            <!-- Billing mode -->
-            <div class="mb-4">
-                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceBillingMode">
-                    Mode de facturation
-                </label>
-                <select
-                    id="invoiceBillingMode"
-                    class="w-full p-2 border border-gray-300 rounded"
-                    v-model="invoice.billingMode"
-                >
-                    <option value="accordingToData">
-                        {{ $t("invoice.billingMode.accordingToData") }}
-                    </option>
-                    <option value="accordingToInvoice">
-                        {{ $t("invoice.billingMode.accordingToInvoice") }}
-                    </option>
-                    <option value="fixedPrice">{{ $t("invoice.billingMode.fixedPrice") }}</option>
-                </select>
+                <!-- Billing mode -->
+                <div>
+                    <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceBillingMode">
+                        Mode de facturation
+                    </label>
+                    <Select
+                        id="invoiceBillingMode"
+                        v-model="invoice.billingMode"
+                        :options="[
+                            {
+                                value: 'accordingToData',
+                                label: $t('invoice.billingMode.accordingToData'),
+                            },
+                            {
+                                value: 'accordingToInvoice',
+                                label: $t('invoice.billingMode.accordingToInvoice'),
+                            },
+                            { value: 'fixedPrice', label: $t('invoice.billingMode.fixedPrice') },
+                        ]"
+                    />
+                </div>
             </div>
-
-            <!-- Recipient Information -->
+            <!-- Period String -->
             <div class="mb-4">
-                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceRecipientAddress">
-                    Adresse d'envoi de la facture
+                <label class="text-sm font-medium text-gray-700 mb-1" for="invoicePeriod">
+                    Période
                 </label>
-                <textarea
-                    id="invoiceRecipientAddress"
-                    v-model="invoice.recipientAddress"
-                    placeholder="Adresse d'envoi de la facture"
-                    rows="4"
-                    class="w-full p-2 border border-gray-300 rounded"
-                ></textarea>
+                <Input
+                    id="invoicePeriod"
+                    v-model="invoice.period"
+                    type="text"
+                    placeholder="Ex: Janvier 2025 - Mars 2025"
+                />
             </div>
 
             <!-- Offers -->
@@ -172,65 +131,40 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr v-for="(offer, index) in invoice.offers || []" :key="index">
                                 <td class="px-4 py-2 text-sm text-gray-900">
-                                    <input
-                                        type="text"
-                                        :value="offer.file"
-                                        @input="
-                                            (e) =>
-                                                updateOffer(
-                                                    index,
-                                                    'file',
-                                                    (e.target as HTMLInputElement).value
-                                                )
+                                    <Input
+                                        :modelValue="offer.file"
+                                        @update:modelValue="
+                                            (value) => updateOffer(index, 'file', value)
                                         "
-                                        class="w-full p-1 border border-gray-300 rounded"
+                                        type="text"
                                     />
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-900">
-                                    <input
-                                        type="text"
-                                        :value="offer.date"
-                                        @input="
-                                            (e) =>
-                                                updateOffer(
-                                                    index,
-                                                    'date',
-                                                    (e.target as HTMLInputElement).value
-                                                )
+                                    <Input
+                                        :modelValue="offer.date"
+                                        @update:modelValue="
+                                            (value) => updateOffer(index, 'date', value)
                                         "
-                                        class="w-full p-1 border border-gray-300 rounded"
+                                        type="text"
                                     />
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-900">
-                                    <input
+                                    <Input
+                                        :modelValue="String(offer.amount || '')"
+                                        @update:modelValue="
+                                            (value) =>
+                                                updateOffer(index, 'amount', parseFloat(value) || 0)
+                                        "
                                         type="number"
-                                        :value="offer.amount"
-                                        @input="
-                                            (e) =>
-                                                updateOffer(
-                                                    index,
-                                                    'amount',
-                                                    parseFloat(
-                                                        (e.target as HTMLInputElement).value
-                                                    ) || 0
-                                                )
-                                        "
-                                        class="w-full p-1 border border-gray-300 rounded"
                                     />
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-900">
-                                    <input
-                                        type="text"
-                                        :value="offer.remark"
-                                        @input="
-                                            (e) =>
-                                                updateOffer(
-                                                    index,
-                                                    'remark',
-                                                    (e.target as HTMLInputElement).value
-                                                )
+                                    <Input
+                                        :modelValue="offer.remark"
+                                        @update:modelValue="
+                                            (value) => updateOffer(index, 'remark', value)
                                         "
-                                        class="w-full p-1 border border-gray-300 rounded"
+                                        type="text"
                                     />
                                 </td>
                             </tr>
@@ -281,65 +215,44 @@
                                 :key="`adjudication-${index}`"
                             >
                                 <td class="px-4 py-2 text-sm text-gray-900">
-                                    <input
-                                        type="text"
-                                        :value="adjudication.file"
-                                        @input="
-                                            (e) =>
-                                                updateAdjudication(
-                                                    index,
-                                                    'file',
-                                                    (e.target as HTMLInputElement).value
-                                                )
+                                    <Input
+                                        :modelValue="adjudication.file"
+                                        @update:modelValue="
+                                            (value) => updateAdjudication(index, 'file', value)
                                         "
-                                        class="w-full p-1 border border-gray-300 rounded"
+                                        type="text"
                                     />
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-900">
-                                    <input
-                                        type="text"
-                                        :value="adjudication.date"
-                                        @input="
-                                            (e) =>
-                                                updateAdjudication(
-                                                    index,
-                                                    'date',
-                                                    (e.target as HTMLInputElement).value
-                                                )
+                                    <Input
+                                        :modelValue="adjudication.date"
+                                        @update:modelValue="
+                                            (value) => updateAdjudication(index, 'date', value)
                                         "
-                                        class="w-full p-1 border border-gray-300 rounded"
+                                        type="text"
                                     />
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-900">
-                                    <input
-                                        type="number"
-                                        :value="adjudication.amount"
-                                        @input="
-                                            (e) =>
+                                    <Input
+                                        :modelValue="String(adjudication.amount || '')"
+                                        @update:modelValue="
+                                            (value) =>
                                                 updateAdjudication(
                                                     index,
                                                     'amount',
-                                                    parseFloat(
-                                                        (e.target as HTMLInputElement).value
-                                                    ) || 0
+                                                    parseFloat(value) || 0
                                                 )
                                         "
-                                        class="w-full p-1 border border-gray-300 rounded"
+                                        type="number"
                                     />
                                 </td>
                                 <td class="px-4 py-2 text-sm text-gray-900">
-                                    <input
-                                        type="text"
-                                        :value="adjudication.remark"
-                                        @input="
-                                            (e) =>
-                                                updateAdjudication(
-                                                    index,
-                                                    'remark',
-                                                    (e.target as HTMLInputElement).value
-                                                )
+                                    <Input
+                                        :modelValue="adjudication.remark"
+                                        @update:modelValue="
+                                            (value) => updateAdjudication(index, 'remark', value)
                                         "
-                                        class="w-full p-1 border border-gray-300 rounded"
+                                        type="text"
                                     />
                                 </td>
                             </tr>
@@ -356,11 +269,43 @@
             </div>
         </div>
     </div>
+
+    <!-- Addresses Section - Full Width -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <!-- Client Information -->
+        <div>
+            <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceClientAddress">
+                Adresse de facturation (société)
+            </label>
+            <Textarea
+                id="invoiceClientAddress"
+                v-model="invoice.clientAddress"
+                :rows="4"
+                placeholder="Adresse de facturation (société)"
+            />
+        </div>
+
+        <!-- Recipient Information -->
+        <div>
+            <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceRecipientAddress">
+                Adresse d'envoi de la facture
+            </label>
+            <Textarea
+                id="invoiceRecipientAddress"
+                v-model="invoice.recipientAddress"
+                :rows="4"
+                placeholder="Adresse d'envoi de la facture"
+            />
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { type Invoice } from "@beg/validations"
 import { computed } from "vue"
+import Input from "@/components/atoms/Input.vue"
+import Select from "@/components/atoms/Select.vue"
+import Textarea from "@/components/atoms/Textarea.vue"
 
 // Helper functions for updating nested arrays
 const updateOffer = (index: number, field: string, value: any) => {

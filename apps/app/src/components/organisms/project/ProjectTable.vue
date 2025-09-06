@@ -126,7 +126,7 @@ const columns = ref([
     {
         key: "name",
         label: t("projects.name"),
-        width: "w-1/3",
+        width: "7rem",
         sortable: true,
     },
 

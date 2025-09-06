@@ -1,6 +1,7 @@
 <template>
     <FormLayout
         :title="isNewInvoice ? 'Créer une facture' : 'Modifier la facture'"
+        :subtitle="invoice?.reference"
         :loading="fetchProjectLoading || fetchUnbilledLoading"
         :error-message="errorMessage"
     >
@@ -188,6 +189,7 @@ const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
 
 // Helper to convert form data to API input
 const convertInvoiceToInput = (invoice: Invoice): any => {
+    console.log(invoice)
     return {
         projectId: invoice.projectId,
         invoiceNumber: invoice.invoiceNumber,
@@ -205,7 +207,8 @@ const convertInvoiceToInput = (invoice: Invoice): any => {
         periodEnd: invoice.periodEnd,
         period: invoice.period,
 
-        // Recipient
+        // Client and recipient addresses
+        clientAddress: invoice.clientAddress,
         recipientAddress: invoice.recipientAddress,
 
         // All flat fields
@@ -272,7 +275,7 @@ const handleSave = async () => {
         if (isNewInvoice.value && invoice.value) {
             const data = await createInvoice({ body: convertInvoiceToInput(invoice.value) })
             if (data) {
-                router.push({ name: "invoice-edit", params: { id: data.id } })
+                router.push({ name: "invoice-preview", params: { id: data.id } })
             }
         } else if (invoiceId.value && invoice.value) {
             await updateInvoice({

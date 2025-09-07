@@ -4,7 +4,16 @@
             <section class="mb-8">
                 <h2 class="text-lg font-medium mb-4 bg-gray-100 p-2 text-center">HONORAIRES</h2>
                 <div class="border border-gray-200 rounded overflow-x-scroll">
-                    <table class="w-full divide-y divide-gray-200 text-left min-w-[600px]">
+                    <table
+                        class="w-full divide-y divide-gray-200 text-left min-w-[550px] table-fixed"
+                    >
+                        <colgroup>
+                            <col style="width: 25%" />
+                            <col style="width: 15%" />
+                            <col style="width: 20%" />
+                            <col style="width: 20%" />
+                            <col style="width: 20%" />
+                        </colgroup>
                         <thead class="bg-gray-50">
                             <tr>
                                 <th
@@ -19,7 +28,9 @@
                                 <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
                                     Tarif
                                 </th>
-                                <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
+                                <th
+                                    class="px-4 py-2 text-xs font-medium text-gray-500 uppercase text-right"
+                                >
                                     Montant
                                 </th>
                             </tr>
@@ -154,7 +165,16 @@
             <section class="mb-8">
                 <h2 class="text-lg font-medium mb-4 bg-gray-100 p-2 text-center">FRAIS</h2>
                 <div class="border border-gray-200 rounded overflow-x-scroll">
-                    <table class="w-full divide-y divide-gray-200 text-left min-w-[600px]">
+                    <table
+                        class="w-full divide-y divide-gray-200 text-left min-w-[550px] table-fixed"
+                    >
+                        <colgroup>
+                            <col style="width: 25%" />
+                            <col style="width: 15%" />
+                            <col style="width: 20%" />
+                            <col style="width: 20%" />
+                            <col style="width: 20%" />
+                        </colgroup>
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
@@ -169,7 +189,9 @@
                                 <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
                                     Taux/Montant
                                 </th>
-                                <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
+                                <th
+                                    class="px-4 py-2 text-xs font-medium text-gray-500 uppercase text-right"
+                                >
                                     Total
                                 </th>
                             </tr>
@@ -177,7 +199,7 @@
                         <tbody class="bg-white divide-y divide-gray-200 text-sm">
                             <!-- Travel expenses (kilometers) -->
                             <tr>
-                                <td class="px-4 py-2">Déplacements (km)</td>
+                                <td class="px-4 py-2">Km</td>
                                 <td class="px-4 py-2">{{ invoice.expensesTravelBase || 0 }} km</td>
                                 <td class="px-4 py-2">
                                     <InputNumber
@@ -243,86 +265,79 @@
                                     {{ formatCurrency(invoice.expensesThirdPartyAmount || 0) }}
                                 </td>
                             </tr>
-                            <!-- Package option -->
+                            <!-- Package option (similar to discount row) -->
                             <tr>
-                                <td class="px-4 py-2" colspan="5">
-                                    <div class="space-y-2">
-                                        <label class="flex items-center gap-2">
+                                <td class="px-4 py-2">
+                                    <label class="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            :checked="hasPackage"
+                                            @change="togglePackage"
+                                            class="h-4 w-4"
+                                        />
+                                        <span>Forfait frais</span>
+                                    </label>
+                                </td>
+                                <td class="px-4 py-2" colspan="2">
+                                    <div v-if="hasPackage" class="flex items-center gap-2">
+                                        <label class="flex items-center gap-1">
                                             <input
-                                                type="checkbox"
-                                                :checked="hasPackage"
-                                                @change="togglePackage"
-                                                class="h-4 w-4"
+                                                type="radio"
+                                                name="packageType"
+                                                value="percentage"
+                                                :checked="packageType === 'percentage'"
+                                                @change="setPackageType('percentage')"
+                                                class="h-3 w-3"
                                             />
-                                            <span>Forfait frais</span>
+                                            <span class="text-xs">%</span>
                                         </label>
-                                        <div v-if="hasPackage" class="pl-6 space-y-2">
-                                            <!-- Package type selection -->
-                                            <div class="flex gap-4">
-                                                <label class="flex items-center gap-2">
-                                                    <input
-                                                        type="radio"
-                                                        name="packageType"
-                                                        value="percentage"
-                                                        :checked="packageType === 'percentage'"
-                                                        @change="setPackageType('percentage')"
-                                                        class="h-4 w-4"
-                                                    />
-                                                    <span class="text-sm">Pourcentage</span>
-                                                </label>
-                                                <label class="flex items-center gap-2">
-                                                    <input
-                                                        type="radio"
-                                                        name="packageType"
-                                                        value="fixed"
-                                                        :checked="packageType === 'fixed'"
-                                                        @change="setPackageType('fixed')"
-                                                        class="h-4 w-4"
-                                                    />
-                                                    <span class="text-sm">Au forfait</span>
-                                                </label>
-                                            </div>
-                                            <!-- Input based on type -->
-                                            <div class="flex items-center gap-2">
-                                                <InputNumber
-                                                    v-if="packageType === 'percentage'"
-                                                    :modelValue="
-                                                        invoice.expensesPackagePercentage || 0
-                                                    "
-                                                    @update:modelValue="updatePackagePercentage"
-                                                    :min="0"
-                                                    :max="100"
-                                                    :step="1"
-                                                    class="w-20"
-                                                />
-                                                <span v-if="packageType === 'percentage'"
-                                                    >% des honoraires</span
-                                                >
-                                                <InputNumber
-                                                    v-if="packageType === 'fixed'"
-                                                    :modelValue="invoice.expensesPackageAmount || 0"
-                                                    @update:modelValue="updatePackageAmount"
-                                                    :min="0"
-                                                    :step="100"
-                                                    class="w-32"
-                                                />
-                                                <span v-if="packageType === 'fixed'">CHF</span>
-                                            </div>
-                                            <div class="text-sm text-gray-600">
-                                                Montant forfait:
-                                                {{
-                                                    formatCurrency(
-                                                        invoice.expensesPackageAmount || 0
-                                                    )
-                                                }}
-                                            </div>
-                                        </div>
+                                        <label class="flex items-center gap-1">
+                                            <input
+                                                type="radio"
+                                                name="packageType"
+                                                value="fixed"
+                                                :checked="packageType === 'fixed'"
+                                                @change="setPackageType('fixed')"
+                                                class="h-3 w-3"
+                                            />
+                                            <span class="text-xs">CHF</span>
+                                        </label>
                                     </div>
                                 </td>
-                            </tr>
-                            <tr class="font-medium">
-                                <td class="px-4 py-2" colspan="4">TOTAL FRAIS</td>
+                                <td class="px-4 py-2">
+                                    <div v-if="hasPackage" class="flex items-center gap-1">
+                                        <InputNumber
+                                            v-if="packageType === 'percentage'"
+                                            :modelValue="invoice.expensesPackagePercentage || 0"
+                                            @update:modelValue="updatePackagePercentage"
+                                            :min="0"
+                                            :max="100"
+                                            :step="1"
+                                            class="w-20"
+                                        />
+                                        <span v-if="packageType === 'percentage'" class="text-sm"
+                                            >%</span
+                                        >
+                                        <InputNumber
+                                            v-if="packageType === 'fixed'"
+                                            :modelValue="invoice.expensesPackageAmount || 0"
+                                            @update:modelValue="updatePackageAmount"
+                                            :min="0"
+                                            :step="100"
+                                            :currency="true"
+                                            class="w-24"
+                                        />
+                                    </div>
+                                </td>
                                 <td class="px-4 py-2 text-right">
+                                    <span v-if="hasPackage">{{
+                                        formatCurrency(invoice.expensesPackageAmount || 0)
+                                    }}</span>
+                                </td>
+                            </tr>
+                            <tr class="font-medium bg-gray-100">
+                                <td class="px-4 py-2" colspan="4">TOTAL FRAIS</td>
+                                <td class="px-4 py-2 text-right font-bold">
                                     {{ formatCurrency(invoice.expensesTotalExpenses || 0) }}
                                 </td>
                             </tr>
@@ -335,13 +350,21 @@
             <section class="mb-8">
                 <h2 class="text-lg font-medium mb-4 bg-gray-100 p-2 text-center">RÉCAPITULATIF</h2>
                 <div class="border border-gray-200 rounded overflow-x-scroll">
-                    <table class="w-full divide-y divide-gray-200 text-left min-w-[600px]">
+                    <table
+                        class="w-full divide-y divide-gray-200 text-left min-w-[550px] table-fixed"
+                    >
+                        <colgroup>
+                            <col style="width: 80%" />
+                            <col style="width: 20%" />
+                        </colgroup>
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
                                     Description
                                 </th>
-                                <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
+                                <th
+                                    class="px-4 py-2 text-xs font-medium text-gray-500 uppercase text-right"
+                                >
                                     Montant
                                 </th>
                             </tr>
@@ -677,10 +700,11 @@ const updateExpense = (field: string, value: number) => {
 // Toggle package
 const togglePackage = () => {
     const newInvoice = { ...invoice.value }
-    
+
     // Check if there's any package currently applied
     const hasExistingPackage =
-        (newInvoice.expensesPackagePercentage || 0) > 0 || (newInvoice.expensesPackageAmount || 0) > 0
+        (newInvoice.expensesPackagePercentage || 0) > 0 ||
+        (newInvoice.expensesPackageAmount || 0) > 0
 
     if (hasExistingPackage) {
         // Remove package
@@ -755,8 +779,10 @@ const updatePackageAmount = (value: number) => {
 
 // Helper to recalculate expenses total
 const recalculateExpensesTotal = (inv: any) => {
-    if ((inv.expensesPackagePercentage && inv.expensesPackagePercentage > 0) || 
-        (inv.expensesPackageAmount && inv.expensesPackageAmount > 0)) {
+    if (
+        (inv.expensesPackagePercentage && inv.expensesPackagePercentage > 0) ||
+        (inv.expensesPackageAmount && inv.expensesPackageAmount > 0)
+    ) {
         // If using package (either percentage or fixed), only use package amount
         inv.expensesTotalExpenses = inv.expensesPackageAmount || 0
     } else {

@@ -28,7 +28,7 @@
             </div>
 
             <!-- Data rows -->
-            <div class="divide-y divide-gray-200">
+            <div class="divide-y divide-gray-200 md:divide-y md:divide-gray-200">
                 <component
                     v-for="(item, index) in items"
                     :key="getItemKey(item, index)"
@@ -37,6 +37,7 @@
                     :data-row-link="rowLink && rowLink(item) ? true : undefined"
                     :class="[
                         'block cursor-pointer transition-colors',
+                        'border-b-2 border-gray-300 md:border-b-0 last:border-b-0',
                         selectedRows && selectedRows.has(getItemKey(item, index))
                             ? 'bg-blue-100 hover:bg-blue-200'
                             : 'hover:bg-gray-100',
@@ -44,7 +45,7 @@
                     ]"
                     @mousedown="handleMouseDown($event)"
                 >
-                    <div class="flex flex-col md:hidden">
+                    <div class="flex flex-col md:hidden shadow-sm">
                         <!-- Mobile view keeps existing layout -->
                         <div
                             v-for="column in columns"

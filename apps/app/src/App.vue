@@ -176,20 +176,17 @@ const isExpanded = (itemName: string): boolean => {
         </header>
 
         <div class="flex flex-1 relative overflow-hidden">
-            <!-- Main content - adjust margin on desktop when sidebar is open -->
-            <main
-                class="flex-1 transition-all duration-300 p-4 w-full"
-                :class="{ 'lg:mr-64': isSidebarOpen && !isLoginPage }"
-            >
+            <!-- Main content - no margin adjustment, sidebar will overlay -->
+            <main class="flex-1 p-4 w-full">
                 <div class="container mx-auto md:max-w-full md:px-4">
                     <RouterView />
                 </div>
             </main>
 
-            <!-- Mobile: Overlay sidebar; Desktop: Fixed position sidebar that doesn't overlay content -->
+            <!-- Overlay sidebar for all viewports -->
             <aside
                 v-if="!isLoginPage"
-                class="fixed top-0 right-0 h-screen flex flex-col w-64 transition-all duration-300 ease-in-out z-20"
+                class="fixed top-0 right-0 h-screen flex flex-col w-64 transition-all duration-300 ease-in-out z-30"
                 :class="[isSidebarOpen ? 'translate-x-0' : 'translate-x-full']"
             >
                 <!-- Sidebar component -->
@@ -294,7 +291,7 @@ const isExpanded = (itemName: string): boolean => {
         <div
             v-if="!isLoginPage && isSidebarOpen"
             @click="toggleSidebar"
-            class="fixed inset-0 bg-black/20 z-10"
+            class="fixed inset-0 bg-black/30 z-20"
         ></div>
 
         <!-- Global Snackbar Container -->

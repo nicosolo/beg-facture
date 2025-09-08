@@ -18,6 +18,12 @@
                     >
                         {{ $t("invoice.new") }}
                     </Button>
+                    <Button
+                        variant="secondary"
+                        @click="showTimeEntryModal = true"
+                    >
+                        {{ $t("time.new") }}
+                    </Button>
                 </div>
             </div>
         </div>
@@ -222,6 +228,13 @@
                 </div>
             </div>
         </LoadingOverlay>
+
+        <!-- Time Entry Modal -->
+        <TimeEntryModal
+            v-model="showTimeEntryModal"
+            :project-id="projectId"
+            @saved="handleTimeEntrySaved"
+        />
     </div>
 </template>
 
@@ -231,6 +244,7 @@ import { useRoute } from "vue-router"
 import Button from "@/components/atoms/Button.vue"
 import TimeEntriesManager from "@/components/organisms/time/TimeEntriesManager.vue"
 import InvoiceListManager from "@/components/organisms/invoice/InvoiceListManager.vue"
+import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import { useFetchProject } from "@/composables/api/useProject"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import { useFormat } from "@/composables/utils/useFormat"
@@ -239,6 +253,7 @@ const route = useRoute()
 
 // Tab state
 const activeTab = ref("overview")
+const showTimeEntryModal = ref(false)
 
 // API client
 const { get: fetchProject, loading, data: projectData } = useFetchProject()
@@ -255,4 +270,14 @@ onMounted(async () => {
         await fetchProject({ params: { id: projectId.value } })
     }
 })
+
+// Handle time entry saved
+const handleTimeEntrySaved = async () => {
+    // Refresh project data to update unbilled duration
+    if (projectId.value && !isNaN(projectId.value)) {
+        await fetchProject({ params: { id: projectId.value } })
+    }
+    // Switch to activities tab to show the new entry
+    activeTab.value = "activities"
+}
 </script>

@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { paginationSchema, createPageResponseSchema } from "./pagination"
 import { booleanSchema, dateSchema, timestampsSchema } from "./base"
+import type { projectAccessLevelSchema } from "./projectAccess"
 
 // Moved to projectAccess.ts
 // export const projectAccessLevelSchema = z.enum(["read", "write"])

@@ -18,10 +18,7 @@
                     >
                         {{ $t("invoice.new") }}
                     </Button>
-                    <Button
-                        variant="secondary"
-                        @click="showTimeEntryModal = true"
-                    >
+                    <Button variant="secondary" @click="showTimeEntryModal = true">
                         {{ $t("time.new") }}
                     </Button>
                 </div>

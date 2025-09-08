@@ -77,13 +77,11 @@ watch(
 
 // Update local projects when data changes from API
 watch(
-    () => data.value?.data,
+    () => data.value,
     (newData) => {
         if (newData) {
             // Merge new data with existing projects, avoiding duplicates
-            const existingIds = new Set(projects.value.map((p) => p.id))
-            const newProjects = newData.filter((p) => !existingIds.has(p.id))
-            projects.value = [...projects.value, ...newProjects]
+            projects.value = newData.data
         }
     }
 )

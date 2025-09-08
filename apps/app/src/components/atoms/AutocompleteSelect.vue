@@ -27,9 +27,9 @@
             v-if="showDropdown"
             class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto"
         >
-            <!-- No results -->
+            <!-- No results (only for async mode, static mode always shows full list when no match) -->
             <div
-                v-if="filteredItems.length === 0 && searchTerm.length > 0"
+                v-if="mode === 'async' && filteredItems.length === 0 && searchTerm.length > 0"
                 class="px-3 py-2 text-gray-500"
             >
                 {{ $t("common.noResults") }}
@@ -119,27 +119,36 @@ const filteredItems = computed(() => {
 
         const search = debouncedSearchTerm.value.toLowerCase().trim()
 
+        let filtered: any[] = []
+
         // Use custom filter function if provided
         if (props.filterFunction) {
-            return props.options.filter((item) => props.filterFunction!(item, search))
+            filtered = props.options.filter((item) => props.filterFunction!(item, search))
+        } else {
+            // Default filtering using searchFields
+            filtered = props.options.filter((item) => {
+                // If no search fields specified, search in display field
+                if (!props.searchFields || props.searchFields.length === 0) {
+                    return props.displayField(item).toLowerCase().includes(search)
+                }
+
+                // Search in specified fields
+                return props.searchFields.some((field) => {
+                    const value = item[field]
+                    if (typeof value === "string") {
+                        return value.toLowerCase().includes(search)
+                    }
+                    return false
+                })
+            })
         }
 
-        // Default filtering using searchFields
-        return props.options.filter((item) => {
-            // If no search fields specified, search in display field
-            if (!props.searchFields || props.searchFields.length === 0) {
-                return props.displayField(item).toLowerCase().includes(search)
-            }
+        // In static mode: if no results found and dropdown is shown, return all options
+        if (filtered.length === 0 && showDropdown.value) {
+            return props.options
+        }
 
-            // Search in specified fields
-            return props.searchFields.some((field) => {
-                const value = item[field]
-                if (typeof value === "string") {
-                    return value.toLowerCase().includes(search)
-                }
-                return false
-            })
-        })
+        return filtered
     }
 })
 

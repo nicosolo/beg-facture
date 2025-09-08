@@ -126,7 +126,7 @@ const filterData = reactive<ProjectFilterProps["filter"]>({
     fromDate: filter.fromDate,
     toDate: filter.toDate,
     referentUserId: filter.referentUserId || undefined,
-    hasUnbilledTime: filter.hasUnbilledTime || false,
+    hasUnbilledTime: filter.hasUnbilledTime || true,
 })
 
 // Watch for external filter changes

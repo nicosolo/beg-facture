@@ -1,3 +1,6 @@
+const intlNumberFormat = new Intl.NumberFormat("fr-CH", {
+    minimumFractionDigits: 2,
+})
 export const useFormat = () => {
     const formatCurrency = (amount: number, showCurrency = true) => {
         return `${new Intl.NumberFormat("ch-FR", {
@@ -9,16 +12,14 @@ export const useFormat = () => {
     }
 
     const formatPercentage = (percentage: number) => {
-        return new Intl.NumberFormat("ch-FR", {
+        return new Intl.NumberFormat("fr-CH", {
             style: "percent",
             minimumFractionDigits: 2,
         }).format(percentage)
     }
 
-    const formatNumber = (number: number, minimumFractionDigits = 2) => {
-        return new Intl.NumberFormat("ch-FR", {
-            minimumFractionDigits,
-        }).format(number)
+    const formatNumber = (number: number) => {
+        return intlNumberFormat.format(number)
     }
 
     const formatDuration = (duration: number | null | undefined) => {

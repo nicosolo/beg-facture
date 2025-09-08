@@ -43,6 +43,7 @@
                             : 'hover:bg-gray-100',
                         getRowClass(item, index),
                     ]"
+                    @click="handleRowClick(item, index, $event)"
                     @mousedown="handleMouseDown($event)"
                 >
                     <div class="flex flex-col md:hidden shadow-sm">

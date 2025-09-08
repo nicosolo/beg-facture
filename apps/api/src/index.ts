@@ -4,6 +4,7 @@ import { userRoutes } from "@src/routes/user"
 import { activityRoutes } from "@src/routes/activity"
 import { activityTypeRoutes } from "@src/routes/activityType"
 import { projectRoutes } from "@src/routes/project"
+import { projectAccessRoutes } from "@src/routes/projectAccess"
 import { projectTypeRoutes } from "@src/routes/projectType"
 import { rateRoutes } from "@src/routes/rate"
 import { clientRoutes } from "@src/routes/client"
@@ -14,7 +15,6 @@ import { locationRoutes } from "@src/routes/location"
 import { workloadRoutes } from "@src/routes/workloads"
 import unbilledRoutes from "@src/routes/unbilled"
 import { vatRateRoutes } from "@src/routes/vatRate"
-import { runMigrations } from "@src/db/migrate"
 import { PORT, DB_FILE_PATH } from "@src/config"
 import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
@@ -39,6 +39,7 @@ const app = new Hono()
     .route("/activity", activityRoutes)
     .route("/activity-type", activityTypeRoutes)
     .route("/project", projectRoutes)
+    .route("/project-access", projectAccessRoutes)
     .route("/project-type", projectTypeRoutes)
     .route("/rate", rateRoutes)
     .route("/client", clientRoutes)

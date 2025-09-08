@@ -49,6 +49,7 @@
                                         @update:modelValue="
                                             (value) => updateRate(index, 'adjusted', value)
                                         "
+                                        type="time"
                                         class="w-24"
                                     />
                                 </td>
@@ -59,6 +60,7 @@
                                             (value) => updateRate(index, 'hourlyRate', value)
                                         "
                                         :currency="true"
+                                        type="amount"
                                         class="w-24"
                                     />
                                 </td>
@@ -124,6 +126,7 @@
                                             :min="0"
                                             :max="100"
                                             :step="1"
+                                            type="percentage"
                                             class="w-20"
                                         />
                                         <span v-if="discountType === 'percentage'" class="text-sm"
@@ -603,6 +606,7 @@ const updateRate = (index: number, field: string, value: any) => {
     newInvoice.feesTotal = newInvoice.feesFinalTotal - (newInvoice.feesDiscountAmount || 0)
 
     invoice.value = newInvoice
+    recalculateTotals(newInvoice)
 }
 
 // Toggle discount
@@ -623,7 +627,7 @@ const toggleDiscount = () => {
             newInvoice.feesDiscountPercentage = 10
             newInvoice.feesDiscountAmount = (newInvoice.feesFinalTotal * 10) / 100
         } else {
-            newInvoice.feesDiscountAmount = 1000
+            newInvoice.feesDiscountAmount = 100
             newInvoice.feesDiscountPercentage = 0
         }
     }

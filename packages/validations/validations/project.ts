@@ -2,7 +2,8 @@ import { z } from "zod"
 import { paginationSchema, createPageResponseSchema } from "./pagination"
 import { booleanSchema, dateSchema, timestampsSchema } from "./base"
 
-export const projectAccessLevelSchema = z.enum(["read", "write"])
+// Moved to projectAccess.ts
+// export const projectAccessLevelSchema = z.enum(["read", "write"])
 // Update schema to match activity filter schema pattern
 export const projectFilterSchema = z
     .object({

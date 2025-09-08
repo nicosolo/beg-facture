@@ -1,6 +1,7 @@
 export * from "./validations/activity"
 export * from "./validations/activityTypes"
 export * from "./validations/project"
+export * from "./validations/projectAccess"
 export * from "./validations/pagination"
 export * from "./validations/client"
 export * from "./validations/user"

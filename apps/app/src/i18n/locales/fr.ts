@@ -36,6 +36,8 @@ export default {
         deleteSuccess: "{name} supprimé avec succès",
         deleteError: "Erreur lors de la suppression de {name}",
         select: "Sélectionner",
+        add: "Ajouter",
+        remove: "Supprimer",
     },
     navigation: {
         home: "Accueil",
@@ -118,7 +120,7 @@ export default {
         remarkPlaceholder: "Ajoutez des notes ou commentaires sur le projet",
         endDate: "Date de fin",
         budget: "Budget",
-        totalDuration: "Durée totale",
+        totalDuration: "Heures totale",
         unBilledDuration: "Heures non facturées",
         firstActivity: "Première activité",
         lastActivity: "Dernière activité",
@@ -152,6 +154,22 @@ export default {
             onHold: "En attente",
             archived: "Archivé",
         },
+        accessManagement: "Gestion des accès",
+        addUserAccess: "Ajouter un accès utilisateur",
+        selectUser: "Sélectionner un utilisateur",
+        selectAccessLevel: "Sélectionner le niveau d'accès",
+        readAccess: "Lecture seule",
+        writeAccess: "Lecture et écriture",
+        currentAccess: "Accès actuels",
+        noAccessConfigured: "Aucun accès configuré pour ce projet",
+        userAlreadyHasAccess: "Cet utilisateur a déjà accès à ce projet",
+        accessAdded: "Accès ajouté avec succès",
+        accessUpdated: "Accès mis à jour avec succès",
+        accessRemoved: "Accès supprimé avec succès",
+        removeAccess: "Supprimer l'accès",
+        confirmRemoveAccess: "Êtes-vous sûr de vouloir supprimer cet accès ?",
+        confirmRemoveAccessMessage:
+            "Voulez-vous vraiment supprimer l'accès de {user} à ce projet ?",
     },
     pagination: {
         showing: "Affichage de {from} à {to} sur {total} éléments",
@@ -172,6 +190,8 @@ export default {
         required: "Ce champ est requis",
         invalid: "Ce champ est invalide",
         networkError: "Erreur de connexion au serveur",
+        loadingData: "Erreur lors du chargement des données",
+        noPermission: "Vous n'avez pas les permissions nécessaires",
 
         // Error codes from API
         UNAUTHORIZED: "Vous n'êtes pas autorisé à effectuer cette action",
@@ -226,6 +246,7 @@ export default {
             status: "Statut",
             billed: "Facturé",
             disbursement: "Débours",
+            rateClass: "Classe",
         },
         filters: {
             user: "Collaborateur",

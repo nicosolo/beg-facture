@@ -256,13 +256,6 @@ const isExpanded = (itemName: string): boolean => {
                     <div class="flex-shrink-0 border-t border-gray-200 p-4">
                         <div class="group block w-full flex-shrink-0">
                             <div class="flex items-center">
-                                <div
-                                    class="h-10 min-w-10 rounded-full bg-gray-200 flex items-center justify-center"
-                                >
-                                    <span class="text-gray-600 text-sm font-medium uppercase">
-                                        {{ authStore.user?.initials }}
-                                    </span>
-                                </div>
                                 <div class="ml-3 flex-grow">
                                     <p
                                         class="text-sm font-medium text-gray-700 group-hover:text-gray-900"

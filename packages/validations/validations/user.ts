@@ -12,7 +12,7 @@ export const userRoleSchema = z.enum(["admin", "user"])
 // Login schema for authentication
 export const loginSchema = z.object({
     email: z.string().min(2),
-    password: z.string().min(3),
+    password: z.string().min(2),
 })
 
 // User creation schema

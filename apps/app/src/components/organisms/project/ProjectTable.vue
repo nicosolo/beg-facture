@@ -126,7 +126,6 @@ const columns = ref([
     {
         key: "name",
         label: t("projects.name"),
-        width: "7rem",
         sortable: true,
     },
 
@@ -135,23 +134,27 @@ const columns = ref([
         label: t("projects.unBilledDuration"),
         nowrap: true,
         sortable: true,
+        width: "8rem",
     },
     {
         key: "totalDuration",
         label: t("projects.totalDuration"),
         nowrap: true,
         sortKey: "totalDuration",
+        width: "8rem",
     },
     {
         key: "firstActivityDate",
         label: t("projects.firstActivity"),
         nowrap: true,
         sortKey: "firstActivityDate",
+        width: "10rem",
     },
     {
         key: "lastActivityDate",
         label: t("projects.lastActivity"),
         sortKey: "lastActivityDate",
+        width: "10rem",
     },
 
     {
@@ -159,7 +162,6 @@ const columns = ref([
         label: t("projects.actions"),
         nowrap: false,
         actions: true,
-        width: "w-1/3",
     },
 ])
 

@@ -166,7 +166,7 @@
                     </template>
                 </FormField>
 
-                <FormField :label="$t('projects.status')">
+                <FormField :label="$t('projects.statusLabel')">
                     <template #input>
                         <label class="flex items-center">
                             <input
@@ -208,6 +208,10 @@
             </Button>
         </template>
     </FormLayout>
+    <!-- Project Access Management - Only for admins editing existing projects -->
+    <div v-if="!isNewProject && user?.role === 'admin'" class="mb-6">
+        <ProjectAccessManagement :project-id="projectId!" />
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -215,6 +219,7 @@ import { ref, computed, onMounted, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
 import { useToast } from "@/composables/utils/useToast"
+import { useAuthStore } from "@/stores/auth"
 import Button from "@/components/atoms/Button.vue"
 import FormField from "@/components/molecules/FormField.vue"
 import FormLayout from "@/components/templates/FormLayout.vue"
@@ -226,6 +231,7 @@ import EngineerSelect from "@/components/organisms/engineer/EngineerSelect.vue"
 import CompanySelect from "@/components/organisms/company/CompanySelect.vue"
 import ProjectTypeSelect from "@/components/organisms/projectType/ProjectTypeSelect.vue"
 import UserSelect from "@/components/organisms/user/UserSelect.vue"
+import ProjectAccessManagement from "@/components/organisms/project/ProjectAccessManagement.vue"
 
 // API Composables
 import { useFetchProject, useCreateProject, useUpdateProject } from "@/composables/api/useProject"
@@ -235,6 +241,10 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { showSuccess, showError } = useToast()
+const authStore = useAuthStore()
+
+// Get current user
+const user = computed(() => authStore.user)
 
 // Determine if we're creating a new project or editing an existing one
 const projectId = computed(() => (route.params.id ? parseInt(route.params.id as string) : null))

@@ -86,6 +86,25 @@
                     />
                 </div>
             </div>
+            
+            <!-- Invoice Status -->
+            <div class="mb-4">
+                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceStatus">
+                    {{ $t('invoice.status.title') }}
+                </label>
+                <Select
+                    id="invoiceStatus"
+                    v-model="invoice.status"
+                    :options="[
+                        { value: 'draft', label: $t('invoice.status.draft') },
+                        { value: 'controle', label: $t('invoice.status.controle') },
+                        { value: 'sent', label: $t('invoice.status.sent') },
+                        { value: 'paid', label: $t('invoice.status.paid') },
+                        { value: 'overdue', label: $t('invoice.status.overdue') },
+                        { value: 'cancelled', label: $t('invoice.status.cancelled') },
+                    ]"
+                />
+            </div>
             <!-- Period String -->
             <div class="mb-4">
                 <label class="text-sm font-medium text-gray-700 mb-1" for="invoicePeriod">

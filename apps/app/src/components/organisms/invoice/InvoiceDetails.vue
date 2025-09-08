@@ -397,15 +397,15 @@
             </section>
         </div>
         <!-- Collapsible sections for other services -->
-        <div class="space-y-4 w-full">
+        <div class="space-y-4 w-full lg:w-1/3">
             <!-- 1. Autres prestations -->
             <AccordionPanel
                 id="otherServices"
                 title="1. Autres prestations (ME, inclinos, pénétros...)"
-                :default-open="true"
+                :defaultOpen="!!invoice.remarksOtherServices"
             >
                 <template #content>
-                    <textarea
+                    <Textarea
                         :value="invoice.remarksOtherServices || ''"
                         @input="
                             (e) =>
@@ -415,14 +415,17 @@
                                 )
                         "
                         rows="6"
-                        class="w-full p-2 border border-gray-300 rounded"
-                    ></textarea>
+                    ></Textarea>
                 </template>
             </AccordionPanel>
 
-            <AccordionPanel id="deplacements" title="2. Déplacements (voiture)">
+            <AccordionPanel
+                id="deplacements"
+                title="2. Déplacements (voiture)"
+                :defaultOpen="!!invoice.remarksTravelExpenses"
+            >
                 <template #content>
-                    <textarea
+                    <Textarea
                         :value="invoice.remarksTravelExpenses || ''"
                         @input="
                             (e) =>
@@ -432,28 +435,34 @@
                                 )
                         "
                         rows="6"
-                        class="w-full p-2 border border-gray-300 rounded"
-                    ></textarea>
+                    ></Textarea>
                 </template>
             </AccordionPanel>
 
-            <AccordionPanel id="frais-remboursables" title="3. Frais remboursables (achats...)">
+            <AccordionPanel
+                id="frais-remboursables"
+                title="3. Frais remboursables (achats...)"
+                :defaultOpen="!!invoice.remarksExpenses"
+            >
                 <template #content>
-                    <textarea
+                    <Textarea
                         :value="invoice.remarksExpenses || ''"
                         @input="
                             (e) =>
                                 updateRemarks('expenses', (e.target as HTMLTextAreaElement).value)
                         "
                         rows="6"
-                        class="w-full p-2 border border-gray-300 rounded"
-                    ></textarea>
+                    ></Textarea>
                 </template>
             </AccordionPanel>
 
-            <AccordionPanel id="frais-laboratoire" title="4. Frais de laboratoire, pelle, minage">
+            <AccordionPanel
+                id="frais-laboratoire"
+                title="4. Frais de laboratoire, pelle, minage"
+                :defaultOpen="!!invoice.remarksThirdPartyExpenses"
+            >
                 <template #content>
-                    <textarea
+                    <Textarea
                         :value="invoice.remarksThirdPartyExpenses || ''"
                         @input="
                             (e) =>
@@ -463,13 +472,15 @@
                                 )
                         "
                         rows="6"
-                        class="w-full p-2 border border-gray-300 rounded"
-                    ></textarea>
+                    ></Textarea>
                 </template>
             </AccordionPanel>
         </div>
         <!-- Activities Section - Full Width Below -->
-        <div v-if="(isNewInvoice && invoice.projectId) || (!isNewInvoice && invoice.id)">
+        <div
+            v-if="(isNewInvoice && invoice.projectId) || (!isNewInvoice && invoice.id)"
+            class="w-full"
+        >
             <h2 class="text-lg font-medium mb-4 bg-gray-100 p-2 text-center">
                 {{
                     isNewInvoice
@@ -515,6 +526,7 @@ import { useFormat } from "@/composables/utils/useFormat"
 import { computed, ref } from "vue"
 import InputNumber from "@/components/atoms/InputNumber.vue"
 import TimeEntriesManager from "../time/TimeEntriesManager.vue"
+import Textarea from "@/components/atoms/Textarea.vue"
 
 const props = defineProps<{
     modelValue: Invoice

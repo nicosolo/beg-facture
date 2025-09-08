@@ -160,6 +160,7 @@ const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
         invoiceNumber: response.invoiceNumber || "",
         reference: response.reference || "",
         type: response.type || "invoice",
+        status: response.status || "draft",
         billingMode: response.billingMode,
         description: response.description || "",
         note: response.note || "",
@@ -224,7 +225,7 @@ const convertInvoiceToInput = (invoice: Invoice): any => {
         reference: invoice.reference,
         type: invoice.type,
         billingMode: invoice.billingMode,
-        status: "draft",
+        status: invoice.status || "draft",
         description: invoice.description,
         note: invoice.note,
 
@@ -373,6 +374,7 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
                     periodStart: finalPeriodStart,
                     periodEnd: finalPeriodEnd,
                     projectId: projectId.value,
+                    status: "draft",
                 })
             }
             invoice.value.projectId = projectId.value

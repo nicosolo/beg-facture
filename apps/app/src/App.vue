@@ -107,6 +107,12 @@ const navigation = computed(() =>
                     current: route.name === "vat-rate-list",
                     visible: authStore.user?.role === "admin",
                 },
+                {
+                    name: "Import DB",
+                    to: { name: "database-import" },
+                    current: route.name === "database-import",
+                    visible: authStore.user?.role === "admin",
+                },
             ].filter((item) => item.visible !== false),
             // Mark parent as current if any child is current
             get current() {

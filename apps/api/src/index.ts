@@ -15,6 +15,8 @@ import { locationRoutes } from "@src/routes/location"
 import { workloadRoutes } from "@src/routes/workloads"
 import unbilledRoutes from "@src/routes/unbilled"
 import { vatRateRoutes } from "@src/routes/vatRate"
+import { importRoutes } from "@src/routes/import"
+import { projectFolderRoutes } from "@src/routes/project-folder"
 import { PORT, DB_FILE_PATH } from "@src/config"
 import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
@@ -50,6 +52,8 @@ const app = new Hono()
     .route("/workloads", workloadRoutes)
     .route("/unbilled", unbilledRoutes)
     .route("/vat-rate", vatRateRoutes)
+    .route("/import", importRoutes)
+    .route("/project-folder", projectFolderRoutes)
 
 export type ApiRoutes = typeof app
 

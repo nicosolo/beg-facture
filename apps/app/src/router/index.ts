@@ -17,6 +17,7 @@ import CompanyListView from "../views/company/CompanyListView.vue"
 import EngineerListView from "../views/engineer/EngineerListView.vue"
 import VatRateListView from "../views/vatRate/VatRateListView.vue"
 import LoginView from "../views/LoginView.vue"
+import DatabaseImportView from "../views/admin/DatabaseImportView.vue"
 import { useAuthStore } from "../stores/auth"
 
 const router = createRouter({
@@ -160,6 +161,13 @@ const router = createRouter({
             name: "vat-rate-list",
             component: VatRateListView,
             meta: { requiresAuth: true },
+        },
+        // Admin routes
+        {
+            path: "/admin/import",
+            name: "database-import",
+            component: DatabaseImportView,
+            meta: { requiresAuth: true, requiresAdmin: true },
         },
     ],
 })

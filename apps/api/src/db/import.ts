@@ -17,6 +17,7 @@ import {
 } from "./schema"
 import { eq, and } from "drizzle-orm"
 import fs from "fs/promises"
+import { existsSync } from "fs"
 import path from "path"
 import { hashPassword } from "@src/tools/auth"
 import type {
@@ -28,7 +29,7 @@ import type {
 } from "@beg/validations"
 import { updateProjectActivityDates } from "./repositories/activity.repository"
 
-const exportDir = "/app/export-mdb"
+let exportDir = "/app/export-mdb"
 
 // Parse date in format "MM/DD/YY HH:mm:ss"
 // The dates from Access are in local time (UTC+1 or UTC+2 depending on DST)
@@ -84,7 +85,30 @@ async function resetDatabase() {
 
 async function readJsonFile(filename: string) {
     try {
-        const filePath = path.join(exportDir, `${filename}.json`)
+        // First try with the original filename
+        let filePath = path.join(exportDir, `${filename}.json`)
+        
+        // If file doesn't exist, try with sanitized filename
+        if (!existsSync(filePath)) {
+            const sanitizedFilename = filename
+                .replace(/[éèêë]/g, 'e')
+                .replace(/[àâä]/g, 'a')
+                .replace(/[îï]/g, 'i')
+                .replace(/[ôö]/g, 'o')
+                .replace(/[ùûü]/g, 'u')
+                .replace(/[ç]/g, 'c')
+                .replace(/[ÉÈÊË]/g, 'E')
+                .replace(/[ÀÂÄ]/g, 'A')
+                .replace(/[ÎÏ]/g, 'I')
+                .replace(/[ÔÖ]/g, 'O')
+                .replace(/[ÙÛÜ]/g, 'U')
+                .replace(/[Ç]/g, 'C')
+                .replace(/[^a-zA-Z0-9_-]/g, '_')
+            
+            filePath = path.join(exportDir, `${sanitizedFilename}.json`)
+            console.log(`Using sanitized filename: ${filename} -> ${sanitizedFilename}`)
+        }
+        
         const data = await fs.readFile(filePath, "utf8")
         // Handle JSONL format (one JSON object per line)
         return data
@@ -726,25 +750,37 @@ async function importVatRates() {
     console.log(`Imported ${importedVatRates.length} VAT rates from 1995 to 2024`)
 }
 
-const importFunctions = [
-    resetDatabase, // Add database reset as the first function to run
-    importUsers,
-    importLocations,
-    importCompanies,
-    importClients,
-    importProjectTypes,
-    importEngineers,
-    importRateClasses,
-    importProjects,
-    importActivityTypes,
-    importActivities,
-    importProjectAccess,
-    importWorkloads,
-    importVatRates,
-]
-for (const importFunction of importFunctions) {
-    console.log(`Running ${importFunction.name}`)
-    const start = Date.now()
-    await importFunction()
-    console.log(`Completed ${importFunction.name}, in ${Date.now() - start}ms \n`)
+export async function runImport(customExportDir?: string) {
+    if (customExportDir) {
+        exportDir = customExportDir
+    }
+
+    const importFunctions = [
+        resetDatabase, // Add database reset as the first function to run
+        importUsers,
+        importLocations,
+        importCompanies,
+        importClients,
+        importProjectTypes,
+        importEngineers,
+        importRateClasses,
+        importProjects,
+        importActivityTypes,
+        importActivities,
+        importProjectAccess,
+        importWorkloads,
+        importVatRates,
+    ]
+
+    for (const importFunction of importFunctions) {
+        console.log(`Running ${importFunction.name}`)
+        const start = Date.now()
+        await importFunction()
+        console.log(`Completed ${importFunction.name}, in ${Date.now() - start}ms \n`)
+    }
+}
+
+// Run import directly if this file is executed as a script
+if (import.meta.url === `file://${process.argv[1]}`) {
+    await runImport()
 }

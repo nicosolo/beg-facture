@@ -57,3 +57,39 @@ export function useUpdateProject() {
 export function useFetchParentProjects() {
     return useGet<ProjectListResponse>("project/parent-projects")
 }
+
+export function useProjectFolder(projectNumber: string | number) {
+    return useGet<{
+        projectNumber: string
+        found: boolean
+        result: {
+            projectNumber: string
+            fullPath: string
+            folderName: string
+            parentFolder: string
+        } | null
+    }>(`project-folder/search`, {
+        query: {
+            projectNumber: projectNumber.toString()
+        }
+    })
+}
+
+export function useProjectFolders(projectNumbers: (string | number)[]) {
+    return usePost<{
+        count: number
+        results: Record<string, {
+            found: boolean
+            result: {
+                projectNumber: string
+                fullPath: string
+                folderName: string
+                parentFolder: string
+            } | null
+        }>
+    }>(`project-folder/search/batch`, {
+        body: {
+            projectNumbers: projectNumbers.map(n => n.toString())
+        }
+    })
+}

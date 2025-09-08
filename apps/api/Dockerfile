@@ -1,7 +1,17 @@
 FROM oven/bun:1 AS base
 WORKDIR /app
-# Install mdb-tools for Access database support
-RUN apt-get update && apt-get install -y mdbtools && rm -rf /var/lib/apt/lists/*
+# Install mdb-tools for Access database support and locale support
+RUN apt-get update && apt-get install -y \
+    mdbtools \
+    locales \
+    && rm -rf /var/lib/apt/lists/* \
+    && locale-gen C.UTF-8 \
+    && locale-gen en_US.UTF-8 \
+    && update-locale LANG=C.UTF-8
+
+# Set locale environment variables
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 
 FROM base AS development
 ENV NODE_ENV=development

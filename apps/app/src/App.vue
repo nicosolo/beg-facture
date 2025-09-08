@@ -186,8 +186,8 @@ const isExpanded = (itemName: string): boolean => {
             >
                 <!-- Sidebar component -->
                 <div class="flex h-full flex-col border-l border-gray-200 bg-white shadow-lg">
-                    <!-- Close button for mobile -->
-                    <div class="flex flex-shrink-0 items-center px-4 pt-5 lg:hidden">
+                    <!-- Close button - always visible when sidebar is open -->
+                    <div class="flex flex-shrink-0 items-center px-4 pt-5">
                         <button
                             class="ml-auto inline-flex items-center justify-center p-1 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
                             @click="toggleSidebar"
@@ -232,6 +232,7 @@ const isExpanded = (itemName: string): boolean => {
                                                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
                                                 'group flex items-center px-2 py-2 text-sm font-medium rounded-md',
                                             ]"
+                                            @click="toggleSidebar"
                                         >
                                             {{ child.name }}
                                         </RouterLink>
@@ -247,6 +248,7 @@ const isExpanded = (itemName: string): boolean => {
                                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
                                         'group flex items-center px-2 py-2 text-sm font-medium rounded-md',
                                     ]"
+                                    @click="toggleSidebar"
                                 >
                                     {{ item.name }}
                                 </RouterLink>
@@ -280,11 +282,11 @@ const isExpanded = (itemName: string): boolean => {
             </aside>
         </div>
 
-        <!-- Sidebar overlay for mobile - only covers main content -->
+        <!-- Sidebar overlay - covers entire screen when sidebar is open -->
         <div
             v-if="!isLoginPage && isSidebarOpen"
             @click="toggleSidebar"
-            class="fixed inset-y-0 left-0 right-64 z-10 lg:hidden"
+            class="fixed inset-0 bg-black/20 z-10"
         ></div>
 
         <!-- Global Snackbar Container -->

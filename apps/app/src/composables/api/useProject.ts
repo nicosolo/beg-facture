@@ -58,38 +58,23 @@ export function useFetchParentProjects() {
     return useGet<ProjectListResponse>("project/parent-projects")
 }
 
-export function useProjectFolder(projectNumber: string | number) {
-    return useGet<{
-        projectNumber: string
-        found: boolean
-        result: {
+export function useProjectFolder() {
+    return useGet<
+        {
+            projectId: number
             projectNumber: string
-            fullPath: string
-            folderName: string
-            parentFolder: string
-        } | null
-    }>(`project-folder/search`, {
-        query: {
-            projectNumber: projectNumber.toString()
-        }
-    })
-}
-
-export function useProjectFolders(projectNumbers: (string | number)[]) {
-    return usePost<{
-        count: number
-        results: Record<string, {
             found: boolean
-            result: {
+            folder: {
                 projectNumber: string
                 fullPath: string
                 folderName: string
                 parentFolder: string
             } | null
-        }>
-    }>(`project-folder/search/batch`, {
-        body: {
-            projectNumbers: projectNumbers.map(n => n.toString())
+        },
+        {
+            params: typeof idParamSchema
         }
+    >("project/:id/folder", {
+        params: idParamSchema,
     })
 }

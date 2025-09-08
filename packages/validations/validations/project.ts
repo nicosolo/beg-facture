@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { paginationSchema, createPageResponseSchema } from "./pagination"
-import { booleanSchema, dateSchema, timestampsSchema } from "./base"
+import { booleanSchema, dateSchema, nullableTimestampsSchema, timestampsSchema } from "./base"
 import type { projectAccessLevelSchema } from "./projectAccess"
 
 // Moved to projectAccess.ts
@@ -84,7 +84,7 @@ export const projectResponseSchema = z
         lastActivityDate: z.coerce.date().nullable(),
         ended: z.boolean().nullable(),
     })
-    .merge(timestampsSchema)
+    .merge(nullableTimestampsSchema)
 
 export type ProjectResponse = z.infer<typeof projectResponseSchema>
 
@@ -138,6 +138,11 @@ export const projectTypeUpdateSchema = z.object({
 
 // Array response for getting all project types
 export const projectTypesArraySchema = z.array(projectTypeSchema)
+
+// Project create schema
+export const projectFolderRoutes = z.object({
+    projectNumber: z.string().min(1),
+})
 
 export type ProjectTypeSchema = z.infer<typeof projectTypeSchema>
 export type ProjectTypeCreateInput = z.infer<typeof projectTypeCreateSchema>

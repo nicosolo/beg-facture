@@ -8,14 +8,14 @@ import {
     projectUpdateSchema,
     type ProjectListResponse,
     type ProjectResponse,
-    type ProjectCreateInput,
-    type ProjectUpdateInput,
 } from "@beg/validations"
 import { projectRepository } from "../db/repositories/project.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import type { Variables } from "@src/types/global"
 import { throwNotFound } from "@src/tools/error-handler"
+import { findProjectFolderSingle } from "@src/tools/project-folder-finder"
+import { PROJECT_BASE_DIR } from "@src/config"
 
 export const projectRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
@@ -65,6 +65,41 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             return c.render(project as ProjectResponse, 200)
         }
     )
+    .get("/:id/folder", async (c) => {
+        const id = parseInt(c.req.param("id"))
+        if (isNaN(id)) {
+            return c.json({ error: "Invalid project ID" }, 400)
+        }
+
+        const user = c.get("user")
+
+        // First get the project to obtain its project number
+        const project = await projectRepository.findById(id, user)
+        if (!project) {
+            return c.json({ error: "Project not found" }, 404)
+        }
+
+        try {
+            // Search for folder using the project number
+            const result = await findProjectFolderSingle(PROJECT_BASE_DIR, project.projectNumber)
+
+            return c.json({
+                projectId: id,
+                projectNumber: project.projectNumber,
+                found: !!result,
+                folder: result,
+            })
+        } catch (error) {
+            console.error("Project folder search error:", error)
+            return c.json(
+                {
+                    error: "Failed to search for project folder",
+                    details: error instanceof Error ? error.message : String(error),
+                },
+                500
+            )
+        }
+    })
     .post(
         "/",
         zValidator("json", projectCreateSchema),

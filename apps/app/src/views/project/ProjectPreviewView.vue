@@ -35,6 +35,13 @@
                     <Button variant="secondary" @click="showTimeEntryModal = true">
                         {{ $t("time.new") }}
                     </Button>
+                    <a
+                        :href="`file:///${projectFolder?.folder?.fullPath}`"
+                        v-if="projectFolder?.found"
+                        class="text-sm px-3 py-1.5 rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center hover:bg-indigo-200 text-indigo-700"
+                    >
+                        Open Folder
+                    </a>
                 </div>
             </div>
         </div>
@@ -256,7 +263,7 @@ import Button from "@/components/atoms/Button.vue"
 import TimeEntriesManager from "@/components/organisms/time/TimeEntriesManager.vue"
 import InvoiceListManager from "@/components/organisms/invoice/InvoiceListManager.vue"
 import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
-import { useFetchProject } from "@/composables/api/useProject"
+import { useFetchProject, useProjectFolder } from "@/composables/api/useProject"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import { useFormat } from "@/composables/utils/useFormat"
 
@@ -276,6 +283,7 @@ const showTimeEntryModal = ref(false)
 
 // API client
 const { get: fetchProject, loading, data: projectData } = useFetchProject()
+const { get: fetchProjectFolder, data: projectFolder } = useProjectFolder()
 const { formatNumber, formatDate } = useFormat()
 
 // Get project ID from route
@@ -291,6 +299,7 @@ watch(
 // Load project data on mount
 onMounted(async () => {
     if (projectId.value && !isNaN(projectId.value)) {
+        await fetchProjectFolder({ params: { id: projectId.value } })
         await fetchProject({ params: { id: projectId.value } })
     }
 })
@@ -303,5 +312,26 @@ const handleTimeEntrySaved = async () => {
     }
     // Switch to activities tab to show the new entry
     activeTab.value = "activities"
+}
+
+// Open project folder in native finder
+const openProjectFolder = async () => {
+    if (!projectFolder.value?.folder?.fullPath) return
+
+    try {
+        const response = await fetch(`/api/projects/${projectId.value}/folder/open`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": "application/json",
+            },
+        })
+
+        if (!response.ok) {
+            console.error("Failed to open folder")
+        }
+    } catch (error) {
+        console.error("Error opening folder:", error)
+    }
 }
 </script>

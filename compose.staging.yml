@@ -1,5 +1,4 @@
 version: "3.8"
-
 services:
     api:
         build:
@@ -9,7 +8,7 @@ services:
         environment:
             - NODE_ENV=production
             - DB_FILE_PATH=/app/data/db.sqlite
-            - MANDATS_PATH=${MANDATS_PATH-./mandats}
+            - MANDATS_PATH=${MANDATS_PATH-./data/mandats}
             - JWT_SECRET=${JWT_SECRET-please_change_me}
             - MS_ACCESS_DB_PATH=${MS_ACCESS_DB_PATH-./data/BEGdatas.mdb}
         volumes:
@@ -19,9 +18,8 @@ services:
         working_dir: /app/apps/api
         command: bun run start
         restart: always
-
     app:
-        restart: "no"
+        restart: no
         build:
             context: .
             target: production
@@ -31,10 +29,13 @@ services:
         volumes:
             - app-dist:/app/apps/app/dist
         working_dir: /app/apps/app
-        command: ["bun", "run", "build"]
+        command:
+            - bun
+            - run
+            - build
     proxy:
         restart: always
-        container_name: "proxy"
+        container_name: proxy-beg
         build:
             context: ./provision/nginx
             dockerfile: Dockerfile
@@ -46,8 +47,19 @@ services:
             - app-dist:/var/www/app:ro
             - ./provision/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
             - ./provision/nginx/.htpasswd:/etc/nginx/.htpasswd:ro
-        ports:
-            - 80:80
-
+        networks:
+            - proxy
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.beg.middlewares=default-headers@file
+            - traefik.http.routers.beg.entrypoints=https
+            - traefik.http.routers.beg.rule=Host(`beg.solioz.dev`)
+            - traefik.http.routers.beg.tls=true
+            - traefik.http.routers.beg.service=beg
+            - traefik.http.services.beg.loadbalancer.server.port=80
+            - traefik.docker.network=proxy
+networks:
+    proxy:
+        external: true
 volumes:
-    app-dist:
+    app-dist: null

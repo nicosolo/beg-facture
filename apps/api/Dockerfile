@@ -32,7 +32,6 @@ RUN bun install --production --network-concurrency=5
 # Ensure data directory exists
 RUN mkdir -p /app/data
 
-RUN cd apps/api && bun run build
 EXPOSE 3000
 VOLUME ["/app/data"]
 CMD ["bun", "run", "start"]

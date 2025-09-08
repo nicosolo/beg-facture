@@ -9,27 +9,27 @@ export const formatDate = (
     includeTime: boolean = false
 ): string => {
     if (!date) return ""
-    
+
     try {
         const dateObj = typeof date === "string" ? new Date(date) : date
-        
+
         // Check for invalid date
         if (isNaN(dateObj.getTime())) {
             return ""
         }
-        
+
         const day = dateObj.getDate().toString().padStart(2, "0")
         const month = (dateObj.getMonth() + 1).toString().padStart(2, "0")
         const year = dateObj.getFullYear()
-        
+
         let formatted = `${day}/${month}/${year}`
-        
+
         if (includeTime) {
             const hours = dateObj.getHours().toString().padStart(2, "0")
             const minutes = dateObj.getMinutes().toString().padStart(2, "0")
             formatted += ` ${hours}:${minutes}`
         }
-        
+
         return formatted
     } catch (error) {
         console.error("Error formatting date:", error)
@@ -42,9 +42,7 @@ export const formatDate = (
  * @param date - The date to format
  * @returns Formatted date and time string
  */
-export const formatDateTime = (
-    date: string | Date | null | undefined
-): string => {
+export const formatDateTime = (date: string | Date | null | undefined): string => {
     return formatDate(date, true)
 }
 
@@ -65,7 +63,7 @@ export const toISOString = (date: Date | null | undefined): string | null => {
  */
 export const parseDate = (dateString: string | null | undefined): Date | null => {
     if (!dateString) return null
-    
+
     try {
         const date = new Date(dateString)
         // Check for invalid date
@@ -86,13 +84,13 @@ export const parseDate = (dateString: string | null | undefined): Date | null =>
  */
 export const formatRelativeDate = (date: string | Date | null | undefined): string => {
     if (!date) return ""
-    
+
     try {
         const dateObj = typeof date === "string" ? new Date(date) : date
         const now = new Date()
         const diffTime = now.getTime() - dateObj.getTime()
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-        
+
         if (diffDays === 0) {
             return "Aujourd'hui"
         } else if (diffDays === 1) {

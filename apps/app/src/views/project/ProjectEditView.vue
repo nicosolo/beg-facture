@@ -4,9 +4,19 @@
         :loading="isSubmitting || loadingData"
         :error-message="errorMessage"
     >
-        <form @submit.prevent="saveProject" id="projectForm">
+        <form @submit.prevent="saveProject" id="projectForm" class="space-y-4">
+            <FormField
+                :label="$t('projects.startDate')"
+                :error="errors.startDate"
+                required
+                class=""
+            >
+                <template #input>
+                    <Input type="date" v-model="formattedDate" required />
+                </template>
+            </FormField>
             <!-- Parent Project Selection (for new sub-projects) -->
-            <div v-if="isNewProject" class="mb-6">
+            <div v-if="isNewProject" class="">
                 <FormField :label="$t('projects.parentProject')" :error="errors.parentProjectId">
                     <template #input>
                         <ProjectSelect
@@ -20,8 +30,8 @@
                 </FormField>
             </div>
 
-            <!-- Basic Information -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- First Line: Number (1/3) and Name (2/3) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField :label="$t('projects.mandat')" :error="errors.projectNumber" required>
                     <template #input>
                         <Input
@@ -33,6 +43,48 @@
                     </template>
                 </FormField>
 
+                <div class="md:col-span-2">
+                    <FormField :label="$t('projects.designation')" :error="errors.name" required>
+                        <template #input>
+                            <Input type="text" v-model="form.name" required />
+                        </template>
+                    </FormField>
+                </div>
+            </div>
+
+            <!-- Second Line: Project Manager, Type, and Company -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormField :label="$t('projects.responsible')" :error="errors.projectManagerId">
+                    <template #input>
+                        <UserSelect
+                            v-model="form.projectManagerId"
+                            :placeholder="$t('common.select')"
+                        />
+                    </template>
+                </FormField>
+
+                <FormField :label="$t('projects.type')" :error="errors.typeId" required>
+                    <template #input>
+                        <ProjectTypeSelect
+                            v-model="form.typeId"
+                            :placeholder="$t('common.select')"
+                            :required="true"
+                        />
+                    </template>
+                </FormField>
+
+                <FormField :label="$t('projects.enterprise')" :error="errors.companyId">
+                    <template #input>
+                        <CompanySelect
+                            v-model="form.companyId"
+                            :placeholder="$t('common.select')"
+                        />
+                    </template>
+                </FormField>
+            </div>
+
+            <!-- Sub-project Name and Date -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                     v-if="form.parentProjectId || (!isNewProject && form.subProjectName)"
                     :label="$t('projects.subProjectName')"
@@ -47,37 +99,10 @@
                         />
                     </template>
                 </FormField>
-
-                <FormField v-else :label="$t('projects.date')" :error="errors.startDate" required>
-                    <template #input>
-                        <Input type="date" v-model="formattedDate" required />
-                    </template>
-                </FormField>
             </div>
 
-            <!-- Date field when sub-project name is shown -->
-            <div
-                v-if="form.parentProjectId || (!isNewProject && form.subProjectName)"
-                class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"
-            >
-                <FormField :label="$t('projects.date')" :error="errors.startDate" required>
-                    <template #input>
-                        <Input type="date" v-model="formattedDate" required />
-                    </template>
-                </FormField>
-            </div>
-
-            <!-- Project Name -->
-            <div class="mb-6">
-                <FormField :label="$t('projects.designation')" :error="errors.name" required>
-                    <template #input>
-                        <Input type="text" v-model="form.name" required />
-                    </template>
-                </FormField>
-            </div>
-
-            <!-- Additional Details -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <!-- Additional Details: Locality, Client, Engineer -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField :label="$t('projects.locality')" :error="errors.locationId">
                     <template #input>
                         <LocationSelect
@@ -103,64 +128,33 @@
                 </FormField>
             </div>
 
-            <!-- Company and Type -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <FormField :label="$t('projects.enterprise')" :error="errors.companyId">
-                    <template #input>
-                        <CompanySelect
-                            v-model="form.companyId"
-                            :placeholder="$t('common.select')"
-                        />
-                    </template>
-                </FormField>
-
-                <FormField :label="$t('projects.type')" :error="errors.typeId" required>
-                    <template #input>
-                        <ProjectTypeSelect
-                            v-model="form.typeId"
-                            :placeholder="$t('common.select')"
-                            :required="true"
-                        />
-                    </template>
-                </FormField>
-            </div>
-
-            <!-- Project Manager -->
-            <div class="mb-6">
-                <FormField :label="$t('projects.responsible')" :error="errors.projectManagerId">
-                    <template #input>
-                        <UserSelect
-                            v-model="form.projectManagerId"
-                            :placeholder="$t('common.select')"
-                        />
-                    </template>
-                </FormField>
-            </div>
-
             <!-- Remark -->
-            <div class="mb-6">
+            <div class="">
                 <FormField :label="$t('projects.remark')" :error="errors.remark">
                     <template #input>
-                        <textarea
+                        <Textarea
                             v-model="form.remark"
                             rows="3"
                             class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             :placeholder="$t('projects.remarkPlaceholder')"
-                        ></textarea>
+                        ></Textarea>
                     </template>
                 </FormField>
             </div>
 
             <!-- Invoicing Address -->
-            <div class="mb-6">
-                <FormField :label="$t('projects.invoicingAddress')" :error="errors.invoicingAddress">
+            <div class="">
+                <FormField
+                    :label="$t('projects.invoicingAddress')"
+                    :error="errors.invoicingAddress"
+                >
                     <template #input>
-                        <textarea
+                        <Textarea
                             v-model="form.invoicingAddress"
                             rows="4"
                             class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             :placeholder="$t('projects.invoicingAddressPlaceholder')"
-                        ></textarea>
+                        ></Textarea>
                     </template>
                 </FormField>
             </div>
@@ -223,7 +217,7 @@
         </template>
     </FormLayout>
     <!-- Project Access Management - Only for admins editing existing projects -->
-    <div v-if="!isNewProject && user?.role === 'admin'" class="mb-6">
+    <div v-if="!isNewProject && user?.role === 'admin'" class="">
         <ProjectAccessManagement :project-id="projectId!" />
     </div>
 </template>
@@ -250,6 +244,7 @@ import ProjectAccessManagement from "@/components/organisms/project/ProjectAcces
 // API Composables
 import { useFetchProject, useCreateProject, useUpdateProject } from "@/composables/api/useProject"
 import type { ProjectCreateInput, ProjectUpdateInput } from "@beg/validations"
+import Textarea from "@/components/atoms/Textarea.vue"
 
 const { t } = useI18n()
 const route = useRoute()

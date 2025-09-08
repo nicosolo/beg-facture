@@ -30,7 +30,10 @@
                         <Select
                             v-model="localFilter.activityTypeId"
                             :loading="loadingActivityTypes"
-                            :options="[{ label: $t('common.all'), value: null }, ...activityTypeOptions]"
+                            :options="[
+                                { label: $t('common.all'), value: null },
+                                ...activityTypeOptions,
+                            ]"
                             @update:modelValue="handleFilterChange"
                         ></Select>
                     </div>
@@ -56,7 +59,6 @@
             <!-- Right section with billing status checkboxes -->
             <div class="w-48 border-l pl-4">
                 <div class="form-group">
-                    <Label>{{ $t("time.filters.billingStatus") }}</Label>
                     <div class="space-y-2 mt-2">
                         <label class="flex items-center">
                             <input

@@ -36,8 +36,8 @@ export type MessageResponse = z.infer<typeof messageSchema>
 
 // Timestamps schema for entities
 export const timestampsSchema = z.object({
-    createdAt: nullableDateSchema,
-    updatedAt: nullableDateSchema,
+    createdAt: dateSchema,
+    updatedAt: dateSchema,
 })
 
 export type TimestampsSchema = z.infer<typeof timestampsSchema>

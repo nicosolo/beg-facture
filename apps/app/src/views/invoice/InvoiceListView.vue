@@ -16,16 +16,12 @@
             empty-message="Aucune facture trouvée"
             :loading="loading"
         >
-            <template #cell:client="{ item }">
-                {{ item.clientName || item.client?.name || item.project?.client?.name || "-" }}
-            </template>
-
             <template #cell:createdAt="{ item }">
                 {{ formatDate(item.createdAt) }}
             </template>
 
             <template #cell:totals="{ item }">
-                {{ formatCurrency(item.total) }}
+                {{ formatCurrency(item.totalTTC) }}
             </template>
 
             <template #cell:status="{ item }">
@@ -36,10 +32,18 @@
 
             <template #cell:actions="{ item }">
                 <div class="flex justify-end gap-2">
-                    <Button variant="primary" size="sm" :to="`/invoice/${item.id}/preview`">
+                    <Button
+                        variant="primary"
+                        size="sm"
+                        :to="{ name: 'invoice-preview', params: { id: item.id } }"
+                    >
                         Voir
                     </Button>
-                    <Button variant="ghost-primary" size="sm" :to="`/invoice/${item.id}/edit`">
+                    <Button
+                        variant="ghost-primary"
+                        size="sm"
+                        :to="{ name: 'invoice-edit', params: { id: item.id } }"
+                    >
                         Modifier
                     </Button>
                     <Button
@@ -132,7 +136,7 @@ const handleDelete = async (id: number) => {
 }
 
 onMounted(() => {
-    document.title = 'BEG - Liste des factures'
+    document.title = "BEG - Liste des factures"
     loadInvoices()
 })
 

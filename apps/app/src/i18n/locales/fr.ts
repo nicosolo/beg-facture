@@ -256,7 +256,6 @@ export default {
             activityType: "Activité",
             fromDate: "Date de début",
             toDate: "Date de fin",
-            billingStatus: "Statut de facturation",
             billed: "Facturé",
             unbilled: "Non facturé",
             disbursement: "Débours",

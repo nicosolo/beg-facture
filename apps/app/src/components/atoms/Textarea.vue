@@ -20,7 +20,7 @@ interface TextareaProps {
     disabled?: boolean
     required?: boolean
     placeholder?: string
-    rows?: number
+    rows?: number | string
     className?: string
 }
 

@@ -8,71 +8,71 @@
                 <tbody>
                     <tr>
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Type de facture
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ $t(`invoice.type.${invoice.type || "invoice"}`) }}
                         </td>
                     </tr>
                     <tr>
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Statut
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ $t(`invoice.status.${invoice.status || "draft"}`) }}
                         </td>
                     </tr>
                     <tr>
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Date d'émission
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ formatDate(invoice.issueDate || new Date()) }}
                         </td>
                     </tr>
                     <tr v-if="invoice.dueDate">
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Date d'échéance
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ formatDate(invoice.dueDate) }}
                         </td>
                     </tr>
                     <tr>
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Mode de facturation
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ billingModeLabel }}
                         </td>
                     </tr>
                     <tr v-if="invoice.note">
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Note
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ invoice.note }}
                         </td>
                     </tr>
                     <tr v-if="invoice.invoiceNumber">
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Numéro de facture
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ invoice.invoiceNumber }}
                         </td>
                     </tr>
@@ -86,130 +86,127 @@
                 <tbody>
                     <tr>
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Adresse de facturation
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ invoice.clientAddress }}<br /><br />
                         </td>
                     </tr>
                     <tr>
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Adresse d'envoi
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ invoice.recipientAddress }}<br /><br />
                         </td>
                     </tr>
                     <tr>
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Objet
                         </td>
-                        <td class="info2 border border-gray-300 bg-gray-300 font-bold">
+                        <td class="border border-gray-300 bg-gray-300 font-bold p-1">
                             {{ invoice.reference }}
                         </td>
                     </tr>
                     <tr v-if="invoice.period">
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Période
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ invoice.period }}
                         </td>
                     </tr>
                     <tr v-else-if="invoice.periodStart && invoice.periodEnd">
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Période de facturation
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             Du {{ formatDate(invoice.periodStart) }} au
                             {{ formatDate(invoice.periodEnd) }}
                         </td>
                     </tr>
                     <tr>
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Prestations
                         </td>
-                        <td class="info2 border border-gray-300" v-html="formattedDescription"></td>
+                        <td class="border border-gray-300 p-1" v-html="formattedDescription"></td>
                     </tr>
                 </tbody>
             </table>
 
-            <table class="fac w-[70%] border border-gray-300 border-collapse">
+            <table
+                class="fac w-[70%] border border-gray-300 border-collapse"
+                v-if="invoice.billingMode !== 'accordingToOffer'"
+            >
                 <caption class="sub text-left font-bold p-1 text-sm">
                     Honoraires
                 </caption>
                 <thead>
                     <tr>
-                        <td class="fac1 border border-gray-300 p-1 text-xs">Classe</td>
-                        <td class="fac2 text-right border border-gray-300 p-1 text-xs w-1/4">
-                            Heures
-                        </td>
-                        <td class="fac3 text-right border border-gray-300 p-1 text-xs w-1/4">
-                            Tarif
-                        </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs w-1/4">
+                        <td class="border border-gray-300 p-1 text-sm">Classe</td>
+                        <td class="text-right border border-gray-300 p-1 text-sm w-1/4">Heures</td>
+                        <td class="text-right border border-gray-300 p-1 text-sm w-1/4">Tarif</td>
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm w-1/4">
                             Montant
                         </td>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="rate in filteredRates" :key="rate.rateClass">
-                        <td class="fac1 border border-gray-300 p-1 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ rate.rateClass }}
                         </td>
-                        <td class="fac2 text-right border border-gray-300 p-1 text-xs">
+                        <td class="text-right border border-gray-300 p-1 text-sm">
                             {{ formatDuration(rate.adjusted) }}
                         </td>
-                        <td class="fac3 text-right border border-gray-300 p-1 text-xs">
+                        <td class="text-right border border-gray-300 p-1 text-sm">
                             {{ formatCurrency(rate.hourlyRate) }}
                         </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs">
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm">
                             {{ formatCurrency(rate.amount) }}
                         </td>
                     </tr>
                     <tr>
-                        <td class="fac1 border border-gray-300 p-1 text-xs" colspan="2">
-                            Total h.
-                        </td>
-                        <td class="fac3 text-right border border-gray-300 p-1 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm" colspan="2">Total h.</td>
+                        <td class="text-right border border-gray-300 p-1 text-sm">
                             {{ formatDuration(invoice.feesAdjusted || 0) }}
                         </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs">
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm">
                             {{ formatCurrency(invoice.feesTotal || 0) }}
                         </td>
                     </tr>
                     <tr v-if="invoice.feesOthers && invoice.feesOthers !== 0">
-                        <td class="fac1 border border-gray-300 p-1 text-xs" colspan="3">
+                        <td class="border border-gray-300 p-1 text-sm" colspan="3">
                             Autres honoraires
                         </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs">
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm">
                             {{ formatCurrency(invoice.feesOthers) }}
                         </td>
                     </tr>
                     <tr v-if="invoice.feesDiscountPercentage">
-                        <td class="fac1 border border-gray-300 p-1 text-xs" colspan="2">Rabais</td>
-                        <td class="fac3 text-right border border-gray-300 p-1 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm" colspan="2">Rabais</td>
+                        <td class="text-right border border-gray-300 p-1 text-sm">
                             {{ invoice.feesDiscountPercentage }}%
                         </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs">
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm">
                             -{{ formatCurrency(invoice.feesDiscountAmount || 0) }}
                         </td>
                     </tr>
                     <tr v-if="invoice.feesDiscountAmount && !invoice.feesDiscountPercentage">
-                        <td class="fac1 border border-gray-300 p-1 text-xs" colspan="3">Rabais</td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm" colspan="3">Rabais</td>
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm">
                             -{{ formatCurrency(invoice.feesDiscountAmount) }}
                         </td>
                     </tr>
@@ -219,49 +216,46 @@
                             invoice.feesMultiplicationFactor !== 1
                         "
                     >
-                        <td class="fac1 border border-gray-300 p-1 text-xs" colspan="2">Facteur</td>
-                        <td class="fac3 text-right border border-gray-300 p-1 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm" colspan="2">Facteur</td>
+                        <td class="text-right border border-gray-300 p-1 text-sm">
                             x{{ invoice.feesMultiplicationFactor }}
                         </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs">
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm">
                             {{ formatCurrency(invoice.feesFinalTotal || 0) }}
                         </td>
                     </tr>
                 </tbody>
             </table>
 
-            <table class="fac w-[70%] border border-gray-300 border-collapse">
+            <table
+                class="fac w-[70%] border border-gray-300 border-collapse"
+                v-if="invoice.billingMode !== 'accordingToOffer'"
+            >
                 <caption class="sub text-left font-bold p-1 text-sm">
                     Frais
                 </caption>
                 <tbody>
                     <tr v-if="invoice.expensesTravelAmount > 0">
-                        <td class="fac1 border border-gray-300 p-1 text-xs">
-                            Frais de déplacement
-                        </td>
-                        <td class="fac2 text-right border border-gray-300 p-1 text-xs w-1/4">
+                        <td class="border border-gray-300 p-1 text-sm">Frais de déplacement</td>
+                        <td class="text-right border border-gray-300 p-1 text-sm w-1/4">
                             {{ invoice.expensesTravelBase }} km
                         </td>
-                        <td class="fac3 text-right border border-gray-300 p-1 text-xs w-1/4">
-                            {{ formatCurrency(invoice.expensesTravelRate) }}/km
+                        <td class="text-right border border-gray-300 p-1 text-sm w-1/4">
+                            {{ formatCurrency(invoice.expensesTravelAdjusted) }}/km
                         </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs w-1/4">
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm w-1/4">
                             {{ formatCurrency(invoice.expensesTravelAmount) }}
                         </td>
                     </tr>
                     <tr v-if="invoice.expensesOtherAmount > 0">
-                        <td class="fac1 border border-gray-300 p-1 text-xs" colspan="3">
-                            Autres frais
-                        </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm" colspan="3">Autres frais</td>
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm">
                             {{ formatCurrency(invoice.expensesOtherAmount) }}
                         </td>
                     </tr>
                     <tr v-if="invoice.expensesThirdPartyAmount > 0">
-                        <td class="fac1 border border-gray-300 p-1 text-xs" colspan="3">
-                            Frais tiers
-                        </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm" colspan="3">Frais tiers</td>
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm">
                             {{ formatCurrency(invoice.expensesThirdPartyAmount) }}
                         </td>
                     </tr>
@@ -271,56 +265,59 @@
                             invoice.expensesPackagePercentage > 0
                         "
                     >
-                        <td class="fac1 border border-gray-300 p-1 text-xs" colspan="2">
+                        <td class="border border-gray-300 p-1 text-sm" colspan="2">
                             Frais BEG au %
                         </td>
-                        <td class="fac3 text-right border border-gray-300 p-1 text-xs w-1/4">
+                        <td class="text-right border border-gray-300 p-1 text-sm w-1/4">
                             {{ invoice.expensesPackagePercentage }}%
                         </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs w-1/4">
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm w-1/4">
                             {{ formatCurrency(invoice.expensesPackageAmount || 0) }}
                         </td>
                     </tr>
                     <tr>
-                        <td class="fac1 border border-gray-300 p-1 text-xs" colspan="3">
+                        <td class="border border-gray-300 p-1 text-sm" colspan="3">
                             Total des frais
                         </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs">
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm">
                             {{ formatCurrency(invoice.expensesTotalExpenses || 0) }}
                         </td>
                     </tr>
                 </tbody>
             </table>
 
-            <table class="fac w-[70%] border border-gray-300 border-collapse">
+            <table
+                class="fac w-[70%] border border-gray-300 border-collapse"
+                v-if="invoice.billingMode !== 'accordingToOffer'"
+            >
                 <caption class="sub text-left font-bold p-1 text-sm">
                     Montant total
                 </caption>
                 <tbody>
                     <tr>
-                        <td class="fac1 border border-gray-300 p-1 text-xs font-bold" colspan="3">
+                        <td class="border border-gray-300 p-1 text-sm font-bold" colspan="3">
                             TOTAL HT
                         </td>
                         <td
-                            class="fac4 text-right border border-gray-300 p-1 text-xs font-bold w-1/4"
+                            class="fac4 text-right border border-gray-300 p-1 text-sm font-bold w-1/4"
                         >
                             {{ formatCurrency(invoice.totalHT || 0) }}
                         </td>
                     </tr>
                     <tr>
-                        <td class="fac1 border border-gray-300 p-1 text-xs" colspan="2">TVA</td>
-                        <td class="fac3 text-right border border-gray-300 p-1 text-xs w-1/4">
+                        <td class="border border-gray-300 p-1 text-sm" colspan="2">TVA</td>
+                        <td class="text-right border border-gray-300 p-1 text-sm w-1/4">
                             {{ invoice.vatRate || 8.0 }}%
                         </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs">
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm">
                             {{ formatCurrency(invoice.vatAmount || 0) }}
                         </td>
                     </tr>
                     <tr>
-                        <td class="fac1 border border-gray-300 p-1 text-xs font-bold" colspan="3">
+                        <td class="border border-gray-300 p-1 text-sm font-bold" colspan="3">
                             TOTAL TTC
                         </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-xs font-bold">
+                        <td class="fac4 text-right border border-gray-300 p-1 text-sm font-bold">
                             {{ formatCurrency(invoice.totalTTC || 0) }}
                         </td>
                     </tr>
@@ -338,51 +335,51 @@
                 <tbody>
                     <tr v-if="invoice.otherServices">
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Autres prestations
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ invoice.otherServices }}
                         </td>
                     </tr>
                     <tr v-if="invoice.remarksOtherServices">
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Remarques prestations
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ invoice.remarksOtherServices }}
                         </td>
                     </tr>
                     <tr v-if="invoice.remarksTravelExpenses">
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Remarques déplacements
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ invoice.remarksTravelExpenses }}
                         </td>
                     </tr>
                     <tr v-if="invoice.remarksExpenses">
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Remarques frais
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ invoice.remarksExpenses }}
                         </td>
                     </tr>
                     <tr v-if="invoice.remarksThirdPartyExpenses">
                         <td
-                            class="info1 font-bold pr-4 text-right w-[4cm] border border-gray-300 p-2 text-xs"
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
                             Remarques frais tiers
                         </td>
-                        <td class="info2 border border-gray-300 p-2 text-xs">
+                        <td class="border border-gray-300 p-1 text-sm">
                             {{ invoice.remarksThirdPartyExpenses }}
                         </td>
                     </tr>
@@ -404,11 +401,11 @@
                 </caption>
                 <tbody>
                     <tr v-for="(offer, index) in invoice.offers" :key="index">
-                        <td class="doc1 w-[1.8cm] border-none p-1 text-xs">
+                        <td class="doc1 w-[1.8cm] border-none p-1 text-sm">
                             {{ formatDate(offer.date) }}
                         </td>
-                        <td class="doc2 w-[5.7cm] border-none p-1 text-xs">{{ offer.file }}</td>
-                        <td class="doc3 border-none p-1 text-xs">{{ offer.remark }}</td>
+                        <td class="doc2 w-[5.7cm] border-none p-1 text-sm">{{ offer.file }}</td>
+                        <td class="doc3 border-none p-1 text-sm">{{ offer.remark }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -422,13 +419,13 @@
                 </caption>
                 <tbody>
                     <tr v-for="(adjudication, index) in invoice.adjudications" :key="index">
-                        <td class="doc1 w-[1.8cm] border-none p-1 text-xs">
+                        <td class="doc1 w-[1.8cm] border-none p-1 text-sm">
                             {{ formatDate(adjudication.date) }}
                         </td>
-                        <td class="doc2 w-[5.7cm] border-none p-1 text-xs">
+                        <td class="doc2 w-[5.7cm] border-none p-1 text-sm">
                             {{ adjudication.file }}
                         </td>
-                        <td class="doc3 border-none p-1 text-xs">{{ adjudication.remark }}</td>
+                        <td class="doc3 border-none p-1 text-sm">{{ adjudication.remark }}</td>
                     </tr>
                 </tbody>
             </table>

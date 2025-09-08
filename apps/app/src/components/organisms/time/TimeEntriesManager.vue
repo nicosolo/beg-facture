@@ -69,6 +69,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from "vue"
+import { useI18n } from "vue-i18n"
 import { useFetchActivityList } from "@/composables/api/useActivity"
 import TimeFilterPanel from "@/components/organisms/time/TimeFilterPanel.vue"
 import TimeEntriesList from "@/components/organisms/time/TimeEntriesList.vue"
@@ -92,6 +93,8 @@ const props = withDefaults(defineProps<Props>(), {
     showProjectFilter: true,
     hideHeader: false,
 })
+
+const { t } = useI18n()
 
 // API client
 const { get: fetchActivities, loading, data } = useFetchActivityList()
@@ -227,43 +230,44 @@ const handleExport = async () => {
         })
 
         if (response && response.data) {
-            // Prepare columns for export
+            // Prepare columns for export using translations
             const columns = [
                 {
                     key: "date",
-                    label: "Date",
+                    label: t("time.columns.date"),
                     formatter: (value: any) => formatDateForExport(value),
                 },
-                { key: "project.name", label: "Project" },
-                { key: "activityType.name", label: "Activity Type" },
-                { key: "user.firstName", label: "First Name" },
-                { key: "user.lastName", label: "Last Name" },
+                { key: "user.initials", label: t("time.columns.user") },
+                { key: "rateClass", label: t("time.columns.rateClass") },
+                { key: "project.projectNumber", label: t("projects.mandat") },
+                { key: "project.name", label: t("time.columns.project") },
+                { key: "activityType.code", label: t("time.columns.activityType") },
                 {
                     key: "duration",
-                    label: "Duration (Hours)",
+                    label: t("time.columns.duration"),
                     formatter: (value: any) => value,
                 },
-                {
-                    key: "rate",
-                    label: "Rate",
-                    formatter: (value: any) => value,
+                { key: "rate", label: "Tarif", formatter: (value: any) => value },
+                { 
+                    key: "kilometers", 
+                    label: t("time.columns.kilometers"), 
+                    formatter: (value: any) => value || "0" 
                 },
-                { key: "kilometers", label: "Kilometers", formatter: (value: any) => value || "0" },
                 {
                     key: "expenses",
-                    label: "Expenses",
+                    label: t("time.columns.expenses"),
                     formatter: (value: any) => value,
                 },
-                { key: "description", label: "Description" },
+                { key: "description", label: t("time.columns.description") },
                 {
                     key: "billed",
-                    label: "Billed",
-                    formatter: (value: any) => (value ? "Yes" : "No"),
+                    label: t("time.columns.billed"),
+                    formatter: (value: any) => (value ? "Oui" : "Non"),
                 },
                 {
                     key: "disbursement",
-                    label: "Disbursement",
-                    formatter: (value: any) => (value ? "Yes" : "No"),
+                    label: t("time.columns.disbursement"),
+                    formatter: (value: any) => (value ? "Oui" : "Non"),
                 },
             ]
 

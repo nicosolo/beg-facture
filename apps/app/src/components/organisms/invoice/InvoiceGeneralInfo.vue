@@ -32,7 +32,7 @@
             <!-- Note -->
             <div class="mb-4">
                 <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceNote">
-                    Note (optionnel)
+                    Note
                 </label>
                 <Textarea
                     id="invoiceNote"
@@ -78,19 +78,19 @@
                                 label: $t('invoice.billingMode.accordingToData'),
                             },
                             {
-                                value: 'accordingToInvoice',
-                                label: $t('invoice.billingMode.accordingToInvoice'),
+                                value: 'accordingToOffer',
+                                label: $t('invoice.billingMode.accordingToOffer'),
                             },
                             { value: 'fixedPrice', label: $t('invoice.billingMode.fixedPrice') },
                         ]"
                     />
                 </div>
             </div>
-            
+
             <!-- Invoice Status -->
             <div class="mb-4">
                 <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceStatus">
-                    {{ $t('invoice.status.title') }}
+                    {{ $t("invoice.status.title") }}
                 </label>
                 <Select
                     id="invoiceStatus"

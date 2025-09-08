@@ -269,7 +269,7 @@ export const invoices = sqliteTable(
             .notNull()
             .default("invoice"),
         billingMode: text("billingMode")
-            .$type<"accordingToData" | "accordingToInvoice" | "fixedPrice">()
+            .$type<"accordingToData" | "accordingToOffer" | "fixedPrice">()
             .notNull()
             .default("accordingToData"),
         status: text("status")

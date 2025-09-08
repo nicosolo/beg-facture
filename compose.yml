@@ -24,10 +24,15 @@ services:
         environment:
             - NODE_ENV=development
             - DB_FILE_PATH=/app/data/db.sqlite
+            - JWT_SECRET=${JWT_SECRET-please_change_me}
+            - MANDATS_PATH=${MANDATS_PATH-./data/mandats}
+            - MS_ACCESS_DB_PATH=${MS_ACCESS_DB_PATH-./data/BEGdatas.mdb}
         volumes:
             - ./apps/api/drizzle:/app/apps/api/drizzle
             - ./data:/app/data
             - ./export-mdb:/app/export-mdb
+            - $MANDATS_PATH:/mandats
+            - $MS_ACCESS_DB_PATH:/export-mdb/beg.mdb:ro
         working_dir: /app/apps/api
         command: bun run dev
         ports:

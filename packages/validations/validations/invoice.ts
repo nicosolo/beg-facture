@@ -12,7 +12,7 @@ export const InvoiceTypeEnum = z.enum(["invoice", "credit_note", "proforma", "qu
 export type InvoiceType = z.infer<typeof InvoiceTypeEnum>
 
 // Billing mode enum
-export const BillingModeEnum = z.enum(["accordingToData", "accordingToInvoice", "fixedPrice"])
+export const BillingModeEnum = z.enum(["accordingToData", "accordingToOffer", "fixedPrice"])
 
 export type BillingMode = z.infer<typeof BillingModeEnum>
 

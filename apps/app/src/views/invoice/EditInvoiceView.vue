@@ -21,6 +21,7 @@
                         Données de facturation et documents
                     </button>
                     <button
+                        v-if="invoice && invoice.billingMode !== 'accordingToOffer'"
                         @click="activeTab = 'details'"
                         :class="[
                             'py-4 px-6 font-medium text-sm cursor-pointer',
@@ -39,7 +40,7 @@
         <div class="tab-content" v-if="invoice">
             <InvoiceGeneralInfo v-if="activeTab === 'general'" v-model="invoice" />
             <InvoiceDetails
-                v-if="activeTab === 'details'"
+                v-if="activeTab === 'details' && invoice.billingMode !== 'accordingToOffer'"
                 v-model="invoice"
                 :unbilledActivities="unbilledActivities"
             />
@@ -311,7 +312,7 @@ const handleSave = async () => {
                 params: { id: parseInt(invoiceId.value) },
                 body: convertInvoiceToInput(invoice.value),
             })
-            router.push({ name: "invoice-list" })
+            router.push({ name: "invoice-preview", params: { id: invoiceId.value } })
         }
     } catch (err: any) {
         console.error("Failed to save invoice:", err)

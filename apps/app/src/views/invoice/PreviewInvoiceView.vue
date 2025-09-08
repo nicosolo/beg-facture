@@ -15,6 +15,19 @@
             <div class="flex justify-between items-center mb-6 print:hidden">
                 <h1 class="text-2xl font-bold">Aperçu de la facture</h1>
                 <div class="flex gap-2">
+                    <Button
+                        v-if="invoice?.project?.id"
+                        variant="ghost-primary"
+                        size="lg"
+                        :to="{
+                            name: 'project-view',
+                            params: { id: invoice.project.id },
+                            query: { tab: 'invoices' },
+                        }"
+                    >
+                        Retour à la vue projet
+                    </Button>
+
                     <Button @click="printInvoice" size="lg" variant="primary">
                         Imprimer la facture
                     </Button>

@@ -3,7 +3,22 @@
         <!-- Header with title and actions -->
         <div class="px-6 py-4 border-b border-gray-200">
             <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold">{{ $t("projects.preview") }}</h1>
+                <div class="flex">
+                    <h1 class="text-2xl font-bold mr-2">
+                        {{ $t("projects.preview") }}
+                    </h1>
+                    <div>
+                        <strong class="text-2xl text-gray-500"
+                            >{{ projectData?.projectNumber }}
+                            {{
+                                projectData?.subProjectName ? ` ${projectData.subProjectName}` : ""
+                            }}</strong
+                        >
+                        <span class="text-1xl text-gray-900">
+                            {{ projectData?.name || $t("projects.noName") }}</span
+                        >
+                    </div>
+                </div>
                 <div class="flex gap-2">
                     <Button
                         variant="primary"
@@ -12,7 +27,6 @@
                         {{ $t("common.edit") }}
                     </Button>
                     <Button
-                        v-if="projectData?.unBilledDuration && projectData.unBilledDuration > 0"
                         variant="secondary"
                         :to="{ name: 'invoice-new', query: { projectId: projectId } }"
                     >
@@ -236,8 +250,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue"
-import { useRoute } from "vue-router"
+import { ref, computed, onMounted, watch } from "vue"
+import { useRoute, useRouter } from "vue-router"
 import Button from "@/components/atoms/Button.vue"
 import TimeEntriesManager from "@/components/organisms/time/TimeEntriesManager.vue"
 import InvoiceListManager from "@/components/organisms/invoice/InvoiceListManager.vue"
@@ -247,9 +261,17 @@ import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import { useFormat } from "@/composables/utils/useFormat"
 
 const route = useRoute()
+const router = useRouter()
 
-// Tab state
-const activeTab = ref("overview")
+// Tab state - get from query string or default to overview
+const activeTab = computed({
+    get: () => (route.query.tab as string) || "overview",
+    set: (value) => {
+        router.push({
+            query: { ...route.query, tab: value },
+        })
+    },
+})
 const showTimeEntryModal = ref(false)
 
 // API client
@@ -259,10 +281,15 @@ const { formatNumber, formatDate } = useFormat()
 // Get project ID from route
 const projectId = computed(() => parseInt(route.params.id as string))
 
+watch(
+    () => projectData.value,
+    async (newId) => {
+        document.title = `BEG - Mandat ${projectData.value?.projectNumber || ""}`
+    },
+    { immediate: true }
+)
 // Load project data on mount
 onMounted(async () => {
-    document.title = "BEG - Aperçu du mandat"
-    console.log("projectId", projectId.value)
     if (projectId.value && !isNaN(projectId.value)) {
         await fetchProject({ params: { id: projectId.value } })
     }

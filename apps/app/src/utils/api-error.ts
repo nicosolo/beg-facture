@@ -76,7 +76,7 @@ export class ApiError extends Error {
             ErrorCode.INVALID_CREDENTIALS,
             ErrorCode.TOKEN_EXPIRED,
         ] as const
-        return (authCodes as readonly string[]).includes(this.code)
+        return (authCodes as readonly string[]).includes(this.code) || this.statusCode === 401
     }
 }
 

@@ -464,7 +464,11 @@ export const invoiceRepository = {
             }
 
             // Mark activities as billed if activity IDs provided
-            if (data.activityIds && data.activityIds.length > 0) {
+            if (
+                data.activityIds &&
+                data.activityIds.length > 0 &&
+                data.billingMode !== "accordingToOffer"
+            ) {
                 await tx
                     .update(activities)
                     .set({

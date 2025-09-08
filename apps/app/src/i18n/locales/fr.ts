@@ -119,7 +119,7 @@ export default {
         createSuccess: "Mandat créé avec succès",
         updateSuccess: "Mandat mis à jour avec succès",
         projectNumberExists: "Ce numéro de mandat existe déjà",
-        preview: "Aperçu du mandat",
+        preview: "Mandat",
         remarkPlaceholder: "Ajoutez des notes ou commentaires sur le mandat",
         endDate: "Date de fin",
         budget: "Budget",
@@ -380,7 +380,7 @@ export default {
         },
         billingMode: {
             accordingToData: "Selon données présentes",
-            accordingToInvoice: "Selon facture annexée",
+            accordingToOffer: "A faire selon l'offre",
             fixedPrice: "Au forfait (voir notes)",
         },
     },

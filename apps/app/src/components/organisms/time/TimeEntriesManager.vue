@@ -3,9 +3,19 @@
         <div class="mb-4" v-if="!hideHeader">
             <div class="flex justify-between items-start mb-4">
                 <h2 class="text-lg font-semibold">{{ $t("time.title") }}</h2>
-                <Button variant="primary" size="md" @click="openAddModal">
-                    {{ $t("time.new") }}
-                </Button>
+                <div class="flex gap-2">
+                    <Button
+                        variant="secondary"
+                        size="md"
+                        @click="handleExport"
+                        :disabled="exportLoading"
+                    >
+                        {{ exportLoading ? "Exporting..." : "Export to Excel" }}
+                    </Button>
+                    <Button variant="primary" size="md" @click="openAddModal">
+                        {{ $t("time.new") }}
+                    </Button>
+                </div>
             </div>
             <TimeFilterPanel
                 v-model:filter="filter"
@@ -66,6 +76,7 @@ import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import Button from "@/components/atoms/Button.vue"
+import { exportToCSV, formatDateForExport } from "@/utils/export"
 import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@beg/validations"
 
 interface Props {
@@ -84,6 +95,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // API client
 const { get: fetchActivities, loading, data } = useFetchActivityList()
+const { get: fetchActivitiesExport, loading: exportLoading } = useFetchActivityList()
 
 // State
 const activities = ref<ActivityResponse[]>([])
@@ -203,6 +215,75 @@ const openAddModal = () => {
 const onTimeEntrySaved = () => {
     // Reload activities to update the list
     loadActivities()
+}
+
+// Export handler
+const handleExport = async () => {
+    exportLoading.value = true
+    try {
+        // Fetch all data without pagination
+        const response = await fetchActivitiesExport({
+            query: { ...filter.value, limit: 20000, page: 1 },
+        })
+
+        if (response && response.data) {
+            // Prepare columns for export
+            const columns = [
+                {
+                    key: "date",
+                    label: "Date",
+                    formatter: (value: any) => formatDateForExport(value),
+                },
+                { key: "project.name", label: "Project" },
+                { key: "activityType.name", label: "Activity Type" },
+                { key: "user.firstName", label: "First Name" },
+                { key: "user.lastName", label: "Last Name" },
+                {
+                    key: "duration",
+                    label: "Duration (Hours)",
+                    formatter: (value: any) => value,
+                },
+                {
+                    key: "rate",
+                    label: "Rate",
+                    formatter: (value: any) => value,
+                },
+                { key: "kilometers", label: "Kilometers", formatter: (value: any) => value || "0" },
+                {
+                    key: "expenses",
+                    label: "Expenses",
+                    formatter: (value: any) => value,
+                },
+                { key: "description", label: "Description" },
+                {
+                    key: "billed",
+                    label: "Billed",
+                    formatter: (value: any) => (value ? "Yes" : "No"),
+                },
+                {
+                    key: "disbursement",
+                    label: "Disbursement",
+                    formatter: (value: any) => (value ? "Yes" : "No"),
+                },
+            ]
+
+            // Generate filename with current date
+            const today = new Date().toISOString().split("T")[0]
+            const filename = `heures-${today}.csv`
+
+            // Export to CSV
+            exportToCSV({
+                filename,
+                columns,
+                data: response.data,
+            })
+        }
+    } catch (error) {
+        console.error("Failed to export activities:", error)
+        // You might want to show an error message to the user here
+    } finally {
+        exportLoading.value = false
+    }
 }
 
 // Expose methods that parent components might need

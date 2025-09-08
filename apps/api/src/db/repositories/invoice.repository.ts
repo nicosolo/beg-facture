@@ -453,7 +453,6 @@ export const invoiceRepository = {
                 await tx
                     .update(activities)
                     .set({
-                        billed: true,
                         invoiceId: invoice.id,
                         updatedAt: new Date(),
                     })

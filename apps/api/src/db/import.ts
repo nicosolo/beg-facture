@@ -432,6 +432,7 @@ async function importProjects() {
                 companyId,
                 typeId,
                 remark: rawProject.Remarque,
+                invoicingAddress: rawProject.Facture || null,
                 printFlag: rawProject.FlagImpression === "Oui",
                 createdAt: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
                 updatedAt: new Date(),

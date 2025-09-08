@@ -26,7 +26,7 @@ export const useFormat = () => {
 
         // Round to nearest 0.25 (quarter hour)
         const roundedHours = Math.round(duration * 4) / 4
-        return roundedHours
+        return formatNumber(roundedHours)
     }
 
     const formatDate = (date: Date | null | undefined) => {

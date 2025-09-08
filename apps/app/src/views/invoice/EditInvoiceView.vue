@@ -379,7 +379,8 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
                     }
                 }
 
-                invoice.value.clientAddress = addressParts.join("\n")
+                invoice.value.clientAddress =
+                    projectResponse.value.invoicingAddress || addressParts.join("\n")
             }
 
             // Fees from API calculation

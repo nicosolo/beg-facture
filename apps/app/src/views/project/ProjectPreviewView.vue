@@ -4,75 +4,87 @@
     </div>
 
     <LoadingOverlay :loading="loading">
-        <div v-if="project" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div v-if="projectData" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Project Details -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-lg p-6 border border-gray-200">
                     <h2 class="text-lg font-semibold mb-4">{{ $t("projects.details") }}</h2>
-
-                    <div class="space-y-4">
+                    <div class="space-y-2">
                         <div>
                             <p class="text-sm text-gray-500">{{ $t("projects.mandat") }}</p>
                             <p class="font-medium">
-                                {{ project.projectNumber }}
-                                {{ project.subProjectName ? ` ${project.subProjectName}` : "" }}
+                                {{ projectData.projectNumber }}
+                                {{
+                                    projectData.subProjectName
+                                        ? ` ${projectData.subProjectName}`
+                                        : ""
+                                }}
                             </p>
                         </div>
 
                         <div>
                             <p class="text-sm text-gray-500">{{ $t("projects.designation") }}</p>
                             <p class="font-medium">
-                                {{ project.subProjectName ? `${project.subProjectName} - ` : ""
-                                }}{{ project.name }}
+                                {{
+                                    projectData.subProjectName
+                                        ? `${projectData.subProjectName} - `
+                                        : ""
+                                }}{{ projectData.name }}
                             </p>
                         </div>
 
                         <div>
                             <p class="text-sm text-gray-500">{{ $t("projects.date") }}</p>
-                            <p class="font-medium">{{ formatDate(project.startDate) }}</p>
+                            <p class="font-medium">{{ formatDate(projectData.startDate) }}</p>
                         </div>
 
-                        <div v-if="project.client">
+                        <div v-if="projectData.client">
                             <p class="text-sm text-gray-500">{{ $t("projects.client") }}</p>
-                            <p class="font-medium">{{ project.client.name }}</p>
+                            <p class="font-medium">{{ projectData.client.name }}</p>
                         </div>
 
-                        <div v-if="project.projectManager">
+                        <div v-if="projectData.projectManager">
                             <p class="text-sm text-gray-500">{{ $t("projects.responsible") }}</p>
                             <p class="font-medium">
-                                {{ project.projectManager.firstName }}
-                                {{ project.projectManager.lastName }}
+                                {{ projectData.projectManager.firstName }}
+                                {{ projectData.projectManager.lastName }}
                             </p>
                         </div>
 
-                        <div v-if="project.company">
+                        <div v-if="projectData.company">
                             <p class="text-sm text-gray-500">{{ $t("projects.enterprise") }}</p>
-                            <p class="font-medium">{{ project.company.name }}</p>
+                            <p class="font-medium">{{ projectData.company.name }}</p>
+                        </div>
+                        <div v-if="projectData.invoicingAddress">
+                            <p class="text-sm text-gray-500">
+                                {{ $t("projects.invoicingAddress") }}
+                            </p>
+                            <p class="font-medium">{{ projectData.invoicingAddress }}</p>
                         </div>
 
-                        <div v-if="project.type">
+                        <div v-if="projectData.type">
                             <p class="text-sm text-gray-500">{{ $t("projects.type") }}</p>
-                            <p class="font-medium">{{ project.type.name }}</p>
+                            <p class="font-medium">{{ projectData.type.name }}</p>
                         </div>
 
-                        <div v-if="project.remark">
+                        <div v-if="projectData.remark">
                             <p class="text-sm text-gray-500">{{ $t("projects.remark") }}</p>
-                            <p class="font-medium whitespace-pre-line">{{ project.remark }}</p>
+                            <p class="font-medium whitespace-pre-line">{{ projectData.remark }}</p>
                         </div>
                     </div>
 
                     <div class="mt-6 space-y-2">
                         <Button
                             variant="primary"
-                            :to="{ name: 'project-edit', params: { id: project.id } }"
+                            :to="{ name: 'project-edit', params: { id: projectData.id } }"
                             class="w-full"
                         >
                             {{ $t("common.edit") }}
                         </Button>
                         <Button
-                            v-if="project.unBilledDuration && project.unBilledDuration > 0"
+                            v-if="projectData.unBilledDuration && projectData.unBilledDuration > 0"
                             variant="secondary"
-                            :to="{ name: 'invoice-new', query: { projectId: project.id } }"
+                            :to="{ name: 'invoice-new', query: { projectId: projectData.id } }"
                             class="w-full"
                         >
                             Créer une facture
@@ -126,27 +138,6 @@ const formatDate = (date: Date | string | null): string => {
 
 // Get project ID from route
 const projectId = computed(() => parseInt(route.params.id as string))
-
-// Project data from API
-const project = computed(() => {
-    if (!projectData.value) return null
-    return {
-        id: projectData.value.id,
-        projectNumber: projectData.value.projectNumber,
-        subProjectName: projectData.value.subProjectName,
-        name: projectData.value.name,
-        startDate: projectData.value.startDate,
-        remark: projectData.value.remark,
-        client: projectData.value.client,
-        location: projectData.value.location,
-        engineer: projectData.value.engineer,
-        company: projectData.value.company,
-        type: projectData.value.type,
-        projectManager: projectData.value.projectManager,
-        printFlag: projectData.value.printFlag,
-        unBilledDuration: projectData.value.unBilledDuration,
-    }
-})
 
 // Load project data on mount
 onMounted(async () => {

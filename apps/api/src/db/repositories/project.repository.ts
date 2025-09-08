@@ -127,6 +127,7 @@ export const projectRepository = {
                 name: projects.name,
                 startDate: projects.startDate,
                 remark: projects.remark,
+                invoicingAddress: projects.invoicingAddress,
                 printFlag: projects.printFlag,
                 archived: projects.archived,
                 createdAt: projects.createdAt,
@@ -232,6 +233,7 @@ export const projectRepository = {
                 name: projects.name,
                 startDate: projects.startDate,
                 remark: projects.remark,
+                invoicingAddress: projects.invoicingAddress,
                 printFlag: projects.printFlag,
                 archived: projects.archived,
                 createdAt: projects.createdAt,
@@ -361,6 +363,7 @@ export const projectRepository = {
                   printFlag: data.printFlag ?? parentProjectData.printFlag,
                   ended: data.ended ?? parentProjectData.ended,
                   archived: data.archived ?? parentProjectData.archived,
+                  invoicingAddress: data.invoicingAddress || parentProjectData.invoicingAddress,
                   createdAt: new Date(),
                   updatedAt: new Date(),
               }
@@ -450,6 +453,7 @@ export const projectRepository = {
             updateData.projectManagerId = data.projectManagerId || null
         if (data.remark !== undefined) updateData.remark = data.remark || null
         if (data.printFlag !== undefined) updateData.printFlag = data.printFlag
+        if (data.invoicingAddress !== undefined) updateData.invoicingAddress = data.invoicingAddress
         if (data.ended !== undefined) updateData.ended = data.ended
         if (data.archived !== undefined) updateData.archived = data.archived
 
@@ -482,6 +486,7 @@ export const projectRepository = {
                 name: projects.name,
                 startDate: projects.startDate,
                 remark: projects.remark,
+                invoicingAddress: projects.invoicingAddress,
                 printFlag: projects.printFlag,
                 archived: projects.archived,
                 createdAt: projects.createdAt,

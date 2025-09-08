@@ -397,7 +397,7 @@
             </section>
         </div>
         <!-- Collapsible sections for other services -->
-        <div class="space-y-4 w-full lg:w-1/3">
+        <div class="space-y-4 w-full">
             <!-- 1. Autres prestations -->
             <AccordionPanel
                 id="otherServices"
@@ -490,7 +490,9 @@
                         : {
                               invoiceId: parseInt(invoice.id),
                               includeBilled: true,
-                              includeUnbilled: false,
+                              includeUnbilled: true,
+                              includeDisbursement: false,
+                              limit: 30,
                           }
                 "
                 :show-project-filter="false"

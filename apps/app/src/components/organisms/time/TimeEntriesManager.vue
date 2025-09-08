@@ -7,9 +7,23 @@
                     {{ $t("time.new") }}
                 </Button>
             </div>
-            <TimeFilterPanel v-model:filter="filter" :show-project-filter="showProjectFilter" />
+            <TimeFilterPanel
+                v-model:filter="filter"
+                :show-project-filter="showProjectFilter"
+                :initial-filter="initialFilter"
+            />
         </div>
         <LoadingOverlay :loading="loading">
+            <Pagination
+                v-if="activities.length > 0 || totalItems > 0"
+                :current-page="currentPage"
+                :total-pages="totalPages"
+                :total-items="totalItems"
+                :page-size="pageSize"
+                @prev="prevPage"
+                @next="nextPage"
+                @go-to="goToPage"
+            />
             <TimeEntriesList
                 :activities="activities"
                 :totals="totals"
@@ -46,9 +60,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from "vue"
 import { useFetchActivityList } from "@/composables/api/useActivity"
-import TimeFilterPanel, {
-    type TimeFilterModel,
-} from "@/components/organisms/time/TimeFilterPanel.vue"
+import TimeFilterPanel from "@/components/organisms/time/TimeFilterPanel.vue"
 import TimeEntriesList from "@/components/organisms/time/TimeEntriesList.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
@@ -59,7 +71,7 @@ import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@be
 interface Props {
     emptyMessage?: string
     showProjectFilter?: boolean
-    initialFilter?: Partial<TimeFilterModel>
+    initialFilter?: Partial<ActivityFilter>
     hideColumns?: string[]
     hideHeader?: boolean
 }
@@ -87,7 +99,7 @@ const selectedActivityId = ref<number | null>(null)
 const defaultProjectId = ref<number | undefined>(undefined)
 
 // Filter state
-const filter = ref<TimeFilterModel>({
+const filter = ref<ActivityFilter>({
     userId: undefined,
     activityTypeId: undefined,
     includeBilled: false,
@@ -99,8 +111,8 @@ const filter = ref<TimeFilterModel>({
 })
 
 const sort = computed(() => ({
-    key: filter.value.sortBy,
-    direction: filter.value.sortOrder,
+    key: filter.value.sortBy || "date",
+    direction: filter.value.sortOrder || "desc",
 }))
 
 const handleSortChange = (sort: {

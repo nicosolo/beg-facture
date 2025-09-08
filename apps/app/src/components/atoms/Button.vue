@@ -4,7 +4,7 @@
         :type="to ? undefined : type"
         :to="to"
         :class="[
-            'rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block',
+            'rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center',
             variantClasses,
             sizeClasses,
             disabled ? 'cursor-not-allowed opacity-60' : '',

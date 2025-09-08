@@ -1,14 +1,6 @@
 <template>
     <div class="bg-white p-4 border border-gray-200 rounded-lg mb-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="form-group">
-                <Label>{{ $t("projects.filters.referentUser") }}</Label>
-                <UserSelect
-                    v-model="filterData.referentUserId"
-                    :placeholder="$t('shared.selectReferentUser')"
-                    @update:model-value="emitChange"
-                />
-            </div>
             <FormField :label="$t('projects.name')">
                 <template #input>
                     <Input
@@ -18,6 +10,14 @@
                     />
                 </template>
             </FormField>
+            <div class="form-group">
+                <Label>{{ $t("projects.filters.referentUser") }}</Label>
+                <UserSelect
+                    v-model="filterData.referentUserId"
+                    :placeholder="$t('shared.selectReferentUser')"
+                    @update:model-value="emitChange"
+                />
+            </div>
 
             <div class="form-group">
                 <Label>{{ $t("projects.filters.sortBy") }}</Label>

@@ -4,8 +4,8 @@ import { z } from "zod"
  * Pagination parameters schema
  */
 export const paginationSchema = z.object({
-    page: z.coerce.number().int().positive().optional().default(1),
-    limit: z.coerce.number().int().positive().optional().default(20),
+    page: z.coerce.number().int().positive().default(1).optional(),
+    limit: z.coerce.number().int().positive().default(20).optional(),
 })
 
 export const paginationResponseSchema = z.object({

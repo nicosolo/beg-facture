@@ -88,9 +88,21 @@ app.get(
         let totalExpenses = 0
         let totalDisbursements = 0
 
+        // Calculate period from filtered activities or use provided period
+        let periodStartDate: Date | null = periodStart
+        let periodEndDate: Date = new Date(periodEnd || Date.now())
+
+        // If no period provided, calculate from filtered activities
+        if (!periodStart && !periodEnd && activitiesForCalculation.length > 0) {
+            const dates = activitiesForCalculation.map((a) => new Date(a.date).getTime())
+            periodStartDate = new Date(Math.min(...dates))
+            periodEndDate = new Date(Math.max(...dates))
+        }
         const allYears = [
             ...new Set<number>(activitiesForCalculation.map((a) => new Date(a.date).getFullYear())),
+            periodEndDate.getFullYear(), // Ensure current year is included
         ]
+
         const rateClasses = await rateRepository.findByYears(allYears)
         const rateClassesMaps = new Map<string, number>()
         for (const rate of rateClasses) {
@@ -147,9 +159,9 @@ app.get(
 
         // Define all possible rate classes
         const allRateClasses: ClassSchema[] = ["A", "B", "C", "D", "E", "F", "G", "R", "Z"]
-        
+
         // Ensure all rate classes are present in the response
-        const rates: RateItem[] = allRateClasses.map(rateClass => {
+        const rates: RateItem[] = allRateClasses.map((rateClass) => {
             const existingRate = rateClassTotals.get(rateClass)
             if (existingRate) {
                 // Calculate amount for existing rate
@@ -161,8 +173,8 @@ app.get(
                 rateClass,
                 base: 0,
                 adjusted: 0,
-                hourlyRate: 0,
-                amount: 0
+                hourlyRate: rateClassesMaps.get(`${rateClass}-${periodEndDate.getFullYear()}`) || 0,
+                amount: 0,
             }
         })
 
@@ -183,17 +195,6 @@ app.get(
         const vatRate = 8.0 // Default VAT rate
         const vatAmount = totalHT * (vatRate / 100)
         const totalTTC = totalHT + vatAmount
-
-        // Calculate period from filtered activities or use provided period
-        let periodStartDate: Date | null = periodStart
-        let periodEndDate: Date | null = periodEnd
-
-        // If no period provided, calculate from filtered activities
-        if (!periodStart && !periodEnd && activitiesForCalculation.length > 0) {
-            const dates = activitiesForCalculation.map((a) => new Date(a.date).getTime())
-            periodStartDate = new Date(Math.min(...dates))
-            periodEndDate = new Date(Math.max(...dates))
-        }
 
         // Get activity IDs for marking as billed later (only from filtered activities)
         const activityIds = activitiesForCalculation.map((a) => a.id)

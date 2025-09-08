@@ -1,84 +1,91 @@
 <template>
     <div class="bg-white p-4 border border-gray-200 rounded-lg mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- User Filter -->
-            <div class="form-group">
-                <Label>{{ $t("shared.selectReferentUser") }}</Label>
-                <UserSelect
-                    v-model="localFilter.userId"
-                    :placeholder="$t('shared.selectReferentUser')"
-                    @update:modelValue="handleFilterChange"
-                />
+        <div class="flex gap-4">
+            <!-- Left section with main filters -->
+            <div class="flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- User Filter -->
+                    <div class="form-group">
+                        <Label>{{ $t("shared.selectReferentUser") }}</Label>
+                        <UserSelect
+                            v-model="localFilter.userId"
+                            :placeholder="$t('shared.selectReferentUser')"
+                            @update:modelValue="handleFilterChange"
+                        />
+                    </div>
+
+                    <!-- Project Filter -->
+                    <div class="form-group" v-if="showProjectFilter">
+                        <Label>{{ $t("time.filters.project") }}</Label>
+                        <ProjectSelect
+                            v-model="localFilter.projectId"
+                            :placeholder="$t('projects.filters.searchByNameAndNumber')"
+                            @update:modelValue="handleFilterChange"
+                        />
+                    </div>
+
+                    <!-- Activity Type Filter -->
+                    <div class="form-group">
+                        <Label>{{ $t("time.filters.activityType") }}</Label>
+                        <Select
+                            v-model="localFilter.activityTypeId"
+                            :loading="loadingActivityTypes"
+                            :options="[{ label: $t('common.all'), value: null }, ...activityTypeOptions]"
+                            @update:modelValue="handleFilterChange"
+                        ></Select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <!-- Date From -->
+                    <DateField
+                        :label="$t('time.filters.fromDate')"
+                        v-model="localFilter.fromDate"
+                        @update:modelValue="handleFilterChange"
+                    />
+
+                    <!-- Date To -->
+                    <DateField
+                        :label="$t('time.filters.toDate')"
+                        v-model="localFilter.toDate"
+                        @update:modelValue="handleFilterChange"
+                    />
+                </div>
             </div>
 
-            <!-- Project Filter -->
-            <div class="form-group" v-if="showProjectFilter">
-                <Label>{{ $t("time.filters.project") }}</Label>
-                <ProjectSelect
-                    v-model="localFilter.projectId"
-                    :placeholder="$t('projects.filters.searchByNameAndNumber')"
-                    @update:modelValue="handleFilterChange"
-                />
-            </div>
-
-            <!-- Activity Type Filter -->
-            <div class="form-group">
-                <Label>{{ $t("time.filters.activityType") }}</Label>
-                <Select
-                    v-model="localFilter.activityTypeId"
-                    :loading="loadingActivityTypes"
-                    :options="[{ label: $t('common.all'), value: null }, ...activityTypeOptions]"
-                    @update:modelValue="handleFilterChange"
-                ></Select>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <!-- Date From -->
-            <DateField
-                :label="$t('time.filters.fromDate')"
-                v-model="localFilter.fromDate"
-                @update:modelValue="handleFilterChange"
-            />
-
-            <!-- Date To -->
-            <DateField
-                :label="$t('time.filters.toDate')"
-                v-model="localFilter.toDate"
-                @update:modelValue="handleFilterChange"
-            />
-
-            <!-- Billing Status -->
-            <div class="form-group">
-                <Label>{{ $t("time.filters.billingStatus") }}</Label>
-                <div class="space-y-2">
-                    <label class="flex items-center">
-                        <input
-                            type="checkbox"
-                            v-model="localFilter.includeBilled"
-                            @change="handleFilterChange"
-                            class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
-                        />
-                        {{ $t("time.filters.billed") }}
-                    </label>
-                    <label class="flex items-center">
-                        <input
-                            type="checkbox"
-                            v-model="localFilter.includeUnbilled"
-                            @change="handleFilterChange"
-                            class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
-                        />
-                        {{ $t("time.filters.unbilled") }}
-                    </label>
-                    <label class="flex items-center">
-                        <input
-                            type="checkbox"
-                            v-model="localFilter.includeDisbursement"
-                            @change="handleFilterChange"
-                            class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
-                        />
-                        {{ $t("time.filters.disbursement") }}
-                    </label>
+            <!-- Right section with billing status checkboxes -->
+            <div class="w-48 border-l pl-4">
+                <div class="form-group">
+                    <Label>{{ $t("time.filters.billingStatus") }}</Label>
+                    <div class="space-y-2 mt-2">
+                        <label class="flex items-center">
+                            <input
+                                type="checkbox"
+                                v-model="localFilter.includeBilled"
+                                @change="handleFilterChange"
+                                class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
+                            />
+                            {{ $t("time.filters.billed") }}
+                        </label>
+                        <label class="flex items-center">
+                            <input
+                                type="checkbox"
+                                v-model="localFilter.includeUnbilled"
+                                @change="handleFilterChange"
+                                class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
+                            />
+                            {{ $t("time.filters.unbilled") }}
+                        </label>
+                        <label class="flex items-center">
+                            <input
+                                type="checkbox"
+                                v-model="localFilter.includeDisbursement"
+                                @change="handleFilterChange"
+                                class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
+                            />
+                            {{ $t("time.filters.disbursement") }}
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -103,35 +110,23 @@ import { useFetchActivityTypes } from "@/composables/api/useActivityType"
 import type { ActivityFilter } from "@beg/validations"
 import UserSelect from "@/components/organisms/user/UserSelect.vue"
 
-export interface TimeFilterModel {
-    userId?: number
-    projectId?: number
-    activityTypeId?: number
-    fromDate?: Date
-    toDate?: Date
-    includeBilled: boolean
-    includeUnbilled: boolean
-    includeDisbursement: boolean
-    sortBy: ActivityFilter["sortBy"]
-    sortOrder: ActivityFilter["sortOrder"]
-}
-
 // For backwards compatibility, keep the old interface name as an alias
-export type TimeFilters = TimeFilterModel
+export type TimeFilters = ActivityFilter
 
 interface Props {
-    filter: TimeFilterModel
+    filter: ActivityFilter
     showProjectFilter?: boolean
+    initialFilter?: Partial<ActivityFilter>
 }
 
-const { filter, showProjectFilter = true } = defineProps<Props>()
+const { filter, showProjectFilter = true, initialFilter } = defineProps<Props>()
 
 const emit = defineEmits<{
-    "update:filter": [value: TimeFilterModel]
+    "update:filter": [value: ActivityFilter]
 }>()
 
 // Local filter state
-const localFilter = ref<TimeFilterModel>({ ...filter })
+const localFilter = ref<ActivityFilter>({ ...filter })
 
 // Fetch data for dropdowns
 const { get: fetchUsers, loading: loadingUsers, data: usersData } = useFetchUsers()
@@ -181,7 +176,7 @@ const handleFilterChange = () => {
 const resetFilters = () => {
     localFilter.value = {
         userId: undefined,
-        projectId: localFilter.value.projectId || undefined,
+        projectId: undefined,
         activityTypeId: undefined,
         fromDate: undefined,
         toDate: undefined,
@@ -190,6 +185,7 @@ const resetFilters = () => {
         includeDisbursement: false,
         sortBy: "date",
         sortOrder: "desc",
+        ...(initialFilter || {}),
     }
     handleFilterChange()
 }

@@ -151,6 +151,20 @@
                 </FormField>
             </div>
 
+            <!-- Invoicing Address -->
+            <div class="mb-6">
+                <FormField :label="$t('projects.invoicingAddress')" :error="errors.invoicingAddress">
+                    <template #input>
+                        <textarea
+                            v-model="form.invoicingAddress"
+                            rows="4"
+                            class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            :placeholder="$t('projects.invoicingAddressPlaceholder')"
+                        ></textarea>
+                    </template>
+                </FormField>
+            </div>
+
             <!-- Flags -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <FormField :label="$t('projects.printFlag')">
@@ -281,6 +295,7 @@ const form = ref<
     companyId: undefined,
     projectManagerId: undefined,
     remark: "",
+    invoicingAddress: "",
     printFlag: false,
     ended: false,
     archived: false,
@@ -397,6 +412,7 @@ const saveProject = async () => {
             companyId: form.value.companyId || undefined,
             projectManagerId: form.value.projectManagerId || undefined,
             remark: form.value.remark || undefined,
+            invoicingAddress: form.value.invoicingAddress || undefined,
             printFlag: form.value.printFlag || false,
             ended: form.value.ended || false,
             archived: form.value.archived || false,
@@ -471,6 +487,7 @@ onMounted(async () => {
                     companyId: projectData.value.company?.id,
                     projectManagerId: projectData.value.projectManager?.id,
                     remark: projectData.value.remark || "",
+                    invoicingAddress: projectData.value.invoicingAddress || "",
                     printFlag: projectData.value.printFlag || false,
                     ended: projectData.value.ended || false,
                     archived: false, // This field doesn't exist in current response

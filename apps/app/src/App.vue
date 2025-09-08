@@ -6,6 +6,7 @@ import { Bars3Icon, XMarkIcon, ChevronDownIcon, ChevronRightIcon } from "@heroic
 import { useAuthStore } from "./stores/auth"
 import { useAlert } from "./composables/utils/useAlert"
 import Snackbar from "./components/atoms/Snackbar.vue"
+import Button from "./components/atoms/Button.vue"
 
 const { t } = useI18n()
 const isSidebarOpen = ref(false)
@@ -255,7 +256,7 @@ const isExpanded = (itemName: string): boolean => {
                     <!-- User info section - fixed at bottom -->
                     <div class="flex-shrink-0 border-t border-gray-200 p-4">
                         <div class="group block w-full flex-shrink-0">
-                            <div class="flex items-center">
+                            <div class="items-center">
                                 <div class="ml-3 flex-grow">
                                     <p
                                         class="text-sm font-medium text-gray-700 group-hover:text-gray-900"
@@ -269,12 +270,13 @@ const isExpanded = (itemName: string): boolean => {
                                         {{ authStore.user?.email }}
                                     </p>
                                 </div>
-                                <button
+                                <Button
                                     @click="handleLogout"
-                                    class="ml-2 text-sm text-red-600 hover:text-red-800"
+                                    variant="ghost-danger"
+                                    class="w-full mt-2"
                                 >
                                     {{ t("navigation.logout") }}
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>

@@ -1,5 +1,20 @@
 {
-    "version": "1",
-    "dialect": "sqlite",
-    "entries": []
+  "version": "1",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1757321874612,
+      "tag": "0000_tiresome_lady_vermin",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1757321874613,
+      "tag": "0001_add_invoicing_address",
+      "breakpoints": true
+    }
+  ]
 }

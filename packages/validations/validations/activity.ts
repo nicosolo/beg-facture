@@ -13,10 +13,10 @@ export const activityFilterSchema = z
             .enum(["date", "duration", "kilometers", "expenses", "rate"])
             .optional()
             .default("date"),
-        sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
-        includeBilled: booleanSchema.optional().default(false),
-        includeDisbursement: booleanSchema.optional().default(false),
-        includeUnbilled: booleanSchema.optional().default(false),
+        sortOrder: z.enum(["asc", "desc"]).default("asc").optional(),
+        includeBilled: booleanSchema.default(false).optional(),
+        includeDisbursement: booleanSchema.default(false).optional(),
+        includeUnbilled: booleanSchema.default(false).optional(),
         activityTypeId: z.coerce.number().optional(),
         invoiceId: z.coerce.number().optional(),
     })
@@ -50,7 +50,7 @@ export const activityBulkUpdateSchema = z.object({
     updates: z.object({
         billed: z.boolean().optional(),
         disbursement: z.boolean().optional(),
-    })
+    }),
 })
 
 export type ActivityBulkUpdateInput = z.infer<typeof activityBulkUpdateSchema>

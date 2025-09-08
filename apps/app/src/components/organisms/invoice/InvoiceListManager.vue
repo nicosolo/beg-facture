@@ -28,6 +28,14 @@
                 <template #cell:invoiceNumber="{ item }">
                     {{ item.invoiceNumber || item.reference || "-" }}
                 </template>
+                <template #cell:client="{ item }">
+                    {{ item.project?.client?.name }}
+                </template>
+                <template #cell:project="{ item }">
+                    {{ item.project?.projectNumber
+                    }}{{ item.project?.subProjectName ? ` ${item.project.subProjectName}` : "" }} -
+                    {{ item.project?.name }}
+                </template>
 
                 <template #cell:issueDate="{ item }">
                     {{ formatDate(item.issueDate) }}
@@ -59,15 +67,6 @@
                         >
                             {{ $t("common.edit") }}
                         </Button>
-                        <Button
-                            v-if="showDelete"
-                            variant="ghost-danger"
-                            size="sm"
-                            @click="handleDelete(item.id)"
-                            :disabled="deleteLoading"
-                        >
-                            {{ $t("common.delete") }}
-                        </Button>
                     </div>
                 </template>
             </DataTable>
@@ -94,7 +93,7 @@ import Badge from "@/components/atoms/Badge.vue"
 import DataTable from "@/components/molecules/DataTable.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
-import { useFetchInvoiceList, useDeleteInvoice } from "@/composables/api/useInvoice"
+import { useFetchInvoiceList } from "@/composables/api/useInvoice"
 import { useAlert } from "@/composables/utils/useAlert"
 import type { InvoiceFilter } from "@beg/validations"
 
@@ -115,12 +114,13 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { t } = useI18n()
-const { showError, showSuccess } = useAlert()
+const { errorAlert } = useAlert()
 
 // Define all possible columns
 const allColumns = [
-    { key: "invoiceNumber", label: t("invoice.invoiceNumber"), width: "w-1/4" },
-    { key: "project", label: t("projects.title"), width: "w-1/4" },
+    { key: "invoiceNumber", label: t("invoice.invoiceNumber"), width: "w-1/6" },
+    { key: "client", label: t("projects.client"), width: "w-1/6" },
+    { key: "project", label: t("projects.title"), width: "w-1/6" },
     { key: "issueDate", label: t("invoice.issueDate") },
     { key: "totalTTC", label: t("invoice.totalTTC") },
     { key: "status", label: t("invoice.status.title") },
@@ -133,7 +133,6 @@ const visibleColumns = computed(() => {
 })
 
 const { get: fetchInvoices, loading, error, data: invoicesData } = useFetchInvoiceList()
-const { delete: deleteInvoice, loading: deleteLoading } = useDeleteInvoice()
 
 const invoices = computed(() => invoicesData.value?.data || [])
 const totalCount = computed(() => invoicesData.value?.total || 0)
@@ -159,23 +158,7 @@ const loadInvoices = async (page?: number) => {
         })
     } catch (err) {
         console.error("Failed to load invoices:", err)
-        showError(t("errors.loadingData"))
-    }
-}
-
-// Delete invoice
-const handleDelete = async (id: number) => {
-    if (!confirm(t("invoice.confirmDelete"))) {
-        return
-    }
-
-    try {
-        await deleteInvoice({ params: { id } })
-        showSuccess(t("invoice.deleteSuccess"))
-        await loadInvoices() // Reload the list
-    } catch (err) {
-        console.error("Failed to delete invoice:", err)
-        showError(t("invoice.deleteError"))
+        errorAlert(t("errors.loadingData"))
     }
 }
 

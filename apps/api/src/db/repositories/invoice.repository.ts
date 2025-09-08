@@ -7,6 +7,7 @@ import {
     invoiceAdjudications,
     projects,
     activities,
+    clients,
 } from "../schema"
 import type { InvoiceCreateInput, InvoiceUpdateInput, InvoiceFilter } from "@beg/validations"
 import { projectRepository } from "./project.repository"
@@ -87,9 +88,11 @@ export const invoiceRepository = {
             .select({
                 invoice: invoices,
                 project: projects,
+                client: clients,
             })
             .from(invoices)
             .leftJoin(projects, eq(invoices.projectId, projects.id))
+            .leftJoin(clients, eq(projects.clientId, clients.id))
             .where(whereClause)
             .orderBy(orderBy)
             .limit(limit)
@@ -193,8 +196,13 @@ export const invoiceRepository = {
                     })),
 
                     // Project info - flat
-                    projectName: row.project?.name || null,
-                    projectNumber: row.project?.projectNumber || null,
+                    project: {
+                        id: row.project?.id || null,
+                        name: row.project?.name || null,
+                        projectNumber: row.project?.projectNumber || null,
+                        subProjectName: row.project?.subProjectName || null,
+                        client: row.client || null,
+                    },
 
                     // Timestamps
                     createdAt: row.invoice.createdAt,
@@ -216,9 +224,11 @@ export const invoiceRepository = {
             .select({
                 invoice: invoices,
                 project: projects,
+                client: clients,
             })
             .from(invoices)
             .leftJoin(projects, eq(invoices.projectId, projects.id))
+            .leftJoin(clients, eq(projects.clientId, clients.id))
             .where(eq(invoices.id, id))
             .limit(1)
 
@@ -328,8 +338,13 @@ export const invoiceRepository = {
             })),
 
             // Project info - flat
-            projectName: row.project?.name || null,
-            projectNumber: row.project?.projectNumber || null,
+            project: {
+                id: row.project?.id || null,
+                name: row.project?.name || null,
+                projectNumber: row.project?.projectNumber || null,
+                subProjectName: row.project?.subProjectName || null,
+                client: row.client || null,
+            },
 
             // Timestamps
             createdAt: row.invoice.createdAt,

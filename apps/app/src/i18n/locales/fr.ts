@@ -242,7 +242,7 @@ export default {
     },
     time: {
         title: "Gestion des heures",
-        new: "Nouvelle entrée",
+        new: "Ajouter des heures",
         columns: {
             date: "Date",
             user: "Collaborateur",

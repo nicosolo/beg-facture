@@ -45,6 +45,15 @@
             />
         </div>
         <template #actions>
+            <Button
+                v-if="!isNewInvoice"
+                variant="danger"
+                type="button"
+                @click="handleDelete"
+                :disabled="loading || deleteLoading"
+            >
+                {{ $t("common.delete") }}
+            </Button>
             <Button variant="secondary" type="button" @click="handleCancel" :disabled="loading">
                 Annuler
             </Button>
@@ -53,6 +62,17 @@
             </Button>
         </template>
     </FormLayout>
+
+    <!-- Delete Confirmation Dialog -->
+    <ConfirmDialog
+        v-model="showDeleteConfirm"
+        :title="$t('common.confirmDelete')"
+        :message="$t('invoice.confirmDelete')"
+        type="danger"
+        :confirm-text="$t('common.delete')"
+        :cancel-text="$t('common.cancel')"
+        @confirm="confirmDelete"
+    />
 </template>
 
 <script setup lang="ts">
@@ -60,6 +80,7 @@ import { ref, computed, onMounted, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import FormLayout from "@/components/templates/FormLayout.vue"
 import Button from "@/components/atoms/Button.vue"
+import ConfirmDialog from "@/components/molecules/ConfirmDialog.vue"
 import InvoiceGeneralInfo from "@/components/organisms/invoice/InvoiceGeneralInfo.vue"
 import InvoiceDetails from "@/components/organisms/invoice/InvoiceDetails.vue"
 import {
@@ -68,7 +89,12 @@ import {
     type Invoice,
     type InvoiceResponse,
 } from "@beg/validations"
-import { useFetchInvoice, useCreateInvoice, useUpdateInvoice } from "@/composables/api/useInvoice"
+import {
+    useFetchInvoice,
+    useCreateInvoice,
+    useUpdateInvoice,
+    useDeleteInvoice,
+} from "@/composables/api/useInvoice"
 import { useFetchProject } from "@/composables/api/useProject"
 import { useFetchUnbilledActivities } from "@/composables/api/useUnbilled"
 import { useFormat } from "@/composables/utils/useFormat"
@@ -80,6 +106,7 @@ const isNewInvoice = computed(() => !invoiceId.value)
 const { formatDate } = useFormat()
 const activeTab = ref("general")
 const isUpdatingFromApi = ref(false)
+const showDeleteConfirm = ref(false)
 
 // API composables
 const {
@@ -90,6 +117,7 @@ const {
 } = useFetchInvoice()
 const { post: createInvoice, loading: createLoading, error: createError } = useCreateInvoice()
 const { put: updateInvoice, loading: updateLoading, error: updateError } = useUpdateInvoice()
+const { delete: deleteInvoice, loading: deleteLoading } = useDeleteInvoice()
 const {
     get: fetchProject,
     loading: fetchProjectLoading,
@@ -293,6 +321,25 @@ const handleSave = async () => {
 // Cancel and go back
 const handleCancel = () => {
     router.push({ name: "invoice-list" })
+}
+
+// Delete invoice
+const handleDelete = () => {
+    showDeleteConfirm.value = true
+}
+
+const confirmDelete = async () => {
+    try {
+        if (invoiceId.value) {
+            await deleteInvoice({ params: { id: parseInt(invoiceId.value) } })
+            showDeleteConfirm.value = false
+            router.push({ name: "invoice-list" })
+        }
+    } catch (err) {
+        console.error("Failed to delete invoice:", err)
+        showDeleteConfirm.value = false
+        // Error will be handled by the FormLayout error display
+    }
 }
 
 // Load unbilled activities for new invoice

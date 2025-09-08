@@ -288,9 +288,20 @@ export const invoiceResponseSchema = z
         offers: z.array(OfferSchema),
         adjudications: z.array(AdjudicationSchema),
 
-        // Relations - flat
-        projectName: z.string().nullable(),
-        projectNumber: z.string().nullable(),
+        project: z
+            .object({
+                id: z.number(),
+                name: z.string(),
+                projectNumber: z.string(),
+                subProjectName: z.string().nullable(),
+                client: z
+                    .object({
+                        id: z.number(),
+                        name: z.string(),
+                    })
+                    .nullable(),
+            })
+            .nullable(),
     })
     .merge(timestampsSchema)
 

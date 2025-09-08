@@ -1,7 +1,9 @@
 <template>
     <div class="container mx-auto p-4">
         <div v-if="loading" class="text-center py-8">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <div
+                class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"
+            ></div>
             <p class="mt-2 text-gray-600">Chargement de la facture...</p>
         </div>
 
@@ -10,26 +12,24 @@
         </div>
 
         <template v-else>
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex justify-between items-center mb-6 print:hidden">
                 <h1 class="text-2xl font-bold">Aperçu de la facture</h1>
-                <button
-                    @click="printInvoice"
-                    class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                    Imprimer la facture
-                </button>
+                <div class="flex gap-2">
+                    <Button @click="printInvoice" size="lg" variant="primary">
+                        Imprimer la facture
+                    </Button>
+
+                    <Button
+                        variant="secondary"
+                        size="lg"
+                        :to="{ name: 'invoice-edit', params: { id: $route.params.id } }"
+                    >
+                        Edition
+                    </Button>
+                </div>
             </div>
 
             <InvoicePreview v-if="invoice" :invoice="invoice" />
-
-            <div class="mt-6">
-                <router-link
-                    :to="{ name: 'invoice-edit', params: { id: $route.params.id } }"
-                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                >
-                    Retour à l'édition
-                </router-link>
-            </div>
         </template>
     </div>
 </template>
@@ -40,6 +40,7 @@ import { useRoute, useRouter } from "vue-router"
 import InvoicePreview from "@/components/organisms/invoice/InvoicePreview.vue"
 import { useFetchInvoice } from "@/composables/api/useInvoice"
 import type { InvoiceResponse } from "@beg/validations"
+import Button from "@/components/atoms/Button.vue"
 
 const route = useRoute()
 const router = useRouter()
@@ -72,22 +73,12 @@ const printInvoice = () => {
 }
 
 onMounted(() => {
-    document.title = 'BEG - Aperçu de facture'
+    document.title = "BEG - Aperçu de facture"
     loadInvoice()
 })
 </script>
 
-<style>
+<style scoped>
 @media print {
-    .container > div:first-child,
-    .container > div:last-child {
-        display: none;
-    }
-
-    .container {
-        padding: 0;
-        margin: 0;
-        max-width: none;
-    }
 }
 </style>

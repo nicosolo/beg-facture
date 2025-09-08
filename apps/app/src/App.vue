@@ -152,11 +152,19 @@ const isExpanded = (itemName: string): boolean => {
 <template>
     <div class="flex flex-col min-h-screen overflow-x-hidden">
         <!-- Header for all viewports with toggle button - hidden on login page -->
-        <header v-if="!isLoginPage" class="flex items-center p-2 border-b border-gray-200">
+        <header
+            v-if="!isLoginPage"
+            class="flex items-center p-2 border-b border-gray-200 print:hidden"
+        >
             <div class="flex justify-between items-center w-full">
                 <RouterLink to="/">
-                    <img alt="BEG logo" class="h-7 w-auto mr-4" src="@/assets/logo.png" />
+                    <div class="flex items-center">
+                        <img alt="BEG logo" class="h-7 w-auto mr-4" src="@/assets/logo.png" />
+
+                        <h2 class="text-2xl font-bold">Management</h2>
+                    </div>
                 </RouterLink>
+
                 <button
                     class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
                     @click="toggleSidebar"

@@ -13,7 +13,7 @@ async function seed() {
 
     if (!existingUser) {
         // Hash the password
-        const hashedPassword = await bcrypt.hash("qwerqwer", 10)
+        const hashedPassword = await bcrypt.hash("qwer44446666", 10)
 
         // Insert the admin user
         await db.insert(users).values({

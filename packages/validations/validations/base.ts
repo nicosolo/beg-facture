@@ -39,5 +39,10 @@ export const timestampsSchema = z.object({
     createdAt: dateSchema,
     updatedAt: dateSchema,
 })
+// Timestamps schema for entities
+export const nullableTimestampsSchema = z.object({
+    createdAt: nullableDateSchema,
+    updatedAt: nullableDateSchema,
+})
 
 export type TimestampsSchema = z.infer<typeof timestampsSchema>

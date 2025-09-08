@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { timestampsSchema } from "./base"
+import { nullableTimestampsSchema, timestampsSchema } from "./base"
 import { activityRateUserSchema } from "./activityRateUser"
 import { booleanSchema } from "./base"
 // Create a schema that parses query string values
@@ -61,7 +61,7 @@ export const userResponseSchema = z
         role: z.enum(["admin", "user"]),
         archived: z.boolean(),
     })
-    .merge(timestampsSchema)
+    .merge(nullableTimestampsSchema)
 
 // Define login response schema
 export const loginResponseSchema = z.object({
@@ -80,7 +80,7 @@ export const userDetailResponseSchema = z
         archived: z.boolean(),
         activityRates: z.array(activityRateUserSchema).nullable(),
     })
-    .merge(timestampsSchema)
+    .merge(nullableTimestampsSchema)
 
 export type UserResponse = z.infer<typeof userResponseSchema>
 export type UserDetailResponse = z.infer<typeof userDetailResponseSchema>

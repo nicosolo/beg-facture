@@ -270,11 +270,7 @@ const isExpanded = (itemName: string): boolean => {
                                         {{ authStore.user?.email }}
                                     </p>
                                 </div>
-                                <Button
-                                    @click="handleLogout"
-                                    variant="ghost-danger"
-                                    class="w-full mt-2"
-                                >
+                                <Button @click="handleLogout" variant="ghost-danger" class="mt-2">
                                     {{ t("navigation.logout") }}
                                 </Button>
                             </div>

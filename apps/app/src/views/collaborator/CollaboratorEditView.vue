@@ -107,7 +107,7 @@
 
             <!-- Activities Section -->
             <div class="mt-8">
-                <h2 class="text-lg font-medium mb-4">Activités associées</h2>
+                <h2 class="text-lg font-medium mb-4">Heures associées</h2>
                 <div class="bg-gray-50 p-4 rounded-md">
                     <div v-if="loadingActivityTypes" class="text-gray-500">
                         Chargement des types d'activité...
@@ -236,7 +236,7 @@ const errorMessage = ref<string | null>(null)
 
 // Load user data and activity types
 onMounted(async () => {
-    document.title = 'BEG - Modifier le collaborateur'
+    document.title = "BEG - Modifier le collaborateur"
     // Load activity types
     await getActivityTypes()
 

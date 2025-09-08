@@ -473,8 +473,8 @@
             <h2 class="text-lg font-medium mb-4 bg-gray-100 p-2 text-center">
                 {{
                     isNewInvoice
-                        ? "ACTIVITÉS À INCLURE DANS LA FACTURE"
-                        : "ACTIVITÉS INCLUSES DANS LA FACTURE"
+                        ? "HEURES À INCLURE DANS LA FACTURE"
+                        : "HEURES INCLUSES DANS LA FACTURE"
                 }}
             </h2>
             <TimeEntriesManager

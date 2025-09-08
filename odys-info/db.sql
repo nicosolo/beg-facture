@@ -1009,7 +1009,7 @@ CREATE TABLE OA_BEG.dbo.DocumentComptable (
 	IdentifiantExterne varchar(255) COLLATE French_CI_AS NULL,
 	PourcentageRemise decimal(7,3) NULL,
 	PourcentageRemise2 decimal(7,3) NULL,
-	FK_Projet decimal(10,0) NULL,
+	FK_Mandat decimal(10,0) NULL,
 	DossierData varchar(255) COLLATE French_CI_AS NULL,
 	DossierFichierDestination varchar(255) COLLATE French_CI_AS NULL,
 	ExtensionFichier varchar(255) COLLATE French_CI_AS NULL,
@@ -1190,7 +1190,7 @@ CREATE TABLE OA_BEG.dbo.FactureRecapInfoLigne (
 
 CREATE TABLE OA_BEG.dbo.Facture____ (
 	Id decimal(10,0) NOT NULL,
-	FK_Projet decimal(10,0) NULL,
+	FK_Mandat decimal(10,0) NULL,
 	FK_Compte decimal(10,0) NULL,
 	FK_Contact decimal(10,0) NULL,
 	FK_FactureLayout decimal(10,0) NULL,
@@ -1804,65 +1804,65 @@ CREATE TABLE OA_BEG.dbo.LienPlanningTypeActivitePlanifiee (
 );
 
 
--- OA_BEG.dbo.LienProjetFrais definition
+-- OA_BEG.dbo.LienMandatFrais definition
 
 -- Drop table
 
--- DROP TABLE OA_BEG.dbo.LienProjetFrais;
+-- DROP TABLE OA_BEG.dbo.LienMandatFrais;
 
-CREATE TABLE OA_BEG.dbo.LienProjetFrais (
+CREATE TABLE OA_BEG.dbo.LienMandatFrais (
 	Id decimal(10,0) NOT NULL,
-	FK_Projet decimal(10,0) NULL,
+	FK_Mandat decimal(10,0) NULL,
 	FK_Frais decimal(10,0) NULL,
 	sys_tsCreationUser decimal(10,0) NULL,
 	sys_tsCreationDate datetime NULL,
 	sys_tsUpdateUser decimal(10,0) NULL,
 	sys_tsUpdateDate datetime NULL,
-	CONSTRAINT PrimaryKey_LienProjetFrais PRIMARY KEY (Id)
+	CONSTRAINT PrimaryKey_LienMandatFrais PRIMARY KEY (Id)
 );
 
 
--- OA_BEG.dbo.LienProjetTache definition
+-- OA_BEG.dbo.LienMandatTache definition
 
 -- Drop table
 
--- DROP TABLE OA_BEG.dbo.LienProjetTache;
+-- DROP TABLE OA_BEG.dbo.LienMandatTache;
 
-CREATE TABLE OA_BEG.dbo.LienProjetTache (
+CREATE TABLE OA_BEG.dbo.LienMandatTache (
 	Id decimal(10,0) NOT NULL,
-	FK_Projet decimal(10,0) NULL,
+	FK_Mandat decimal(10,0) NULL,
 	FK_Tache decimal(10,0) NULL,
 	sys_tsCreationUser decimal(10,0) NULL,
 	sys_tsCreationDate datetime NULL,
 	sys_tsUpdateUser decimal(10,0) NULL,
 	sys_tsUpdateDate datetime NULL,
-	CONSTRAINT PrimaryKey_LienProjetTache PRIMARY KEY (Id)
+	CONSTRAINT PrimaryKey_LienMandatTache PRIMARY KEY (Id)
 );
- CREATE NONCLUSTERED INDEX ParProjet ON OA_BEG.dbo.LienProjetTache (  FK_Projet ASC  )  
+ CREATE NONCLUSTERED INDEX ParMandat ON OA_BEG.dbo.LienMandatTache (  FK_Mandat ASC  )  
 	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
 	 ON [PRIMARY ] ;
- CREATE NONCLUSTERED INDEX ParTache ON OA_BEG.dbo.LienProjetTache (  FK_Tache ASC  )  
+ CREATE NONCLUSTERED INDEX ParTache ON OA_BEG.dbo.LienMandatTache (  FK_Tache ASC  )  
 	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
 	 ON [PRIMARY ] ;
 
 
--- OA_BEG.dbo.LienProjetUtilisateur definition
+-- OA_BEG.dbo.LienMandatUtilisateur definition
 
 -- Drop table
 
--- DROP TABLE OA_BEG.dbo.LienProjetUtilisateur;
+-- DROP TABLE OA_BEG.dbo.LienMandatUtilisateur;
 
-CREATE TABLE OA_BEG.dbo.LienProjetUtilisateur (
+CREATE TABLE OA_BEG.dbo.LienMandatUtilisateur (
 	Id decimal(10,0) NOT NULL,
 	FK_Utilisateur decimal(10,0) NULL,
-	FK_Projet decimal(10,0) NULL,
+	FK_Mandat decimal(10,0) NULL,
 	Resp varchar(10) COLLATE French_CI_AS NULL,
 	Tarif decimal(12,0) NULL,
 	sys_tsCreationUser decimal(10,0) NULL,
 	sys_tsCreationDate datetime NULL,
 	sys_tsUpdateUser decimal(10,0) NULL,
 	sys_tsUpdateDate datetime NULL,
-	CONSTRAINT PrimaryKey_LienProjetUtilisateur PRIMARY KEY (Id)
+	CONSTRAINT PrimaryKey_LienMandatUtilisateur PRIMARY KEY (Id)
 );
 
 
@@ -2326,7 +2326,7 @@ CREATE TABLE OA_BEG.dbo.ModeleTexteFacture (
 
 CREATE TABLE OA_BEG.dbo.MouvementFinancier (
 	Id decimal(10,0) NOT NULL,
-	FK_Projet decimal(10,0) NULL,
+	FK_Mandat decimal(10,0) NULL,
 	FK_Rubrique decimal(10,0) NULL,
 	DateMouvement datetime NULL,
 	FK_TypeMouvementFinancier decimal(10,0) NULL,
@@ -3007,13 +3007,13 @@ CREATE TABLE OA_BEG.dbo.Processus__ (
 );
 
 
--- OA_BEG.dbo.Projet_____ definition
+-- OA_BEG.dbo.Mandat_____ definition
 
 -- Drop table
 
--- DROP TABLE OA_BEG.dbo.Projet_____;
+-- DROP TABLE OA_BEG.dbo.Mandat_____;
 
-CREATE TABLE OA_BEG.dbo.Projet_____ (
+CREATE TABLE OA_BEG.dbo.Mandat_____ (
 	Id decimal(10,0) NOT NULL,
 	FK_Compte decimal(10,0) NULL,
 	DescAbr varchar(50) COLLATE French_CI_AS NULL,
@@ -3039,12 +3039,12 @@ CREATE TABLE OA_BEG.dbo.Projet_____ (
 	sys_tsUpdateUser decimal(10,0) NULL,
 	sys_tsUpdateDate datetime NULL,
 	FK_ContactFacturation decimal(10,0) NULL,
-	CONSTRAINT PrimaryKey_Projet_____ PRIMARY KEY (Id)
+	CONSTRAINT PrimaryKey_Mandat_____ PRIMARY KEY (Id)
 );
- CREATE NONCLUSTERED INDEX ParArchive ON OA_BEG.dbo.Projet_____ (  Archive ASC  )  
+ CREATE NONCLUSTERED INDEX ParArchive ON OA_BEG.dbo.Mandat_____ (  Archive ASC  )  
 	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
 	 ON [PRIMARY ] ;
- CREATE NONCLUSTERED INDEX ParEstModele ON OA_BEG.dbo.Projet_____ (  EstModele ASC  )  
+ CREATE NONCLUSTERED INDEX ParEstModele ON OA_BEG.dbo.Mandat_____ (  EstModele ASC  )  
 	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
 	 ON [PRIMARY ] ;
 
@@ -3270,7 +3270,7 @@ CREATE TABLE OA_BEG.dbo.RepartitionHeures (
 CREATE TABLE OA_BEG.dbo.Rubrique___ (
 	Id decimal(10,0) NOT NULL,
 	FK_Rubrique decimal(10,0) NULL,
-	FK_Projet decimal(10,0) NULL,
+	FK_Mandat decimal(10,0) NULL,
 	DescAbr varchar(50) COLLATE French_CI_AS NULL,
 	Nom varchar(100) COLLATE French_CI_AS NULL,
 	Descr text COLLATE French_CI_AS NULL,
@@ -3296,7 +3296,7 @@ CREATE TABLE OA_BEG.dbo.Rubrique___ (
 	EstSaisieRapportActObligatoire varchar(5) COLLATE French_CI_AS NULL,
 	CONSTRAINT PrimaryKey_Rubrique___ PRIMARY KEY (Id)
 );
- CREATE NONCLUSTERED INDEX ParProjet ON OA_BEG.dbo.Rubrique___ (  FK_Projet ASC  )  
+ CREATE NONCLUSTERED INDEX ParMandat ON OA_BEG.dbo.Rubrique___ (  FK_Mandat ASC  )  
 	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
 	 ON [PRIMARY ] ;
  CREATE NONCLUSTERED INDEX ParRubrique ON OA_BEG.dbo.Rubrique___ (  FK_Rubrique ASC  )  
@@ -3523,7 +3523,7 @@ CREATE TABLE OA_BEG.dbo.Tache______ (
 	CD_ModeFacturation varchar(10) COLLATE French_CI_AS NULL,
 	CD_GenreTache varchar(10) COLLATE French_CI_AS NULL,
 	CD_FacturationTache varchar(10) COLLATE French_CI_AS NULL,
-	CD_LienProjetTache varchar(10) COLLATE French_CI_AS NULL,
+	CD_LienMandatTache varchar(10) COLLATE French_CI_AS NULL,
 	CD_ReplicationOutlook varchar(10) COLLATE French_CI_AS NULL,
 	CD_HeureNegative varchar(10) COLLATE French_CI_AS NULL,
 	DescAbr varchar(50) COLLATE French_CI_AS NULL,

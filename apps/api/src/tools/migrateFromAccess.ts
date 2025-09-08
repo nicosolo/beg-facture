@@ -5,12 +5,12 @@ export const describeTables = async (): Promise<void> => {
     const tables = [
         "Utilisateur",
         "Activite___",
-        "Projet_____",
+        "Mandat_____",
         "LienActiviteFrais",
         "Frais______",
         "Compte_____",
         "LienUtilisateurTacheParTarif",
-        "Projet_____",
+        "Mandat_____",
         "Tarif______",
         "Tache______",
     ]

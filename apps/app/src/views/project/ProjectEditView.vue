@@ -457,7 +457,7 @@ const saveProject = async () => {
 
 // Load data on mount
 onMounted(async () => {
-    document.title = "BEG - Modifier le projet"
+    document.title = "BEG - Modifier le mandat"
     try {
         loadingData.value = true
 

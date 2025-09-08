@@ -16,7 +16,7 @@ CREATE TABLE OA_BEG.dbo.LienUtilisateurTacheParTarif (
 CREATE TABLE OA_BEG.dbo.Rubrique___ (
 	Id decimal(10,0) NOT NULL,
 	FK_Rubrique decimal(10,0) NULL,
-	FK_Projet decimal(10,0) NULL,
+	FK_Mandat decimal(10,0) NULL,
 	DescAbr varchar(50) COLLATE French_CI_AS NULL,
 	Nom varchar(100) COLLATE French_CI_AS NULL,
 	Descr text COLLATE French_CI_AS NULL,
@@ -42,7 +42,7 @@ CREATE TABLE OA_BEG.dbo.Rubrique___ (
 	EstSaisieRapportActObligatoire varchar(5) COLLATE French_CI_AS NULL,
 	CONSTRAINT PrimaryKey_Rubrique___ PRIMARY KEY (Id)
 );
- CREATE NONCLUSTERED INDEX ParProjet ON OA_BEG.dbo.Rubrique___ (  FK_Projet ASC  )  
+ CREATE NONCLUSTERED INDEX ParMandat ON OA_BEG.dbo.Rubrique___ (  FK_Mandat ASC  )  
 	 WITH (  PAD_INDEX = OFF ,FILLFACTOR = 100  ,SORT_IN_TEMPDB = OFF , IGNORE_DUP_KEY = OFF , STATISTICS_NORECOMPUTE = OFF , ONLINE = OFF , ALLOW_ROW_LOCKS = ON , ALLOW_PAGE_LOCKS = ON  )
 	 ON [PRIMARY ] ;
  CREATE NONCLUSTERED INDEX ParRubrique ON OA_BEG.dbo.Rubrique___ (  FK_Rubrique ASC  )  

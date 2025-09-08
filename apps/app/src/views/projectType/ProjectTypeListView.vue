@@ -99,7 +99,7 @@ const columns = [
 
 // Load project types on mount
 onMounted(async () => {
-    document.title = 'BEG - Types de projet'
+    document.title = "BEG - Types de mandat"
     await fetchProjectTypes({})
 })
 

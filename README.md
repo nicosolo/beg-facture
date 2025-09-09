@@ -21,3 +21,44 @@ sh export-mdb.sh /path/to/your/database.mdb
 ```
 
 #### Exporting data
+
+## Build docker images
+
+#### On Apple Silicon (M1/M2) hosts (one time setup)
+
+```bash
+# Enable x86_64 emulation on ARM hosts (e.g., Apple Silicon)
+docker run --privileged --rm tonistiigi/binfmt --install amd64
+docker buildx create --name xbuilder --use
+docker buildx inspect --bootstrap
+```
+
+#### Build images for multiple architectures (e.g., arm64 and amd64)
+
+```bash
+docker buildx bake --file compose.prod.yml --file docker-bake.json
+```
+
+# Export images to tar files
+
+```bash
+docker save beg/api:latest -o beg-api.tar
+docker save beg/app:latest -o beg-app.tar
+docker save beg/proxy:latest -o beg-proxy.tar
+```
+
+#### Deploying to production server
+
+First build with teh above command, then copy the tar files to your server and load them:
+
+```bash
+docker load -i beg-api.tar
+docker load -i beg-app.tar
+docker load -i beg-proxy.tar
+```
+
+Then run the containers with docker-compose:
+
+```bash
+docker-compose -f compose.prod.yml up -d
+```

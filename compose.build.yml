@@ -2,7 +2,10 @@ version: "3.8"
 
 services:
     api:
-        image: beg/api
+        build:
+            context: .
+            target: production
+            dockerfile: apps/api/Dockerfile
         environment:
             - NODE_ENV=production
             - DB_FILE_PATH=/app/data/db.sqlite
@@ -19,7 +22,10 @@ services:
 
     app:
         restart: "no"
-        image: beg/app
+        build:
+            context: .
+            target: production
+            dockerfile: apps/app/Dockerfile
         environment:
             - NODE_ENV=production
         volumes:
@@ -29,7 +35,10 @@ services:
     proxy:
         restart: always
         container_name: "proxy"
-        image: beg/proxy
+        build:
+            context: ./provision/nginx
+            dockerfile: Dockerfile
+            target: production
         depends_on:
             app:
                 condition: service_completed_successfully

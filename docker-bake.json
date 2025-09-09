@@ -1,0 +1,19 @@
+{
+    "target": {
+        "api": {
+            "tags": ["beg/api:amd64"],
+            "output": ["type=docker"],
+            "platforms": ["linux/amd64"]
+        },
+        "app": {
+            "tags": ["beg/app:amd64"],
+            "output": ["type=docker"],
+            "platforms": ["linux/amd64"]
+        },
+        "proxy": {
+            "tags": ["beg/proxy:amd64"],
+            "output": ["type=docker"],
+            "platforms": ["linux/amd64"]
+        }
+    }
+}

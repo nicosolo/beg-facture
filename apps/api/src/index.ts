@@ -58,7 +58,24 @@ export type ApiRoutes = typeof app
 
 // const res = await client.user.$get()
 // console.log((await res.json())[0].firstName)
-export default {
+
+const server = Bun.serve({
     port: PORT,
     fetch: app.fetch,
+})
+
+console.log(`🚀 API Server running at http://localhost:${PORT}`)
+
+// Graceful shutdown handling
+const shutdown = () => {
+    console.log("\n📭 Received shutdown signal, closing server...")
+    server.stop()
+    console.log("✅ Server closed successfully")
+    process.exit(0)
 }
+
+// Handle shutdown signals
+process.on("SIGTERM", shutdown)
+process.on("SIGINT", shutdown)
+
+export default server

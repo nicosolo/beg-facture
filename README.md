@@ -43,8 +43,16 @@ docker buildx bake --file compose.prod.yml --file docker-bake.json
 
 ```bash
 docker save beg/api:latest -o beg-api.tar
-docker save beg/app:latest -o beg-app.tar
 docker save beg/proxy:latest -o beg-proxy.tar
+```
+
+## Sync images to server
+
+```bash
+scp -O beg-api.tar Nicolas@192.168.0.102:/volume1/docker/api.tar
+scp -O beg-proxy.tar Nicolas@192.168.0.102:/volume1/docker/proxy.tar
+scp -O compose.prod.yml Nicolas@192.168.0.102:/volume1/docker/docker-compose.yml
+scp -O .env.prod Nicolas@192.168.0.102:/volume1/docker/.env
 ```
 
 #### Deploying to production server
@@ -52,9 +60,8 @@ docker save beg/proxy:latest -o beg-proxy.tar
 First build with teh above command, then copy the tar files to your server and load them:
 
 ```bash
-docker load -i beg-api.tar
-docker load -i beg-app.tar
-docker load -i beg-proxy.tar
+docker load -i api.tar
+docker load -i proxy.tar
 ```
 
 Then run the containers with docker-compose:

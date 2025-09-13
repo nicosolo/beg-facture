@@ -104,6 +104,7 @@ web_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.prod
 .env.local
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -178,3 +179,6 @@ dist
 export-mdb/
 
 data/
+
+
+*.tar

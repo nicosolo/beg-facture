@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
     api:
         image: beg/api
@@ -16,29 +14,9 @@ services:
         working_dir: /app/apps/api
         command: bun run start
         restart: always
-
-    app:
-        restart: "no"
-        image: beg/app
-        environment:
-            - NODE_ENV=production
-        volumes:
-            - app-dist:/app/apps/app/dist
-        working_dir: /app/apps/app
-        command: ["bun", "run", "build"]
     proxy:
         restart: always
         container_name: "proxy"
         image: beg/proxy
-        depends_on:
-            app:
-                condition: service_completed_successfully
-        volumes:
-            - app-dist:/var/www/app:ro
-            - ./provision/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
-            - ./provision/nginx/.htpasswd:/etc/nginx/.htpasswd:ro
         ports:
-            - 80:80
-
-volumes:
-    app-dist:
+            - 8088:80

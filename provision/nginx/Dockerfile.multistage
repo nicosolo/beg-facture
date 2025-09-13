@@ -1,0 +1,28 @@
+# Build stage for Vue app
+FROM oven/bun:1 AS app-builder
+
+WORKDIR /app
+
+
+COPY . .
+# Install dependencies
+RUN bun install --network-concurrency=5 -f
+
+# Copy source code
+
+# Build the Vue app
+WORKDIR /app/apps/app
+RUN bun run build
+
+# Production nginx stage
+FROM public.ecr.aws/nginx/nginx:stable-alpine-slim AS production
+
+# Copy built app from builder stage
+COPY --from=app-builder /app/apps/app/dist /var/www/app
+
+# Copy nginx config
+COPY provision/nginx/nginx.prod.conf /etc/nginx/nginx.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

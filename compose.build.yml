@@ -20,34 +20,10 @@ services:
         command: bun run start
         restart: always
 
-    app:
-        restart: "no"
-        build:
-            context: .
-            target: production
-            dockerfile: apps/app/Dockerfile
-        environment:
-            - NODE_ENV=production
-        volumes:
-            - app-dist:/app/apps/app/dist
-        working_dir: /app/apps/app
-        command: ["bun", "run", "build"]
     proxy:
         restart: always
         container_name: "proxy"
         build:
-            context: ./provision/nginx
-            dockerfile: Dockerfile
+            context: .
+            dockerfile: provision/nginx/Dockerfile.multistage
             target: production
-        depends_on:
-            app:
-                condition: service_completed_successfully
-        volumes:
-            - app-dist:/var/www/app:ro
-            - ./provision/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
-            - ./provision/nginx/.htpasswd:/etc/nginx/.htpasswd:ro
-        ports:
-            - 80:80
-
-volumes:
-    app-dist:

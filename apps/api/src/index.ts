@@ -21,6 +21,7 @@ import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 import { existsSync } from "node:fs"
 import { errorHandler } from "@src/tools/error-handler"
+import { runMigrations } from "./db/migrate"
 
 // Ensure SQLite database directory exists
 const dbDir = dirname(DB_FILE_PATH)
@@ -31,7 +32,7 @@ if (!existsSync(dbDir)) {
 
 // Run database migrations
 // Temporarily disabled due to migration conflict
-// await runMigrations()
+await runMigrations()
 
 const app = new Hono()
     .onError(errorHandler)

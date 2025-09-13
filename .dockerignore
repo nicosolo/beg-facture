@@ -5,3 +5,5 @@ data/
 *.tar
 export-mdb
 **/.git
+.env.prod
+.env

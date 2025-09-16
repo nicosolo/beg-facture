@@ -12,10 +12,10 @@ import { rm } from "fs/promises"
 import path from "path"
 import { MS_ACCESS_DB_PATH } from "@src/config"
 
-async function main() {
+export async function importMdbToSqlite() {
     try {
         // Get MDB path from command line argument or environment variable
-        const mdbPath = process.argv[2] || MS_ACCESS_DB_PATH
+        const mdbPath = MS_ACCESS_DB_PATH
 
         if (!mdbPath) {
             console.error("Error: No MDB file path provided")
@@ -61,6 +61,7 @@ async function main() {
         console.log("=".repeat(60))
         console.log("✅ Import completed successfully!")
         console.log("=".repeat(60))
+        return tempExportDir
     } catch (error) {
         console.error("")
         console.error("=".repeat(60))
@@ -72,4 +73,6 @@ async function main() {
 }
 
 // Run the import
-main()
+if (import.meta.main) {
+    importMdbToSqlite()
+}

@@ -21,7 +21,6 @@ RUN bun install --network-concurrency=5
 RUN mkdir -p /app/data
 
 COPY . .
-EXPOSE 3000
 VOLUME ["/app/data", "/app/apps/api/drizzle"]
 CMD ["bun", "run", "dev"]
 

@@ -1,10 +1,8 @@
 import { Hono } from "hono"
-import { exportMdbToJson } from "@src/tools/mdb-export"
-import { runImport } from "@src/db/import"
 import { existsSync } from "fs"
-import path from "path"
 import { adminOnlyMiddleware, authMiddleware } from "@src/tools/auth-middleware"
 import { MS_ACCESS_DB_PATH } from "@src/config"
+import { importMdbToSqlite } from "@src/scripts/import-mdb"
 
 const importRoutes = new Hono()
 
@@ -33,23 +31,8 @@ importRoutes.post("/", authMiddleware, adminOnlyMiddleware, async (c) => {
             )
         }
 
-        // Use /tmp directory for temporary JSON files
-        const tempExportDir = path.join("/tmp", `mdb-export-${Date.now()}`)
-
-        console.log(`Starting import process from ${mdbPath}`)
-
-        // Step 1: Export MDB to JSON files
-        console.log("Step 1: Exporting MDB to JSON...")
-        await exportMdbToJson(mdbPath, tempExportDir)
-
-        // Step 2: Import JSON files to database
-        console.log("Step 2: Importing JSON to database...")
-        await runImport(tempExportDir)
-
-        // Step 3: Clean up temporary files
-        console.log("Step 3: Cleaning up temporary files...")
-        const { rm } = await import("fs/promises")
-        await rm(tempExportDir, { recursive: true, force: true })
+        // Use the imported function to handle the import
+        const tempExportDir = await importMdbToSqlite()
 
         return c.json({
             success: true,

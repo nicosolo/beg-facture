@@ -50,8 +50,20 @@ ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV NODE_ENV=production
 
+# Copy package files first for better caching
+COPY package.json bun.lockb ./
+COPY apps/api/package.json ./apps/api/
+COPY apps/app/package.json ./apps/app/
+COPY packages/*/package.json ./packages/*/
+
+# Install dependencies - this layer is cached unless package files change
+RUN bun install --network-concurrency=5 --no-frozen-lockfile --production || \
+    bun install --network-concurrency=5 --no-frozen-lockfile
+# Clean up cache to reduce image size
+RUN bun pm cache rm
+# Copy the rest of the application
 COPY . .
-RUN bun install --production --network-concurrency=5
+
 # Ensure data directory exists
 RUN mkdir -p /app/data
 

@@ -1,0 +1,64 @@
+{
+    "name": "beg-management",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "src/main.js",
+    "description": "BEG Management App",
+    "author": "Nicolas Solioz (n@solioz.me)",
+    "scripts": {
+        "start": "electron .",
+        "dev": "NODE_ENV=development electron .",
+        "test": "NODE_ENV=test electron .",
+        "build": "electron-builder",
+        "dist": "electron-builder",
+        "dist:mac": "electron-builder --mac",
+        "dist:win": "electron-builder --win",
+        "dist:linux": "electron-builder --linux",
+        "dist:all": "electron-builder -mwl",
+        "build:icons": "./scripts/build-icons.sh"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "electron": "33.4.0",
+        "electron-builder": "^25.1.8",
+        "electron-reloader": "^1.2.3"
+    },
+    "build": {
+        "appId": "com.beg.management",
+        "productName": "BEG Management",
+        "npmRebuild": false,
+        "directories": {
+            "output": "dist",
+            "buildResources": "resources"
+        },
+        "files": [
+            "src/**/*",
+            "!**/*.ts",
+            "!**/*.map"
+        ],
+        "mac": {
+            "category": "public.app-category.business",
+            "icon": "resources/icon.icns"
+        },
+        "win": {
+            "target": [
+                {
+                    "target": "nsis",
+                    "arch": [
+                        "x64",
+                        "arm64"
+                    ]
+                }
+            ],
+            "icon": "resources/icon.ico"
+        },
+        "linux": {
+            "target": "AppImage",
+            "icon": "resources/icon.png"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true
+        }
+    }
+}

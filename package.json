@@ -1,12 +1,17 @@
 {
-    "name": "fullstack-project",
+    "name": "beg-management",
     "private": true,
     "workspaces": [
         "apps/*",
         "packages/*"
     ],
     "scripts": {
-        "dev": "docker compose up --watch"
+        "dev": "docker compose up --watch",
+        "electron:dev": "cd apps/electron && bun run dev",
+        "electron:start": "cd apps/electron && bun run start",
+        "electron:build": "cd apps/electron && bun run dist",
+        "docker:build": "./scripts/build-docker.sh",
+        "docker:build:export": "./scripts/build-docker.sh"
     },
     "module": "index.ts",
     "type": "module",

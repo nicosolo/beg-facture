@@ -15,7 +15,7 @@ import { responseValidator } from "@src/tools/response-validator"
 import type { Variables } from "@src/types/global"
 import { throwNotFound } from "@src/tools/error-handler"
 import { findProjectFolderSingle } from "@src/tools/project-folder-finder"
-import { PROJECT_BASE_DIR } from "@src/config"
+import { PROJECT_BASE_DIR, PROJECT_HOST_DIR } from "@src/config"
 
 export const projectRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
@@ -81,13 +81,16 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
 
         try {
             // Search for folder using the project number
-            const result = await findProjectFolderSingle(PROJECT_BASE_DIR, project.projectNumber)
+            const result = await findProjectFolderSingle(project.projectNumber)
 
             return c.json({
                 projectId: id,
                 projectNumber: project.projectNumber,
                 found: !!result,
-                folder: result,
+                folder: {
+                    ...result,
+                    fullPath: result?.fullPath.replace(PROJECT_BASE_DIR, PROJECT_HOST_DIR),
+                },
             })
         } catch (error) {
             console.error("Project folder search error:", error)

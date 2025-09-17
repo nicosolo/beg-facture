@@ -35,13 +35,14 @@
                     <Button variant="secondary" @click="showTimeEntryModal = true">
                         {{ $t("time.new") }}
                     </Button>
-                    <a
-                        :href="`file:///${projectFolder?.folder?.fullPath}`"
+                    <button
+                        @click="openProjectFolder"
                         v-if="projectFolder?.found"
+                        type="button"
                         class="text-sm px-3 py-1.5 rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center hover:bg-indigo-200 text-indigo-700"
                     >
                         Open Folder
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -266,6 +267,7 @@ import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import { useFetchProject, useProjectFolder } from "@/composables/api/useProject"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import { useFormat } from "@/composables/utils/useFormat"
+import { useElectron } from "@/composables/useElectron"
 
 const route = useRoute()
 const router = useRouter()
@@ -285,13 +287,14 @@ const showTimeEntryModal = ref(false)
 const { get: fetchProject, loading, data: projectData } = useFetchProject()
 const { get: fetchProjectFolder, data: projectFolder } = useProjectFolder()
 const { formatNumber, formatDate } = useFormat()
+const { isElectron, openFolder } = useElectron()
 
 // Get project ID from route
 const projectId = computed(() => parseInt(route.params.id as string))
 
 watch(
     () => projectData.value,
-    async (newId) => {
+    async () => {
         document.title = `BEG - Mandat ${projectData.value?.projectNumber || ""}`
     },
     { immediate: true }
@@ -299,7 +302,10 @@ watch(
 // Load project data on mount
 onMounted(async () => {
     if (projectId.value && !isNaN(projectId.value)) {
-        await fetchProjectFolder({ params: { id: projectId.value } })
+        console.log(isElectron.value)
+        if (isElectron.value) {
+            await fetchProjectFolder({ params: { id: projectId.value } })
+        }
         await fetchProject({ params: { id: projectId.value } })
     }
 })
@@ -315,23 +321,19 @@ const handleTimeEntrySaved = async () => {
 }
 
 // Open project folder in native finder
-const openProjectFolder = async () => {
+const openProjectFolder = async (e?: Event) => {
     if (!projectFolder.value?.folder?.fullPath) return
 
-    try {
-        const response = await fetch(`/api/projects/${projectId.value}/folder/open`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-                "Content-Type": "application/json",
-            },
-        })
+    if (isElectron.value) {
+        // Prevent default link behavior in Electron
+        e?.preventDefault()
 
-        if (!response.ok) {
-            console.error("Failed to open folder")
+        // Use Electron API to open folder
+        const success = await openFolder(projectFolder.value.folder.fullPath)
+        if (!success) {
+            console.error("Failed to open folder in Electron")
         }
-    } catch (error) {
-        console.error("Error opening folder:", error)
+        console.log(success)
     }
 }
 </script>

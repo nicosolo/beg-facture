@@ -1,6 +1,7 @@
 import { readdir, stat } from "fs/promises"
 import path from "path"
 import { existsSync } from "fs"
+import { PROJECT_BASE_DIR } from "@src/config"
 
 export interface ProjectFolderResult {
     projectNumber: string
@@ -88,9 +89,8 @@ export async function findProjectFolder(
  * @returns First matching project folder or null
  */
 export async function findProjectFolderSingle(
-    baseDir: string,
     projectNumber: string | number
 ): Promise<ProjectFolderResult | null> {
-    const results = await findProjectFolder(baseDir, projectNumber)
+    const results = await findProjectFolder(PROJECT_BASE_DIR, projectNumber)
     return results.length > 0 ? results[0] : null
 }

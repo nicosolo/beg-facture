@@ -2,8 +2,15 @@
 **/.cache
 **/log
 data/
-*.tar
+**/.tar
 export-mdb
 **/.git
 .env.prod
 .env
+apps/electron/
+legacy/
+odys-info
+.cursor
+.claude
+.vscode
+exports/

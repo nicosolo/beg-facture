@@ -9,7 +9,7 @@ services:
             - MS_ACCESS_DB_PATH=${MS_ACCESS_DB_PATH-./data/BEGdatas.mdb}
         volumes:
             - ./data:/app/data
-            - $MANDATS_PATH:/mandats
+            - $MANDATS_PATH:/mandats:ro
             - $MS_ACCESS_DB_PATH:/export-mdb/beg.mdb:ro
         working_dir: /app/apps/api
         command: bun run start

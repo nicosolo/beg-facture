@@ -3,6 +3,7 @@
         <div class="w-full lg:w-2/3">
             <section class="mb-8">
                 <h2 class="text-lg font-medium mb-4 bg-gray-100 p-2 text-center">HONORAIRES</h2>
+
                 <div class="border border-gray-200 rounded overflow-x-scroll">
                     <table
                         class="w-full divide-y divide-gray-200 text-left min-w-[550px] table-fixed"
@@ -16,9 +17,14 @@
                         </colgroup>
                         <thead class="bg-gray-50">
                             <tr>
-                                <th
-                                    class="px-4 py-2 text-xs font-medium text-gray-500 uppercase"
-                                ></th>
+                                <th class="px-4 py-2">
+                                    <Select
+                                        v-model="selectedYear"
+                                        :options="yearOptions"
+                                        @update:modelValue="updateRatesForYear"
+                                        class-name="w-full text-xs py-1"
+                                    />
+                                </th>
                                 <th class="px-4 py-2 text-xs font-medium text-gray-500 uppercase">
                                     base
                                 </th>
@@ -206,10 +212,7 @@
                                 <td class="px-4 py-2">{{ invoice.expensesTravelBase || 0 }} km</td>
                                 <td class="px-4 py-2">
                                     <InputNumber
-                                        :modelValue="invoice.expensesTravelAdjusted || 0"
-                                        @update:modelValue="
-                                            updateExpense('expensesTravelAdjusted', $event)
-                                        "
+                                        v-model="invoice.expensesTravelAdjusted"
                                         :step="1"
                                         class="w-24"
                                     />
@@ -217,10 +220,7 @@
                                 </td>
                                 <td class="px-4 py-2">
                                     <InputNumber
-                                        :modelValue="invoice.expensesTravelRate || 0.65"
-                                        @update:modelValue="
-                                            updateExpense('expensesTravelRate', $event)
-                                        "
+                                        v-model="invoice.expensesTravelRate"
                                         :step="0.01"
                                         :currency="true"
                                         class="w-24"
@@ -228,7 +228,7 @@
                                     <span class="ml-1">CHF/km</span>
                                 </td>
                                 <td class="px-4 py-2 text-right">
-                                    {{ formatCurrency(invoice.expensesTravelAmount || 0) }}
+                                    {{ formatCurrency(expensesTravelAmount || 0) }}
                                 </td>
                             </tr>
                             <!-- Other expenses -->
@@ -239,10 +239,7 @@
                                 </td>
                                 <td class="px-4 py-2" colspan="2">
                                     <InputNumber
-                                        :modelValue="invoice.expensesOtherAmount || 0"
-                                        @update:modelValue="
-                                            updateExpense('expensesOtherAmount', $event)
-                                        "
+                                        v-model="invoice.expensesOtherAmount"
                                         :currency="true"
                                         class="w-32"
                                     />
@@ -256,10 +253,7 @@
                                 <td class="px-4 py-2">Frais tiers</td>
                                 <td class="px-4 py-2" colspan="3">
                                     <InputNumber
-                                        :modelValue="invoice.expensesThirdPartyAmount || 0"
-                                        @update:modelValue="
-                                            updateExpense('expensesThirdPartyAmount', $event)
-                                        "
+                                        v-model="invoice.expensesThirdPartyAmount"
                                         :currency="true"
                                         class="w-32"
                                     />
@@ -380,7 +374,16 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td class="px-4 py-2">TVA ({{ vatRate }}%)</td>
+                                <td class="px-4 py-2">
+                                    TVA
+                                    <Select
+                                        v-model="selectedVatYear"
+                                        :options="vatYearOptions"
+                                        @update:modelValue="updateVatRate"
+                                        class-name="inline-block ml-1 w-20 text-xs py-0.5"
+                                    />
+                                    ({{ vatRate }}%)
+                                </td>
                                 <td class="px-4 py-2 text-right">
                                     {{ formatCurrency(vatAmount) }}
                                 </td>
@@ -408,7 +411,7 @@
                     <Textarea
                         :value="invoice.remarksOtherServices || ''"
                         @input="
-                            (e) =>
+                            (e: Event) =>
                                 updateRemarks(
                                     'otherServices',
                                     (e.target as HTMLTextAreaElement).value
@@ -428,7 +431,7 @@
                     <Textarea
                         :value="invoice.remarksTravelExpenses || ''"
                         @input="
-                            (e) =>
+                            (e: Event) =>
                                 updateRemarks(
                                     'travelExpenses',
                                     (e.target as HTMLTextAreaElement).value
@@ -448,7 +451,7 @@
                     <Textarea
                         :value="invoice.remarksExpenses || ''"
                         @input="
-                            (e) =>
+                            (e: Event) =>
                                 updateRemarks('expenses', (e.target as HTMLTextAreaElement).value)
                         "
                         rows="6"
@@ -465,7 +468,7 @@
                     <Textarea
                         :value="invoice.remarksThirdPartyExpenses || ''"
                         @input="
-                            (e) =>
+                            (e: Event) =>
                                 updateRemarks(
                                     'thirdPartyExpenses',
                                     (e.target as HTMLTextAreaElement).value
@@ -489,6 +492,7 @@
                 }}
             </h2>
             <TimeEntriesManager
+                disable-selection
                 :initial-filter="
                     isNewInvoice
                         ? {
@@ -523,10 +527,15 @@
 import { type Invoice, type ActivityResponse } from "@beg/validations"
 import AccordionPanel from "../../molecules/AccordionPanel.vue"
 import { useFormat } from "@/composables/utils/useFormat"
-import { computed, ref } from "vue"
+import { computed, ref, onMounted, watch } from "vue"
 import InputNumber from "@/components/atoms/InputNumber.vue"
 import TimeEntriesManager from "../time/TimeEntriesManager.vue"
 import Textarea from "@/components/atoms/Textarea.vue"
+import Select from "@/components/atoms/Select.vue"
+import { useI18n } from "vue-i18n"
+import { useFetchRates } from "@/composables/api/useRate"
+import { useFetchVatRates } from "@/composables/api/useVatRate"
+import { useVModel } from "@vueuse/core"
 
 const props = defineProps<{
     modelValue: Invoice
@@ -536,19 +545,116 @@ const props = defineProps<{
 const emit = defineEmits<{
     "update:modelValue": [value: Invoice]
 }>()
-
+const { t } = useI18n()
 const { formatCurrency, formatDuration } = useFormat()
 
-// Computed property for invoice
-const invoice = computed({
-    get: () => props.modelValue,
-    set: (value) => emit("update:modelValue", value),
+// Computed property for invoice - moved before it's used
+
+const invoice = useVModel(props, "modelValue", emit)
+
+const { get: fetchRates, loading: fetchRatesLoading, data: ratesData } = useFetchRates()
+const { get: fetchVatRates, loading: fetchVatRatesLoading, data: vatRates } = useFetchVatRates()
+
+const allRatesForYears = computed(() => {
+    if (ratesData.value) {
+        // Group rates by year and class
+        const ratesByYear: Record<number, Record<string, number>> = {}
+
+        for (const rate of ratesData.value || []) {
+            if (!ratesByYear[rate.year]) {
+                ratesByYear[rate.year] = {}
+            }
+            ratesByYear[rate.year][rate.class] = rate.amount
+        }
+
+        return ratesByYear
+    }
+})
+const isNewInvoice = computed(() => !invoice.value.id || invoice.value.id === "")
+
+const selectedYear = ref<number | null>(null)
+const selectedVatYear = ref<number | null>(null)
+
+const yearOptions = computed(() => [
+    { label: t("common.change"), value: null },
+    ...Object.keys(allRatesForYears.value || {})
+        .map(Number)
+        .sort((a, b) => b - a)
+        .map((year) => ({
+            label: String(year),
+            value: year,
+        })),
+])
+
+const vatYearOptions = computed(() => [
+    { label: t("common.change"), value: null },
+    ...(vatRates.value
+        ?.sort((a, b) => b.year - a.year)
+        .map((vr) => ({
+            label: String(vr.year),
+            value: vr.year,
+        })) || []),
+])
+
+onMounted(async () => {
+    await Promise.all([
+        fetchRates({
+            query: {
+                years: Array.from(
+                    { length: 5 },
+                    (_, i) => i + new Date().getFullYear() - 4
+                ).reverse(),
+            },
+        }),
+        fetchVatRates(),
+    ])
+    if (isNewInvoice.value) {
+        const year = new Date(invoice.value.periodEnd || new Date()).getFullYear()
+        // Set rate year
+        selectedYear.value = year
+        updateRatesForYear()
+
+        // Use the latest VAT year (first in sorted array)
+        selectedVatYear.value = vatYearOptions.value[1].value
+        updateVatRate()
+    }
 })
 
-const isNewInvoice = computed(() => !invoice.value.id || invoice.value.id === "")
+// Function to update rates when year changes
+const updateRatesForYear = () => {
+    if (!allRatesForYears.value || !selectedYear.value) return
+
+    const yearRates = allRatesForYears.value[selectedYear.value]
+    if (!yearRates) return
+
+    if (!invoice.value.rates) invoice.value.rates = []
+    console.log(yearRates)
+    // Update hourly rates for each rate class
+    const rates = invoice.value.rates.map((rate) => ({
+        ...rate,
+        hourlyRate: yearRates[rate.rateClass] || 0,
+        amount: (rate.adjusted || 0) * (yearRates[rate.rateClass] || 0),
+    }))
+    console.log(rates)
+    invoice.value.rates = rates
+}
+
+// Function to update VAT rate when year changes
+const updateVatRate = () => {
+    if (!vatRates.value || vatRates.value.length === 0 || !selectedVatYear.value) return
+
+    // Find the VAT rate for the selected year (which should exist since we only show available years)
+    const vatRateForYear = vatRates.value.find((vr) => vr.year === selectedVatYear.value)
+
+    if (!vatRateForYear) return
+
+    invoice.value.vatRate = vatRateForYear.rate
+}
 
 // Computed properties for data - using flat structure
 const rates = computed(() => invoice.value.rates || [])
+
+// These will be calculated by watchers, keeping as computed for template use
 const feesBase = computed(() => invoice.value.feesBase || 0)
 const feesAdjusted = computed(() => invoice.value.feesAdjusted || 0)
 const feesFinalTotal = computed(() => invoice.value.feesFinalTotal || 0)
@@ -568,6 +674,86 @@ const hasPackage = computed(
         (invoice.value.expensesPackageAmount || 0) > 0
 )
 
+// Computed properties for template display
+const expensesTravelAmount = computed(() => invoice.value.expensesTravelAmount || 0)
+const expensesTotal = computed(() => invoice.value.expensesTotal || 0)
+const expensesTotalExpenses = computed(() => invoice.value.expensesTotalExpenses || 0)
+const totalHT = computed(() => invoice.value.totalHT || 0)
+const vatAmount = computed(() => invoice.value.vatAmount || 0)
+const totalTTC = computed(() => invoice.value.totalTTC || 0)
+
+// Watch for changes in rates and recalculate fee totals
+watch(
+    () => invoice.value.rates,
+    (rates) => {
+        if (!rates) return
+        invoice.value.feesBase = rates.reduce((sum, rate) => sum + rate.base, 0)
+        invoice.value.feesAdjusted = rates.reduce((sum, rate) => sum + rate.adjusted, 0)
+        invoice.value.feesFinalTotal = rates.reduce((sum, rate) => sum + rate.amount, 0)
+        invoice.value.feesMultiplicationFactor = 1
+    },
+    { deep: true, immediate: true }
+)
+
+// Watch for discount changesfeesTotal
+watch(
+    [() => invoice.value.feesFinalTotal, () => invoice.value.feesDiscountAmount],
+    () => {
+        invoice.value.feesTotal =
+            (invoice.value.feesFinalTotal || 0) - (invoice.value.feesDiscountAmount || 0)
+    },
+    { immediate: true }
+)
+
+// Watch for expense changes
+watch(
+    [
+        () => invoice.value.expensesTravelAdjusted,
+        () => invoice.value.expensesTravelRate,
+        () => invoice.value.expensesOtherAmount,
+        () => invoice.value.expensesThirdPartyAmount,
+        () => invoice.value.expensesPackageAmount,
+        () => invoice.value.expensesPackagePercentage,
+    ],
+    () => {
+        // Calculate travel amount
+        invoice.value.expensesTravelAmount =
+            (invoice.value.expensesTravelAdjusted || 0) * (invoice.value.expensesTravelRate || 0.65)
+
+        // Calculate total expenses
+        if (
+            (invoice.value.expensesPackagePercentage || 0) > 0 ||
+            (invoice.value.expensesPackageAmount || 0) > 0
+        ) {
+            invoice.value.expensesTotalExpenses = invoice.value.expensesPackageAmount || 0
+        } else {
+            invoice.value.expensesTotal =
+                (invoice.value.expensesTravelAmount || 0) +
+                (invoice.value.expensesOtherAmount || 0) +
+                (invoice.value.expensesThirdPartyAmount || 0)
+            invoice.value.expensesTotalExpenses = invoice.value.expensesTotal
+        }
+    },
+    { immediate: true }
+)
+
+// Watch for final total calculations
+watch(
+    [
+        () => invoice.value.feesTotal,
+        () => invoice.value.expensesTotalExpenses,
+        () => invoice.value.vatRate,
+    ],
+    () => {
+        console.log(invoice.value.feesTotal)
+        invoice.value.totalHT =
+            (invoice.value.feesTotal || 0) + (invoice.value.expensesTotalExpenses || 0)
+        invoice.value.vatAmount = invoice.value.totalHT * ((invoice.value.vatRate || 0) / 100)
+        invoice.value.totalTTC = invoice.value.totalHT + invoice.value.vatAmount
+    },
+    { immediate: true }
+)
+
 // Discount and package type states
 const discountType = ref<"percentage" | "fixed">(
     invoice.value.feesDiscountPercentage && invoice.value.feesDiscountPercentage > 0
@@ -580,14 +766,10 @@ const packageType = ref<"percentage" | "fixed">(
         : "fixed"
 )
 
-const totalHT = computed(() => invoice.value.totalHT || 0)
 const vatRate = computed(() => invoice.value.vatRate || 8.0)
-const vatAmount = computed(() => invoice.value.vatAmount || 0)
-const totalTTC = computed(() => invoice.value.totalTTC || 0)
 
 // Helper function to update remarks
 const updateRemarks = (field: string, value: string) => {
-    const newInvoice = { ...invoice.value } as any
     // Map field names to flat structure
     const fieldMap: Record<string, string> = {
         otherServices: "remarksOtherServices",
@@ -597,234 +779,138 @@ const updateRemarks = (field: string, value: string) => {
     }
     const flatField = fieldMap[field]
     if (flatField) {
-        newInvoice[flatField] = value
+        // @ts-ignore
+        invoice.value[flatField] = value
     }
-    invoice.value = newInvoice
 }
 
 // Update rate
 const updateRate = (index: number, field: string, value: any) => {
-    const newInvoice = { ...invoice.value }
-    if (!newInvoice.rates) newInvoice.rates = []
-    newInvoice.rates = [...newInvoice.rates]
-    newInvoice.rates[index] = { ...newInvoice.rates[index], [field]: value }
-
+    if (!invoice.value.rates) invoice.value.rates = []
+    invoice.value.rates = [...invoice.value.rates]
+    invoice.value.rates[index] = { ...invoice.value.rates[index], [field]: value }
     // Recalculate amount
-    const rate = newInvoice.rates[index]
-    rate.amount = rate.adjusted * rate.hourlyRate
-
-    // Recalculate totals using flat fields
-    newInvoice.feesBase = newInvoice.rates.reduce((total, r) => total + (r.base || 0), 0)
-    newInvoice.feesAdjusted = newInvoice.rates.reduce((total, r) => total + (r.adjusted || 0), 0)
-    newInvoice.feesFinalTotal = newInvoice.rates.reduce((total, r) => total + (r.amount || 0), 0)
-    newInvoice.feesTotal = newInvoice.feesFinalTotal - (newInvoice.feesDiscountAmount || 0)
-
-    invoice.value = newInvoice
-    recalculateTotals(newInvoice)
+    const rate = invoice.value.rates[index]
+    invoice.value.rates[index].amount = rate.adjusted * rate.hourlyRate
 }
 
 // Toggle discount
 const toggleDiscount = () => {
-    const newInvoice = { ...invoice.value }
-
     // Check if there's any discount currently applied
     const hasExistingDiscount =
-        (newInvoice.feesDiscountPercentage || 0) > 0 || (newInvoice.feesDiscountAmount || 0) > 0
+        (invoice.value.feesDiscountPercentage || 0) > 0 ||
+        (invoice.value.feesDiscountAmount || 0) > 0
 
     if (hasExistingDiscount) {
         // Remove discount
-        newInvoice.feesDiscountPercentage = 0
-        newInvoice.feesDiscountAmount = 0
+        invoice.value.feesDiscountPercentage = 0
+        invoice.value.feesDiscountAmount = 0
     } else {
         // Apply default discount based on current type
         if (discountType.value === "percentage") {
-            newInvoice.feesDiscountPercentage = 10
-            newInvoice.feesDiscountAmount = (newInvoice.feesFinalTotal * 10) / 100
+            invoice.value.feesDiscountPercentage = 10
+            invoice.value.feesDiscountAmount = (invoice.value.feesFinalTotal || 0) * 0.1
         } else {
-            newInvoice.feesDiscountAmount = 100
-            newInvoice.feesDiscountPercentage = 0
+            invoice.value.feesDiscountAmount = 100
+            invoice.value.feesDiscountPercentage = 0
         }
     }
-
-    recalculateTotals(newInvoice)
-    invoice.value = newInvoice
 }
 
 // Set discount type
 const setDiscountType = (type: "percentage" | "fixed") => {
     discountType.value = type
-    const newInvoice = { ...invoice.value }
 
     if (type === "percentage") {
         // Convert to percentage if was fixed
-        if (!newInvoice.feesDiscountPercentage || newInvoice.feesDiscountPercentage === 0) {
-            newInvoice.feesDiscountPercentage = 10
-            newInvoice.feesDiscountAmount = (newInvoice.feesFinalTotal * 10) / 100
+        if (!invoice.value.feesDiscountPercentage || invoice.value.feesDiscountPercentage === 0) {
+            invoice.value.feesDiscountPercentage = 10
+            invoice.value.feesDiscountAmount = (invoice.value.feesFinalTotal || 0) * 0.1
         }
     } else {
         // Convert to fixed if was percentage
-        if (!newInvoice.feesDiscountAmount || newInvoice.feesDiscountAmount === 0) {
-            newInvoice.feesDiscountAmount = 1000
-            newInvoice.feesDiscountPercentage = 0
+        if (!invoice.value.feesDiscountAmount || invoice.value.feesDiscountAmount === 0) {
+            invoice.value.feesDiscountAmount = 1000
+            invoice.value.feesDiscountPercentage = 0
         }
     }
-    recalculateTotals(newInvoice)
-    invoice.value = newInvoice
 }
 
 // Update discount percentage
 const updateDiscountPercentage = (value: number) => {
-    const newInvoice = { ...invoice.value }
-    newInvoice.feesDiscountPercentage = value
-    // Calculate discount amount
-    if (value && newInvoice.feesFinalTotal) {
-        newInvoice.feesDiscountAmount = (newInvoice.feesFinalTotal * value) / 100
+    invoice.value.feesDiscountPercentage = value
+    if (value && invoice.value.feesFinalTotal) {
+        invoice.value.feesDiscountAmount = (invoice.value.feesFinalTotal * value) / 100
     } else {
-        newInvoice.feesDiscountAmount = 0
+        invoice.value.feesDiscountAmount = 0
     }
-    // Recalculate totals
-    recalculateTotals(newInvoice)
-    invoice.value = newInvoice
 }
 
 // Update discount amount (fixed)
 const updateDiscountAmount = (value: number) => {
-    const newInvoice = { ...invoice.value }
-    newInvoice.feesDiscountAmount = value
-    newInvoice.feesDiscountPercentage = 0 // Clear percentage when using fixed
-    // Recalculate totals
-    recalculateTotals(newInvoice)
-    invoice.value = newInvoice
-}
-
-// Update expense field
-const updateExpense = (field: string, value: number) => {
-    const newInvoice = { ...invoice.value } as any
-    newInvoice[field] = value
-
-    // Calculate travel amount if updating travel fields
-    if (field === "expensesTravelAdjusted" || field === "expensesTravelRate") {
-        newInvoice.expensesTravelAmount =
-            (newInvoice.expensesTravelAdjusted || 0) * (newInvoice.expensesTravelRate || 0.65)
-    }
-
-    // Recalculate total expenses
-    recalculateExpensesTotal(newInvoice)
-    recalculateTotals(newInvoice)
-
-    invoice.value = newInvoice
+    invoice.value.feesDiscountAmount = value
+    invoice.value.feesDiscountPercentage = 0 // Clear percentage when using fixed
 }
 
 // Toggle package
 const togglePackage = () => {
-    const newInvoice = { ...invoice.value }
-
     // Check if there's any package currently applied
     const hasExistingPackage =
-        (newInvoice.expensesPackagePercentage || 0) > 0 ||
-        (newInvoice.expensesPackageAmount || 0) > 0
+        (invoice.value.expensesPackagePercentage || 0) > 0 ||
+        (invoice.value.expensesPackageAmount || 0) > 0
 
     if (hasExistingPackage) {
         // Remove package
-        newInvoice.expensesPackagePercentage = 0
-        newInvoice.expensesPackageAmount = 0
+        invoice.value.expensesPackagePercentage = 0
+        invoice.value.expensesPackageAmount = 0
     } else {
         // Apply default package based on current type
         if (packageType.value === "percentage") {
-            newInvoice.expensesPackagePercentage = 10
-            newInvoice.expensesPackageAmount = (newInvoice.feesTotal * 10) / 100
+            invoice.value.expensesPackagePercentage = 10
+            invoice.value.expensesPackageAmount = (invoice.value.feesTotal || 0) * 0.1
         } else {
-            newInvoice.expensesPackageAmount = 500
-            newInvoice.expensesPackagePercentage = 0
+            invoice.value.expensesPackageAmount = 500
+            invoice.value.expensesPackagePercentage = 0
         }
     }
-
-    recalculateExpensesTotal(newInvoice)
-    recalculateTotals(newInvoice)
-    invoice.value = newInvoice
 }
 
 // Set package type
 const setPackageType = (type: "percentage" | "fixed") => {
     packageType.value = type
-    const newInvoice = { ...invoice.value }
 
     if (type === "percentage") {
         // Convert to percentage if was fixed
-        if (!newInvoice.expensesPackagePercentage || newInvoice.expensesPackagePercentage === 0) {
-            newInvoice.expensesPackagePercentage = 10
-            newInvoice.expensesPackageAmount = (newInvoice.feesTotal * 10) / 100
+        if (
+            !invoice.value.expensesPackagePercentage ||
+            invoice.value.expensesPackagePercentage === 0
+        ) {
+            invoice.value.expensesPackagePercentage = 10
+            invoice.value.expensesPackageAmount = (invoice.value.feesTotal || 0) * 0.1
         }
     } else {
         // Convert to fixed if was percentage
-        if (!newInvoice.expensesPackageAmount || newInvoice.expensesPackageAmount === 0) {
-            newInvoice.expensesPackageAmount = 500
-            newInvoice.expensesPackagePercentage = 0
+        if (!invoice.value.expensesPackageAmount || invoice.value.expensesPackageAmount === 0) {
+            invoice.value.expensesPackageAmount = 500
+            invoice.value.expensesPackagePercentage = 0
         }
     }
-    recalculateExpensesTotal(newInvoice)
-    recalculateTotals(newInvoice)
-    invoice.value = newInvoice
 }
 
 // Update package percentage
 const updatePackagePercentage = (value: number) => {
-    const newInvoice = { ...invoice.value }
-    newInvoice.expensesPackagePercentage = value
-
-    // Calculate package amount based on fees total (after discount)
-    if (value && newInvoice.feesTotal) {
-        newInvoice.expensesPackageAmount = (newInvoice.feesTotal * value) / 100
+    invoice.value.expensesPackagePercentage = value
+    // Calculate package amount based on current feesTotal from invoice
+    if (value && invoice.value.feesTotal) {
+        invoice.value.expensesPackageAmount = (invoice.value.feesTotal * value) / 100
     } else {
-        newInvoice.expensesPackageAmount = 0
+        invoice.value.expensesPackageAmount = 0
     }
-
-    recalculateExpensesTotal(newInvoice)
-    recalculateTotals(newInvoice)
-    invoice.value = newInvoice
 }
 
 // Update package amount (fixed)
 const updatePackageAmount = (value: number) => {
-    const newInvoice = { ...invoice.value }
-    newInvoice.expensesPackageAmount = value
-    newInvoice.expensesPackagePercentage = 0 // Clear percentage when using fixed
-    // Recalculate totals
-    recalculateExpensesTotal(newInvoice)
-    recalculateTotals(newInvoice)
-    invoice.value = newInvoice
-}
-
-// Helper to recalculate expenses total
-const recalculateExpensesTotal = (inv: any) => {
-    if (
-        (inv.expensesPackagePercentage && inv.expensesPackagePercentage > 0) ||
-        (inv.expensesPackageAmount && inv.expensesPackageAmount > 0)
-    ) {
-        // If using package (either percentage or fixed), only use package amount
-        inv.expensesTotalExpenses = inv.expensesPackageAmount || 0
-    } else {
-        // Otherwise sum all individual expenses
-        inv.expensesTotal =
-            (inv.expensesTravelAmount || 0) +
-            (inv.expensesOtherAmount || 0) +
-            (inv.expensesThirdPartyAmount || 0)
-        inv.expensesTotalExpenses = inv.expensesTotal
-    }
-}
-
-// Helper to recalculate all totals
-const recalculateTotals = (inv: any) => {
-    // Calculate fees final total after discount
-    inv.feesTotal = (inv.feesFinalTotal || 0) - (inv.feesDiscountAmount || 0)
-
-    // Calculate total HT
-    inv.totalHT = (inv.feesTotal || 0) + (inv.feesOthers || 0) + (inv.expensesTotalExpenses || 0)
-
-    // Calculate VAT
-    inv.vatAmount = (inv.totalHT * (inv.vatRate || 8.0)) / 100
-
-    // Calculate total TTC
-    inv.totalTTC = inv.totalHT + inv.vatAmount
+    invoice.value.expensesPackageAmount = value
+    invoice.value.expensesPackagePercentage = 0 // Clear percentage when using fixed
 }
 </script>

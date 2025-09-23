@@ -92,8 +92,6 @@ export const projectListResponse = createPageResponseSchema(projectResponseSchem
 
 export type ProjectListResponse = z.infer<typeof projectListResponse>
 
-export type ProjectAccessLevel = z.infer<typeof projectAccessLevelSchema>
-
 // Project create schema
 export const projectCreateSchema = z.object({
     projectNumber: z.string().min(1),

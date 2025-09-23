@@ -14,8 +14,8 @@ import {
     invoices,
     workloads,
     vatRates,
+    monthlyHours,
 } from "./schema"
-import { eq, and } from "drizzle-orm"
 import fs from "fs/promises"
 import { existsSync } from "fs"
 import path from "path"
@@ -79,6 +79,7 @@ async function resetDatabase() {
     await db.delete(workloads)
     await db.delete(users)
     await db.delete(vatRates)
+    await db.delete(monthlyHours)
 
     console.log("Database reset complete")
 }
@@ -87,28 +88,28 @@ async function readJsonFile(filename: string) {
     try {
         // First try with the original filename
         let filePath = path.join(exportDir, `${filename}.json`)
-        
+
         // If file doesn't exist, try with sanitized filename
         if (!existsSync(filePath)) {
             const sanitizedFilename = filename
-                .replace(/[éèêë]/g, 'e')
-                .replace(/[àâä]/g, 'a')
-                .replace(/[îï]/g, 'i')
-                .replace(/[ôö]/g, 'o')
-                .replace(/[ùûü]/g, 'u')
-                .replace(/[ç]/g, 'c')
-                .replace(/[ÉÈÊË]/g, 'E')
-                .replace(/[ÀÂÄ]/g, 'A')
-                .replace(/[ÎÏ]/g, 'I')
-                .replace(/[ÔÖ]/g, 'O')
-                .replace(/[ÙÛÜ]/g, 'U')
-                .replace(/[Ç]/g, 'C')
-                .replace(/[^a-zA-Z0-9_-]/g, '_')
-            
+                .replace(/[éèêë]/g, "e")
+                .replace(/[àâä]/g, "a")
+                .replace(/[îï]/g, "i")
+                .replace(/[ôö]/g, "o")
+                .replace(/[ùûü]/g, "u")
+                .replace(/[ç]/g, "c")
+                .replace(/[ÉÈÊË]/g, "E")
+                .replace(/[ÀÂÄ]/g, "A")
+                .replace(/[ÎÏ]/g, "I")
+                .replace(/[ÔÖ]/g, "O")
+                .replace(/[ÙÛÜ]/g, "U")
+                .replace(/[Ç]/g, "C")
+                .replace(/[^a-zA-Z0-9_-]/g, "_")
+
             filePath = path.join(exportDir, `${sanitizedFilename}.json`)
             console.log(`Using sanitized filename: ${filename} -> ${sanitizedFilename}`)
         }
-        
+
         const data = await fs.readFile(filePath, "utf8")
         // Handle JSONL format (one JSON object per line)
         return data
@@ -750,6 +751,26 @@ async function importVatRates() {
     console.log(`Imported ${importedVatRates.length} VAT rates from 1995 to 2024`)
 }
 
+async function importMonthlyHours() {
+    const monthlyHoursData = await readJsonFile("Heures mensuelles")
+    if (monthlyHoursData.length === 0) return
+
+    for (const rawData of monthlyHoursData) {
+        const data = {
+            year: rawData["Année"],
+            month: rawData["Mois"],
+            amountOfHours: rawData["Heures"],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        }
+
+        await db.insert(monthlyHours).values(data)
+    }
+
+    const importedMonthlyHours = await db.select().from(monthlyHours)
+    console.log(`Imported ${importedMonthlyHours.length} monthly hours records`)
+}
+
 export async function runImport(customExportDir?: string) {
     if (customExportDir) {
         exportDir = customExportDir
@@ -770,6 +791,7 @@ export async function runImport(customExportDir?: string) {
         importProjectAccess,
         importWorkloads,
         importVatRates,
+        importMonthlyHours,
     ]
 
     for (const importFunction of importFunctions) {

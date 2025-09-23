@@ -108,6 +108,12 @@ const navigation = computed(() =>
                     visible: authStore.user?.role === "admin",
                 },
                 {
+                    name: t("monthlyHours.title"),
+                    to: { name: "monthly-hours-list" },
+                    current: route.name === "monthly-hours-list",
+                    visible: authStore.user?.role === "admin",
+                },
+                {
                     name: "Import DB",
                     to: { name: "database-import" },
                     current: route.name === "database-import",

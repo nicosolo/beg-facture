@@ -16,6 +16,7 @@ import ClientListView from "../views/client/ClientListView.vue"
 import CompanyListView from "../views/company/CompanyListView.vue"
 import EngineerListView from "../views/engineer/EngineerListView.vue"
 import VatRateListView from "../views/vatRate/VatRateListView.vue"
+import MonthlyHoursListView from "../views/monthlyHours/MonthlyHoursListView.vue"
 import LoginView from "../views/LoginView.vue"
 import DatabaseImportView from "../views/admin/DatabaseImportView.vue"
 import { useAuthStore } from "../stores/auth"
@@ -161,6 +162,12 @@ const router = createRouter({
             name: "vat-rate-list",
             component: VatRateListView,
             meta: { requiresAuth: true },
+        },
+        {
+            path: "/monthly-hours",
+            name: "monthly-hours-list",
+            component: MonthlyHoursListView,
+            meta: { requiresAuth: true, requiresAdmin: true },
         },
         // Admin routes
         {

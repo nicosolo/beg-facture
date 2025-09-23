@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index, numeric, real } from "drizzle-orm/sqlite-core"
+import { sqliteTable, text, integer, index, real } from "drizzle-orm/sqlite-core"
 
 import { timestamps } from "./column.helper"
 import type {
@@ -95,6 +95,22 @@ export const engineers = sqliteTable(
         ...timestamps,
     },
     () => []
+)
+
+// MonthlyHours table
+export const monthlyHours = sqliteTable(
+    "monthly_hours",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        year: integer("year").notNull(),
+        month: integer("month").notNull(), // 1-12
+        amountOfHours: real("amountOfHours").notNull(),
+        ...timestamps,
+    },
+    (table) => [
+        // Unique constraint on year and month combination
+        index("monthly_hours_year_month_unique").on(table.year, table.month),
+    ]
 )
 
 // RateClass table

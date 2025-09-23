@@ -1,11 +1,7 @@
 <template>
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold">{{ $t("projects.title") }}</h1>
-        <Button 
-            :to="{ name: 'project-new' }" 
-            variant="primary"
-            size="md"
-        >
+        <Button :to="{ name: 'project-new' }" variant="primary" size="md">
             {{ $t("projects.new") }}
         </Button>
     </div>
@@ -52,6 +48,7 @@ import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import Button from "@/components/atoms/Button.vue"
 import type { PageResponse, ProjectFilter, ProjectResponse } from "@beg/validations"
+import { useAuthStore } from "@/stores/auth"
 
 // Initialize i18n
 const { t } = useI18n()
@@ -69,7 +66,7 @@ const pageSize = ref(100)
 // Modal state
 const showTimeEntryModal = ref(false)
 const selectedProjectId = ref<number | null>(null)
-
+const authStore = useAuthStore()
 // Filter state
 const filter = ref<ProjectFilterModel>({
     name: "",
@@ -79,7 +76,7 @@ const filter = ref<ProjectFilterModel>({
     sortOrder: "desc",
     fromDate: undefined,
     toDate: undefined,
-    referentUserId: undefined,
+    referentUserId: authStore.user?.id,
     hasUnbilledTime: false,
 })
 

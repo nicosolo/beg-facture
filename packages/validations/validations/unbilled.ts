@@ -2,29 +2,17 @@ import { z } from "zod"
 import { activityResponseSchema } from "./activity"
 import { RateItemSchema } from "./invoice"
 import { dateSchema } from "./base"
+import { vatRateSchema } from "./vatRate"
 
-// Response schema for unbilled activities with calculations
+// Response schema for unbilled activities
 export const UnbilledActivitiesResponseSchema = z.object({
     activities: z.array(activityResponseSchema),
     rates: z.array(RateItemSchema),
     totalKilometers: z.number(),
+    expensesTravelRate: z.number(),
     totalExpenses: z.number(),
     totalDisbursements: z.number(),
     activityIds: z.array(z.number()),
-    // Pre-calculated invoice totals
-    feesBase: z.number(),
-    feesAdjusted: z.number(),
-    feesTotal: z.number(),
-    feesFinalTotal: z.number(),
-    expensesTravelAmount: z.number(),
-    expensesOtherAmount: z.number(),
-    expensesThirdPartyAmount: z.number(),
-    expensesTotal: z.number(),
-    expensesTotalExpenses: z.number(),
-    totalHT: z.number(),
-    vatRate: z.number(),
-    vatAmount: z.number(),
-    totalTTC: z.number(),
     periodStart: z.date().nullable(),
     periodEnd: z.date().nullable(),
 })

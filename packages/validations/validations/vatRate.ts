@@ -25,7 +25,6 @@ export const vatRateSchema = z
 
 export type VatRate = z.infer<typeof vatRateSchema>
 
-
 // List response (simple array, no pagination)
 export const vatRateListResponse = z.array(vatRateSchema)
 

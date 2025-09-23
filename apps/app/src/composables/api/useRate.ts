@@ -1,6 +1,7 @@
 import {
     idParamSchema,
     rateClassCreateSchema,
+    rateClassFilterSchema,
     rateClassUpdateSchema,
     type RateClassSchema,
 } from "@beg/validations"
@@ -13,7 +14,14 @@ export function useFetchRate() {
 }
 
 export function useFetchRates() {
-    return useGet<RateClassSchema[]>("rate")
+    return useGet<
+        RateClassSchema[],
+        {
+            query: typeof rateClassFilterSchema
+        }
+    >("rate", {
+        query: rateClassFilterSchema,
+    })
 }
 
 export function useCreateRate() {

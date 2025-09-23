@@ -10,7 +10,7 @@ import type {
 } from "@beg/validations"
 
 export const rateRepository = {
-    findAll: async (year?: number): Promise<RateClassSchema[]> => {
+    findAll: async (years?: number[]): Promise<RateClassSchema[]> => {
         const query = db
             .select({
                 id: rateClasses.id,
@@ -21,8 +21,8 @@ export const rateRepository = {
             .from(rateClasses)
             .orderBy(desc(rateClasses.year), asc(rateClasses.class))
 
-        if (year) {
-            query.where(eq(rateClasses.year, year))
+        if (years && years.length > 0) {
+            query.where(inArray(rateClasses.year, years))
         }
 
         return await query

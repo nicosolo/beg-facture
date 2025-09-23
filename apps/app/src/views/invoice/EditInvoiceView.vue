@@ -2,7 +2,9 @@
     <FormLayout
         :title="isNewInvoice ? 'Créer une facture' : 'Modifier la facture'"
         :subtitle="invoice?.reference"
-        :loading="fetchProjectLoading || fetchUnbilledLoading"
+        :loading="
+            fetchProjectLoading || fetchUnbilledLoading || fetchRatesLoading || fetchVatRatesLoading
+        "
         :error-message="errorMessage"
     >
         <!-- Tabs Navigation -->
@@ -131,6 +133,7 @@ const { get: fetchUnbilledActivities, loading: fetchUnbilledLoading } = useFetch
 // Form state
 const invoice = ref<Invoice | null>(null)
 const unbilledActivities = ref<ActivityResponse[]>([])
+
 const loading = computed(() => fetchLoading.value || createLoading.value || updateLoading.value)
 const error = computed(() => fetchError.value || createError.value || updateError.value)
 const errorMessage = computed(() => {
@@ -139,6 +142,7 @@ const errorMessage = computed(() => {
     if (err?.message) return err.message
     return err ? "Une erreur s'est produite" : null
 })
+
 const projectId = computed<number | undefined>(() => {
     // Check route params first
     if (route.params.projectId) {
@@ -284,7 +288,6 @@ const convertInvoiceToInput = (invoice: Invoice): any => {
     }
 }
 
-// Load invoice if editing
 const loadInvoice = async () => {
     if (!isNewInvoice.value && invoiceId.value) {
         try {
@@ -433,32 +436,18 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
                     projectResponse.value.invoicingAddress || addressParts.join("\n")
             }
 
-            // Fees from API calculation
-            invoice.value.feesBase = unbilledData.feesBase
-            invoice.value.feesAdjusted = unbilledData.feesAdjusted
-            invoice.value.feesTotal = unbilledData.feesTotal
-            invoice.value.feesFinalTotal = unbilledData.feesFinalTotal
-            invoice.value.feesMultiplicationFactor = 1
-
-            // Expenses from API calculation
-            invoice.value.expensesTravelBase = unbilledData.totalKilometers || 0
-            invoice.value.expensesTravelAdjusted = unbilledData.totalKilometers || 0
-            invoice.value.expensesTravelRate = 0.65
-            invoice.value.expensesTravelAmount = unbilledData.expensesTravelAmount
-            invoice.value.expensesOtherBase = unbilledData.expensesOtherAmount
-            invoice.value.expensesOtherAmount = unbilledData.expensesOtherAmount
-            invoice.value.expensesTotal = unbilledData.expensesTotal
-            invoice.value.expensesThirdPartyAmount = unbilledData.expensesThirdPartyAmount
-            invoice.value.expensesTotalExpenses = unbilledData.expensesTotalExpenses
-
-            // Totals from API calculation
-            invoice.value.totalHT = unbilledData.totalHT
-            invoice.value.vatRate = unbilledData.vatRate
-            invoice.value.vatAmount = unbilledData.vatAmount
-            invoice.value.totalTTC = unbilledData.totalTTC
-
             // Rates array
             invoice.value.rates = unbilledData.rates
+
+            // Expenses from raw data
+            invoice.value.expensesTravelBase = unbilledData.totalKilometers || 0
+            invoice.value.expensesTravelAdjusted = unbilledData.totalKilometers || 0
+            invoice.value.expensesTravelRate = unbilledData.expensesTravelRate
+            invoice.value.expensesTravelAmount =
+                (unbilledData.totalKilometers || 0) * unbilledData.expensesTravelRate
+            invoice.value.expensesOtherBase = unbilledData.totalExpenses || 0
+            invoice.value.expensesOtherAmount = unbilledData.totalExpenses || 0
+            invoice.value.expensesThirdPartyAmount = unbilledData.totalDisbursements || 0
 
             // Store activity IDs for later marking as billed
             invoice.value.activityIds = unbilledData.activityIds
@@ -476,7 +465,8 @@ onMounted(async () => {
     if (isNewInvoice.value && projectId.value) {
         await loadUnbilledActivities()
     } else {
-        await loadInvoice()
+        // For existing invoices, load the invoice and rates data
+        await Promise.all([loadInvoice()])
     }
 })
 

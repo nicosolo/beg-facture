@@ -55,6 +55,7 @@ export default {
         add: "Ajouter",
         remove: "Supprimer",
         view: "Voir",
+        change: "Changer",
     },
     navigation: {
         home: "Accueil",

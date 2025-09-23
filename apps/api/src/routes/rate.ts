@@ -29,7 +29,7 @@ export const rateRoutes = new Hono<{ Variables: Variables }>()
         }),
         async (c) => {
             const filter = c.req.valid("query")
-            const rates = await rateRepository.findAll(filter.year)
+            const rates = await rateRepository.findAll(filter.years)
             return c.render(rates as RateClassSchema[], 200)
         }
     )
@@ -128,34 +128,3 @@ export const rateRoutes = new Hono<{ Variables: Variables }>()
         await rateRepository.delete(id)
         return c.json({ message: "Rate deleted successfully" }, 200)
     })
-
-    // Legacy endpoint: Get rate by class and year
-    .get(
-        "/:class/:year",
-        responseValidator({
-            200: rateClassSchema,
-        }),
-        async (c) => {
-            const classType = c.req.param("class")
-            const year = parseInt(c.req.param("year"))
-
-            if (isNaN(year)) {
-                return c.json({ error: "Invalid year" }, 400)
-            }
-
-            // Validate class parameter
-            const classValidation = z
-                .enum(["A", "B", "C", "D", "E", "F", "G", "R", "Z"])
-                .safeParse(classType)
-            if (!classValidation.success) {
-                return c.json({ error: "Invalid class type" }, 400)
-            }
-
-            const rate = await rateRepository.findByClassAndYear(classValidation.data, year)
-            if (!rate) {
-                throwNotFound("Rate")
-            }
-
-            return c.render(rate, 200)
-        }
-    )

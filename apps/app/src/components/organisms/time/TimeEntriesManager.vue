@@ -43,6 +43,7 @@
                 @edit="openEditModal"
                 @activities-updated="loadActivities"
                 :hide-columns="hideColumns"
+                :disable-selection="disableSelection"
             />
 
             <Pagination
@@ -87,6 +88,7 @@ interface Props {
     initialFilter?: Partial<ActivityFilter>
     hideColumns?: string[]
     hideHeader?: boolean
+    disableSelection?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {

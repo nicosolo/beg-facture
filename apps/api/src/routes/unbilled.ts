@@ -10,6 +10,7 @@ import {
 import { activityRepository } from "../db/repositories/activity.repository"
 import { projectRepository } from "../db/repositories/project.repository"
 import { rateRepository } from "../db/repositories/rate.repository"
+import { vatRateRepository } from "../db/repositories/vatRate.repository"
 import { authMiddleware } from "../tools/auth-middleware"
 import { responseValidator } from "../tools/response-validator"
 import type { Variables } from "../types/global"
@@ -98,22 +99,11 @@ app.get(
             periodStartDate = new Date(Math.min(...dates))
             periodEndDate = new Date(Math.max(...dates))
         }
-        const allYears = [
-            ...new Set<number>(activitiesForCalculation.map((a) => new Date(a.date).getFullYear())),
-            periodEndDate.getFullYear(), // Ensure current year is included
-        ]
-
-        const rateClasses = await rateRepository.findByYears(allYears)
-        const rateClassesMaps = new Map<string, number>()
-        for (const rate of rateClasses) {
-            rateClassesMaps.set(`${rate.class}-${rate.year}`, rate.amount)
-        }
 
         // Process activities (use filtered activities for calculation)
         for (const activity of activitiesForCalculation) {
             // Get user's rate class for this activity type
             let rateClass = "" // Default
-            let hourlyRate = 0
             const activitiesRates = activity.user?.id
                 ? userMap.get(activity.user?.id)?.activityRates
                 : null
@@ -123,8 +113,6 @@ app.get(
                 )
                 if (userClass) {
                     rateClass = userClass.class
-                    const year = new Date(activity.date).getFullYear()
-                    hourlyRate = rateClassesMaps.get(`${rateClass}-${year}`) || 0
                 }
             }
 
@@ -134,7 +122,7 @@ app.get(
                     rateClass,
                     base: 0,
                     adjusted: 0,
-                    hourlyRate,
+                    hourlyRate: 0,
                     amount: 0,
                 })
             }
@@ -145,7 +133,6 @@ app.get(
             if (activity.activityType?.billable && !activity.disbursement) {
                 classTotals.base += activity.duration
                 classTotals.adjusted += activity.duration
-                classTotals.hourlyRate = hourlyRate // Update rate
             }
 
             // Sum up kilometers and expenses
@@ -164,8 +151,6 @@ app.get(
         const rates: RateItem[] = allRateClasses.map((rateClass) => {
             const existingRate = rateClassTotals.get(rateClass)
             if (existingRate) {
-                // Calculate amount for existing rate
-                existingRate.amount = existingRate.adjusted * existingRate.hourlyRate
                 return existingRate
             }
             // Return empty rate for classes with no activities
@@ -173,28 +158,10 @@ app.get(
                 rateClass,
                 base: 0,
                 adjusted: 0,
-                hourlyRate: rateClassesMaps.get(`${rateClass}-${periodEndDate.getFullYear()}`) || 0,
+                hourlyRate: 0,
                 amount: 0,
             }
         })
-
-        // Calculate invoice totals
-        const feesBase = rates.reduce((sum, rate) => sum + rate.base, 0)
-        const feesAdjusted = rates.reduce((sum, rate) => sum + rate.adjusted, 0)
-        const feesTotal = rates.reduce((sum, rate) => sum + rate.amount, 0)
-        const feesFinalTotal = feesTotal // Can be adjusted with multiplication factor
-
-        const expensesTravelRate = 0.65 // Default travel rate
-        const expensesTravelAmount = totalKilometers * expensesTravelRate
-        const expensesOtherAmount = totalExpenses
-        const expensesThirdPartyAmount = totalDisbursements
-        const expensesTotal = expensesTravelAmount + expensesOtherAmount
-        const expensesTotalExpenses = expensesTotal + expensesThirdPartyAmount
-
-        const totalHT = feesFinalTotal + expensesTotalExpenses
-        const vatRate = 8.0 // Default VAT rate
-        const vatAmount = totalHT * (vatRate / 100)
-        const totalTTC = totalHT + vatAmount
 
         // Get activity IDs for marking as billed later (only from filtered activities)
         const activityIds = activitiesForCalculation.map((a) => a.id)
@@ -206,22 +173,9 @@ app.get(
             totalExpenses,
             totalDisbursements,
             activityIds,
-            // Pre-calculated invoice totals
-            feesBase,
-            feesAdjusted,
-            feesTotal,
-            feesFinalTotal,
-            expensesTravelAmount,
-            expensesOtherAmount,
-            expensesThirdPartyAmount,
-            expensesTotal,
-            expensesTotalExpenses,
-            totalHT,
-            vatRate,
-            vatAmount,
-            totalTTC,
             periodStart: periodStartDate,
             periodEnd: periodEndDate,
+            expensesTravelRate: 0.65,
         }
 
         return c.json(response)

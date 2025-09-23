@@ -3,7 +3,7 @@ import { z } from "zod"
 
 // Rate Class schema
 export const rateClassFilterSchema = z.object({
-    year: z.coerce.number().optional(),
+    years: z.array(z.coerce.number()).optional(),
 })
 // Rate Class schema
 export const rateClassSchema = z.object({

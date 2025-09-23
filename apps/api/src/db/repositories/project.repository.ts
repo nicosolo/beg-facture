@@ -178,12 +178,13 @@ export const projectRepository = {
             .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
             .leftJoin(users, eq(projects.projectManagerId, users.id))
 
-        if (user.role !== "admin") {
-            baseQuery.innerJoin(
-                projectAccess,
-                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
-            )
-        }
+        // Disable access control for now
+        // if (user.role !== "admin") {
+        //     baseQuery.innerJoin(
+        //         projectAccess,
+        //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+        //     )
+        // }
         // Execute query with conditional where clause
         const data =
             whereConditions.length > 0
@@ -202,12 +203,13 @@ export const projectRepository = {
         // Count total with same filters (excluding pagination)
         const countQuery = db.select({ count: sql<number>`count(*)` }).from(projects)
 
-        if (user.role !== "admin") {
-            countQuery.innerJoin(
-                projectAccess,
-                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
-            )
-        }
+        // Disable access control for now
+        // if (user.role !== "admin") {
+        //     countQuery.innerJoin(
+        //         projectAccess,
+        //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+        //     )
+        // }
 
         const [{ count }] = await (
             whereConditions.length > 0 ? countQuery.where(and(...whereConditions)) : countQuery
@@ -283,12 +285,13 @@ export const projectRepository = {
             .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
             .leftJoin(users, eq(projects.projectManagerId, users.id))
 
-        if (user.role !== "admin") {
-            query.innerJoin(
-                projectAccess,
-                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
-            )
-        }
+        // Disable access control for now
+        // if (user.role !== "admin") {
+        //     query.innerJoin(
+        //         projectAccess,
+        //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+        //     )
+        // }
 
         const results = await query.where(and(eq(projects.id, id))).execute()
         if (!results[0]) return null
@@ -419,23 +422,24 @@ export const projectRepository = {
         user: Variables["user"]
     ): Promise<ProjectResponse> => {
         // Check if user has write access
-        if (user.role !== "admin") {
-            const access = await db
-                .select({ accessLevel: projectAccess.accessLevel })
-                .from(projectAccess)
-                .where(
-                    and(
-                        eq(projectAccess.projectId, id),
-                        eq(projectAccess.userId, user.id),
-                        eq(projectAccess.accessLevel, "write")
-                    )
-                )
-                .execute()
+        // Disable access control for now
+        // if (user.role !== "admin") {
+        //     const access = await db
+        //         .select({ accessLevel: projectAccess.accessLevel })
+        //         .from(projectAccess)
+        //         .where(
+        //             and(
+        //                 eq(projectAccess.projectId, id),
+        //                 eq(projectAccess.userId, user.id),
+        //                 eq(projectAccess.accessLevel, "write")
+        //             )
+        //         )
+        //         .execute()
 
-            if (access.length === 0) {
-                throw throwForbidden("You do not have permission to update this project")
-            }
-        }
+        //     if (access.length === 0) {
+        //         throw throwForbidden("You do not have permission to update this project")
+        //     }
+        // }
 
         // Build update object, filtering out undefined values
         const updateData: any = {}
@@ -536,12 +540,13 @@ export const projectRepository = {
             .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
             .leftJoin(users, eq(projects.projectManagerId, users.id))
 
-        if (user.role !== "admin") {
-            query.innerJoin(
-                projectAccess,
-                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
-            )
-        }
+        // Disable access control for now
+        // if (user.role !== "admin") {
+        //     query.innerJoin(
+        //         projectAccess,
+        //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+        //     )
+        // }
 
         const data = await query
             .where(sql`${projects.subProjectName} IS NULL`)

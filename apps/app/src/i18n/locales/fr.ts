@@ -385,6 +385,20 @@ export default {
             fixedPrice: "Au forfait (voir notes)",
         },
     },
+    dateRange: {
+        week: "Semaine",
+        month: "Mois",
+        year: "Année",
+        thisWeek: "Cette semaine",
+        thisMonth: "Ce mois",
+        thisYear: "Cette année",
+        previousWeek: "Semaine précédente",
+        previousMonth: "Mois précédent",
+        previousYear: "Année précédente",
+        nextWeek: "Semaine suivante",
+        nextMonth: "Mois suivant",
+        nextYear: "Année suivante",
+    },
     database: {
         import: {
             title: "Import de base de données",

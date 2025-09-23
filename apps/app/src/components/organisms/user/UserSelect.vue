@@ -37,13 +37,13 @@ defineEmits<{
     "update:modelValue": [value: number | undefined]
 }>()
 
-const {} = useI18n()
+const { t } = useI18n()
 const { data: users, get } = useFetchUsers()
 
 // Format user display with archived indicator
 const formatUserDisplay = (user: UserResponse): string => {
     const base = `${user.initials} - ${user.firstName} ${user.lastName}`
-    return user.archived ? `${base} (${useI18n().t("common.archived")})` : base
+    return user.archived ? `${base} (${t("common.archived")})` : base
 }
 
 // Pre-filter users based on archived status

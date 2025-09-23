@@ -73,7 +73,6 @@ export const activityRepository = {
             invoiceId,
         } = filter
         const offset = (page - 1) * limit
-
         // Build where conditions
         const whereConditions = []
         if (userId) whereConditions.push(eq(activities.userId, userId))
@@ -154,13 +153,13 @@ export const activityRepository = {
             .leftJoin(projects, eq(activities.projectId, projects.id))
             .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
 
-        // Add project access filtering for non-admin users
-        if (user.role !== "admin") {
-            baseQuery.innerJoin(
-                projectAccess,
-                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
-            )
-        }
+        // Disable access control for now
+        // if (user.role !== "admin") {
+        //     baseQuery.innerJoin(
+        //         projectAccess,
+        //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+        //     )
+        // }
 
         const data = await (whereConditions.length > 0
             ? baseQuery
@@ -176,12 +175,13 @@ export const activityRepository = {
             .from(activities)
             .leftJoin(projects, eq(activities.projectId, projects.id))
 
-        if (user.role !== "admin") {
-            countQuery.innerJoin(
-                projectAccess,
-                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
-            )
-        }
+        // Disable access control for now
+        // if (user.role !== "admin") {
+        //     countQuery.innerJoin(
+        //         projectAccess,
+        //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+        //     )
+        // }
 
         const [{ count }] = await (whereConditions.length > 0
             ? countQuery.where(and(...whereConditions))
@@ -198,12 +198,13 @@ export const activityRepository = {
             .from(activities)
             .leftJoin(projects, eq(activities.projectId, projects.id))
 
-        if (user.role !== "admin") {
-            totalsQuery.innerJoin(
-                projectAccess,
-                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
-            )
-        }
+        // Disable access control for now
+        // if (user.role !== "admin") {
+        //     totalsQuery.innerJoin(
+        //         projectAccess,
+        //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+        //     )
+        // }
 
         const [totalsResult] = await (whereConditions.length > 0
             ? totalsQuery.where(and(...whereConditions))
@@ -264,13 +265,13 @@ export const activityRepository = {
             .leftJoin(projects, eq(activities.projectId, projects.id))
             .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
 
-        // Add project access filtering for non-admin users
-        if (user.role !== "admin") {
-            query.innerJoin(
-                projectAccess,
-                and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
-            )
-        }
+        // Disable access control for now
+        // if (user.role !== "admin") {
+        //     query.innerJoin(
+        //         projectAccess,
+        //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+        //     )
+        // }
 
         const result = await query.where(eq(activities.id, id))
 

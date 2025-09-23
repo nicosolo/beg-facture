@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-white p-4 border border-gray-200 rounded-lg mb-6">
+    <div class="bg-indigo-50 p-4 border border-gray-200 rounded-lg mb-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField :label="$t('projects.name')">
                 <template #input>
@@ -44,17 +44,26 @@
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <DateField
-                :label="$t('projects.filters.fromDate')"
-                v-model="filterData.fromDate"
-                @update:model-value="emitChange"
-            />
-
-            <DateField
-                :label="$t('projects.filters.toDate')"
-                v-model="filterData.toDate"
-                @update:model-value="emitChange"
-            />
+            <div class="md:col-span-2">
+                <DateRange
+                    :from-date="filterData.fromDate"
+                    :to-date="filterData.toDate"
+                    :from-label="$t('projects.filters.fromDate')"
+                    :to-label="$t('projects.filters.toDate')"
+                    @update:from-date="
+                        (value) => {
+                            filterData.fromDate = value
+                            emitChange()
+                        }
+                    "
+                    @update:to-date="
+                        (value) => {
+                            filterData.toDate = value
+                            emitChange()
+                        }
+                    "
+                />
+            </div>
 
             <div class="form-group">
                 <div class="space-y-2">
@@ -94,7 +103,7 @@ import Label from "../../atoms/Label.vue"
 import Select from "../../atoms/Select.vue"
 import Button from "../../atoms/Button.vue"
 import FormField from "../../molecules/FormField.vue"
-import DateField from "../../molecules/DateField.vue"
+import DateRange from "../../molecules/DateRange.vue"
 import UserSelect from "../../organisms/user/UserSelect.vue"
 import type { ProjectFilter } from "@beg/validations"
 import Checkbox from "@/components/atoms/Checkbox.vue"

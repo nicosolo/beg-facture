@@ -1,7 +1,7 @@
 <template>
-    <div class="bg-white rounded-lg shadow-sm">
+    <div class="bg-white">
         <!-- Header with title and actions -->
-        <div class="px-6 py-4 border-b border-gray-200">
+        <div class="py-4 border-b border-gray-200">
             <div class="flex justify-between items-center">
                 <div class="flex">
                     <h1 class="text-2xl font-bold mr-2">
@@ -88,7 +88,7 @@
 
         <!-- Tab Content -->
         <LoadingOverlay :loading="loading">
-            <div v-if="projectData" class="p-6">
+            <div v-if="projectData" class="pt-6">
                 <!-- Overview Tab -->
                 <div v-show="activeTab === 'overview'" class="space-y-6">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

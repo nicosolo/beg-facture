@@ -460,7 +460,7 @@ export const projectRepository = {
         if (data.invoicingAddress !== undefined) updateData.invoicingAddress = data.invoicingAddress
         if (data.ended !== undefined) updateData.ended = data.ended
         if (data.archived !== undefined) updateData.archived = data.archived
-
+        console.log(data, updateData)
         // Update the project
         await db
             .update(projects)

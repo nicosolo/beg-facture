@@ -22,7 +22,7 @@ import AutocompleteSelect from "@/components/atoms/AutocompleteSelect.vue"
 import type { ProjectTypeSchema } from "@beg/validations"
 
 interface ProjectTypeSelectProps {
-    modelValue: number | undefined
+    modelValue: number | undefined | null
     placeholder?: string
     disabled?: boolean
     required?: boolean

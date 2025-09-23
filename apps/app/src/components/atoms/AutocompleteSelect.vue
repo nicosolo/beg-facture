@@ -60,7 +60,7 @@ import { useI18n } from "vue-i18n"
 import LoadingSpinner from "@/components/atoms/LoadingSpinner.vue"
 
 interface AutocompleteSelectProps {
-    modelValue: number | string | undefined
+    modelValue: number | string | undefined | null
     placeholder?: string
     disabled?: boolean
     required?: boolean
@@ -86,7 +86,7 @@ const props = withDefaults(defineProps<AutocompleteSelectProps>(), {
 })
 
 const emit = defineEmits<{
-    "update:modelValue": [value: number | string | undefined]
+    "update:modelValue": [value: number | string | undefined | null]
 }>()
 
 const {} = useI18n()
@@ -161,7 +161,7 @@ const handleInput = async (e: Event) => {
 
     // Clear the modelValue when user starts typing
     if (props.modelValue) {
-        emit("update:modelValue", undefined)
+        emit("update:modelValue", null)
         await nextTick()
         searchTerm.value = inputEvent.data || ""
     }

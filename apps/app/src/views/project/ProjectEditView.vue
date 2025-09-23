@@ -51,7 +51,7 @@
                     </FormField>
                 </div>
             </div>
-
+            <pre>{{ form }}</pre>
             <!-- Second Line: Project Manager, Type, and Company -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField :label="$t('projects.responsible')" :error="errors.projectManagerId">
@@ -401,13 +401,13 @@ const saveProject = async () => {
             typeId: form.value.typeId!, // We validated it exists
             subProjectName: form.value.subProjectName,
             parentProjectId: form.value.parentProjectId,
-            locationId: form.value.locationId || undefined,
-            clientId: form.value.clientId || undefined,
-            engineerId: form.value.engineerId || undefined,
-            companyId: form.value.companyId || undefined,
-            projectManagerId: form.value.projectManagerId || undefined,
-            remark: form.value.remark || undefined,
-            invoicingAddress: form.value.invoicingAddress || undefined,
+            locationId: form.value.locationId || null,
+            clientId: form.value.clientId || null,
+            engineerId: form.value.engineerId || null,
+            companyId: form.value.companyId || null,
+            projectManagerId: form.value.projectManagerId || null,
+            remark: form.value.remark,
+            invoicingAddress: form.value.invoicingAddress,
             printFlag: form.value.printFlag || false,
             ended: form.value.ended || false,
             archived: form.value.archived || false,

@@ -79,6 +79,7 @@ import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import Button from "@/components/atoms/Button.vue"
 import { exportToCSV, formatDateForExport } from "@/utils/export"
 import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@beg/validations"
+import { useAuthStore } from "@/stores/auth"
 
 interface Props {
     emptyMessage?: string
@@ -112,10 +113,10 @@ const totals = ref<{ duration: number; kilometers: number; expenses: number } | 
 const showTimeEntryModal = ref(false)
 const selectedActivityId = ref<number | null>(null)
 const defaultProjectId = ref<number | undefined>(undefined)
-
+const authStore = useAuthStore()
 // Filter state
 const filter = ref<ActivityFilter>({
-    userId: undefined,
+    userId: authStore.user?.id,
     activityTypeId: undefined,
     includeBilled: false,
     includeUnbilled: false,
@@ -248,10 +249,10 @@ const handleExport = async () => {
                     formatter: (value: any) => value,
                 },
                 { key: "rate", label: "Tarif", formatter: (value: any) => value },
-                { 
-                    key: "kilometers", 
-                    label: t("time.columns.kilometers"), 
-                    formatter: (value: any) => value || "0" 
+                {
+                    key: "kilometers",
+                    label: t("time.columns.kilometers"),
+                    formatter: (value: any) => value || "0",
                 },
                 {
                     key: "expenses",

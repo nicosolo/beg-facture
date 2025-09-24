@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  certbot:
+    build:
+      context: ./provision/certbot
+      dockerfile: Dockerfile
+    container_name: certbot
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME:-example.com}
+      - EMAIL=${EMAIL:-admin@example.com}
+      - DNS_PROVIDER=${DNS_PROVIDER:-cloudflare}
+      - STAGING=${STAGING:-false}
+    volumes:
+      - ./provision/certbot:/etc/certbot:ro
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - certbot-www:/var/www/certbot
+    networks:
+      - app-network
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done"
+
+  proxy:
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME:-example.com}
+    volumes:
+      - certbot-etc:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot:ro
+    command: /bin/sh -c "envsubst '$$DOMAIN_NAME' < /etc/nginx/nginx.conf > /tmp/nginx.conf && nginx -c /tmp/nginx.conf -g 'daemon off;'"
+
+volumes:
+  certbot-etc:
+  certbot-var:
+  certbot-www:
+
+networks:
+  app-network:
+    external: true
+    name: beg-facture_default

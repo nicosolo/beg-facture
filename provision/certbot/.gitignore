@@ -1,0 +1,11 @@
+# Ignore sensitive credential files
+*.ini
+*.json
+!*.ini.example
+!*.json.example
+
+# Ignore certificates
+*.pem
+*.key
+*.crt
+*.cer

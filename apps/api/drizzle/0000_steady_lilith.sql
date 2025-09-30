@@ -13,8 +13,8 @@ CREATE TABLE `activities` (
 	`invoiceId` integer,
 	`disbursement` integer DEFAULT false NOT NULL,
 	`rateClass` text,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP,
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null,
 	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE set null,
 	FOREIGN KEY (`activityTypeId`) REFERENCES `activity_types`(`id`) ON UPDATE no action ON DELETE set null,
@@ -31,29 +31,29 @@ CREATE TABLE `activity_types` (
 	`name` text NOT NULL,
 	`code` text NOT NULL,
 	`billable` integer NOT NULL,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `clients` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `companies` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `engineers` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `invoice_adjudications` (
@@ -63,8 +63,8 @@ CREATE TABLE `invoice_adjudications` (
 	`date` integer NOT NULL,
 	`amount` integer DEFAULT 0 NOT NULL,
 	`remark` text DEFAULT '',
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP,
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`invoiceId`) REFERENCES `invoices`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
@@ -76,8 +76,8 @@ CREATE TABLE `invoice_offers` (
 	`date` integer NOT NULL,
 	`amount` integer DEFAULT 0 NOT NULL,
 	`remark` text DEFAULT '',
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP,
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`invoiceId`) REFERENCES `invoices`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
@@ -90,8 +90,8 @@ CREATE TABLE `invoice_rates` (
 	`adjustedMinutes` integer DEFAULT 0 NOT NULL,
 	`hourlyRate` integer DEFAULT 0 NOT NULL,
 	`amount` integer DEFAULT 0 NOT NULL,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP,
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`invoiceId`) REFERENCES `invoices`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
@@ -141,8 +141,8 @@ CREATE TABLE `invoices` (
 	`remarksTravelExpenses` text DEFAULT '',
 	`remarksExpenses` text DEFAULT '',
 	`remarksThirdPartyExpenses` text DEFAULT '',
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP,
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
@@ -158,17 +158,27 @@ CREATE TABLE `locations` (
 	`canton` text(2),
 	`region` text,
 	`address` text,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE `monthly_hours` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`year` integer NOT NULL,
+	`month` integer NOT NULL,
+	`amountOfHours` real NOT NULL,
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+--> statement-breakpoint
+CREATE INDEX `monthly_hours_year_month_unique` ON `monthly_hours` (`year`,`month`);--> statement-breakpoint
 CREATE TABLE `project_access` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`projectId` integer NOT NULL,
 	`userId` integer NOT NULL,
 	`accessLevel` text NOT NULL,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP,
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
@@ -180,8 +190,8 @@ CREATE INDEX `project_access_level_idx` ON `project_access` (`accessLevel`);--> 
 CREATE TABLE `project_types` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `projects` (
@@ -197,6 +207,8 @@ CREATE TABLE `projects` (
 	`typeId` integer NOT NULL,
 	`remark` text,
 	`invoicingAddress` text,
+	`latitude` real,
+	`longitude` real,
 	`projectManagerId` integer,
 	`printFlag` integer DEFAULT false,
 	`firstActivityDate` integer,
@@ -206,8 +218,8 @@ CREATE TABLE `projects` (
 	`unBilledDisbursementDuration` real DEFAULT 0,
 	`ended` integer DEFAULT false,
 	`archived` integer DEFAULT false,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP,
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`locationId`) REFERENCES `locations`(`id`) ON UPDATE no action ON DELETE set null,
 	FOREIGN KEY (`clientId`) REFERENCES `clients`(`id`) ON UPDATE no action ON DELETE set null,
 	FOREIGN KEY (`engineerId`) REFERENCES `engineers`(`id`) ON UPDATE no action ON DELETE set null,
@@ -250,8 +262,8 @@ CREATE TABLE `users` (
 	`password` text NOT NULL,
 	`role` text NOT NULL,
 	`activityRates` text DEFAULT '[]',
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);--> statement-breakpoint
@@ -263,8 +275,8 @@ CREATE TABLE `vat_rates` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`year` integer NOT NULL,
 	`rate` real NOT NULL,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
 CREATE INDEX `vat_rates_year_idx` ON `vat_rates` (`year`);--> statement-breakpoint
@@ -275,8 +287,8 @@ CREATE TABLE `workloads` (
 	`year` integer NOT NULL,
 	`month` integer NOT NULL,
 	`workload` integer NOT NULL,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP,
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint

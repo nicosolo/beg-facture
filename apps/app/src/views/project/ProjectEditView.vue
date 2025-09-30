@@ -128,6 +128,30 @@
                 </FormField>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField :label="$t('projects.latitude')" :error="errors.latitude">
+                    <template #input>
+                        <Input
+                            type="number"
+                            step="any"
+                            v-model="form.latitude"
+                            :placeholder="$t('projects.latitudePlaceholder')"
+                        />
+                    </template>
+                </FormField>
+
+                <FormField :label="$t('projects.longitude')" :error="errors.longitude">
+                    <template #input>
+                        <Input
+                            type="number"
+                            step="any"
+                            v-model="form.longitude"
+                            :placeholder="$t('projects.longitudePlaceholder')"
+                        />
+                    </template>
+                </FormField>
+            </div>
+
             <!-- Remark -->
             <div class="">
                 <FormField :label="$t('projects.remark')" :error="errors.remark">
@@ -246,6 +270,27 @@ import { useFetchProject, useCreateProject, useUpdateProject } from "@/composabl
 import type { ProjectCreateInput, ProjectUpdateInput } from "@beg/validations"
 import Textarea from "@/components/atoms/Textarea.vue"
 
+interface ProjectFormState {
+    projectNumber: string
+    subProjectName?: string
+    parentProjectId?: number
+    name: string
+    startDate: Date
+    typeId?: number
+    locationId?: number | null
+    clientId?: number | null
+    engineerId?: number | null
+    companyId?: number | null
+    projectManagerId?: number | null
+    remark?: string
+    invoicingAddress?: string
+    printFlag: boolean
+    ended: boolean
+    archived: boolean
+    latitude: string
+    longitude: string
+}
+
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
@@ -275,9 +320,7 @@ const { put: updateProject, loading: updating } = useUpdateProject()
 // Note: Select components handle their own data fetching
 
 // Form state - Using partial type to allow undefined typeId
-const form = ref<
-    Partial<ProjectCreateInput> & { projectNumber: string; name: string; startDate: Date }
->({
+const form = ref<ProjectFormState>({
     projectNumber: "",
     subProjectName: "",
     parentProjectId: undefined,
@@ -294,6 +337,8 @@ const form = ref<
     printFlag: false,
     ended: false,
     archived: false,
+    latitude: "",
+    longitude: "",
 })
 
 // Note: AutocompleteSelect now uses the raw data directly with displayField prop
@@ -344,11 +389,21 @@ const handleParentProjectChange = async (parentProjectId: number | undefined) =>
             form.value.engineerId = parentProjectData.value.engineer?.id
             form.value.companyId = parentProjectData.value.company?.id
             form.value.projectManagerId = parentProjectData.value.projectManager?.id
+            form.value.latitude =
+                parentProjectData.value.latitude !== null && parentProjectData.value.latitude !== undefined
+                    ? parentProjectData.value.latitude.toString()
+                    : ""
+            form.value.longitude =
+                parentProjectData.value.longitude !== null && parentProjectData.value.longitude !== undefined
+                    ? parentProjectData.value.longitude.toString()
+                    : ""
         }
     } else if (!parentProjectId) {
         // Clear copied data when parent is deselected
         form.value.projectNumber = generateProjectNumber()
         form.value.subProjectName = ""
+        form.value.latitude = ""
+        form.value.longitude = ""
     }
 }
 
@@ -377,6 +432,24 @@ const validateForm = (): boolean => {
         isValid = false
     }
 
+    const latitudeValue = form.value.latitude?.trim()
+    if (latitudeValue) {
+        const parsedLatitude = Number(latitudeValue)
+        if (!Number.isFinite(parsedLatitude)) {
+            errors.value.latitude = t("validation.number")
+            isValid = false
+        }
+    }
+
+    const longitudeValue = form.value.longitude?.trim()
+    if (longitudeValue) {
+        const parsedLongitude = Number(longitudeValue)
+        if (!Number.isFinite(parsedLongitude)) {
+            errors.value.longitude = t("validation.number")
+            isValid = false
+        }
+    }
+
     return isValid
 }
 
@@ -394,6 +467,10 @@ const saveProject = async () => {
         errorMessage.value = null
 
         // Prepare data for submission
+        const latitudeValue = form.value.latitude?.trim() ?? ""
+        const longitudeValue = form.value.longitude?.trim() ?? ""
+        const parsedLatitude = latitudeValue ? Number(latitudeValue) : null
+        const parsedLongitude = longitudeValue ? Number(longitudeValue) : null
         const submitData = {
             projectNumber: form.value.projectNumber,
             name: form.value.name,
@@ -411,6 +488,8 @@ const saveProject = async () => {
             printFlag: form.value.printFlag || false,
             ended: form.value.ended || false,
             archived: form.value.archived || false,
+            latitude: parsedLatitude,
+            longitude: parsedLongitude,
         }
 
         let savedProjectId = projectId.value
@@ -486,6 +565,16 @@ onMounted(async () => {
                     printFlag: projectData.value.printFlag || false,
                     ended: projectData.value.ended || false,
                     archived: false, // This field doesn't exist in current response
+                    latitude:
+                        projectData.value.latitude !== null &&
+                        projectData.value.latitude !== undefined
+                            ? projectData.value.latitude.toString()
+                            : "",
+                    longitude:
+                        projectData.value.longitude !== null &&
+                        projectData.value.longitude !== undefined
+                            ? projectData.value.longitude.toString()
+                            : "",
                 }
             }
         } else if (isNewProject.value) {

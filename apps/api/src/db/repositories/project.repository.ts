@@ -129,6 +129,8 @@ export const projectRepository = {
                 remark: projects.remark,
                 invoicingAddress: projects.invoicingAddress,
                 printFlag: projects.printFlag,
+                latitude: projects.latitude,
+                longitude: projects.longitude,
                 archived: projects.archived,
                 createdAt: projects.createdAt,
                 updatedAt: projects.updatedAt,
@@ -237,6 +239,8 @@ export const projectRepository = {
                 remark: projects.remark,
                 invoicingAddress: projects.invoicingAddress,
                 printFlag: projects.printFlag,
+                latitude: projects.latitude,
+                longitude: projects.longitude,
                 archived: projects.archived,
                 createdAt: projects.createdAt,
                 updatedAt: projects.updatedAt,
@@ -367,6 +371,14 @@ export const projectRepository = {
                   ended: data.ended ?? parentProjectData.ended,
                   archived: data.archived ?? parentProjectData.archived,
                   invoicingAddress: data.invoicingAddress || parentProjectData.invoicingAddress,
+                  latitude:
+                      data.latitude !== undefined
+                          ? data.latitude
+                          : parentProjectData.latitude ?? null,
+                  longitude:
+                      data.longitude !== undefined
+                          ? data.longitude
+                          : parentProjectData.longitude ?? null,
                   createdAt: new Date(),
                   updatedAt: new Date(),
               }
@@ -385,6 +397,8 @@ export const projectRepository = {
                   printFlag: data.printFlag || false,
                   ended: data.ended || false,
                   archived: data.archived || false,
+                  latitude: data.latitude ?? null,
+                  longitude: data.longitude ?? null,
                   createdAt: new Date(),
                   updatedAt: new Date(),
               }
@@ -460,6 +474,8 @@ export const projectRepository = {
         if (data.invoicingAddress !== undefined) updateData.invoicingAddress = data.invoicingAddress
         if (data.ended !== undefined) updateData.ended = data.ended
         if (data.archived !== undefined) updateData.archived = data.archived
+        if (data.latitude !== undefined) updateData.latitude = data.latitude
+        if (data.longitude !== undefined) updateData.longitude = data.longitude
         console.log(data, updateData)
         // Update the project
         await db

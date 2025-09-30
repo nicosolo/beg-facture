@@ -16,6 +16,15 @@
                 >
 
                 <span class="text-sm text-gray-600">{{ item.name }}</span>
+                <a
+                    v-if="getMapUrl(item)"
+                    :href="getMapUrl(item) ?? undefined"
+                    target="_blank"
+                    rel="noopener"
+                    class="ml-2 text-indigo-600 hover:underline"
+                >
+                    {{ $t("projects.openGeoAdminMap") }}
+                </a>
             </div>
         </template>
 
@@ -93,6 +102,7 @@ import { useI18n } from "vue-i18n"
 import { useFormat } from "@/composables/utils/useFormat"
 import { ref } from "vue"
 import type { ProjectFilter, ProjectResponse } from "@beg/validations"
+import { buildGeoAdminUrl } from "@/utils/coordinates"
 
 interface Props {
     projects: ProjectResponse[]
@@ -143,13 +153,13 @@ const columns = ref([
         sortKey: "totalDuration",
         width: "8rem",
     },
-    {
-        key: "firstActivityDate",
-        label: t("projects.firstActivity"),
-        nowrap: true,
-        sortKey: "firstActivityDate",
-        width: "10rem",
-    },
+    // {
+    //     key: "firstActivityDate",
+    //     label: t("projects.firstActivity"),
+    //     nowrap: true,
+    //     sortKey: "firstActivityDate",
+    //     width: "10rem",
+    // },
     {
         key: "lastActivityDate",
         label: t("projects.lastActivity"),
@@ -162,8 +172,12 @@ const columns = ref([
         label: t("projects.actions"),
         nowrap: false,
         actions: true,
+        width: "22rem",
     },
 ])
 
 const { formatDuration, formatDate } = useFormat()
+
+const getMapUrl = (project: ProjectResponse) =>
+    buildGeoAdminUrl(project.latitude, project.longitude)
 </script>

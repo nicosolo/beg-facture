@@ -37,6 +37,8 @@ export const projectResponseSchema = z
         remark: z.string().nullable(),
         invoicingAddress: z.string().nullable(),
         printFlag: z.boolean().nullable(),
+        latitude: z.number().nullable(),
+        longitude: z.number().nullable(),
         location: z
             .object({
                 id: z.number(),
@@ -110,6 +112,8 @@ export const projectCreateSchema = z.object({
     printFlag: z.boolean().optional().default(false),
     ended: z.boolean().optional().default(false),
     archived: z.boolean().optional().default(false),
+    latitude: z.number().optional().nullable(),
+    longitude: z.number().optional().nullable(),
 })
 
 // Project update schema - all fields optional

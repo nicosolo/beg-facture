@@ -294,8 +294,18 @@ const handleSort = (column: Column) => {
 const handleRowClick = (item: T, index: number, event: MouseEvent) => {
     // If clicking on a button or link inside the row, stop propagation
     const target = event.target as HTMLElement
-    if (target.closest('button, a[href]:not([data-row-link]), [role="button"]')) {
-        // Stop the RouterLink from navigating when clicking on interactive elements
+    const interactiveElement = target.closest(
+        'button, a[href]:not([data-row-link]), [role="button"]'
+    )
+
+    if (interactiveElement) {
+        // Allow anchors to keep their default navigation (e.g. external links)
+        if (interactiveElement instanceof HTMLAnchorElement) {
+            event.stopPropagation()
+            return
+        }
+
+        // Prevent buttons or other controls from triggering row navigation
         event.preventDefault()
         event.stopPropagation()
         return

@@ -160,6 +160,38 @@
                                         <p class="font-medium">{{ projectData.type.name }}</p>
                                     </div>
 
+                                    <div v-if="mapLink" class="col-span-2">
+                                        <p class="text-sm text-gray-500">
+                                            {{ $t("projects.coordinates") }}
+                                        </p>
+                                        <div
+                                            class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3"
+                                        >
+                                            <span class="font-medium">
+                                                {{ formattedCoordinates || "—" }}
+                                            </span>
+                                            <div class="flex flex-wrap items-center gap-3 text-sm">
+                                                <a
+                                                    v-if="googleMapsLink"
+                                                    :href="googleMapsLink ?? undefined"
+                                                    target="_blank"
+                                                    rel="noopener"
+                                                    class="text-indigo-600 hover:underline"
+                                                >
+                                                    {{ $t("projects.openGoogleMaps") }}
+                                                </a>
+                                                <a
+                                                    :href="mapLink ?? undefined"
+                                                    target="_blank"
+                                                    rel="noopener"
+                                                    class="text-indigo-600 hover:underline"
+                                                >
+                                                    {{ $t("projects.openGeoAdminMap") }}
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div v-if="projectData.invoicingAddress" class="col-span-2">
                                         <p class="text-sm text-gray-500">
                                             {{ $t("projects.invoicingAddress") }}
@@ -266,8 +298,10 @@ import InvoiceListManager from "@/components/organisms/invoice/InvoiceListManage
 import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import { useFetchProject, useProjectFolder } from "@/composables/api/useProject"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
+import Dialog from "@/components/molecules/Dialog.vue"
 import { useFormat } from "@/composables/utils/useFormat"
 import { useElectron } from "@/composables/useElectron"
+import { buildGeoAdminUrl, buildGoogleMapsUrl } from "@/utils/coordinates"
 
 const route = useRoute()
 const router = useRouter()
@@ -288,6 +322,29 @@ const { get: fetchProject, loading, data: projectData } = useFetchProject()
 const { get: fetchProjectFolder, data: projectFolder } = useProjectFolder()
 const { formatNumber, formatDate } = useFormat()
 const { isElectron, openFolder } = useElectron()
+const mapLink = computed(() =>
+    buildGeoAdminUrl(projectData.value?.latitude ?? null, projectData.value?.longitude ?? null)
+)
+
+const googleMapsLink = computed(() =>
+    buildGoogleMapsUrl(projectData.value?.latitude ?? null, projectData.value?.longitude ?? null)
+)
+
+const formattedCoordinates = computed(() => {
+    if (
+        projectData.value?.latitude === null ||
+        projectData.value?.longitude === null ||
+        projectData.value?.latitude === undefined ||
+        projectData.value?.longitude === undefined
+    ) {
+        return null
+    }
+
+    const formatCoordinate = (value: number) =>
+        Number.isInteger(value) ? value.toString() : value.toFixed(2)
+
+    return `E ${formatCoordinate(projectData.value.latitude)}, N ${formatCoordinate(projectData.value.longitude)}`
+})
 
 // Get project ID from route
 const projectId = computed(() => parseInt(route.params.id as string))
@@ -299,6 +356,7 @@ watch(
     },
     { immediate: true }
 )
+
 // Load project data on mount
 onMounted(async () => {
     if (projectId.value && !isNaN(projectId.value)) {

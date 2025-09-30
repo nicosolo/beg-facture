@@ -801,8 +801,3 @@ export async function runImport(customExportDir?: string) {
         console.log(`Completed ${importFunction.name}, in ${Date.now() - start}ms \n`)
     }
 }
-
-// Run import directly if this file is executed as a script
-if (import.meta.url === `file://${process.argv[1]}`) {
-    await runImport()
-}

@@ -19,4 +19,4 @@ services:
         container_name: "proxy"
         image: beg/proxy
         ports:
-            - 8088:80
+            - 8088:443

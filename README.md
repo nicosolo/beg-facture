@@ -18,13 +18,11 @@ docker compose up --watch
 
 This project was created using `bun init` in bun v1.1.36. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
 
-#### Importing data
+#### Importing data dev
 
 ```bash
-sh export-mdb.sh /path/to/your/database.mdb
+docker compose exec api bun src/scripts/import-mdb.ts
 ```
-
-#### Exporting data
 
 ## Build docker images
 
@@ -58,10 +56,6 @@ After building with `bun run docker:build`, sync to server:
 # Copy all exported tar files
 scp -O exports/*.tar Nicolas@192.168.0.102:/volume1/docker/
 
-# Or individually
-scp -O exports/beg-api.tar Nicolas@192.168.0.102:/volume1/docker/api.tar
-scp -O exports/beg-proxy.tar Nicolas@192.168.0.102:/volume1/docker/proxy.tar
-
 # Copy compose file and environment
 scp -O compose.prod.yml Nicolas@192.168.0.102:/volume1/docker/docker-compose.yml
 scp -O .env.prod Nicolas@192.168.0.102:/volume1/docker/.env
@@ -72,14 +66,14 @@ scp -O .env.prod Nicolas@192.168.0.102:/volume1/docker/.env
 First build with teh above command, then copy the tar files to your server and load them:
 
 ```bash
-docker load -i api.tar
-docker load -i proxy.tar
+docker load -i beg-api.tar
+docker load -i beg-proxy.tar
 ```
 
 Then run the containers with docker-compose:
 
 ```bash
-docker-compose -f compose.prod.yml up -d
+docker-compose -f docker-compose.yml up -d
 ```
 
 ## Desktop Application (Electron)
@@ -91,9 +85,6 @@ The project includes a cross-platform desktop application built with Electron th
 To run the Electron app in development mode:
 
 ```bash
-# Start Docker services first (API and web app)
-docker compose up --watch
-
 # In another terminal, run the Electron app
 cd apps/electron
 bun run dev
@@ -115,7 +106,7 @@ The Electron app will connect to your local Docker services at `http://localhost
 cd apps/electron
 
 # Build for current platform
-bun run dist
+APP_URL=https://app.beg-management.com bun run dist
 
 # Build for specific platforms
 bun run dist:mac    # macOS (.dmg, .zip)
@@ -155,28 +146,3 @@ Set the production app URL before building:
 ```bash
 APP_URL=https://app.beg-management.com bun run dist
 ```
-
-#### Code Signing
-
-For distribution without security warnings:
-
-- **macOS**: Requires Apple Developer certificate
-- **Windows**: Requires code signing certificate
-
-Set environment variables before building:
-
-```bash
-export CSC_LINK=path/to/certificate
-export CSC_KEY_PASSWORD=your_password
-bun run dist
-```
-
-### Features
-
-The desktop app provides:
-
-- **Native file management**: Open project folders directly in Finder/Explorer
-- **Offline detection**: Automatic reconnection when services are restored
-- **Native menus**: Application menu with keyboard shortcuts
-- **Auto-updates**: Can be configured with electron-updater
-- **Cross-platform**: Single codebase for macOS, Windows, and Linux

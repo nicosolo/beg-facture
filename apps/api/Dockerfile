@@ -54,7 +54,8 @@ ENV NODE_ENV=production
 COPY package.json bun.lockb ./
 COPY apps/api/package.json ./apps/api/
 COPY apps/app/package.json ./apps/app/
-COPY packages/*/package.json ./packages/*/
+COPY apps/app/package.json ./apps/app/
+COPY packages/ ./packages/
 
 # Install dependencies - this layer is cached unless package files change
 RUN bun install --network-concurrency=5 --no-frozen-lockfile --production || \

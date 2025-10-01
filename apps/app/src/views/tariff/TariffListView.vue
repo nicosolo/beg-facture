@@ -1,9 +1,17 @@
 <template>
     <LoadingOverlay :loading="loading">
         <div class="container mx-auto">
-            <div class="flex justify-between items-center mb-6">
+            <div
+                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6"
+            >
                 <h1 class="text-2xl font-bold">Liste des tarifs</h1>
-                <Button variant="primary" @click="openCreateDialog"> Nouveau tarif </Button>
+                <Button
+                    variant="primary"
+                    @click="openCreateDialog"
+                    class="w-full sm:w-auto"
+                >
+                    Nouveau tarif
+                </Button>
             </div>
 
             <DataTable

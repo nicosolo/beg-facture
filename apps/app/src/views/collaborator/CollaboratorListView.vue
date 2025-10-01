@@ -1,9 +1,15 @@
 <template>
     <LoadingOverlay :loading="loading">
         <div class="container mx-auto">
-            <div class="flex justify-between items-center mb-6">
+            <div
+                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6"
+            >
                 <h1 class="text-2xl font-bold">Collaborateurs</h1>
-                <Button variant="primary" :to="{ name: 'collaborator-new' }">
+                <Button
+                    variant="primary"
+                    :to="{ name: 'collaborator-new' }"
+                    class="w-full sm:w-auto"
+                >
                     Nouveau collaborateur
                 </Button>
             </div>

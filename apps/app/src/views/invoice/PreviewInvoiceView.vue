@@ -12,13 +12,16 @@
         </div>
 
         <template v-else>
-            <div class="flex justify-between items-center mb-6 print:hidden">
+            <div
+                class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-6 print:hidden"
+            >
                 <h1 class="text-2xl font-bold">Aperçu de la facture</h1>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2 justify-start md:justify-end">
                     <Button
                         v-if="invoice?.project?.id"
                         variant="ghost-primary"
                         size="lg"
+                        class="w-full sm:w-auto"
                         :to="{
                             name: 'project-view',
                             params: { id: invoice.project.id },
@@ -28,13 +31,19 @@
                         Retour à la vue projet
                     </Button>
 
-                    <Button @click="printInvoice" size="lg" variant="primary">
+                    <Button
+                        @click="printInvoice"
+                        size="lg"
+                        variant="primary"
+                        class="w-full sm:w-auto"
+                    >
                         Imprimer la facture
                     </Button>
 
                     <Button
                         variant="secondary"
                         size="lg"
+                        class="w-full sm:w-auto"
                         :to="{ name: 'invoice-edit', params: { id: $route.params.id } }"
                     >
                         Edition
@@ -44,6 +53,7 @@
                         v-if="canVisa"
                         variant="primary"
                         size="lg"
+                        class="w-full sm:w-auto"
                         :loading="visaLoading"
                         @click="openVisaDialog"
                     >

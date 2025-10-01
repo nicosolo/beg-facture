@@ -1,12 +1,19 @@
 <template>
     <LoadingOverlay :loading="loading">
         <div class="container mx-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold">{{ $t("engineer.title") }}</h1>
-                <Button v-if="isAdmin" variant="primary" @click="openCreateModal">
-                    {{ $t("engineer.new") }}
-                </Button>
-            </div>
+        <div
+            class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6"
+        >
+            <h1 class="text-2xl font-bold">{{ $t("engineer.title") }}</h1>
+            <Button
+                v-if="isAdmin"
+                variant="primary"
+                @click="openCreateModal"
+                class="w-full sm:w-auto"
+            >
+                {{ $t("engineer.new") }}
+            </Button>
+        </div>
 
             <!-- Filters -->
             <Card class="mb-6">

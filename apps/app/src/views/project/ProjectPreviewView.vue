@@ -2,44 +2,54 @@
     <div class="bg-white">
         <!-- Header with title and actions -->
         <div class="py-4 border-b border-gray-200">
-            <div class="flex justify-between items-center">
-                <div class="flex">
-                    <h1 class="text-2xl font-bold mr-2">
-                        {{ $t("projects.preview") }}
-                    </h1>
-                    <div>
-                        <strong class="text-2xl text-gray-500"
-                            >{{ projectData?.projectNumber }}
+            <div
+                class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+            >
+                <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
+                    <div class="flex flex-wrap items-baseline gap-2">
+                        <h1 class="text-2xl font-bold">
+                            {{ $t("projects.preview") }}
+                        </h1>
+                        <strong class="text-2xl text-gray-500 leading-tight">
+                            {{ projectData?.projectNumber }}
                             {{
                                 projectData?.subProjectName ? ` ${projectData.subProjectName}` : ""
-                            }}</strong
-                        >
-                        <span class="text-1xl text-gray-900">
-                            {{ projectData?.name || $t("projects.noName") }}</span
-                        >
+                            }}
+                        </strong>
                     </div>
+                    <span class="text-lg text-gray-900 leading-tight">
+                        {{ projectData?.name || $t("projects.noName") }}
+                    </span>
                 </div>
-                <div class="flex gap-2">
+                <div
+                    class="flex flex-wrap gap-2 justify-start md:justify-end"
+                >
                     <Button
+                        class="w-full sm:w-auto"
                         variant="primary"
                         :to="{ name: 'project-edit', params: { id: projectId } }"
                     >
                         {{ $t("common.edit") }}
                     </Button>
                     <Button
+                        class="w-full sm:w-auto"
                         variant="secondary"
                         :to="{ name: 'invoice-new', query: { projectId: projectId } }"
                     >
                         {{ $t("invoice.new") }}
                     </Button>
-                    <Button variant="secondary" @click="showTimeEntryModal = true">
+                    <Button
+                        class="w-full sm:w-auto"
+                        variant="secondary"
+                        @click="showTimeEntryModal = true"
+                    >
                         {{ $t("time.new") }}
                     </Button>
                     <button
                         @click="openProjectFolder"
                         v-if="projectFolder?.found"
                         type="button"
-                        class="text-sm px-3 py-1.5 rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center hover:bg-indigo-200 text-indigo-700"
+                        class="text-sm px-3 py-1.5 rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center hover:bg-indigo-200 text-indigo-700 w-full sm:w-auto"
                     >
                         Open Folder
                     </button>
@@ -49,11 +59,13 @@
 
         <!-- Tabs Navigation -->
         <div class="border-b border-gray-200">
-            <nav class="flex -mb-px px-6">
+            <nav
+                class="flex flex-wrap gap-2 -mb-px px-4 sm:px-6 overflow-x-auto"
+            >
                 <button
                     @click="activeTab = 'overview'"
                     :class="[
-                        'py-4 px-6 font-medium text-sm cursor-pointer',
+                        'py-4 px-6 font-medium text-sm cursor-pointer shrink-0',
                         activeTab === 'overview'
                             ? 'border-b-2 border-blue-500 text-blue-600'
                             : 'text-gray-500 hover:text-gray-700 hover:border-gray-300',
@@ -64,7 +76,7 @@
                 <button
                     @click="activeTab = 'activities'"
                     :class="[
-                        'py-4 px-6 font-medium text-sm cursor-pointer',
+                        'py-4 px-6 font-medium text-sm cursor-pointer shrink-0',
                         activeTab === 'activities'
                             ? 'border-b-2 border-blue-500 text-blue-600'
                             : 'text-gray-500 hover:text-gray-700 hover:border-gray-300',
@@ -75,7 +87,7 @@
                 <button
                     @click="activeTab = 'invoices'"
                     :class="[
-                        'py-4 px-6 font-medium text-sm cursor-pointer',
+                        'py-4 px-6 font-medium text-sm cursor-pointer shrink-0',
                         activeTab === 'invoices'
                             ? 'border-b-2 border-blue-500 text-blue-600'
                             : 'text-gray-500 hover:text-gray-700 hover:border-gray-300',
@@ -98,7 +110,7 @@
                                 <h2 class="text-lg font-semibold mb-4">
                                     {{ $t("projects.details") }}
                                 </h2>
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <p class="text-sm text-gray-500">
                                             {{ $t("projects.mandat") }}

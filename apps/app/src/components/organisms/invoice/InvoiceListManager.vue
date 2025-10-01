@@ -1,11 +1,14 @@
 <template>
     <div>
         <div class="mb-4" v-if="!hideHeader">
-            <div class="flex justify-between items-start mb-4">
+            <div
+                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4"
+            >
                 <h2 class="text-lg font-semibold">{{ $t("invoice.title") }}</h2>
                 <Button
                     variant="primary"
                     size="md"
+                    class="w-full sm:w-auto"
                     :to="{ name: 'invoice-new', query: { projectId: initialFilter?.projectId } }"
                 >
                     {{ $t("invoice.new") }}

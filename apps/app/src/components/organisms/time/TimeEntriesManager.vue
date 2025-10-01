@@ -1,18 +1,26 @@
 <template>
     <div>
         <div class="mb-4" v-if="!hideHeader">
-            <div class="flex justify-between items-start mb-4">
+            <div
+                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4"
+            >
                 <h2 class="text-lg font-semibold">{{ $t("time.title") }}</h2>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2 justify-start sm:justify-end">
                     <Button
                         variant="secondary"
                         size="md"
                         @click="handleExport"
                         :disabled="exportLoading"
+                        class="w-full sm:w-auto"
                     >
                         {{ exportLoading ? "Exporting..." : "Export to Excel" }}
                     </Button>
-                    <Button variant="primary" size="md" @click="openAddModal">
+                    <Button
+                        variant="primary"
+                        size="md"
+                        @click="openAddModal"
+                        class="w-full sm:w-auto"
+                    >
                         {{ $t("time.new") }}
                     </Button>
                 </div>

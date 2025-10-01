@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "5826f278-fc27-4f87-9376-00b90b0c7652",
+  "id": "8dcc70b5-53ce-46ee-81b4-8ebe8ed878d7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activities": {
@@ -795,6 +795,13 @@
         },
         "note": {
           "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "invoiceDocument": {
+          "name": "invoiceDocument",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

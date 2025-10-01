@@ -424,7 +424,20 @@ export default {
         billingMode: {
             accordingToData: "Selon données présentes",
             accordingToOffer: "A faire selon l'offre",
+            accordingToInvoice: "Selon facture fournie",
             fixedPrice: "Au forfait (voir notes)",
+        },
+        document: {
+            label: "Document de facture",
+            helper: "Formats acceptés : PDF, Excel ou Word",
+            clear: "Effacer le document",
+            required: "Veuillez ajouter le document de facture",
+        },
+        visa: {
+            success: "La facture a été visée avec succès",
+        },
+        save: {
+            success: "La facture a été enregistrée",
         },
     },
     dateRange: {

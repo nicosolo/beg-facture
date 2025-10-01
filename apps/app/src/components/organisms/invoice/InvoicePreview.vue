@@ -76,6 +76,16 @@
                             {{ billingModeLabel }}
                         </td>
                     </tr>
+                    <tr v-if="invoice.invoiceDocument">
+                        <td
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
+                        >
+                            {{ t('invoice.document.label') }}
+                        </td>
+                        <td class="border border-gray-300 p-1 text-sm">
+                            {{ invoice.invoiceDocument }}
+                        </td>
+                    </tr>
                     <tr v-if="invoice.note">
                         <td
                             class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
@@ -168,7 +178,7 @@
 
             <table
                 class="fac w-[70%] border border-gray-300 border-collapse"
-                v-if="invoice.billingMode !== 'accordingToOffer'"
+                v-if="shouldShowActivitySections"
             >
                 <caption class="sub text-left font-bold p-1 text-sm">
                     Honoraires
@@ -249,7 +259,7 @@
 
             <table
                 class="fac w-[70%] border border-gray-300 border-collapse"
-                v-if="invoice.billingMode !== 'accordingToOffer'"
+                v-if="shouldShowActivitySections"
             >
                 <caption class="sub text-left font-bold p-1 text-sm">
                     Frais
@@ -308,7 +318,7 @@
 
             <table
                 class="fac w-[70%] border border-gray-300 border-collapse"
-                v-if="invoice.billingMode !== 'accordingToOffer'"
+                v-if="shouldShowActivitySections"
             >
                 <caption class="sub text-left font-bold p-1 text-sm">
                     Montant total
@@ -481,6 +491,13 @@ const filteredRates = computed(() => {
 
 const billingModeLabel = computed(() => {
     return t(`invoice.billingMode.${props.invoice.billingMode || "accordingToData"}`)
+})
+
+const shouldShowActivitySections = computed(() => {
+    return (
+        props.invoice.billingMode !== "accordingToOffer" &&
+        props.invoice.billingMode !== "accordingToInvoice"
+    )
 })
 
 const hasAdditionalInfo = computed(() => {

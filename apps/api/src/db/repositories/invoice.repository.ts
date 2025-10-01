@@ -128,6 +128,7 @@ export const invoiceRepository = {
                     status: row.invoice.status,
                     description: row.invoice.description,
                     note: row.invoice.note,
+                    invoiceDocument: row.invoice.invoiceDocument,
                     visaBy: row.invoice.visaBy,
                     visaDate: row.invoice.visaDate,
 
@@ -271,6 +272,7 @@ export const invoiceRepository = {
             status: row.invoice.status,
             description: row.invoice.description,
             note: row.invoice.note,
+            invoiceDocument: row.invoice.invoiceDocument,
             visaBy: row.invoice.visaBy,
             visaDate: row.invoice.visaDate,
 
@@ -388,6 +390,7 @@ export const invoiceRepository = {
                     recipientAddress: data.recipientAddress,
                     description: data.description,
                     note: data.note,
+                    invoiceDocument: data.invoiceDocument || null,
                     visaBy: data.visaBy || null,
                     visaDate: data.visaDate || null,
                     // Store real values directly - all flat fields
@@ -474,7 +477,7 @@ export const invoiceRepository = {
             if (
                 data.activityIds &&
                 data.activityIds.length > 0 &&
-                data.billingMode !== "accordingToOffer"
+                !["accordingToOffer", "accordingToInvoice"].includes(data.billingMode)
             ) {
                 await tx
                     .update(activities)
@@ -518,6 +521,8 @@ export const invoiceRepository = {
             if (data.dueDate !== undefined) updateData.dueDate = data.dueDate
             if (data.description !== undefined) updateData.description = data.description
             if (data.note !== undefined) updateData.note = data.note
+            if (data.invoiceDocument !== undefined)
+                updateData.invoiceDocument = data.invoiceDocument
             if (data.visaBy !== undefined) updateData.visaBy = data.visaBy
             if (data.visaDate !== undefined) updateData.visaDate = data.visaDate
 

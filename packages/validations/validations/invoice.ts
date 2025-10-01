@@ -12,7 +12,12 @@ export const InvoiceTypeEnum = z.enum(["invoice", "credit_note", "proforma", "qu
 export type InvoiceType = z.infer<typeof InvoiceTypeEnum>
 
 // Billing mode enum
-export const BillingModeEnum = z.enum(["accordingToData", "accordingToOffer", "fixedPrice"])
+export const BillingModeEnum = z.enum([
+    "accordingToData",
+    "accordingToOffer",
+    "accordingToInvoice",
+    "fixedPrice",
+])
 
 export type BillingMode = z.infer<typeof BillingModeEnum>
 
@@ -78,6 +83,7 @@ export const InvoiceSchema = z.object({
     billingMode: BillingModeEnum.default("accordingToData"),
     description: z.string().default(""),
     note: z.string().default(""),
+    invoiceDocument: z.string().default(""),
 
     // Dates
     issueDate: dateSchema.optional(),
@@ -159,6 +165,7 @@ export const invoiceCreateSchema = z.object({
     status: InvoiceStatusEnum.default("draft"),
     description: z.string(),
     note: z.string().optional(),
+    invoiceDocument: z.string().optional(),
 
     // Dates
     issueDate: dateSchema,
@@ -240,6 +247,7 @@ export const invoiceResponseSchema = z
         status: InvoiceStatusEnum,
         description: z.string(),
         note: z.string().optional(),
+        invoiceDocument: z.string().nullable().optional(),
 
         // Dates - flat
         issueDate: z.date().nullable(),

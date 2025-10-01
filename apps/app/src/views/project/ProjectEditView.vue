@@ -250,7 +250,7 @@
 import { ref, computed, onMounted, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
-import { useToast } from "@/composables/utils/useToast"
+import { useAlert } from "@/composables/utils/useAlert"
 import { useAuthStore } from "@/stores/auth"
 import Button from "@/components/atoms/Button.vue"
 import FormField from "@/components/molecules/FormField.vue"
@@ -294,7 +294,7 @@ interface ProjectFormState {
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const { showSuccess, showError } = useToast()
+const { successAlert, errorAlert } = useAlert()
 const authStore = useAuthStore()
 
 // Get current user
@@ -390,11 +390,13 @@ const handleParentProjectChange = async (parentProjectId: number | undefined) =>
             form.value.companyId = parentProjectData.value.company?.id
             form.value.projectManagerId = parentProjectData.value.projectManager?.id
             form.value.latitude =
-                parentProjectData.value.latitude !== null && parentProjectData.value.latitude !== undefined
+                parentProjectData.value.latitude !== null &&
+                parentProjectData.value.latitude !== undefined
                     ? parentProjectData.value.latitude.toString()
                     : ""
             form.value.longitude =
-                parentProjectData.value.longitude !== null && parentProjectData.value.longitude !== undefined
+                parentProjectData.value.longitude !== null &&
+                parentProjectData.value.longitude !== undefined
                     ? parentProjectData.value.longitude.toString()
                     : ""
         }
@@ -458,7 +460,7 @@ const saveProject = async () => {
     // Validate form
     if (!validateForm()) {
         errorMessage.value = t("validation.pleaseFillRequired")
-        showError(t("validation.pleaseFillRequired"))
+        errorAlert(t("validation.pleaseFillRequired"))
         return
     }
 
@@ -498,14 +500,14 @@ const saveProject = async () => {
             // Create new project
             const response = await createProject({ body: submitData as ProjectCreateInput })
             savedProjectId = response?.id
-            showSuccess(t("projects.createSuccess"))
+            successAlert(t("projects.createSuccess"))
         } else {
             // Update existing project
             await updateProject({
                 params: { id: projectId.value! },
                 body: submitData as ProjectUpdateInput,
             })
-            showSuccess(t("projects.updateSuccess"))
+            successAlert(t("projects.updateSuccess"))
         }
 
         // Redirect to project preview after saving
@@ -521,13 +523,13 @@ const saveProject = async () => {
         if (error.message?.includes("already exists")) {
             errors.value.projectNumber = t("projects.projectNumberExists")
             errorMessage.value = t("projects.projectNumberExists")
-            showError(t("projects.projectNumberExists"))
+            errorAlert(t("projects.projectNumberExists"))
         } else if (error.message?.includes("permissions")) {
             errorMessage.value = t("errors.noPermission")
-            showError(t("errors.noPermission"))
+            errorAlert(t("errors.noPermission"))
         } else {
             errorMessage.value = t("errors.general")
-            showError(t("errors.general"))
+            errorAlert(t("errors.general"))
         }
     } finally {
         isSubmitting.value = false
@@ -583,7 +585,7 @@ onMounted(async () => {
         }
     } catch (error) {
         console.error("Error loading data:", error)
-        showError(t("errors.loadingData"))
+        errorAlert(t("errors.loadingData"))
     } finally {
         loadingData.value = false
     }

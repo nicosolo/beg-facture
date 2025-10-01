@@ -1,70 +1,72 @@
 <template>
-    <FormLayout
-        :title="isNewInvoice ? 'Créer une facture' : 'Modifier la facture'"
-        :subtitle="invoice?.reference"
-        :loading="
-            fetchProjectLoading || fetchUnbilledLoading || fetchRatesLoading || fetchVatRatesLoading
-        "
-        :error-message="errorMessage"
-    >
-        <!-- Tabs Navigation -->
-        <div class="-mx-6 -mt-6 mb-6">
-            <div class="border-b border-gray-200">
-                <nav class="flex -mb-px px-6">
-                    <button
-                        @click="activeTab = 'general'"
-                        :class="[
-                            'py-4 px-6 font-medium text-sm cursor-pointer',
-                            activeTab === 'general'
-                                ? 'border-b-2 border-blue-500 text-blue-600'
-                                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                        ]"
-                    >
-                        Données de facturation et documents
-                    </button>
-                    <button
-                        v-if="invoice && invoice.billingMode !== 'accordingToOffer'"
-                        @click="activeTab = 'details'"
-                        :class="[
-                            'py-4 px-6 font-medium text-sm cursor-pointer',
-                            activeTab === 'details'
-                                ? 'border-b-2 border-blue-500 text-blue-600'
-                                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                        ]"
-                    >
-                        Préparation de la facture et heures réalisées
-                    </button>
-                </nav>
+    <form @submit.prevent="handleSave">
+        <FormLayout
+            :title="isNewInvoice ? 'Créer une facture' : 'Modifier la facture'"
+            :subtitle="invoice?.reference"
+            :loading="fetchProjectLoading || fetchUnbilledLoading"
+            :error-message="errorMessage"
+        >
+            <!-- Tabs Navigation -->
+            <div class="-mx-6 -mt-6 mb-6">
+                <div class="border-b border-gray-200">
+                    <nav class="flex -mb-px px-6">
+                        <button
+                            @click="activeTab = 'general'"
+                            type="button"
+                            :class="[
+                                'py-4 px-6 font-medium text-sm cursor-pointer',
+                                activeTab === 'general'
+                                    ? 'border-b-2 border-blue-500 text-blue-600'
+                                    : 'text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                            ]"
+                        >
+                            Données de facturation et documents
+                        </button>
+                        <button
+                            v-if="invoice && activityBasedBilling"
+                            @click="activeTab = 'details'"
+                            type="button"
+                            :class="[
+                                'py-4 px-6 font-medium text-sm cursor-pointer',
+                                activeTab === 'details'
+                                    ? 'border-b-2 border-blue-500 text-blue-600'
+                                    : 'text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                            ]"
+                        >
+                            Préparation de la facture et heures réalisées
+                        </button>
+                    </nav>
+                </div>
             </div>
-        </div>
 
-        <!-- Tab Content -->
-        <div class="tab-content" v-if="invoice">
-            <InvoiceGeneralInfo v-if="activeTab === 'general'" v-model="invoice" />
-            <InvoiceDetails
-                v-if="activeTab === 'details' && invoice.billingMode !== 'accordingToOffer'"
-                v-model="invoice"
-                :unbilledActivities="unbilledActivities"
-            />
-        </div>
-        <template #actions>
-            <Button
-                v-if="!isNewInvoice"
-                variant="danger"
-                type="button"
-                @click="handleDelete"
-                :disabled="loading || deleteLoading"
-            >
-                {{ $t("common.delete") }}
-            </Button>
-            <Button variant="secondary" type="button" @click="handleCancel" :disabled="loading">
-                Annuler
-            </Button>
-            <Button variant="primary" @click="handleSave" :loading="loading">
-                {{ $t("common.save") }}
-            </Button>
-        </template>
-    </FormLayout>
+            <!-- Tab Content -->
+            <div class="tab-content" v-if="invoice">
+                <InvoiceGeneralInfo v-if="activeTab === 'general'" v-model="invoice" />
+                <InvoiceDetails
+                    v-if="activeTab === 'details' && activityBasedBilling"
+                    v-model="invoice"
+                    :unbilledActivities="unbilledActivities"
+                />
+            </div>
+            <template #actions>
+                <Button
+                    v-if="!isNewInvoice"
+                    variant="danger"
+                    type="button"
+                    @click="handleDelete"
+                    :disabled="loading || deleteLoading"
+                >
+                    {{ $t("common.delete") }}
+                </Button>
+                <Button variant="secondary" type="button" @click="handleCancel" :disabled="loading">
+                    Annuler
+                </Button>
+                <Button variant="primary" type="submit" :loading="loading">
+                    {{ $t("common.save") }}
+                </Button>
+            </template>
+        </FormLayout>
+    </form>
 
     <!-- Delete Confirmation Dialog -->
     <ConfirmDialog
@@ -101,38 +103,37 @@ import {
 import { useFetchProject } from "@/composables/api/useProject"
 import { useFetchUnbilledActivities } from "@/composables/api/useUnbilled"
 import { useFormat } from "@/composables/utils/useFormat"
+import { useI18n } from "vue-i18n"
+import { useAlert } from "@/composables/utils/useAlert"
 
 const route = useRoute()
 const router = useRouter()
 const invoiceId = computed(() => route.params.id as string | undefined)
 const isNewInvoice = computed(() => !invoiceId.value)
 const { formatDate } = useFormat()
+const { t } = useI18n()
+const { errorAlert, successAlert } = useAlert()
 const activeTab = ref("general")
 const isUpdatingFromApi = ref(false)
 const showDeleteConfirm = ref(false)
 
 // API composables
-const {
-    get: fetchInvoice,
-    loading: fetchLoading,
-    error: fetchError,
-    data: invoiceResponse,
-} = useFetchInvoice()
+const { get: fetchInvoice, loading: fetchLoading, error: fetchError } = useFetchInvoice()
 const { post: createInvoice, loading: createLoading, error: createError } = useCreateInvoice()
 const { put: updateInvoice, loading: updateLoading, error: updateError } = useUpdateInvoice()
 const { delete: deleteInvoice, loading: deleteLoading } = useDeleteInvoice()
-const {
-    get: fetchProject,
-    loading: fetchProjectLoading,
-    error: fetchProjectError,
-    data: projectResponse,
-} = useFetchProject()
+const { get: fetchProject, loading: fetchProjectLoading, data: projectResponse } = useFetchProject()
 
 const { get: fetchUnbilledActivities, loading: fetchUnbilledLoading } = useFetchUnbilledActivities()
 
 // Form state
 const invoice = ref<Invoice | null>(null)
 const unbilledActivities = ref<ActivityResponse[]>([])
+
+const activityBasedBilling = computed(() => {
+    const mode = invoice.value?.billingMode
+    return mode !== "accordingToOffer" && mode !== "accordingToInvoice"
+})
 
 const loading = computed(() => fetchLoading.value || createLoading.value || updateLoading.value)
 const error = computed(() => fetchError.value || createError.value || updateError.value)
@@ -169,6 +170,7 @@ const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
         billingMode: response.billingMode,
         description: response.description || "",
         note: response.note || "",
+        invoiceDocument: response.invoiceDocument || "",
 
         // Dates - flat
         issueDate: response.issueDate ? new Date(response.issueDate) : undefined,
@@ -223,7 +225,6 @@ const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
 
 // Helper to convert form data to API input
 const convertInvoiceToInput = (invoice: Invoice): any => {
-    console.log(invoice)
     return {
         projectId: invoice.projectId,
         invoiceNumber: invoice.invoiceNumber,
@@ -233,6 +234,7 @@ const convertInvoiceToInput = (invoice: Invoice): any => {
         status: invoice.status || "draft",
         description: invoice.description,
         note: invoice.note,
+        invoiceDocument: invoice.invoiceDocument,
 
         // Dates
         issueDate: new Date(),
@@ -305,16 +307,25 @@ const loadInvoice = async () => {
 // Save invoice
 const handleSave = async () => {
     try {
-        if (isNewInvoice.value && invoice.value) {
+        if (!invoice.value) return
+
+        if (invoice.value.billingMode === "accordingToInvoice" && !invoice.value.invoiceDocument) {
+            errorAlert(t("invoice.document.required"), 5000)
+            return
+        }
+
+        if (isNewInvoice.value) {
             const data = await createInvoice({ body: convertInvoiceToInput(invoice.value) })
             if (data) {
+                successAlert(t("invoice.save.success"), 4000)
                 router.push({ name: "invoice-preview", params: { id: data.id } })
             }
-        } else if (invoiceId.value && invoice.value) {
+        } else if (invoiceId.value) {
             await updateInvoice({
                 params: { id: parseInt(invoiceId.value) },
                 body: convertInvoiceToInput(invoice.value),
             })
+            successAlert(t("invoice.save.success"), 4000)
             router.push({ name: "invoice-preview", params: { id: invoiceId.value } })
         }
     } catch (err: any) {

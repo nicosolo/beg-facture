@@ -287,7 +287,7 @@ export const invoices = sqliteTable(
             .notNull()
             .default("invoice"),
         billingMode: text("billingMode")
-            .$type<"accordingToData" | "accordingToOffer" | "fixedPrice">()
+            .$type<"accordingToData" | "accordingToOffer" | "accordingToInvoice" | "fixedPrice">()
             .notNull()
             .default("accordingToData"),
         status: text("status")
@@ -303,6 +303,7 @@ export const invoices = sqliteTable(
         recipientAddress: text("recipientAddress"),
         description: text("description"),
         note: text("note"),
+        invoiceDocument: text("invoiceDocument"),
         visaBy: text("visaBy"),
         visaDate: integer("visaDate", { mode: "timestamp" }),
         // Fee totals

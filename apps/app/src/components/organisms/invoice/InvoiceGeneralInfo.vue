@@ -81,9 +81,45 @@
                                 value: 'accordingToOffer',
                                 label: $t('invoice.billingMode.accordingToOffer'),
                             },
+                            {
+                                value: 'accordingToInvoice',
+                                label: $t('invoice.billingMode.accordingToInvoice'),
+                            },
                             { value: 'fixedPrice', label: $t('invoice.billingMode.fixedPrice') },
                         ]"
                     />
+                    <div v-if="invoice.billingMode === 'accordingToInvoice'" class="mt-4">
+                        <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceDocument">
+                            {{ $t("invoice.document.label") }}
+                        </label>
+                        <input
+                            id="invoiceDocument"
+                            ref="invoiceDocumentInput"
+                            type="file"
+                            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx"
+                            :required="invoice.billingMode === 'accordingToInvoice'"
+                            @change="handleInvoiceDocumentChange"
+                        />
+                        <p class="mt-1 text-xs text-gray-500">
+                            {{ $t("invoice.document.helper") }}
+                        </p>
+                        <div
+                            v-if="invoice.invoiceDocument"
+                            class="mt-2 flex items-center justify-between rounded border border-blue-100 bg-blue-50 px-3 py-2 text-sm text-blue-700"
+                        >
+                            <span class="truncate">
+                                {{ invoice.invoiceDocument }}
+                            </span>
+                            <button
+                                type="button"
+                                class="ml-3 text-xs font-medium text-blue-700 hover:underline"
+                                @click="clearInvoiceDocument"
+                            >
+                                {{ $t("invoice.document.clear") }}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -115,6 +151,7 @@
                     v-model="invoice.period"
                     type="text"
                     placeholder="Ex: Janvier 2025 - Mars 2025"
+                    required
                 />
             </div>
 
@@ -321,7 +358,7 @@
 
 <script setup lang="ts">
 import { type Invoice } from "@beg/validations"
-import { computed } from "vue"
+import { computed, ref, watch } from "vue"
 import Input from "@/components/atoms/Input.vue"
 import Select from "@/components/atoms/Select.vue"
 import Textarea from "@/components/atoms/Textarea.vue"
@@ -356,6 +393,8 @@ const invoice = computed({
     set: (value) => emit("update:modelValue", value),
 })
 
+const invoiceDocumentInput = ref<HTMLInputElement | null>(null)
+
 const startDate = computed({
     get: () => invoice.value.periodStart?.toISOString().split("T")[0] || "",
     set: (value: string) => {
@@ -373,4 +412,40 @@ const endDate = computed({
         invoice.value = newInvoice
     },
 })
+
+const handleInvoiceDocumentChange = (event: Event) => {
+    const target = event.target as HTMLInputElement
+    const file = target.files?.[0]
+    const updatedInvoice = {
+        ...invoice.value,
+        invoiceDocument: file ? file.name : "",
+    }
+    invoice.value = updatedInvoice
+}
+
+const clearInvoiceDocument = () => {
+    if (!invoice.value.invoiceDocument) return
+    invoice.value = {
+        ...invoice.value,
+        invoiceDocument: "",
+    }
+    if (invoiceDocumentInput.value) {
+        invoiceDocumentInput.value.value = ""
+    }
+}
+
+watch(
+    () => invoice.value.billingMode,
+    (mode) => {
+        if (mode !== "accordingToInvoice" && invoice.value.invoiceDocument) {
+            invoice.value = {
+                ...invoice.value,
+                invoiceDocument: "",
+            }
+            if (invoiceDocumentInput.value) {
+                invoiceDocumentInput.value.value = ""
+            }
+        }
+    }
+)
 </script>

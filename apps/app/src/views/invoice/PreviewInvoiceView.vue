@@ -75,11 +75,15 @@ import type { InvoiceResponse } from "@beg/validations"
 import Button from "@/components/atoms/Button.vue"
 import { useAuthStore } from "@/stores/auth"
 import ConfirmDialog from "@/components/molecules/ConfirmDialog.vue"
+import { useAlert } from "@/composables/utils/useAlert"
+import { useI18n } from "vue-i18n"
 
 const route = useRoute()
 const router = useRouter()
 const invoiceId = computed(() => route.params.id as string | undefined)
 const authStore = useAuthStore()
+const { successAlert } = useAlert()
+const { t } = useI18n()
 
 // API composable
 const { get: fetchInvoice, loading, error } = useFetchInvoice()
@@ -124,6 +128,7 @@ const handleVisa = async () => {
         const updated = await postVisa({ params: { id: parseInt(invoiceId.value) } })
         if (updated) {
             invoice.value = updated
+            successAlert(t("invoice.visa.success"), 4000)
         }
     } catch (error) {
         console.error("Failed to visa invoice:", error)

@@ -125,6 +125,10 @@ export const InvoiceSchema = z.object({
     remarksExpenses: z.string().default(""),
     remarksThirdPartyExpenses: z.string().default(""),
 
+    // Visa
+    visaBy: z.string().nullable().default(null),
+    visaDate: dateSchema.nullable().default(null),
+
     // Related arrays (kept as arrays since they're separate tables)
     rates: z.array(RateItemSchema).default([]),
     offers: z.array(OfferSchema).default([]),
@@ -198,6 +202,9 @@ export const invoiceCreateSchema = z.object({
     remarksTravelExpenses: z.string().default(""),
     remarksExpenses: z.string().default(""),
     remarksThirdPartyExpenses: z.string().default(""),
+
+    visaBy: z.string().nullable().optional(),
+    visaDate: dateSchema.optional(),
 
     // Arrays
     rates: z.array(RateItemSchema).default([]),
@@ -282,6 +289,9 @@ export const invoiceResponseSchema = z
         remarksTravelExpenses: z.string(),
         remarksExpenses: z.string(),
         remarksThirdPartyExpenses: z.string(),
+
+        visaBy: z.string().nullable(),
+        visaDate: z.date().nullable(),
 
         // Arrays (kept as arrays since they're separate tables)
         rates: z.array(RateItemSchema),

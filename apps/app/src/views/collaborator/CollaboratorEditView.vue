@@ -72,9 +72,13 @@
                         v-model="collaborator.role"
                         class="w-full p-2 border border-gray-300 rounded-md"
                         required
+                        :disabled="collaborator.role === 'super_admin' && !canAssignSuperAdmin"
                     >
                         <option value="user">Utilisateur</option>
                         <option value="admin">Administrateur</option>
+                        <option value="super_admin" :disabled="!canAssignSuperAdmin">
+                            Super administrateur
+                        </option>
                     </select>
                 </div>
 
@@ -192,6 +196,7 @@ import { useFetchUser, useCreateUser, useUpdateUser } from "../../composables/ap
 import { useFetchActivityTypes } from "../../composables/api/useActivityType"
 import UserWorkloadList from "@/components/organisms/workload/UserWorkloadList.vue"
 import type { UserCreateInput, UserUpdateInput } from "@beg/validations"
+import { useAuthStore } from "@/stores/auth"
 
 interface ActivityRate {
     activityId: number
@@ -200,10 +205,13 @@ interface ActivityRate {
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 const collaboratorId = computed(() =>
     route.params.id ? parseInt(route.params.id as string) : null
 )
 const isNewCollaborator = computed(() => !collaboratorId.value)
+
+const canAssignSuperAdmin = computed(() => authStore.user?.role === "super_admin")
 
 // API composables
 const { get: getUser, data: userData, loading: loadingUser } = useFetchUser()

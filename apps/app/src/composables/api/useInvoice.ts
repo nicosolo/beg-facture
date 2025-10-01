@@ -64,3 +64,14 @@ export function useDeleteInvoice() {
         params: idParamSchema,
     })
 }
+
+export function useVisaInvoice() {
+    return usePost<
+        InvoiceResponse,
+        {
+            params: typeof idParamSchema
+        }
+    >("invoice/:id/visa", {
+        params: idParamSchema,
+    })
+}

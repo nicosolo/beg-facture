@@ -125,6 +125,8 @@ async function readJsonFile(filename: string) {
 // Map French names to DB table structure
 function mapUserData(data: any): typeof users.$inferInsert {
     // Use original ID if available
+    const superAdminUsers = ["fp", "mo"]
+    const adminUsers = ["gg"]
     return {
         id: data.IDcollaborateur || undefined, // Use original ID if available
         email: `${data.Initiales.toLowerCase()}@beg-geol.ch`,
@@ -132,7 +134,12 @@ function mapUserData(data: any): typeof users.$inferInsert {
         lastName: data.Nom,
         initials: data.Initiales,
         password: data["Mot de passe"] || "password123", // Default password
-        role: (data.Initiales === "fp" ? "admin" : "user") as UserRole, // Properly typed as UserRole
+        role: superAdminUsers.includes(data.Initiales)
+            ? "super_admin"
+            : adminUsers.includes(data.Initiales)
+              ? "admin"
+              : "user",
+
         archived: false,
         createdAt: new Date(),
         updatedAt: new Date(),

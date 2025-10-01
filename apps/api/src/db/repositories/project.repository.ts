@@ -21,6 +21,7 @@ import {
 import type { Variables } from "@src/types/global"
 import { ApiException, throwDuplicateEntry, throwForbidden } from "@src/tools/error-handler"
 import { STATUS_CODES } from "http"
+import { hasRole } from "@src/tools/role-middleware"
 
 export const projectRepository = {
     findAll: async (
@@ -410,7 +411,7 @@ export const projectRepository = {
             .execute()
 
         // If not admin, grant write access to the creator
-        if (user.role !== "admin" && newProject) {
+        if (!hasRole(user.role, "admin") && newProject) {
             await db
                 .insert(projectAccess)
                 .values({

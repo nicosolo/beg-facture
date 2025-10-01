@@ -20,6 +20,7 @@ import type { Variables } from "@src/types/global"
 import { activityTypeRepository } from "@src/db/repositories/activityType.repository"
 import { rateRepository } from "@src/db/repositories/rate.repository"
 import { userRepository } from "@src/db/repositories/user.repository"
+import { hasRole } from "@src/tools/role-middleware"
 
 export const activityRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
@@ -80,7 +81,7 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 ])
             }
             const userId =
-                user.role === "admin" && activityData.userId ? activityData.userId : user.id
+                hasRole(user.role, "admin") && activityData.userId ? activityData.userId : user.id
             const userData = await userRepository.findById(userId)
             if (!userData) {
                 throwValidationError("User not found", [
@@ -148,7 +149,7 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 throwNotFound("Activity")
             }
             const userId = activityData.userId
-                ? user.role === "admin"
+                ? hasRole(user.role, "admin")
                     ? activityData.userId
                     : user.id
                 : (existingActivity.user?.id ?? 0)

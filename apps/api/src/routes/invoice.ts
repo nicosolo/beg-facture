@@ -13,6 +13,7 @@ import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import { throwNotFound } from "@src/tools/error-handler"
 import type { Variables } from "@src/types/global"
+import { roleMiddleware } from "@src/tools/role-middleware"
 
 export const invoiceRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
@@ -70,6 +71,23 @@ export const invoiceRoutes = new Hono<{ Variables: Variables }>()
             const invoiceData = c.req.valid("json")
             const user = c.get("user")
             const updatedInvoice = await invoiceRepository.update(id, invoiceData, user)
+            if (!updatedInvoice) {
+                throwNotFound("Invoice")
+            }
+            return c.render(updatedInvoice, 200)
+        }
+    )
+    .post(
+        "/:id/visa",
+        roleMiddleware("super_admin"),
+        zValidator("param", idParamSchema),
+        responseValidator({
+            200: invoiceResponseSchema,
+        }),
+        async (c) => {
+            const { id } = c.req.valid("param")
+            const user = c.get("user")
+            const updatedInvoice = await invoiceRepository.setVisa(id, user)
             if (!updatedInvoice) {
                 throwNotFound("Invoice")
             }

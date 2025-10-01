@@ -12,13 +12,14 @@ import {
 import type { InvoiceCreateInput, InvoiceUpdateInput, InvoiceFilter } from "@beg/validations"
 import { projectRepository } from "./project.repository"
 import type { Variables } from "@src/types/global"
+import { hasRole } from "@src/tools/role-middleware"
 
 export const invoiceRepository = {
     async findAll(user: Variables["user"], filter: InvoiceFilter) {
         const where = []
 
         // Access control
-        if (user.role !== "admin") {
+        if (!hasRole(user.role, "admin")) {
             // Get all projects the user has access to
             const userProjects = await projectRepository.findAll(user, {
                 sortBy: "name",
@@ -127,6 +128,8 @@ export const invoiceRepository = {
                     status: row.invoice.status,
                     description: row.invoice.description,
                     note: row.invoice.note,
+                    visaBy: row.invoice.visaBy,
+                    visaDate: row.invoice.visaDate,
 
                     // Dates - flat
                     issueDate: row.invoice.issueDate,
@@ -239,7 +242,7 @@ export const invoiceRepository = {
         const row = result[0]
 
         // Check access
-        if (user.role !== "admin") {
+        if (!hasRole(user.role, "admin")) {
             const hasAccess = await projectRepository.findById(row.invoice.projectId, user)
             if (!hasAccess) {
                 return null
@@ -268,6 +271,8 @@ export const invoiceRepository = {
             status: row.invoice.status,
             description: row.invoice.description,
             note: row.invoice.note,
+            visaBy: row.invoice.visaBy,
+            visaDate: row.invoice.visaDate,
 
             // Dates - flat
             issueDate: row.invoice.issueDate,
@@ -383,6 +388,8 @@ export const invoiceRepository = {
                     recipientAddress: data.recipientAddress,
                     description: data.description,
                     note: data.note,
+                    visaBy: data.visaBy || null,
+                    visaDate: data.visaDate || null,
                     // Store real values directly - all flat fields
                     feesBase: data.feesBase,
                     feesAdjusted: data.feesAdjusted,
@@ -511,6 +518,8 @@ export const invoiceRepository = {
             if (data.dueDate !== undefined) updateData.dueDate = data.dueDate
             if (data.description !== undefined) updateData.description = data.description
             if (data.note !== undefined) updateData.note = data.note
+            if (data.visaBy !== undefined) updateData.visaBy = data.visaBy
+            if (data.visaDate !== undefined) updateData.visaDate = data.visaDate
 
             // Period dates
             if (data.periodStart !== undefined) updateData.periodStart = data.periodStart
@@ -647,5 +656,30 @@ export const invoiceRepository = {
 
         await db.delete(invoices).where(eq(invoices.id, id))
         return true
+    },
+
+    async setVisa(id: number, user: Variables["user"]) {
+        const invoice = await this.findById(id, user)
+        if (!invoice) {
+            return null
+        }
+
+        const now = new Date()
+
+        await db
+            .update(invoices)
+            .set({
+                visaBy: user.firstName,
+                visaDate: now,
+                updatedAt: now,
+            })
+            .where(eq(invoices.id, id))
+
+        return {
+            ...invoice,
+            visaBy: user.firstName,
+            visaDate: now,
+            updatedAt: now,
+        }
     },
 }

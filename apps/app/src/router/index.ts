@@ -188,7 +188,7 @@ router.beforeEach((to, _from, next) => {
     if (requiresAuth && !authStore.isAuthenticated) {
         // Redirect to login if authentication is required but user is not authenticated
         next({ name: "login" })
-    } else if (requiresAdmin && authStore.user?.role !== "admin") {
+    } else if (requiresAdmin && !authStore.is("admin")) {
         // Redirect to home if admin role is required but user is not admin
         next({ name: "home" })
     } else {

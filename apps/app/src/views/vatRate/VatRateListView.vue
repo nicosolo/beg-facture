@@ -134,7 +134,7 @@ import type { VatRate } from "@beg/validations"
 const authStore = useAuthStore()
 const { formatDate } = useFormat()
 
-const isAdmin = computed(() => authStore.user?.role === "admin")
+const isAdmin = computed(() => authStore.is("admin"))
 
 // API composables
 const { get: fetchVatRates, loading, error, data: response } = useFetchVatRates()

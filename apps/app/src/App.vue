@@ -14,6 +14,7 @@ const { alerts, removeAlert } = useAlert()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const hasAdminAccess = computed(() => authStore.is("admin"))
 
 // Check if the current route is the login page
 const isLoginPage = computed(() => route.name === "login")
@@ -51,73 +52,73 @@ const navigation = computed(() =>
         },
         {
             name: t("navigation.settings"),
-            visible: authStore.user?.role === "admin",
+            visible: hasAdminAccess.value,
             children: [
                 {
                     name: t("navigation.collaborators"),
                     to: { name: "collaborator-list" },
                     current: route.name === "collaborator-list",
-                    visible: authStore.user?.role === "admin",
+                    visible: hasAdminAccess.value,
                 },
                 {
                     name: t("navigation.activities"),
                     to: { name: "activity-list" },
                     current: route.name === "activity-list",
-                    visible: authStore.user?.role === "admin",
+                    visible: hasAdminAccess.value,
                 },
                 {
                     name: t("navigation.tariffs"),
                     to: { name: "tariff-list" },
                     current: route.name === "tariff-list",
-                    visible: authStore.user?.role === "admin",
+                    visible: hasAdminAccess.value,
                 },
                 {
                     name: t("navigation.projectTypes"),
                     to: { name: "project-type-list" },
                     current: route.name === "project-type-list",
-                    visible: authStore.user?.role === "admin",
+                    visible: hasAdminAccess.value,
                 },
                 {
                     name: t("navigation.locations"),
                     to: { name: "location-list" },
                     current: route.name === "location-list",
-                    visible: authStore.user?.role === "admin",
+                    visible: hasAdminAccess.value,
                 },
                 {
                     name: t("navigation.clients"),
                     to: { name: "client-list" },
                     current: route.name === "client-list",
-                    visible: authStore.user?.role === "admin",
+                    visible: hasAdminAccess.value,
                 },
                 {
                     name: t("navigation.companies"),
                     to: { name: "company-list" },
                     current: route.name === "company-list",
-                    visible: authStore.user?.role === "admin",
+                    visible: hasAdminAccess.value,
                 },
                 {
                     name: t("navigation.engineers"),
                     to: { name: "engineer-list" },
                     current: route.name === "engineer-list",
-                    visible: authStore.user?.role === "admin",
+                    visible: hasAdminAccess.value,
                 },
                 {
                     name: "Taux TVA",
                     to: { name: "vat-rate-list" },
                     current: route.name === "vat-rate-list",
-                    visible: authStore.user?.role === "admin",
+                    visible: hasAdminAccess.value,
                 },
                 {
                     name: t("monthlyHours.title"),
                     to: { name: "monthly-hours-list" },
                     current: route.name === "monthly-hours-list",
-                    visible: authStore.user?.role === "admin",
+                    visible: hasAdminAccess.value,
                 },
                 {
                     name: "Import DB",
                     to: { name: "database-import" },
                     current: route.name === "database-import",
-                    visible: authStore.user?.role === "admin",
+                    visible: hasAdminAccess.value,
                 },
             ].filter((item) => item.visible !== false),
             // Mark parent as current if any child is current

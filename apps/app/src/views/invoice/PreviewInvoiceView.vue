@@ -39,10 +39,29 @@
                     >
                         Edition
                     </Button>
+
+                    <Button
+                        v-if="canVisa"
+                        variant="primary"
+                        size="lg"
+                        :loading="visaLoading"
+                        @click="openVisaDialog"
+                    >
+                        Vise
+                    </Button>
                 </div>
             </div>
 
             <InvoicePreview v-if="invoice" :invoice="invoice" />
+
+            <ConfirmDialog
+                v-model="showVisaConfirm"
+                title="Visa de la facture"
+                message="Confirmer le visa de cette facture ?"
+                confirm-text="Confirmer"
+                cancel-text="Annuler"
+                @confirm="handleVisa"
+            />
         </template>
     </div>
 </template>
@@ -51,19 +70,33 @@
 import { ref, onMounted, computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import InvoicePreview from "@/components/organisms/invoice/InvoicePreview.vue"
-import { useFetchInvoice } from "@/composables/api/useInvoice"
+import { useFetchInvoice, useVisaInvoice } from "@/composables/api/useInvoice"
 import type { InvoiceResponse } from "@beg/validations"
 import Button from "@/components/atoms/Button.vue"
+import { useAuthStore } from "@/stores/auth"
+import ConfirmDialog from "@/components/molecules/ConfirmDialog.vue"
 
 const route = useRoute()
 const router = useRouter()
 const invoiceId = computed(() => route.params.id as string | undefined)
+const authStore = useAuthStore()
 
 // API composable
 const { get: fetchInvoice, loading, error } = useFetchInvoice()
+const { post: postVisa, loading: visaLoading } = useVisaInvoice()
 
 // Invoice data
 const invoice = ref<InvoiceResponse | null>(null)
+
+const canVisa = computed(() => authStore.is("super_admin"))
+const showVisaConfirm = ref(false)
+
+const openVisaDialog = () => {
+    if (!invoiceId.value) {
+        return
+    }
+    showVisaConfirm.value = true
+}
 
 // Load invoice
 const loadInvoice = async () => {
@@ -83,6 +116,20 @@ const loadInvoice = async () => {
 
 const printInvoice = () => {
     window.print()
+}
+
+const handleVisa = async () => {
+    if (!invoiceId.value) return
+    try {
+        const updated = await postVisa({ params: { id: parseInt(invoiceId.value) } })
+        if (updated) {
+            invoice.value = updated
+        }
+    } catch (error) {
+        console.error("Failed to visa invoice:", error)
+    } finally {
+        showVisaConfirm.value = false
+    }
 }
 
 onMounted(() => {

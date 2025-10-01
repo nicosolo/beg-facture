@@ -26,6 +26,26 @@
                             {{ $t(`invoice.status.${invoice.status || "draft"}`) }}
                         </td>
                     </tr>
+                    <tr v-if="invoice.visaBy">
+                        <td
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
+                        >
+                            Visa par
+                        </td>
+                        <td class="border border-gray-300 p-1 text-sm">
+                            {{ invoice.visaBy }}
+                        </td>
+                    </tr>
+                    <tr v-if="invoice.visaDate">
+                        <td
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
+                        >
+                            Date de visa
+                        </td>
+                        <td class="border border-gray-300 p-1 text-sm">
+                            {{ formatDate(invoice.visaDate) }}
+                        </td>
+                    </tr>
                     <tr>
                         <td
                             class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"

@@ -15,7 +15,7 @@ import { workloadRepository } from "../db/repositories/workload.repository"
 import { authMiddleware } from "../tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import type { Variables } from "../types/global"
-import { roleMiddleware } from "@src/tools/role-middleware"
+import { roleMiddleware, hasRole } from "@src/tools/role-middleware"
 
 // User ID param schema
 const userIdParamSchema = z.object({
@@ -40,7 +40,7 @@ export const workloadRoutes = new Hono<{ Variables: Variables }>()
             // Non-admins can only see their own workloads
             const finalFilters = {
                 ...filters,
-                ...(user.role !== "admin" ? { userId: user.id } : {}),
+                ...(!hasRole(user.role, "admin") ? { userId: user.id } : {}),
             }
 
             const workloads = await workloadRepository.findAll(finalFilters)
@@ -66,7 +66,7 @@ export const workloadRoutes = new Hono<{ Variables: Variables }>()
             }
 
             // Non-admins can only see their own workloads
-            if (user.role !== "admin" && workload.userId !== user.id) {
+            if (!hasRole(user.role, "admin") && workload.userId !== user.id) {
                 return c.json({ error: "Forbidden" }, 403)
             }
 

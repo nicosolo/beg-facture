@@ -303,6 +303,8 @@ export const invoices = sqliteTable(
         recipientAddress: text("recipientAddress"),
         description: text("description"),
         note: text("note"),
+        visaBy: text("visaBy"),
+        visaDate: integer("visaDate", { mode: "timestamp" }),
         // Fee totals
         feesBase: real("feesBase").notNull().default(0),
         feesAdjusted: real("feesAdjusted").notNull().default(0),

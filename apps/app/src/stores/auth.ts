@@ -1,7 +1,21 @@
 import { defineStore } from "pinia"
 import { ref } from "vue"
-import { type UserResponse } from "@beg/validations"
+import { type UserResponse, type UserRole } from "@beg/validations"
 import { useLogin } from "@/composables/api/useLogin"
+
+const rolePriority: Record<UserRole, number> = {
+    super_admin: 3,
+    admin: 2,
+    user: 1,
+}
+
+const hasRole = (userRole: UserRole | undefined, requiredRole: UserRole) => {
+    if (!userRole) {
+        return false
+    }
+
+    return rolePriority[userRole] >= rolePriority[requiredRole]
+}
 
 export const useAuthStore = defineStore("auth", () => {
     const token = ref<string | null>(localStorage.getItem("auth_token"))
@@ -65,6 +79,10 @@ export const useAuthStore = defineStore("auth", () => {
         return token.value ? { Authorization: `Bearer ${token.value}` } : { Authorization: "" }
     }
 
+    function is(requiredRole: UserRole) {
+        return hasRole(user.value?.role, requiredRole)
+    }
+
     return {
         token,
         user,
@@ -72,5 +90,6 @@ export const useAuthStore = defineStore("auth", () => {
         login,
         logout,
         getAuthHeaders,
+        is,
     }
 })

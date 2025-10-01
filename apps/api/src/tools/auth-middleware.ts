@@ -2,6 +2,7 @@ import type { Context, MiddlewareHandler, Next } from "hono"
 import { verifyToken } from "./auth"
 import { userRepository } from "../db/repositories/user.repository"
 import type { Variables } from "@src/types/global"
+import { hasRole } from "@src/tools/role-middleware"
 
 export const authMiddleware: MiddlewareHandler<{ Variables: Variables }> = async (
     c: Context<{ Variables: Variables }>,
@@ -45,10 +46,10 @@ export const adminOnlyMiddleware: MiddlewareHandler<{ Variables: Variables }> = 
     next: Next
 ) => {
     const user = c.get("user")
-    
-    if (!user || user.role !== "admin") {
+
+    if (!user || !hasRole(user.role, "admin")) {
         return c.json({ error: "Forbidden - Admin access required" }, 403)
     }
-    
+
     await next()
 }

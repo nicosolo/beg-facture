@@ -113,6 +113,8 @@ CREATE TABLE `invoices` (
 	`recipientAddress` text,
 	`description` text,
 	`note` text,
+	`visaBy` text,
+	`visaDate` integer,
 	`feesBase` real DEFAULT 0 NOT NULL,
 	`feesAdjusted` real DEFAULT 0 NOT NULL,
 	`feesTotal` real DEFAULT 0 NOT NULL,

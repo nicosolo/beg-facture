@@ -103,7 +103,7 @@ const authStore = useAuthStore()
 const { successAlert, errorAlert } = useAlert()
 
 // Check if user is admin
-const isAdmin = computed(() => authStore.user?.role === "admin")
+const isAdmin = computed(() => authStore.is("admin"))
 const router = useRouter()
 if (!isAdmin) {
     router.push({ name: "home" })

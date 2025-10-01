@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "462eb25c-c0be-4b6f-93e6-155186db1e33",
+  "id": "5826f278-fc27-4f87-9376-00b90b0c7652",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activities": {
@@ -796,6 +796,20 @@
         "note": {
           "name": "note",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "visaBy": {
+          "name": "visaBy",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "visaDate": {
+          "name": "visaDate",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false

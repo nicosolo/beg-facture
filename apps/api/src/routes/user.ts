@@ -106,6 +106,13 @@ export const userRoutes = new Hono<{ Variables: Variables }>()
         }),
         async (c) => {
             const userData = c.req.valid("json")
+            const currentUser = c.get("user")
+
+            if (userData.role === "super_admin" && currentUser.role !== "super_admin") {
+                return c.json({
+                    error: "Forbidden - Only a super_admin can assign the super_admin role",
+                }, 403)
+            }
 
             // Check if user with this email already exists
             const existingUser = await userRepository.findByEmail(userData.email)
@@ -130,11 +137,24 @@ export const userRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const { id } = c.req.valid("param")
             const userData = c.req.valid("json")
+            const currentUser = c.get("user")
 
             // Check if user exists
             const existingUser = await userRepository.findById(id)
             if (!existingUser) {
                 return c.json({ error: "User not found" }, 404)
+            }
+
+            if (existingUser.role === "super_admin" && currentUser.role !== "super_admin") {
+                return c.json({
+                    error: "Forbidden - Only a super_admin can modify another super_admin",
+                }, 403)
+            }
+
+            if (userData.role === "super_admin" && currentUser.role !== "super_admin") {
+                return c.json({
+                    error: "Forbidden - Only a super_admin can assign the super_admin role",
+                }, 403)
             }
 
             // Check if email is being changed and if it's already taken

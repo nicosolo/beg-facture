@@ -102,7 +102,7 @@ const authStore = useAuthStore()
 const { successAlert, errorAlert } = useAlert()
 
 // Check if user is admin
-const isAdmin = computed(() => authStore.user?.role === "admin")
+const isAdmin = computed(() => authStore.is("admin"))
 
 // Table columns
 const columns: Column[] = [

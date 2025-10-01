@@ -135,7 +135,7 @@ const router = useRouter()
 const { successAlert } = useAlert()
 
 // Check if user is admin
-const isAdmin = computed(() => authStore.user?.role === "admin")
+const isAdmin = computed(() => authStore.is("admin"))
 
 // Redirect if not admin
 if (!isAdmin.value) {

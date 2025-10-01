@@ -308,6 +308,8 @@ export default {
             unmarkAsDisbursement: "Retirer le débours",
         },
         alerts: {
+            entryCreated: "Saisie d'heures enregistrée",
+            entryUpdated: "Saisie d'heures mise à jour",
             markedAsBilled: "Marqué comme facturé",
             markedAsUnbilled: "Marqué comme non facturé",
             markedAsDisbursement: "Marqué comme débours",
@@ -382,6 +384,10 @@ export default {
         createSuccess: "Ingénieur créé avec succès",
         updateSuccess: "Ingénieur mis à jour avec succès",
     },
+    collaborator: {
+        createSuccess: "Collaborateur {name} créé avec succès",
+        updateSuccess: "Collaborateur {name} mis à jour avec succès",
+    },
     monthlyHours: {
         title: "Heures mensuelles",
         new: "Nouvelles heures mensuelles",
@@ -395,6 +401,16 @@ export default {
         createSuccess: "Heures mensuelles créées avec succès",
         updateSuccess: "Heures mensuelles mises à jour avec succès",
         deleteSuccess: "Heures mensuelles supprimées avec succès",
+    },
+    vatRate: {
+        createSuccess: "Taux TVA {year} enregistré avec succès",
+        updateSuccess: "Taux TVA {year} mis à jour avec succès",
+        deleteSuccess: "Taux TVA {year} supprimé avec succès",
+        saveError: "Erreur lors de l'enregistrement du taux TVA",
+        deleteError: "Erreur lors de la suppression du taux TVA",
+    },
+    workload: {
+        createSuccess: "Charge de travail enregistrée",
     },
     invoice: {
         title: "Factures",

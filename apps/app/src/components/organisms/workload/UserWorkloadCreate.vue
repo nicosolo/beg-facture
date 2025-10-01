@@ -64,9 +64,11 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from "vue"
+import { useI18n } from "vue-i18n"
 import Button from "@/components/atoms/Button.vue"
 import { useCreateWorkload } from "@/composables/api/useWorkload"
 import type { WorkloadCreate, WorkloadResponse } from "@beg/validations"
+import { useAlert } from "@/composables/utils/useAlert"
 
 const props = defineProps<{
     userId: number
@@ -78,6 +80,8 @@ const emit = defineEmits<{
 }>()
 
 const { post: postWorkload, loading } = useCreateWorkload()
+const { t } = useI18n()
+const { successAlert, errorAlert } = useAlert()
 
 const monthNames = [
     "Janvier",
@@ -127,6 +131,7 @@ const createWorkload = async () => {
 
         if (result) {
             emit("created", result)
+            successAlert(t("workload.createSuccess"))
             // Reset form with next month
             const nextMonth = newWorkload.month === 12 ? 1 : newWorkload.month + 1
             const nextYear = newWorkload.month === 12 ? newWorkload.year + 1 : newWorkload.year
@@ -136,6 +141,7 @@ const createWorkload = async () => {
         }
     } catch (err: any) {
         error.value = err.message || "Erreur lors de la création de la charge de travail"
+        errorAlert(err.message || t("common.errorSaving"))
         console.error("Error creating workload:", err)
     }
 }

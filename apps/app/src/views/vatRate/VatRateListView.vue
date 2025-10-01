@@ -115,6 +115,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue"
+import { useI18n } from "vue-i18n"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import DataTable from "@/components/molecules/DataTable.vue"
 import Button from "@/components/atoms/Button.vue"
@@ -130,9 +131,12 @@ import {
 import { useAuthStore } from "@/stores/auth"
 import { useFormat } from "@/composables/utils/useFormat"
 import type { VatRate } from "@beg/validations"
+import { useAlert } from "@/composables/utils/useAlert"
 
 const authStore = useAuthStore()
 const { formatDate } = useFormat()
+const { t } = useI18n()
+const { successAlert, errorAlert } = useAlert()
 
 const isAdmin = computed(() => authStore.is("admin"))
 
@@ -209,13 +213,16 @@ const handleSubmit = async () => {
                 params: { id: editingVatRate.value.id },
                 body: form.value,
             })
+            successAlert(t("vatRate.updateSuccess", { year: form.value.year }))
         } else {
             await createVatRate({ body: form.value })
+            successAlert(t("vatRate.createSuccess", { year: form.value.year }))
         }
         closeModal()
         await loadData()
     } catch (error) {
         console.error("Failed to save VAT rate:", error)
+        errorAlert(t("vatRate.saveError"))
     }
 }
 
@@ -230,10 +237,12 @@ const confirmDelete = async () => {
 
     try {
         await deleteVatRate({ params: { id: deletingVatRate.value.id } })
+        successAlert(t("vatRate.deleteSuccess", { year: deletingVatRate.value.year }))
         await loadData()
         cancelDelete()
     } catch (error) {
         console.error("Failed to delete VAT rate:", error)
+        errorAlert(t("vatRate.deleteError"))
     }
 }
 

@@ -158,6 +158,7 @@ import { useAuthStore } from "@/stores/auth"
 import { ApiError } from "@/utils/api-error"
 import type { ActivityCreateInput, ActivityUpdateInput, ActivityResponse } from "@beg/validations"
 import InputNumber from "@/components/atoms/InputNumber.vue"
+import { useAlert } from "@/composables/utils/useAlert"
 
 interface Props {
     modelValue: boolean
@@ -175,6 +176,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const authStore = useAuthStore()
+const { successAlert, errorAlert } = useAlert()
 
 // Computed properties
 const isNewEntry = computed(() => !props.activityId)
@@ -330,6 +332,9 @@ const saveActivity = async () => {
 
         if (response) {
             emit("saved", response)
+            successAlert(
+                isNewEntry.value ? t("time.alerts.entryCreated") : t("time.alerts.entryUpdated")
+            )
             closeModal()
         }
     } catch (error) {
@@ -338,6 +343,7 @@ const saveActivity = async () => {
         } else {
             errorMessage.value = t("errors.general")
         }
+        errorAlert(t("time.alerts.updateError"))
     }
 }
 

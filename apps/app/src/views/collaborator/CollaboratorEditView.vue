@@ -190,6 +190,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { useI18n } from "vue-i18n"
 import Button from "@/components/atoms/Button.vue"
 import FormLayout from "@/components/templates/FormLayout.vue"
 import { useFetchUser, useCreateUser, useUpdateUser } from "../../composables/api/useUser"
@@ -197,6 +198,7 @@ import { useFetchActivityTypes } from "../../composables/api/useActivityType"
 import UserWorkloadList from "@/components/organisms/workload/UserWorkloadList.vue"
 import type { UserCreateInput, UserUpdateInput } from "@beg/validations"
 import { useAuthStore } from "@/stores/auth"
+import { useAlert } from "@/composables/utils/useAlert"
 
 interface ActivityRate {
     activityId: number
@@ -205,7 +207,9 @@ interface ActivityRate {
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const authStore = useAuthStore()
+const { successAlert } = useAlert()
 const collaboratorId = computed(() =>
     route.params.id ? parseInt(route.params.id as string) : null
 )
@@ -303,13 +307,21 @@ const saveCollaborator = async () => {
             activityRates: activityRates,
         }
 
+        const fullName = [collaborator.value.firstName, collaborator.value.lastName]
+            .filter(Boolean)
+            .join(" ")
+            .trim()
+        const displayName = fullName || collaborator.value.email
+
         if (isNewCollaborator.value) {
             await createUser({ body: collaboratorData as UserCreateInput })
+            successAlert(t("collaborator.createSuccess", { name: displayName }))
         } else if (userData.value?.id) {
             await updateUser({
                 body: collaboratorData as UserUpdateInput,
                 params: { id: userData.value.id },
             })
+            successAlert(t("collaborator.updateSuccess", { name: displayName }))
         }
 
         // Redirect to the list page

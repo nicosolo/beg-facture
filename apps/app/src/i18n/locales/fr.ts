@@ -449,6 +449,34 @@ export default {
             clear: "Effacer le document",
             required: "Veuillez ajouter le document de facture",
         },
+        documents: {
+            offer: {
+                title: "Offres",
+                add: "Ajouter une offre",
+                empty: "Aucune offre enregistrée",
+            },
+            adjudication: {
+                title: "Adjudications",
+                add: "Ajouter une adjudication",
+                empty: "Aucune adjudication enregistrée",
+            },
+            headers: {
+                file: "Fichier",
+                date: "Date",
+                amount: "Montant",
+                remark: "Remarque",
+            },
+            actions: {
+                upload: "Téléverser un fichier",
+                replace: "Remplacer",
+                delete: "Supprimer la ligne",
+            },
+            status: {
+                uploading: "Téléversement en cours...",
+                uploadFailed: "Échec du téléversement du fichier",
+                uploadSuccess: "Fichier téléversé avec succès",
+            },
+        },
         visa: {
             success: "La facture a été visée avec succès",
         },

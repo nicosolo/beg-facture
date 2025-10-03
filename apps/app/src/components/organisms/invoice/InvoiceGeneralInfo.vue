@@ -155,174 +155,25 @@
                 />
             </div>
 
-            <!-- Offers -->
-            <div class="mb-4">
-                <h3 class="text-sm font-medium text-gray-700 mb-1">Offres</h3>
-                <div class="border border-gray-300 rounded">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th
-                                    class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
-                                >
-                                    Fichier
-                                </th>
-                                <th
-                                    class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
-                                >
-                                    Date
-                                </th>
-                                <th
-                                    class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
-                                >
-                                    Montant
-                                </th>
-                                <th
-                                    class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
-                                >
-                                    Remarque
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="(offer, index) in invoice.offers || []" :key="index">
-                                <td class="px-4 py-2 text-sm text-gray-900">
-                                    <Input
-                                        :modelValue="offer.file"
-                                        @update:modelValue="
-                                            (value) => updateOffer(index, 'file', value)
-                                        "
-                                        type="text"
-                                    />
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-900">
-                                    <Input
-                                        :modelValue="offer.date"
-                                        @update:modelValue="
-                                            (value) => updateOffer(index, 'date', value)
-                                        "
-                                        type="text"
-                                    />
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-900">
-                                    <Input
-                                        :modelValue="String(offer.amount || '')"
-                                        @update:modelValue="
-                                            (value) =>
-                                                updateOffer(index, 'amount', parseFloat(value) || 0)
-                                        "
-                                        type="number"
-                                    />
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-900">
-                                    <Input
-                                        :modelValue="offer.remark"
-                                        @update:modelValue="
-                                            (value) => updateOffer(index, 'remark', value)
-                                        "
-                                        type="text"
-                                    />
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="p-2">
-                        <button
-                            class="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
-                        >
-                            + Ajouter une offre
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <InvoiceDocumentEntries
+                v-model="invoice.offers"
+                :title="$t('invoice.documents.offer.title')"
+                :add-button-label="$t('invoice.documents.offer.add')"
+                :empty-state-label="$t('invoice.documents.offer.empty')"
+                entry-type="offer"
+                @file-change="(payload) => handleDocumentFileChange('offer', payload)"
+                @entry-removed="(payload) => handleDocumentEntryRemoved('offer', payload)"
+            />
 
-            <!-- Adjudications -->
-            <div class="mb-4">
-                <h3 class="text-sm font-medium text-gray-700 mb-1">Adjudications</h3>
-                <div class="border border-gray-300 rounded">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th
-                                    class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
-                                >
-                                    Fichier
-                                </th>
-                                <th
-                                    class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
-                                >
-                                    Date
-                                </th>
-                                <th
-                                    class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
-                                >
-                                    Montant
-                                </th>
-                                <th
-                                    class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
-                                >
-                                    Remarque
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr
-                                v-for="(adjudication, index) in invoice.adjudications || []"
-                                :key="`adjudication-${index}`"
-                            >
-                                <td class="px-4 py-2 text-sm text-gray-900">
-                                    <Input
-                                        :modelValue="adjudication.file"
-                                        @update:modelValue="
-                                            (value) => updateAdjudication(index, 'file', value)
-                                        "
-                                        type="text"
-                                    />
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-900">
-                                    <Input
-                                        :modelValue="adjudication.date"
-                                        @update:modelValue="
-                                            (value) => updateAdjudication(index, 'date', value)
-                                        "
-                                        type="text"
-                                    />
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-900">
-                                    <Input
-                                        :modelValue="String(adjudication.amount || '')"
-                                        @update:modelValue="
-                                            (value) =>
-                                                updateAdjudication(
-                                                    index,
-                                                    'amount',
-                                                    parseFloat(value) || 0
-                                                )
-                                        "
-                                        type="number"
-                                    />
-                                </td>
-                                <td class="px-4 py-2 text-sm text-gray-900">
-                                    <Input
-                                        :modelValue="adjudication.remark"
-                                        @update:modelValue="
-                                            (value) => updateAdjudication(index, 'remark', value)
-                                        "
-                                        type="text"
-                                    />
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="p-2">
-                        <button
-                            class="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
-                        >
-                            + Ajouter une adjudication
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <InvoiceDocumentEntries
+                v-model="invoice.adjudications"
+                :title="$t('invoice.documents.adjudication.title')"
+                :add-button-label="$t('invoice.documents.adjudication.add')"
+                :empty-state-label="$t('invoice.documents.adjudication.empty')"
+                entry-type="adjudication"
+                @file-change="(payload) => handleDocumentFileChange('adjudication', payload)"
+                @entry-removed="(payload) => handleDocumentEntryRemoved('adjudication', payload)"
+            />
         </div>
     </div>
 
@@ -362,23 +213,7 @@ import { computed, ref, watch } from "vue"
 import Input from "@/components/atoms/Input.vue"
 import Select from "@/components/atoms/Select.vue"
 import Textarea from "@/components/atoms/Textarea.vue"
-
-// Helper functions for updating nested arrays
-const updateOffer = (index: number, field: string, value: any) => {
-    const newInvoice = { ...invoice.value }
-    if (!newInvoice.offers) newInvoice.offers = []
-    newInvoice.offers = [...newInvoice.offers]
-    newInvoice.offers[index] = { ...newInvoice.offers[index], [field]: value }
-    invoice.value = newInvoice
-}
-
-const updateAdjudication = (index: number, field: string, value: any) => {
-    const newInvoice = { ...invoice.value }
-    if (!newInvoice.adjudications) newInvoice.adjudications = []
-    newInvoice.adjudications = [...newInvoice.adjudications]
-    newInvoice.adjudications[index] = { ...newInvoice.adjudications[index], [field]: value }
-    invoice.value = newInvoice
-}
+import InvoiceDocumentEntries from "./InvoiceDocumentEntries.vue"
 
 const props = defineProps<{
     modelValue: Invoice
@@ -386,6 +221,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     "update:modelValue": [value: Invoice]
+    "document-file-change": [
+        value: { type: "offer" | "adjudication"; index: number; file: File | null },
+    ]
+    "document-entry-removed": [value: { type: "offer" | "adjudication"; index: number }]
+    "invoice-document-change": [value: File | null]
 }>()
 
 const invoice = computed({
@@ -394,6 +234,17 @@ const invoice = computed({
 })
 
 const invoiceDocumentInput = ref<HTMLInputElement | null>(null)
+
+const handleDocumentFileChange = (
+    type: "offer" | "adjudication",
+    payload: { index: number; file: File | null }
+) => {
+    emit("document-file-change", { type, ...payload })
+}
+
+const handleDocumentEntryRemoved = (type: "offer" | "adjudication", payload: { index: number }) => {
+    emit("document-entry-removed", { type, ...payload })
+}
 
 const startDate = computed({
     get: () => invoice.value.periodStart?.toISOString().split("T")[0] || "",
@@ -421,6 +272,7 @@ const handleInvoiceDocumentChange = (event: Event) => {
         invoiceDocument: file ? file.name : "",
     }
     invoice.value = updatedInvoice
+    emit("invoice-document-change", file ?? null)
 }
 
 const clearInvoiceDocument = () => {
@@ -432,6 +284,7 @@ const clearInvoiceDocument = () => {
     if (invoiceDocumentInput.value) {
         invoiceDocumentInput.value.value = ""
     }
+    emit("invoice-document-change", null)
 }
 
 watch(

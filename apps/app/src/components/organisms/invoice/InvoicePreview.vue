@@ -80,7 +80,7 @@
                         <td
                             class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
-                            {{ t('invoice.document.label') }}
+                            {{ t("invoice.document.label") }}
                         </td>
                         <td class="border border-gray-300 p-1 text-sm">
                             {{ invoice.invoiceDocument }}
@@ -271,7 +271,7 @@
                             {{ invoice.expensesTravelBase }} km
                         </td>
                         <td class="text-right border border-gray-300 p-1 text-sm w-1/4">
-                            {{ formatCurrency(invoice.expensesTravelAdjusted) }}/km
+                            {{ formatCurrency(invoice.expensesTravelRate) }}/km
                         </td>
                         <td class="fac4 text-right border border-gray-300 p-1 text-sm w-1/4">
                             {{ formatCurrency(invoice.expensesTravelAmount) }}

@@ -1,4 +1,4 @@
-import { readdir, stat } from "fs/promises"
+import { readdir } from "fs/promises"
 import path from "path"
 import { existsSync } from "fs"
 import { PROJECT_BASE_DIR } from "@src/config"
@@ -93,4 +93,36 @@ export async function findProjectFolderSingle(
 ): Promise<ProjectFolderResult | null> {
     const results = await findProjectFolder(PROJECT_BASE_DIR, projectNumber)
     return results.length > 0 ? results[0] : null
+}
+
+export interface ProjectInvoiceFolderResult {
+    project: ProjectFolderResult
+    folderName: string
+    fullPath: string
+}
+
+export async function findProjectInvoiceFolder(
+    projectNumber: string | number
+): Promise<ProjectInvoiceFolderResult | null> {
+    const projectFolder = await findProjectFolderSingle(projectNumber)
+    if (!projectFolder) {
+        return null
+    }
+
+    const entries = await readdir(projectFolder.fullPath, { withFileTypes: true })
+    const invoiceFolder = entries.find((entry) => {
+        if (!entry.isDirectory()) return false
+        const normalized = entry.name.trim().toLowerCase()
+        return normalized.startsWith("9")
+    })
+    if (!invoiceFolder) {
+        return null
+    }
+
+    const folderName = invoiceFolder.name
+    return {
+        project: projectFolder,
+        folderName,
+        fullPath: path.join(projectFolder.fullPath, folderName),
+    }
 }

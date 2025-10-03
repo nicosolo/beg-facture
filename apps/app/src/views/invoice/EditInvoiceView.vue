@@ -41,7 +41,13 @@
 
             <!-- Tab Content -->
             <div class="tab-content" v-if="invoice">
-                <InvoiceGeneralInfo v-if="activeTab === 'general'" v-model="invoice" />
+                <InvoiceGeneralInfo
+                    v-if="activeTab === 'general'"
+                    v-model="invoice"
+                    @document-file-change="handleDocumentFileChange"
+                    @document-entry-removed="handleDocumentEntryRemoved"
+                    @invoice-document-change="handleInvoiceDocumentFileChange"
+                />
                 <InvoiceDetails
                     v-if="activeTab === 'details' && activityBasedBilling"
                     v-model="invoice"
@@ -94,17 +100,14 @@ import {
     type Invoice,
     type InvoiceResponse,
 } from "@beg/validations"
-import {
-    useFetchInvoice,
-    useCreateInvoice,
-    useUpdateInvoice,
-    useDeleteInvoice,
-} from "@/composables/api/useInvoice"
+import { useFetchInvoice, useDeleteInvoice } from "@/composables/api/useInvoice"
 import { useFetchProject } from "@/composables/api/useProject"
 import { useFetchUnbilledActivities } from "@/composables/api/useUnbilled"
 import { useFormat } from "@/composables/utils/useFormat"
 import { useI18n } from "vue-i18n"
 import { useAlert } from "@/composables/utils/useAlert"
+import { useAuthStore } from "@/stores/auth"
+import { parseApiError, ApiError } from "@/utils/api-error"
 
 const route = useRoute()
 const router = useRouter()
@@ -119,24 +122,96 @@ const showDeleteConfirm = ref(false)
 
 // API composables
 const { get: fetchInvoice, loading: fetchLoading, error: fetchError } = useFetchInvoice()
-const { post: createInvoice, loading: createLoading, error: createError } = useCreateInvoice()
-const { put: updateInvoice, loading: updateLoading, error: updateError } = useUpdateInvoice()
 const { delete: deleteInvoice, loading: deleteLoading } = useDeleteInvoice()
 const { get: fetchProject, loading: fetchProjectLoading, data: projectResponse } = useFetchProject()
 
 const { get: fetchUnbilledActivities, loading: fetchUnbilledLoading } = useFetchUnbilledActivities()
+const authStore = useAuthStore()
+
+const pendingOfferFiles = ref<(File | null)[]>([])
+const pendingAdjudicationFiles = ref<(File | null)[]>([])
+const pendingInvoiceDocumentFile = ref<File | null>(null)
+const savingInvoice = ref(false)
+const savingError = ref<string | null>(null)
 
 // Form state
 const invoice = ref<Invoice | null>(null)
 const unbilledActivities = ref<ActivityResponse[]>([])
+
+watch(
+    () => invoice.value?.offers ?? [],
+    (offers) => {
+        const next = offers.map((_, index) => pendingOfferFiles.value[index] ?? null)
+        pendingOfferFiles.value = next
+    },
+    { deep: true, immediate: true }
+)
+
+watch(
+    () => invoice.value?.adjudications ?? [],
+    (adjudications) => {
+        const next = adjudications.map((_, index) => pendingAdjudicationFiles.value[index] ?? null)
+        pendingAdjudicationFiles.value = next
+    },
+    { deep: true, immediate: true }
+)
+
+const hasPendingUploads = computed(
+    () =>
+        pendingOfferFiles.value.some(Boolean) ||
+        pendingAdjudicationFiles.value.some(Boolean) ||
+        Boolean(pendingInvoiceDocumentFile.value)
+)
+
+const handleDocumentFileChange = ({
+    type,
+    index,
+    file,
+}: {
+    type: "offer" | "adjudication"
+    index: number
+    file: File | null
+}) => {
+    if (type === "offer") {
+        const next = [...pendingOfferFiles.value]
+        next[index] = file ?? null
+        pendingOfferFiles.value = next
+    } else {
+        const next = [...pendingAdjudicationFiles.value]
+        next[index] = file ?? null
+        pendingAdjudicationFiles.value = next
+    }
+}
+
+const handleDocumentEntryRemoved = ({
+    type,
+    index,
+}: {
+    type: "offer" | "adjudication"
+    index: number
+}) => {
+    if (type === "offer") {
+        const next = [...pendingOfferFiles.value]
+        next.splice(index, 1)
+        pendingOfferFiles.value = next
+    } else {
+        const next = [...pendingAdjudicationFiles.value]
+        next.splice(index, 1)
+        pendingAdjudicationFiles.value = next
+    }
+}
+
+const handleInvoiceDocumentFileChange = (file: File | null) => {
+    pendingInvoiceDocumentFile.value = file ?? null
+}
 
 const activityBasedBilling = computed(() => {
     const mode = invoice.value?.billingMode
     return mode !== "accordingToOffer" && mode !== "accordingToInvoice"
 })
 
-const loading = computed(() => fetchLoading.value || createLoading.value || updateLoading.value)
-const error = computed(() => fetchError.value || createError.value || updateError.value)
+const loading = computed(() => fetchLoading.value || savingInvoice.value)
+const error = computed(() => fetchError.value || savingError.value)
 const errorMessage = computed(() => {
     const err = error.value as any
     if (typeof err === "string") return err
@@ -295,42 +370,99 @@ const loadInvoice = async () => {
         try {
             const data = await fetchInvoice({ params: { id: parseInt(invoiceId.value) } })
             if (data) {
+                isUpdatingFromApi.value = true
                 invoice.value = convertResponseToInvoice(data)
+                pendingInvoiceDocumentFile.value = null
             }
         } catch (err: any) {
             console.error("Failed to load invoice:", err)
             // Error will be displayed in the FormLayout
+        } finally {
+            isUpdatingFromApi.value = false
         }
     }
 }
 
 // Save invoice
 const handleSave = async () => {
-    try {
-        if (!invoice.value) return
+    if (!invoice.value) return
 
-        if (invoice.value.billingMode === "accordingToInvoice" && !invoice.value.invoiceDocument) {
-            errorAlert(t("invoice.document.required"), 5000)
+    if (invoice.value.billingMode === "accordingToInvoice" && !invoice.value.invoiceDocument) {
+        errorAlert(t("invoice.document.required"), 5000)
+        return
+    }
+
+    savingInvoice.value = true
+    savingError.value = null
+
+    try {
+        const payload = convertInvoiceToInput(invoice.value)
+        const shouldUseFormData = hasPendingUploads.value
+        const endpoint = isNewInvoice.value ? "/api/invoice" : `/api/invoice/${invoiceId.value}`
+        const method = isNewInvoice.value ? "POST" : "PUT"
+        const headers: Record<string, string> = { ...authStore.getAuthHeaders() }
+        let body: BodyInit
+
+        if (shouldUseFormData) {
+            const formData = new FormData()
+            formData.append("payload", JSON.stringify(payload))
+
+            if (pendingInvoiceDocumentFile.value) {
+                formData.append("invoiceDocument", pendingInvoiceDocumentFile.value)
+            }
+
+            pendingOfferFiles.value.forEach((file, index) => {
+                if (file) {
+                    formData.append(`offerFiles[${index}]`, file)
+                }
+            })
+
+            pendingAdjudicationFiles.value.forEach((file, index) => {
+                if (file) {
+                    formData.append(`adjudicationFiles[${index}]`, file)
+                }
+            })
+
+            body = formData
+        } else {
+            headers["Content-Type"] = "application/json"
+            body = JSON.stringify(payload)
+        }
+
+        const response = await fetch(endpoint, {
+            method,
+            headers,
+            body,
+        })
+
+        if (!response.ok) {
+            const apiError = await parseApiError(response)
+            const message = apiError.getLocalizedMessage(t)
+            savingError.value = message
+            errorAlert(message)
+            throw apiError
+        }
+
+        const data = (await response.json()) as InvoiceResponse
+        invoice.value = convertResponseToInvoice(data)
+
+        pendingOfferFiles.value = pendingOfferFiles.value.map(() => null)
+        pendingAdjudicationFiles.value = pendingAdjudicationFiles.value.map(() => null)
+        pendingInvoiceDocumentFile.value = null
+
+        successAlert(t("invoice.save.success"), 4000)
+        router.push({ name: "invoice-preview", params: { id: data.id } })
+    } catch (err: unknown) {
+        console.error("Failed to save invoice:", err)
+        if (err instanceof ApiError) {
             return
         }
 
-        if (isNewInvoice.value) {
-            const data = await createInvoice({ body: convertInvoiceToInput(invoice.value) })
-            if (data) {
-                successAlert(t("invoice.save.success"), 4000)
-                router.push({ name: "invoice-preview", params: { id: data.id } })
-            }
-        } else if (invoiceId.value) {
-            await updateInvoice({
-                params: { id: parseInt(invoiceId.value) },
-                body: convertInvoiceToInput(invoice.value),
-            })
-            successAlert(t("invoice.save.success"), 4000)
-            router.push({ name: "invoice-preview", params: { id: invoiceId.value } })
-        }
-    } catch (err: any) {
-        console.error("Failed to save invoice:", err)
-        // Error will be displayed in the FormLayout
+        const message = err instanceof Error ? err.message : t("common.errorOccurred")
+        savingError.value = message
+        errorAlert(message)
+    } finally {
+        savingInvoice.value = false
     }
 }
 

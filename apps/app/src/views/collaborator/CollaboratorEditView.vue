@@ -123,6 +123,23 @@
                         Aucune activité disponible
                     </div>
                     <div v-else class="space-y-3">
+                        <div class="flex items-center">
+                            <label for="activityPreset" class="text-sm font-medium text-gray-700">
+                                Préréglage des classes
+                            </label>
+                            <Select
+                                id="activityPreset"
+                                v-model="selectedPreset"
+                                class="block w-48 pl-3 pr-10 py-1 text-base border-gray-300 sm:text-sm rounded-md"
+                                :options="
+                                    activityPresetOptions.map((p) => ({
+                                        label: p.label,
+                                        value: p.value,
+                                    }))
+                                "
+                            >
+                            </Select>
+                        </div>
                         <!-- Column Headers -->
                         <div class="flex items-center space-x-2 pb-2 mb-2 border-b border-gray-200">
                             <div class="w-6"></div>
@@ -188,7 +205,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue"
+import { ref, computed, onMounted, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
 import Button from "@/components/atoms/Button.vue"
@@ -196,13 +213,14 @@ import FormLayout from "@/components/templates/FormLayout.vue"
 import { useFetchUser, useCreateUser, useUpdateUser } from "../../composables/api/useUser"
 import { useFetchActivityTypes } from "../../composables/api/useActivityType"
 import UserWorkloadList from "@/components/organisms/workload/UserWorkloadList.vue"
-import type { UserCreateInput, UserUpdateInput } from "@beg/validations"
+import type { UserCreateInput, UserUpdateInput, ClassSchema } from "@beg/validations"
 import { useAuthStore } from "@/stores/auth"
 import { useAlert } from "@/composables/utils/useAlert"
+import Select from "@/components/atoms/Select.vue"
 
 interface ActivityRate {
     activityId: number
-    class: string
+    class: ClassSchema
 }
 
 const route = useRoute()
@@ -241,7 +259,153 @@ const collaborator = ref<UserCreateInput | UserUpdateInput>({
 
 // Track selected activities and their classes
 const selectedActivities = ref<Record<number, boolean>>({})
-const activityClasses = ref<Record<number, string>>({})
+const activityClasses = ref<Record<number, ClassSchema>>({})
+
+const activityPresetOptions = [
+    { label: "Select", value: "" },
+    { label: "Cadre", value: "cadre" },
+    { label: "Chef de projet", value: "chefDeProjet" },
+    { label: "Collaborateur", value: "collaborateur" },
+    { label: "Opérateur", value: "operateur" },
+    { label: "Secrétaire", value: "secretaire" },
+    { label: "Stagiaire", value: "stagiaire" },
+] as const
+
+type ActivityPresetKey =
+    | "cadre"
+    | "chefDeProjet"
+    | "collaborateur"
+    | "operateur"
+    | "secretaire"
+    | "stagiaire"
+type ActivityPresetOptionValue = "" | ActivityPresetKey
+
+const activityClassPresets: Record<ActivityPresetKey, Record<string, ClassSchema>> = {
+    cadre: {
+        Ex: "B",
+        Ec: "C",
+        Eo: "C",
+        Er: "B",
+        Es: "C",
+        Et: "C",
+        Ee: "D",
+        Ed: "C",
+        Ef: "D",
+        Em: "E",
+        Nf: "R",
+        Ga: "R",
+        Gc: "R",
+        Gr: "R",
+    },
+    chefDeProjet: {
+        Ex: "C",
+        Ec: "C",
+        Eo: "C",
+        Er: "C",
+        Es: "C",
+        Et: "C",
+        Ee: "E",
+        Ed: "C",
+        Ef: "F",
+        Em: "F",
+        Nf: "R",
+        Ga: "R",
+        Gc: "R",
+        Gr: "R",
+    },
+    collaborateur: {
+        Ex: "C",
+        Ec: "D",
+        Eo: "D",
+        Er: "D",
+        Es: "D",
+        Et: "D",
+        Ee: "E",
+        Ed: "D",
+        Ef: "F",
+        Em: "G",
+        Nf: "R",
+        Ga: "R",
+        Gc: "R",
+        Gr: "R",
+    },
+    operateur: {
+        Ex: "D",
+        Ec: "E",
+        Eo: "E",
+        Er: "E",
+        Es: "E",
+        Et: "E",
+        Ee: "E",
+        Ed: "E",
+        Ef: "G",
+        Em: "G",
+        Nf: "R",
+        Ga: "R",
+        Gc: "R",
+        Gr: "R",
+    },
+    secretaire: {
+        Ex: "R",
+        Ec: "G",
+        Eo: "G",
+        Er: "G",
+        Es: "G",
+        Et: "R",
+        Ee: "R",
+        Ed: "R",
+        Ef: "G",
+        Em: "G",
+        Nf: "R",
+        Ga: "R",
+        Gc: "R",
+        Gr: "R",
+    },
+    stagiaire: {
+        Ex: "G",
+        Ec: "G",
+        Eo: "G",
+        Er: "G",
+        Es: "G",
+        Et: "G",
+        Ee: "G",
+        Ed: "G",
+        Ef: "G",
+        Em: "G",
+        Nf: "R",
+        Ga: "R",
+        Gc: "R",
+        Gr: "R",
+    },
+}
+
+const selectedPreset = ref<ActivityPresetOptionValue>("")
+
+const activityCodeIndex = computed(() => {
+    const map = new Map<number, string>()
+    activityTypes.value?.forEach((activity) => {
+        map.set(activity.id, activity.code)
+    })
+    return map
+})
+
+const applyPresetToSelectedActivities = (preset: ActivityPresetKey) => {
+    const presetMap = activityClassPresets[preset]
+    if (!presetMap) return
+
+    activityTypes.value?.forEach((activity) => {
+        const presetClass = presetMap[activity.code]
+        if (!presetClass) return
+
+        selectedActivities.value[activity.id] = true
+        activityClasses.value[activity.id] = presetClass
+    })
+}
+
+watch(selectedPreset, (newPreset, oldPreset) => {
+    if (!newPreset || newPreset === oldPreset) return
+    applyPresetToSelectedActivities(newPreset)
+})
 
 // Error state
 const errorMessage = ref<string | null>(null)
@@ -280,13 +444,25 @@ onMounted(async () => {
 
 // Watch for activity types to initialize default classes
 const initializeDefaultClasses = () => {
-    if (activityTypes.value) {
-        activityTypes.value.forEach((activity) => {
-            if (!activityClasses.value[activity.id]) {
-                activityClasses.value[activity.id] = "C" // Default class
-            }
-        })
-    }
+    if (!activityTypes.value) return
+
+    const presetKey = selectedPreset.value
+    const presetMap = presetKey ? activityClassPresets[presetKey] : null
+
+    activityTypes.value.forEach((activity) => {
+        const isSelected = selectedActivities.value[activity.id]
+        if (!isSelected && activityClasses.value[activity.id]) {
+            delete activityClasses.value[activity.id]
+            return
+        }
+
+        if (!isSelected) return
+
+        if (!activityClasses.value[activity.id]) {
+            const defaultClass = (presetMap && presetMap[activity.code]) || "C"
+            activityClasses.value[activity.id] = defaultClass as ClassSchema
+        }
+    })
 }
 
 const saveCollaborator = async () => {
@@ -296,10 +472,17 @@ const saveCollaborator = async () => {
         // Collect activity rates from selected activities
         const activityRates = Object.keys(selectedActivities.value)
             .filter((key) => selectedActivities.value[Number(key)])
-            .map((key) => ({
-                activityId: Number(key),
-                class: activityClasses.value[Number(key)],
-            }))
+            .map((key) => {
+                const activityId = Number(key)
+                const activityClass = activityClasses.value[activityId]
+                if (!activityClass) return null
+
+                return {
+                    activityId,
+                    class: activityClass,
+                }
+            })
+            .filter((rate): rate is ActivityRate => rate !== null)
 
         // Update collaborator data with activity rates
         const collaboratorData = {

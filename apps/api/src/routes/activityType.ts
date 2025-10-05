@@ -50,7 +50,10 @@ export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
                     (activityRate) => activityRate.activityId === activity.id
                 )
             )
-            return c.render(activityTypes, 200)
+            return c.render(
+                activityTypes.filter((at) => at.code != "x"),
+                200
+            )
         }
     )
 

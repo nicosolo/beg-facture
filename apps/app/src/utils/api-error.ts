@@ -51,6 +51,10 @@ export class ApiError extends Error {
                 const messages = this.details.map((d) => d.message).join(", ")
                 return t("errors.VALIDATION_ERROR_DETAIL", { details: messages })
             }
+            if (this.code === ErrorCode.NO_PROJECT_FOLDER && this.details?.length) {
+                const messages = this.details.map((d) => d.message).join(", ")
+                return t("errors.NO_PROJECT_FOLDER", { details: messages })
+            }
 
             // Fallback to server message or generic error
             return this.message || t("errors.UNKNOWN_ERROR")

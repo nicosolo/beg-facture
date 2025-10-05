@@ -15,7 +15,12 @@ import { invoiceRepository } from "../db/repositories/invoice.repository"
 import { projectRepository } from "../db/repositories/project.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
-import { throwNotFound, throwValidationError, parseZodError } from "@src/tools/error-handler"
+import {
+    throwNotFound,
+    throwValidationError,
+    parseZodError,
+    throwNoProjectFolderError,
+} from "@src/tools/error-handler"
 import type { Variables } from "@src/types/global"
 import { roleMiddleware } from "@src/tools/role-middleware"
 import { findProjectInvoiceFolder } from "@src/tools/project-folder-finder"
@@ -32,8 +37,7 @@ import {
     fileBaseName,
     matchesStoredPath,
     pathIsWithin,
-}
-from "@src/tools/file-utils"
+} from "@src/tools/file-utils"
 
 type UploadedInvoiceFiles = {
     invoiceDocument?: File
@@ -228,14 +232,14 @@ const handleInvoiceUploads = async (
 
     const project = await projectRepository.findById(projectId, user)
     if (!project) {
-        throwValidationError("Project not found for invoice", [
+        throwNoProjectFolderError("Project not found for invoice", [
             { field: "projectId", message: "Project could not be found" },
         ])
     }
 
     const invoiceFolder = await findProjectInvoiceFolder(project.projectNumber)
     if (!invoiceFolder) {
-        throwValidationError("Invoice folder not found", [
+        throwNoProjectFolderError("Invoice folder not found", [
             {
                 field: "projectId",
                 message: "No folder starting with '9' found for this project",
@@ -296,8 +300,14 @@ export const invoiceRoutes = new Hono<{ Variables: Variables }>()
         }
         const isKnownDocument =
             matchesStoredPath(invoice.invoiceDocument, normalizedFileName) ||
-            (invoice.offers?.some((offer: any) => matchesStoredPath(offer.file, normalizedFileName)) ?? false) ||
-            (invoice.adjudications?.some((adj: any) => matchesStoredPath(adj.file, normalizedFileName)) ?? false)
+            (invoice.offers?.some((offer: any) =>
+                matchesStoredPath(offer.file, normalizedFileName)
+            ) ??
+                false) ||
+            (invoice.adjudications?.some((adj: any) =>
+                matchesStoredPath(adj.file, normalizedFileName)
+            ) ??
+                false)
         if (!isKnownDocument) {
             throwNotFound("Invoice document")
         }

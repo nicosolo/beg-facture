@@ -17,6 +17,7 @@ export const ErrorCode = {
     INVALID_INPUT: "INVALID_INPUT",
     MISSING_REQUIRED_FIELD: "MISSING_REQUIRED_FIELD",
     INVALID_FORMAT: "INVALID_FORMAT",
+    NO_PROJECT_FOLDER: "NO_PROJECT_FOLDER",
 
     // Business logic errors
     DUPLICATE_ENTRY: "DUPLICATE_ENTRY",
@@ -62,6 +63,7 @@ export const errorCodeSchema = z.enum([
     ErrorCode.RATE_LIMIT_EXCEEDED,
     ErrorCode.UNKNOWN_ERROR,
     ErrorCode.RESPONSE_VALIDATION_ERROR,
+    ErrorCode.NO_PROJECT_FOLDER,
     ErrorCode.BAD_REQUEST,
 ])
 

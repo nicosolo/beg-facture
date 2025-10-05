@@ -255,6 +255,7 @@ export default {
         // Error messages with placeholders
         DUPLICATE_ENTRY_DETAIL: "Le champ '{field}' contient une valeur qui existe déjà",
         VALIDATION_ERROR_DETAIL: "Erreurs de validation: {details}",
+        NO_PROJECT_FOLDER: "Dossier du projet non trouvé",
         INVALID_FIELD: "Ce champ est invalide",
     },
     validation: {

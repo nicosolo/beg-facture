@@ -42,43 +42,34 @@
                     </tr>
                     <tr v-for="(entry, index) in entries" :key="index">
                         <td class="px-4 py-2 text-sm text-gray-900">
-                            <div class="flex items-center gap-2">
-                                <button
-                                    type="button"
-                                    class="px-2 py-1 text-xs font-medium text-blue-600 border border-blue-200 rounded hover:bg-blue-50"
-                                    @click="triggerFileInput(index)"
-                                >
-                                    <span v-if="entry.file">
-                                        {{ t("invoice.documents.actions.replace") }}
-                                    </span>
-                                    <span v-else>
-                                        {{ t("invoice.documents.actions.upload") }}
-                                    </span>
-                                </button>
-                                <span v-if="entry.file" class="text-xs text-gray-700 truncate max-w-[160px]">
-                                    {{ entry.file }}
-                                </span>
-                                <button
-                                    v-if="entry.file"
-                                    type="button"
-                                    class="text-xs text-red-600 hover:text-red-700"
-                                    @click="clearFile(index)"
-                                >
-                                    {{ t("common.remove") }}
-                                </button>
-                            </div>
-                            <input
-                                type="file"
-                                class="hidden"
+                            <DocumentUploadField
+                                :required="!entry.file"
+                                :file-name="entry.file"
+                                :display-name="displayFileName(entry.file)"
                                 :accept="accept"
-                                :ref="(el) => setFileInputRef(el, index)"
-                                @change="(event) => onFileChange(index, event)"
-                            />
+                                :upload-label="t('invoice.documents.actions.upload')"
+                                :replace-label="t('invoice.documents.actions.replace')"
+                                :remove-label="t('common.remove')"
+                                @select="(file) => handleFileSelected(index, file)"
+                                @clear="() => clearFile(index)"
+                            >
+                                <template #preview>
+                                    <button
+                                        v-if="previewUrl(entry.file)"
+                                        type="button"
+                                        class="text-blue-600 hover:underline"
+                                        @click="downloadFile(entry.file)"
+                                    >
+                                        {{ t("common.view") }}
+                                    </button>
+                                </template>
+                            </DocumentUploadField>
                         </td>
                         <td class="px-4 py-2 text-sm text-gray-900">
                             <Input
                                 type="date"
                                 :modelValue="formatDateValue(entry.date)"
+                                :required="Boolean(entry.file)"
                                 @update:modelValue="(value) => updateEntry(index, 'date', value)"
                             />
                         </td>
@@ -86,6 +77,7 @@
                             <Input
                                 type="number"
                                 :modelValue="formatAmount(entry.amount)"
+                                :required="Boolean(entry.file)"
                                 @update:modelValue="(value) => updateEntry(index, 'amount', value)"
                             />
                         </td>
@@ -113,9 +105,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed } from "vue"
 import { useI18n } from "vue-i18n"
 import Input from "@/components/atoms/Input.vue"
+import DocumentUploadField from "@/components/molecules/DocumentUploadField.vue"
+import { useInvoiceDocuments } from "@/composables/invoice/useInvoiceDocuments"
 
 export interface InvoiceDocumentEntry {
     file: string
@@ -140,13 +134,12 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const { buildFileUrl, downloadInvoiceFile, extractFileName } = useInvoiceDocuments()
 
 const entries = computed({
     get: () => props.modelValue || [],
     set: (value: InvoiceDocumentEntry[]) => emit("update:modelValue", value),
 })
-
-const fileInputs = ref<HTMLInputElement[]>([])
 
 const accept = computed(() => props.accept || ".pdf,.doc,.docx,.xls,.xlsx")
 
@@ -189,27 +182,31 @@ const updateEntry = (index: number, field: keyof InvoiceDocumentEntry, value: un
     entries.value = updated
 }
 
-const setFileInputRef = (element: HTMLInputElement | null, index: number) => {
-    if (element) {
-        fileInputs.value[index] = element
-    }
-}
-
-const triggerFileInput = (index: number) => {
-    const input = fileInputs.value[index]
-    if (input) {
-        input.click()
-    }
-}
-
 const clearFile = (index: number) => {
     updateEntry(index, "file", "")
     emit("file-change", { index, file: null })
-    const input = fileInputs.value[index]
-    if (input) {
-        input.value = ""
-    }
 }
+
+const handleFileSelected = (index: number, file: File | null) => {
+    updateEntry(index, "file", file ? file.name : "")
+    emit("file-change", { index, file })
+}
+
+const isStoredFile = (file?: string | null) => {
+    if (!file) return false
+    const value = file.trim()
+    if (!value) return false
+    return value.includes("/") || value.includes("\\")
+}
+
+const previewUrl = (file?: string | null) => {
+    if (!isStoredFile(file)) return null
+    return buildFileUrl(file)
+}
+
+const downloadFile = (file?: string | null) => downloadInvoiceFile(file)
+
+const displayFileName = (file?: string | null) => extractFileName(file)
 
 const formatDateValue = (value: InvoiceDocumentEntry["date"]) => {
     if (!value) return ""
@@ -222,15 +219,5 @@ const formatDateValue = (value: InvoiceDocumentEntry["date"]) => {
 const formatAmount = (value: InvoiceDocumentEntry["amount"]) => {
     if (value === null || value === undefined) return ""
     return String(value)
-}
-
-const onFileChange = (index: number, event: Event) => {
-    const input = event.target as HTMLInputElement
-    const file = input.files?.[0] || null
-
-    updateEntry(index, "file", file ? file.name : "")
-    emit("file-change", { index, file })
-
-    input.value = ""
 }
 </script>

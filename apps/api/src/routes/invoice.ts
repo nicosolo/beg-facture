@@ -19,18 +19,32 @@ import { throwNotFound, throwValidationError, parseZodError } from "@src/tools/e
 import type { Variables } from "@src/types/global"
 import { roleMiddleware } from "@src/tools/role-middleware"
 import { findProjectInvoiceFolder } from "@src/tools/project-folder-finder"
-import { ZodError } from "zod"
+import { z, ZodError } from "zod"
 import path from "node:path"
-import { mkdir } from "node:fs/promises"
-import { createWriteStream } from "node:fs"
+import { mkdir, stat } from "node:fs/promises"
+import { createReadStream, createWriteStream } from "node:fs"
 import { Readable } from "node:stream"
 import { pipeline } from "node:stream/promises"
+import {
+    guessMimeType,
+    contentDispositionInline,
+    normalizeStoredPath,
+    fileBaseName,
+    matchesStoredPath,
+    pathIsWithin,
+}
+from "@src/tools/file-utils"
 
 type UploadedInvoiceFiles = {
     invoiceDocument?: File
     offers: Record<number, File>
     adjudications: Record<number, File>
 }
+
+const invoiceFileParamSchema = z.object({
+    id: z.coerce.number().int().positive(),
+    fileName: z.string(),
+})
 
 const isMultipartRequest = (contentType: string | undefined) =>
     Boolean(contentType && contentType.includes("multipart/form-data"))
@@ -157,7 +171,7 @@ const persistUploadedFiles = async (
         const safeName = sanitizeFileName(files.invoiceDocument.name)
         const destinationPath = path.join(destinationFolder, safeName)
         await writeUploadedFile(files.invoiceDocument, destinationPath)
-        ;(invoiceData as any).invoiceDocument = safeName
+        ;(invoiceData as any).invoiceDocument = destinationPath.replace(/\\/g, "/")
     }
 
     if (files.offers) {
@@ -169,11 +183,9 @@ const persistUploadedFiles = async (
             const destinationPath = path.join(destinationFolder, safeName)
             await writeUploadedFile(file, destinationPath)
 
-            if (offers[index]) {
-                offers[index] = { ...offers[index], file: safeName }
-            } else {
-                offers[index] = { file: safeName } as any
-            }
+            const existing = offers[index] ? { ...offers[index] } : ({} as any)
+            existing.file = destinationPath.replace(/\\/g, "/")
+            offers[index] = existing
         }
         invoiceData.offers = offers as any
     }
@@ -190,11 +202,9 @@ const persistUploadedFiles = async (
             const destinationPath = path.join(destinationFolder, safeName)
             await writeUploadedFile(file, destinationPath)
 
-            if (adjudications[index]) {
-                adjudications[index] = { ...adjudications[index], file: safeName }
-            } else {
-                adjudications[index] = { file: safeName } as any
-            }
+            const existing = adjudications[index] ? { ...adjudications[index] } : ({} as any)
+            existing.file = destinationPath.replace(/\\/g, "/")
+            adjudications[index] = existing
         }
 
         invoiceData.adjudications = adjudications as any
@@ -267,6 +277,107 @@ export const invoiceRoutes = new Hono<{ Variables: Variables }>()
             return c.render(invoice, 200)
         }
     )
+    .get("/:id/files/:fileName", zValidator("param", invoiceFileParamSchema), async (c) => {
+        const { id, fileName } = c.req.valid("param")
+        const user = c.get("user")
+        const invoice = await invoiceRepository.findById(id, user)
+        if (!invoice) {
+            throwNotFound("Invoice")
+        }
+        let decodedFileName = fileName
+        try {
+            decodedFileName = decodeURIComponent(fileName)
+        } catch {
+            // keep original if decoding fails
+        }
+        const normalizedFileName = normalizeStoredPath(decodedFileName)
+        if (!normalizedFileName) {
+            throwNotFound("Invoice document")
+        }
+        const isKnownDocument =
+            matchesStoredPath(invoice.invoiceDocument, normalizedFileName) ||
+            (invoice.offers?.some((offer: any) => matchesStoredPath(offer.file, normalizedFileName)) ?? false) ||
+            (invoice.adjudications?.some((adj: any) => matchesStoredPath(adj.file, normalizedFileName)) ?? false)
+        if (!isKnownDocument) {
+            throwNotFound("Invoice document")
+        }
+        const projectNumber = invoice.project?.projectNumber
+        if (!projectNumber) {
+            throwValidationError("Project folder not found for invoice")
+        }
+        const invoiceFolder = await findProjectInvoiceFolder(projectNumber)
+        if (!invoiceFolder) {
+            throwValidationError("Invoice folder not found", [
+                {
+                    field: "projectId",
+                    message: "No folder starting with '9' found for this project",
+                },
+            ])
+        }
+        const projectBase = path.resolve(
+            invoiceFolder.project.fullPath || path.dirname(invoiceFolder.fullPath)
+        )
+
+        const candidatePaths = new Set<string>()
+
+        if (path.isAbsolute(normalizedFileName)) {
+            candidatePaths.add(path.normalize(normalizedFileName))
+        } else {
+            candidatePaths.add(path.resolve(invoiceFolder.fullPath, normalizedFileName))
+            candidatePaths.add(path.resolve(projectBase, normalizedFileName))
+        }
+
+        const addStoredCandidates = (stored?: string | null) => {
+            if (!stored) return
+            const normalizedStored = normalizeStoredPath(stored)
+            if (!normalizedStored) return
+            if (path.isAbsolute(normalizedStored)) {
+                candidatePaths.add(path.normalize(normalizedStored))
+            } else {
+                candidatePaths.add(path.resolve(projectBase, normalizedStored))
+                candidatePaths.add(path.resolve(invoiceFolder.fullPath, normalizedStored))
+            }
+            candidatePaths.add(path.resolve(invoiceFolder.fullPath, fileBaseName(normalizedStored)))
+        }
+
+        addStoredCandidates(invoice.invoiceDocument)
+        invoice.offers?.forEach((offer: any) => addStoredCandidates(offer.file))
+        invoice.adjudications?.forEach((adj: any) => addStoredCandidates(adj.file))
+        candidatePaths.add(path.resolve(invoiceFolder.fullPath, fileBaseName(normalizedFileName)))
+
+        let targetPath: string | null = null
+        let fileStats: Awaited<ReturnType<typeof stat>> | null = null
+
+        for (const candidate of candidatePaths) {
+            const normalizedCandidate = path.normalize(candidate)
+            if (!pathIsWithin(normalizedCandidate, projectBase)) {
+                continue
+            }
+            try {
+                const stats = await stat(normalizedCandidate)
+                if (stats.isFile()) {
+                    targetPath = normalizedCandidate
+                    fileStats = stats
+                    break
+                }
+            } catch {
+                // ignore missing candidate
+            }
+        }
+
+        if (!targetPath || !fileStats) {
+            throwNotFound("Invoice document")
+        }
+
+        const nodeStream = createReadStream(targetPath)
+        const webStream = Readable.toWeb(nodeStream) as unknown as ReadableStream
+        const headers = new Headers({
+            "Content-Type": guessMimeType(normalizedFileName),
+            "Content-Length": fileStats.size.toString(),
+            "Content-Disposition": contentDispositionInline(fileBaseName(normalizedFileName)),
+        })
+        return new Response(webStream, { headers })
+    })
     .post(
         "/",
         responseValidator({
@@ -285,7 +396,6 @@ export const invoiceRoutes = new Hono<{ Variables: Variables }>()
                     { field: "projectId", message: "Missing project reference" },
                 ])
             }
-
             await handleInvoiceUploads(invoiceData, uploadedFiles, user)
             const newInvoice = await invoiceRepository.create(invoiceData, user)
             return c.render(newInvoice, 201)

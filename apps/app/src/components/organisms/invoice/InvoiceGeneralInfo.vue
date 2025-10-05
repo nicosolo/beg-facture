@@ -2,26 +2,19 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Left Column -->
         <div>
-            <!-- Invoice Reference -->
             <div class="mb-4">
                 <h3 class="text-sm font-medium text-gray-700 mb-1">Objet de la facture</h3>
                 <Input v-model="invoice.reference" type="text" required />
             </div>
-            <!-- Invoice Period -->
+
             <div class="mb-4">
                 <h3 class="text-sm font-medium text-gray-700 mb-1">Période de facturation</h3>
                 <div class="flex gap-2">
-                    <Input
-                        v-model="startDate"
-                        type="date"
-                        placeholder="Date début"
-                        className="w-1/2"
-                    />
-                    <Input v-model="endDate" type="date" placeholder="Date fin" className="w-1/2" />
+                    <Input v-model="startDate" type="date" className="w-1/2" />
+                    <Input v-model="endDate" type="date" className="w-1/2" />
                 </div>
             </div>
 
-            <!-- Description -->
             <div class="mb-4">
                 <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceDescription">
                     Description des prestations
@@ -29,25 +22,16 @@
                 <Textarea id="invoiceDescription" v-model="invoice.description" :rows="6" />
             </div>
 
-            <!-- Note -->
             <div class="mb-4">
                 <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceNote">
                     Note
                 </label>
-                <Textarea
-                    id="invoiceNote"
-                    v-model="invoice.note"
-                    :rows="4"
-                    placeholder="Note additionnelle pour la facture"
-                />
+                <Textarea id="invoiceNote" v-model="invoice.note" :rows="4" />
             </div>
         </div>
 
-        <!-- Right Column -->
         <div>
-            <!-- Invoice Type and Billing Mode on same line -->
             <div class="grid grid-cols-2 gap-4 mb-4">
-                <!-- Invoice Type -->
                 <div>
                     <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceType">
                         Type de facture
@@ -64,7 +48,6 @@
                     />
                 </div>
 
-                <!-- Billing mode -->
                 <div>
                     <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceBillingMode">
                         Mode de facturation
@@ -73,60 +56,46 @@
                         id="invoiceBillingMode"
                         v-model="invoice.billingMode"
                         :options="[
-                            {
-                                value: 'accordingToData',
-                                label: $t('invoice.billingMode.accordingToData'),
-                            },
-                            {
-                                value: 'accordingToOffer',
-                                label: $t('invoice.billingMode.accordingToOffer'),
-                            },
-                            {
-                                value: 'accordingToInvoice',
-                                label: $t('invoice.billingMode.accordingToInvoice'),
-                            },
+                            { value: 'accordingToData', label: $t('invoice.billingMode.accordingToData') },
+                            { value: 'accordingToOffer', label: $t('invoice.billingMode.accordingToOffer') },
+                            { value: 'accordingToInvoice', label: $t('invoice.billingMode.accordingToInvoice') },
                             { value: 'fixedPrice', label: $t('invoice.billingMode.fixedPrice') },
                         ]"
                     />
                     <div v-if="invoice.billingMode === 'accordingToInvoice'" class="mt-4">
-                        <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceDocument">
-                            {{ $t("invoice.document.label") }}
+                        <label class="text-sm font-medium text-gray-700 mb-1">
+                            {{ $t('invoice.document.label') }}
                         </label>
-                        <input
-                            id="invoiceDocument"
-                            ref="invoiceDocumentInput"
-                            type="file"
-                            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        <DocumentUploadField
+                            :required="invoice.billingMode === 'accordingToInvoice' && !invoice.invoiceDocument"
+                            :file-name="invoice.invoiceDocument"
+                            :display-name="invoiceDocumentDisplayName"
                             accept=".pdf,.doc,.docx,.xls,.xlsx"
-                            :required="invoice.billingMode === 'accordingToInvoice'"
-                            @change="handleInvoiceDocumentChange"
-                        />
-                        <p class="mt-1 text-xs text-gray-500">
-                            {{ $t("invoice.document.helper") }}
-                        </p>
-                        <div
-                            v-if="invoice.invoiceDocument"
-                            class="mt-2 flex items-center justify-between rounded border border-blue-100 bg-blue-50 px-3 py-2 text-sm text-blue-700"
+                            :upload-label="$t('invoice.documents.actions.upload')"
+                            :replace-label="$t('invoice.documents.actions.replace')"
+                            :remove-label="$t('invoice.document.clear')"
+                            @select="handleInvoiceDocumentSelected"
+                            @clear="clearInvoiceDocument"
                         >
-                            <span class="truncate">
-                                {{ invoice.invoiceDocument }}
-                            </span>
-                            <button
-                                type="button"
-                                class="ml-3 text-xs font-medium text-blue-700 hover:underline"
-                                @click="clearInvoiceDocument"
-                            >
-                                {{ $t("invoice.document.clear") }}
-                            </button>
-                        </div>
+                            <template #preview>
+                                <button
+                                    v-if="invoiceDocumentPreviewUrl"
+                                    type="button"
+                                    class="text-blue-600 hover:underline"
+                                    @click="downloadInvoiceDocument"
+                                >
+                                    {{ $t('common.view') }}
+                                </button>
+                            </template>
+                        </DocumentUploadField>
+                        <p class="mt-1 text-xs text-gray-500">{{ $t('invoice.document.helper') }}</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Invoice Status -->
             <div class="mb-4">
                 <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceStatus">
-                    {{ $t("invoice.status.title") }}
+                    {{ $t('invoice.status.title') }}
                 </label>
                 <Select
                     id="invoiceStatus"
@@ -141,18 +110,12 @@
                     ]"
                 />
             </div>
-            <!-- Period String -->
+
             <div class="mb-4">
                 <label class="text-sm font-medium text-gray-700 mb-1" for="invoicePeriod">
                     Période
                 </label>
-                <Input
-                    id="invoicePeriod"
-                    v-model="invoice.period"
-                    type="text"
-                    placeholder="Ex: Janvier 2025 - Mars 2025"
-                    required
-                />
+                <Input id="invoicePeriod" v-model="invoice.period" type="text" required />
             </div>
 
             <InvoiceDocumentEntries
@@ -177,43 +140,33 @@
         </div>
     </div>
 
-    <!-- Addresses Section - Full Width -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <!-- Client Information -->
         <div>
             <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceClientAddress">
                 Adresse de facturation (société)
             </label>
-            <Textarea
-                id="invoiceClientAddress"
-                v-model="invoice.clientAddress"
-                :rows="4"
-                placeholder="Adresse de facturation (société)"
-            />
+            <Textarea id="invoiceClientAddress" v-model="invoice.clientAddress" :rows="4" />
         </div>
 
-        <!-- Recipient Information -->
         <div>
             <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceRecipientAddress">
                 Adresse d'envoi de la facture
             </label>
-            <Textarea
-                id="invoiceRecipientAddress"
-                v-model="invoice.recipientAddress"
-                :rows="4"
-                placeholder="Adresse d'envoi de la facture"
-            />
+            <Textarea id="invoiceRecipientAddress" v-model="invoice.recipientAddress" :rows="4" />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { type Invoice } from "@beg/validations"
-import { computed, ref, watch } from "vue"
+import { computed, watch } from "vue"
+import { useI18n } from "vue-i18n"
 import Input from "@/components/atoms/Input.vue"
 import Select from "@/components/atoms/Select.vue"
 import Textarea from "@/components/atoms/Textarea.vue"
 import InvoiceDocumentEntries from "./InvoiceDocumentEntries.vue"
+import DocumentUploadField from "@/components/molecules/DocumentUploadField.vue"
+import { useInvoiceDocuments } from "@/composables/invoice/useInvoiceDocuments"
 
 const props = defineProps<{
     modelValue: Invoice
@@ -221,19 +174,30 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     "update:modelValue": [value: Invoice]
-    "document-file-change": [
-        value: { type: "offer" | "adjudication"; index: number; file: File | null },
-    ]
+    "document-file-change": [value: { type: "offer" | "adjudication"; index: number; file: File | null }]
     "document-entry-removed": [value: { type: "offer" | "adjudication"; index: number }]
     "invoice-document-change": [value: File | null]
 }>()
+
+const { t } = useI18n()
+const { buildFileUrl, downloadInvoiceFile, extractFileName } = useInvoiceDocuments()
 
 const invoice = computed({
     get: () => props.modelValue,
     set: (value) => emit("update:modelValue", value),
 })
 
-const invoiceDocumentInput = ref<HTMLInputElement | null>(null)
+const invoiceDocumentPreviewUrl = computed(() => {
+    const file = invoice.value.invoiceDocument
+    if (!file) return null
+    const trimmed = file.trim()
+    if (!trimmed) return null
+    const hasPath = trimmed.includes("/") || trimmed.includes("\\")
+    if (!hasPath) return null
+    return buildFileUrl(file)
+})
+
+const invoiceDocumentDisplayName = computed(() => extractFileName(invoice.value.invoiceDocument))
 
 const handleDocumentFileChange = (
     type: "offer" | "adjudication",
@@ -245,6 +209,8 @@ const handleDocumentFileChange = (
 const handleDocumentEntryRemoved = (type: "offer" | "adjudication", payload: { index: number }) => {
     emit("document-entry-removed", { type, ...payload })
 }
+
+const downloadInvoiceDocument = () => downloadInvoiceFile(invoice.value.invoiceDocument)
 
 const startDate = computed({
     get: () => invoice.value.periodStart?.toISOString().split("T")[0] || "",
@@ -264,15 +230,13 @@ const endDate = computed({
     },
 })
 
-const handleInvoiceDocumentChange = (event: Event) => {
-    const target = event.target as HTMLInputElement
-    const file = target.files?.[0]
-    const updatedInvoice = {
+const handleInvoiceDocumentSelected = (file: File | null) => {
+    if (!file) return
+    invoice.value = {
         ...invoice.value,
-        invoiceDocument: file ? file.name : "",
+        invoiceDocument: file.name,
     }
-    invoice.value = updatedInvoice
-    emit("invoice-document-change", file ?? null)
+    emit("invoice-document-change", file)
 }
 
 const clearInvoiceDocument = () => {
@@ -281,9 +245,6 @@ const clearInvoiceDocument = () => {
         ...invoice.value,
         invoiceDocument: "",
     }
-    if (invoiceDocumentInput.value) {
-        invoiceDocumentInput.value.value = ""
-    }
     emit("invoice-document-change", null)
 }
 
@@ -291,13 +252,7 @@ watch(
     () => invoice.value.billingMode,
     (mode) => {
         if (mode !== "accordingToInvoice" && invoice.value.invoiceDocument) {
-            invoice.value = {
-                ...invoice.value,
-                invoiceDocument: "",
-            }
-            if (invoiceDocumentInput.value) {
-                invoiceDocumentInput.value.value = ""
-            }
+            clearInvoiceDocument()
         }
     }
 )

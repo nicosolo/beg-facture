@@ -4,6 +4,7 @@
         :value="modelValue"
         :placeholder="placeholder"
         :disabled="disabled"
+        :required="required"
         :class="[
             'w-full h-[39px] px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
             disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white',
@@ -20,6 +21,7 @@ defineProps<{
     placeholder?: string
     disabled?: boolean
     className?: string
+    required?: boolean
 }>()
 
 defineEmits<{

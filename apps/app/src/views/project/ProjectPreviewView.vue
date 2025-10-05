@@ -2,9 +2,7 @@
     <div class="bg-white">
         <!-- Header with title and actions -->
         <div class="py-4 border-b border-gray-200">
-            <div
-                class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
-            >
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div class="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
                     <div class="flex flex-wrap items-baseline gap-2">
                         <h1 class="text-2xl font-bold">
@@ -21,9 +19,7 @@
                         {{ projectData?.name || $t("projects.noName") }}
                     </span>
                 </div>
-                <div
-                    class="flex flex-wrap gap-2 justify-start md:justify-end"
-                >
+                <div class="flex flex-wrap gap-2 justify-start md:justify-end">
                     <Button
                         class="w-full sm:w-auto"
                         variant="primary"
@@ -59,9 +55,7 @@
 
         <!-- Tabs Navigation -->
         <div class="border-b border-gray-200">
-            <nav
-                class="flex flex-wrap gap-2 -mb-px px-4 sm:px-6 overflow-x-auto"
-            >
+            <nav class="flex flex-wrap gap-2 -mb-px px-4 sm:px-6 overflow-x-auto">
                 <button
                     @click="activeTab = 'overview'"
                     :class="[
@@ -372,7 +366,6 @@ watch(
 // Load project data on mount
 onMounted(async () => {
     if (projectId.value && !isNaN(projectId.value)) {
-        console.log(isElectron.value)
         if (isElectron.value) {
             await fetchProjectFolder({ params: { id: projectId.value } })
         }

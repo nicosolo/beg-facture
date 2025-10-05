@@ -83,7 +83,17 @@
                             {{ t("invoice.document.label") }}
                         </td>
                         <td class="border border-gray-300 p-1 text-sm">
-                            {{ invoice.invoiceDocument }}
+                            <button
+                                v-if="buildFileUrl(invoice.invoiceDocument)"
+                                type="button"
+                                class="text-blue-600 hover:underline"
+                                @click="downloadInvoiceFile(invoice.invoiceDocument)"
+                            >
+                                {{ extractFileName(invoice.invoiceDocument) }}
+                            </button>
+                            <template v-else>{{
+                                extractFileName(invoice.invoiceDocument)
+                            }}</template>
                         </td>
                     </tr>
                     <tr v-if="invoice.note">
@@ -434,7 +444,17 @@
                         <td class="doc1 w-[1.8cm] border-none p-1 text-sm">
                             {{ formatDate(offer.date) }}
                         </td>
-                        <td class="doc2 w-[5.7cm] border-none p-1 text-sm">{{ offer.file }}</td>
+                        <td class="doc2 w-[5.7cm] border-none p-1 text-sm">
+                            <button
+                                v-if="buildFileUrl(offer.file)"
+                                type="button"
+                                class="text-blue-600 hover:underline"
+                                @click="downloadInvoiceFile(offer.file)"
+                            >
+                                {{ extractFileName(offer.file) }}
+                            </button>
+                            <template v-else>{{ extractFileName(offer.file) }}</template>
+                        </td>
                         <td class="doc3 border-none p-1 text-sm">{{ offer.remark }}</td>
                     </tr>
                 </tbody>
@@ -453,7 +473,15 @@
                             {{ formatDate(adjudication.date) }}
                         </td>
                         <td class="doc2 w-[5.7cm] border-none p-1 text-sm">
-                            {{ adjudication.file }}
+                            <button
+                                v-if="buildFileUrl(adjudication.file)"
+                                type="button"
+                                class="text-blue-600 hover:underline"
+                                @click="downloadInvoiceFile(adjudication.file)"
+                            >
+                                {{ extractFileName(adjudication.file) }}
+                            </button>
+                            <template v-else>{{ extractFileName(adjudication.file) }}</template>
                         </td>
                         <td class="doc3 border-none p-1 text-sm">{{ adjudication.remark }}</td>
                     </tr>
@@ -468,6 +496,7 @@ import { defineProps, computed } from "vue"
 import { type InvoiceResponse } from "@beg/validations"
 import { useFormat } from "@/composables/utils/useFormat"
 import { useI18n } from "vue-i18n"
+import { useInvoiceDocuments } from "@/composables/invoice/useInvoiceDocuments"
 
 interface InvoiceProps {
     invoice: InvoiceResponse
@@ -476,7 +505,7 @@ interface InvoiceProps {
 const props = defineProps<InvoiceProps>()
 const { formatCurrency, formatDuration, formatDate } = useFormat()
 const { t } = useI18n()
-
+const { buildFileUrl, downloadInvoiceFile, extractFileName } = useInvoiceDocuments()
 const formattedDescription = computed(() => {
     // Replace line breaks with <br> tags for HTML rendering
     if (!props.invoice.description) return ""

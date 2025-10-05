@@ -4,10 +4,10 @@
     "type": "module",
     "main": "src/main.js",
     "description": "BEG Management App",
-    "author": "Nicolas Solioz (n@solioz.me)",
+    "author": "BEG (n@solioz.me)",
     "scripts": {
         "start": "electron .",
-        "dev": "NODE_ENV=development electron .",
+        "dev": "HOST_PROJECT_FOLDER=/Volumes/BEG/Mandats NODE_ENV=development electron .",
         "test": "NODE_ENV=test electron .",
         "build": "electron-builder",
         "dist": "electron-builder",

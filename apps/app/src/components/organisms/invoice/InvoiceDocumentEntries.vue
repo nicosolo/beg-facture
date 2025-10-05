@@ -89,13 +89,14 @@
                             />
                         </td>
                         <td class="px-4 py-2 text-sm text-gray-900">
-                            <button
+                            <Button
                                 type="button"
-                                class="text-xs text-red-600 hover:text-red-700"
+                                variant="danger"
+                                size="sm"
                                 @click="removeEntry(index)"
                             >
-                                {{ t("invoice.documents.actions.delete") }}
-                            </button>
+                                X
+                            </Button>
                         </td>
                     </tr>
                 </tbody>
@@ -110,6 +111,7 @@ import { useI18n } from "vue-i18n"
 import Input from "@/components/atoms/Input.vue"
 import DocumentUploadField from "@/components/molecules/DocumentUploadField.vue"
 import { useInvoiceDocuments } from "@/composables/invoice/useInvoiceDocuments"
+import Button from "@/components/atoms/Button.vue"
 
 export interface InvoiceDocumentEntry {
     file: string
@@ -210,10 +212,15 @@ const displayFileName = (file?: string | null) => extractFileName(file)
 
 const formatDateValue = (value: InvoiceDocumentEntry["date"]) => {
     if (!value) return ""
-    if (value instanceof Date) {
-        return value.toISOString().split("T")[0]
+    if (!(value instanceof Date)) {
+        try {
+            value = new Date(value)
+        } catch (e) {}
     }
-    return value
+    if (!(value instanceof Date)) {
+        return value
+    }
+    return value.toISOString().split("T")[0]
 }
 
 const formatAmount = (value: InvoiceDocumentEntry["amount"]) => {

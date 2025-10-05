@@ -1,3 +1,4 @@
+// Remove when Production
 import { db } from "./index"
 import {
     users,
@@ -28,6 +29,7 @@ import type {
     UserRole,
 } from "@beg/validations"
 import { updateProjectActivityDates } from "./repositories/activity.repository"
+import { importProjectCoordinatesFromCsv } from "../scripts/import-project-coordinates"
 
 let exportDir = "/app/export-mdb"
 
@@ -484,6 +486,63 @@ async function importProjects() {
     console.log(`Imported ${imported} projects total`)
 }
 
+async function importProjectCoordinates() {
+    const initialDataDir = path.resolve("/app/initial-data")
+
+    if (!existsSync(initialDataDir)) {
+        console.warn(`Initial data directory not found: ${initialDataDir}`)
+        return
+    }
+
+    const normalizeFilename = (value: string) =>
+        value
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+
+    const expectedName = "Géoréférencement mandats_v2024.csv"
+    const normalizedExpected = normalizeFilename(expectedName)
+
+    let csvFilename: string | undefined
+
+    try {
+        const entries = await fs.readdir(initialDataDir)
+        csvFilename =
+            entries.find((name) => normalizeFilename(name) === normalizedExpected) ??
+            entries.find(
+                (name) =>
+                    normalizeFilename(name).startsWith("georeferencement mandats") &&
+                    name.toLowerCase().endsWith(".csv")
+            )
+    } catch (error) {
+        console.error(`Failed to read coordinate data directory ${initialDataDir}`, error)
+        return
+    }
+
+    if (!csvFilename) {
+        console.warn(
+            `Project coordinate CSV matching ${expectedName} not found in ${initialDataDir}`
+        )
+        return
+    }
+
+    const csvPath = path.join(initialDataDir, csvFilename)
+
+    if (!existsSync(csvPath)) {
+        console.warn(`Project coordinate CSV not found at ${csvPath}`)
+        return
+    }
+
+    try {
+        const csvData = await fs.readFile(csvPath, "utf8")
+        console.log(`Importing project coordinates from ${csvFilename}`)
+        await importProjectCoordinatesFromCsv(csvData)
+        console.log("Project coordinate import completed")
+    } catch (error) {
+        console.error(`Failed to import project coordinates from ${csvFilename}`, error)
+    }
+}
+
 async function importActivityTypes() {
     const activityTypeData = await readJsonFile("Activités")
     if (activityTypeData.length === 0) return
@@ -873,6 +932,7 @@ export async function runImport(customExportDir?: string) {
         importEngineers,
         importRateClasses,
         importProjects,
+        importProjectCoordinates,
         importActivityTypes,
         importActivities,
         importProjectAccess,

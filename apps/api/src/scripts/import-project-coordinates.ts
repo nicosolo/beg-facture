@@ -120,13 +120,18 @@ async function updateProjectCoordinates(row: CsvRow) {
     )
 }
 
-async function main() {
-    const stdin = await new Response(Bun.stdin.stream()).text()
-    const rows = parseCsv(stdin)
+export async function importProjectCoordinatesFromCsv(csvInput: string) {
+    const rows = parseCsv(csvInput)
 
     for (const row of rows) {
         await updateProjectCoordinates(row)
     }
+}
+
+async function main() {
+    const stdin = await new Response(Bun.stdin.stream()).text()
+
+    await importProjectCoordinatesFromCsv(stdin)
 }
 
 if (import.meta.main) {

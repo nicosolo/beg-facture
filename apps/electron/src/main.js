@@ -207,10 +207,8 @@ app.on("activate", async () => {
     }
 })
 
-// Handle certificate errors in development
-if (isDev) {
-    app.on("certificate-error", (event, webContents, url, error, certificate, callback) => {
-        event.preventDefault()
-        callback(true)
-    })
-}
+app.on("certificate-error", (event, webContents, url, error, certificate, callback) => {
+    event.preventDefault()
+    callback(true) // tell Electron to ignore the broken cert
+    return
+})

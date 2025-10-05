@@ -56,6 +56,8 @@ COPY apps/api/package.json ./apps/api/
 COPY apps/app/package.json ./apps/app/
 COPY apps/app/package.json ./apps/app/
 COPY packages/ ./packages/
+## Remove when Production
+COPY initial-data/ ./initial-data/
 
 # Install dependencies - this layer is cached unless package files change
 RUN bun install --network-concurrency=5 --no-frozen-lockfile --production || \

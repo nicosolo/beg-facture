@@ -8,7 +8,7 @@ import {
     normalizeStoredPath,
     pathIsWithin,
 } from "@src/tools/file-utils"
-import { PROJECT_BASE_DIR, PROJECT_HOST_DIR } from "@src/config"
+import { PROJECT_BASE_DIR } from "@src/config"
 import { throwNotFound } from "@src/tools/error-handler"
 import path from "node:path"
 import { stat } from "node:fs/promises"

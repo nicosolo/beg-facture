@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+// Remove when Production
 /**
  * Standalone script to import MS Access database
  * Usage: bun run src/scripts/import-mdb.ts [mdb-file-path]

@@ -13,5 +13,3 @@ export const MS_ACCESS_DB_PATH = "/export-mdb/beg.mdb"
 
 // Project folder configuration
 export const PROJECT_BASE_DIR = "/mandats"
-
-export const PROJECT_HOST_DIR = process.env.PROJECT_HOST_DIR || "N://Mandats"

@@ -488,17 +488,97 @@ async function importActivityTypes() {
     const activityTypeData = await readJsonFile("Activités")
     if (activityTypeData.length === 0) return
 
+    const codeOverrides: Record<string, string> = {
+        Ex: "Ex",
+        Ec: "Ec",
+        Eo: "Eo",
+        Er: "Er",
+        Es: "Es",
+        Et: "Et",
+        Ma: "Ee",
+        Ed: "Ed",
+        Ef: "Ef",
+        Gm: "Em",
+        NF: "Nf",
+        Ga: "Ga",
+        Gd: "x",
+    }
+
+    const nameOverrides: Record<string, string> = {
+        Ex: "Etude: expertise, gestion projet",
+        Ec: "Etude: coordination, mail, courrier",
+        Eo: "Etude: offre, facturation",
+        Er: "Etude: analyse, rapport",
+        Es: "Etude: séance, PV",
+        Et: "Etude: terrain spécialiste",
+        Ma: "Etude: essai, terrain opérateur",
+        Ed: "Etude: SIG, dessin spécialiste",
+        Ef: "Etude: terrain aide, dessin/tâche faciles",
+        Gm: "Etude: entretien matériel, manutention",
+        NF: "Hors mandat: non facturable",
+        Ga: "Gestion: administration",
+        Gd: "Gestion: dactylographie (archivée)",
+    }
+
+    const activityTypesToInsert: (typeof activityTypes.$inferInsert)[] = []
+
     for (const rawActivityType of activityTypeData) {
+        const originalCode = (rawActivityType.Code || "").trim()
+        const fallbackCode = rawActivityType.Activité
+            ? rawActivityType.Activité.substring(0, 3).toUpperCase()
+            : undefined
+        const mappedCode = originalCode || fallbackCode
+
+        if (!mappedCode) continue
+
+        const code = codeOverrides[mappedCode] || mappedCode
+        const name = nameOverrides[mappedCode] || rawActivityType.Activité
+
         const activityType = {
             id: rawActivityType.IDactivité,
-            name: rawActivityType.Activité,
-            code: rawActivityType.Code || rawActivityType.Activité.substring(0, 3).toUpperCase(),
+            name,
+            code,
             billable: rawActivityType.Activité === "Non facturable" ? false : true,
             createdAt: new Date(),
             updatedAt: new Date(),
         } satisfies typeof activityTypes.$inferInsert
 
-        await db.insert(activityTypes).values(activityType)
+        activityTypesToInsert.push(activityType)
+    }
+
+    const additionalActivityTypes: (typeof activityTypes.$inferInsert)[] = [
+        {
+            name: "Gestion: comptabilité",
+            code: "Gc",
+            billable: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        } satisfies typeof activityTypes.$inferInsert,
+        {
+            name: "Gestion: RH",
+            code: "Gr",
+            billable: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        } satisfies typeof activityTypes.$inferInsert,
+        {
+            name: "Gestion: archivage",
+            code: "Ga",
+            billable: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        } satisfies typeof activityTypes.$inferInsert,
+    ]
+
+    const existingNames = new Set(activityTypesToInsert.map((item) => item.name))
+    for (const additionalActivity of additionalActivityTypes) {
+        if (existingNames.has(additionalActivity.name)) continue
+        activityTypesToInsert.push(additionalActivity)
+        existingNames.add(additionalActivity.name)
+    }
+
+    if (activityTypesToInsert.length > 0) {
+        await db.insert(activityTypes).values(activityTypesToInsert)
     }
 
     const importedActivityTypes = await db.select().from(activityTypes)

@@ -47,7 +47,7 @@
                         type="button"
                         class="text-sm px-3 py-1.5 rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center hover:bg-indigo-200 text-indigo-700 w-full sm:w-auto"
                     >
-                        Open Folder
+                        Ouvrir dossier
                     </button>
                 </div>
             </div>

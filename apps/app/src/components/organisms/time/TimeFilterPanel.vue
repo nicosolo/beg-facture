@@ -30,7 +30,7 @@
 
                         <div
                             class="form-group col-span-1 md:col-span-6 lg:col-span-3"
-                            v-if="showProjectFilter && is('admin')"
+                            v-if="showProjectFilter && isRole('admin')"
                         >
                             <Label>{{ $t("shared.selectReferentUser") }}</Label>
                             <UserSelect
@@ -106,7 +106,7 @@
                                 />
                                 {{ $t("time.filters.billed") }}
                             </label>
-                            <label class="flex items-center">
+                            <label class="flex items-center" v-if="isRole('admin')">
                                 <input
                                     type="checkbox"
                                     v-model="localFilter.includeDisbursement"
@@ -153,7 +153,7 @@ interface Props {
 }
 
 const { filter, showProjectFilter = true, initialFilter } = defineProps<Props>()
-const { is } = useAuthStore()
+const { isRole } = useAuthStore()
 const emit = defineEmits<{
     "update:filter": [value: ActivityFilter]
 }>()

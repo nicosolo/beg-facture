@@ -1,9 +1,7 @@
 <template>
     <LoadingOverlay :loading="loading">
         <div class="container mx-auto">
-            <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6"
-            >
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
                 <h1 class="text-2xl font-bold">{{ $t("location.title") }}</h1>
                 <Button
                     v-if="isAdmin"
@@ -128,7 +126,7 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 const { successAlert, errorAlert } = useAlert()
 // Check if user is admin
-const isAdmin = computed(() => authStore.is("admin"))
+const isAdmin = computed(() => authStore.isRole("admin"))
 
 // Table columns
 const columns = [

@@ -79,7 +79,7 @@ export const useAuthStore = defineStore("auth", () => {
         return token.value ? { Authorization: `Bearer ${token.value}` } : { Authorization: "" }
     }
 
-    function is(requiredRole: UserRole) {
+    function isRole(requiredRole: UserRole) {
         return hasRole(user.value?.role, requiredRole)
     }
 
@@ -90,6 +90,6 @@ export const useAuthStore = defineStore("auth", () => {
         login,
         logout,
         getAuthHeaders,
-        is,
+        isRole,
     }
 })

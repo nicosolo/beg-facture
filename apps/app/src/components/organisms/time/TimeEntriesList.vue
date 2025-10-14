@@ -177,7 +177,9 @@ import type { ActivityResponse } from "@beg/validations"
 import { truncateText } from "@/utils/text"
 import TruncateWithTooltip from "@/components/atoms/TruncateWithTooltip.vue"
 import { useAlert } from "@/composables/utils/useAlert"
+import { useAuthStore } from "@/stores/auth"
 
+const { isRole } = useAuthStore()
 const { formatDuration, formatDate, formatNumber, formatCurrency } = useFormat()
 const { t } = useI18n()
 const { successAlert, errorAlert } = useAlert()
@@ -230,7 +232,9 @@ const defaultColumns: Column[] = [
     { key: "expenses", label: t("time.columns.expenses"), sortKey: "expenses", width: "5rem" },
     { key: "description", label: t("time.columns.description"), tooltip: true, fullWidth: true },
     { key: "billed", label: t("time.columns.billed"), width: "4rem" },
-    { key: "disbursement", label: t("time.columns.disbursement"), width: "4rem" },
+    ...(isRole("admin")
+        ? [{ key: "disbursement", label: t("time.columns.disbursement"), width: "4rem" }]
+        : []),
     { key: "actions", label: t("common.actions"), actions: true, width: "5rem" },
 ]
 

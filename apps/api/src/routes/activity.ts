@@ -114,8 +114,8 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 expenses: activityData.expenses ?? 0,
                 rate: activityRate.amount,
                 rateClass: userClass.class,
-                disbursement: activityData.disbursement ?? false,
                 billed: activityData.billed ?? false,
+                disbursement: false,
                 description: activityData.description ?? "",
                 createdAt: new Date(),
                 updatedAt: new Date(),
@@ -199,6 +199,7 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
 
             const updatedActivity = await activityRepository.update(id, {
                 ...activityData,
+                disbursement: existingActivity.disbursement,
                 rate: rate,
                 rateClass: rateClass,
                 userId: userId,

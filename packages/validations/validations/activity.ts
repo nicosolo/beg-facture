@@ -34,7 +34,6 @@ export const activityCreateSchema = z.object({
     expenses: z.number(),
     description: z.string(),
     billed: z.boolean(),
-    disbursement: z.boolean(),
     userId: z.number().optional(),
 })
 
@@ -75,7 +74,7 @@ export const activityResponseSchema = z
         rateClass: classSchema.nullable(),
         description: z.string().nullable(),
         billed: z.boolean(),
-        disbursement: z.boolean(),
+        disbursement: z.boolean().optional(),
         user: z
             .object({
                 id: z.number(),

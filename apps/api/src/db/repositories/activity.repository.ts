@@ -3,6 +3,7 @@ import { db } from "../index"
 import { activities, activityTypes, projects, users, projectAccess } from "../schema"
 import type { ActivityFilter } from "@beg/validations"
 import type { Variables } from "@src/types/global"
+import { hasRole } from "@src/tools/role-middleware"
 
 // Helper function to update project dates and duration
 export async function updateProjectActivityDates(projectId: number) {
@@ -130,7 +131,7 @@ export const activityRepository = {
                 rateClass: activities.rateClass,
                 description: activities.description,
                 billed: activities.billed,
-                disbursement: activities.disbursement,
+                ...(hasRole(user.role, "admin") ? { disbursement: activities.disbursement } : {}),
                 createdAt: activities.createdAt,
                 updatedAt: activities.updatedAt,
                 invoiceId: activities.invoiceId,
@@ -241,7 +242,7 @@ export const activityRepository = {
                 rateClass: activities.rateClass,
                 description: activities.description,
                 billed: activities.billed,
-                disbursement: activities.disbursement,
+                ...(hasRole(user.role, "admin") ? { disbursement: activities.disbursement } : {}),
                 createdAt: activities.createdAt,
                 updatedAt: activities.updatedAt,
                 invoiceId: activities.invoiceId,

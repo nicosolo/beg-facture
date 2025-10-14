@@ -14,7 +14,7 @@ const { alerts, removeAlert } = useAlert()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
-const hasAdminAccess = computed(() => authStore.is("admin"))
+const hasAdminAccess = computed(() => authStore.isRole("admin"))
 
 // Check if the current route is the login page
 const isLoginPage = computed(() => route.name === "login")

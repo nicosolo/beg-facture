@@ -1,19 +1,17 @@
 <template>
     <LoadingOverlay :loading="loading">
         <div class="container mx-auto">
-        <div
-            class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6"
-        >
-            <h1 class="text-2xl font-bold">{{ $t("company.title") }}</h1>
-            <Button
-                v-if="isAdmin"
-                variant="primary"
-                @click="openCreateModal"
-                class="w-full sm:w-auto"
-            >
-                {{ $t("company.new") }}
-            </Button>
-        </div>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+                <h1 class="text-2xl font-bold">{{ $t("company.title") }}</h1>
+                <Button
+                    v-if="isAdmin"
+                    variant="primary"
+                    @click="openCreateModal"
+                    class="w-full sm:w-auto"
+                >
+                    {{ $t("company.new") }}
+                </Button>
+            </div>
 
             <!-- Filters -->
             <Card class="mb-6">
@@ -109,7 +107,7 @@ const authStore = useAuthStore()
 const { successAlert, errorAlert } = useAlert()
 
 // Check if user is admin
-const isAdmin = computed(() => authStore.is("admin"))
+const isAdmin = computed(() => authStore.isRole("admin"))
 
 // Table columns
 const columns: Column[] = [
@@ -170,7 +168,7 @@ watch(currentPage, () => {
 
 // Load companies on mount
 onMounted(() => {
-    document.title = 'BEG - Entreprises'
+    document.title = "BEG - Entreprises"
     fetchCompanies()
 })
 

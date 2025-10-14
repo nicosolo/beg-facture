@@ -1,9 +1,7 @@
 <template>
     <LoadingOverlay :loading="loading">
         <div class="container mx-auto">
-            <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6"
-            >
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
                 <h1 class="text-2xl font-bold">{{ $t("monthlyHours.title") }}</h1>
                 <Button
                     v-if="isAdmin"
@@ -142,7 +140,7 @@ const router = useRouter()
 const { successAlert } = useAlert()
 
 // Check if user is admin
-const isAdmin = computed(() => authStore.is("admin"))
+const isAdmin = computed(() => authStore.isRole("admin"))
 
 // Redirect if not admin
 if (!isAdmin.value) {
@@ -157,7 +155,9 @@ const formatNumber = (num: number) => {
 // Generate year options (from 2000 to current year + 5)
 const currentYear = new Date().getFullYear()
 const yearOptions = computed(() => {
-    const options: Array<{ value: number | null; label: string }> = [{ value: null, label: t("common.all") }]
+    const options: Array<{ value: number | null; label: string }> = [
+        { value: null, label: t("common.all") },
+    ]
     for (let year = currentYear + 5; year >= 2000; year--) {
         options.push({ value: year, label: year.toString() })
     }
@@ -166,7 +166,9 @@ const yearOptions = computed(() => {
 
 // Month options
 const monthOptions = computed(() => {
-    const options: Array<{ value: number | null; label: string }> = [{ value: null, label: t("common.all") }]
+    const options: Array<{ value: number | null; label: string }> = [
+        { value: null, label: t("common.all") },
+    ]
     for (let month = 1; month <= 12; month++) {
         options.push({ value: month, label: t(`common.months.${month}`) })
     }

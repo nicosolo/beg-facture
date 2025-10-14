@@ -17,7 +17,11 @@
 
             <!-- Error display -->
             <div v-if="error" class="bg-red-50 text-red-600 p-4 rounded mb-6">
-                {{ typeof error === 'string' ? error : (error as any)?.message || "Une erreur s'est produite" }}
+                {{
+                    typeof error === "string"
+                        ? error
+                        : (error as any)?.message || "Une erreur s'est produite"
+                }}
             </div>
 
             <!-- Data table -->
@@ -28,10 +32,10 @@
                 :empty-message="'Aucun taux TVA trouvé'"
             >
                 <template #cell:createdAt="{ item }">
-                    {{ item.createdAt ? formatDate(new Date(item.createdAt)) : '-' }}
+                    {{ item.createdAt ? formatDate(new Date(item.createdAt)) : "-" }}
                 </template>
                 <template #cell:updatedAt="{ item }">
-                    {{ item.updatedAt ? formatDate(new Date(item.updatedAt)) : '-' }}
+                    {{ item.updatedAt ? formatDate(new Date(item.updatedAt)) : "-" }}
                 </template>
                 <template #cell:actions="{ item }">
                     <div v-if="isAdmin" class="flex justify-end gap-2">
@@ -50,55 +54,58 @@
                 </template>
             </DataTable>
 
-
             <!-- Create/Edit Dialog -->
             <Dialog
                 v-model="isModalOpen"
                 :title="editingVatRate ? 'Modifier le taux TVA' : 'Nouveau taux TVA'"
                 size="md"
             >
-            <form @submit.prevent="handleSubmit" class="space-y-4">
-                <div>
-                    <label for="year" class="block text-sm font-medium text-gray-700 mb-1">
-                        Année
-                    </label>
-                    <input
-                        id="year"
-                        v-model.number="form.year"
-                        type="number"
-                        min="2000"
-                        max="2100"
-                        required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
+                <form @submit.prevent="handleSubmit" class="space-y-4">
+                    <div>
+                        <label for="year" class="block text-sm font-medium text-gray-700 mb-1">
+                            Année
+                        </label>
+                        <input
+                            id="year"
+                            v-model.number="form.year"
+                            type="number"
+                            min="2000"
+                            max="2100"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
 
-                <div>
-                    <label for="rate" class="block text-sm font-medium text-gray-700 mb-1">
-                        Taux (%)
-                    </label>
-                    <input
-                        id="rate"
-                        v-model.number="form.rate"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="100"
-                        required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
+                    <div>
+                        <label for="rate" class="block text-sm font-medium text-gray-700 mb-1">
+                            Taux (%)
+                        </label>
+                        <input
+                            id="rate"
+                            v-model.number="form.rate"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
 
-                <div class="flex justify-end gap-3 pt-4">
-                    <Button variant="secondary" type="button" @click="closeModal">
-                        Annuler
-                    </Button>
-                    <Button variant="primary" type="submit" :loading="createLoading || updateLoading">
-                        {{ editingVatRate ? "Modifier" : "Créer" }}
-                    </Button>
-                </div>
-            </form>
-        </Dialog>
+                    <div class="flex justify-end gap-3 pt-4">
+                        <Button variant="secondary" type="button" @click="closeModal">
+                            Annuler
+                        </Button>
+                        <Button
+                            variant="primary"
+                            type="submit"
+                            :loading="createLoading || updateLoading"
+                        >
+                            {{ editingVatRate ? "Modifier" : "Créer" }}
+                        </Button>
+                    </div>
+                </form>
+            </Dialog>
 
             <!-- Delete Confirmation Dialog -->
             <ConfirmDialog
@@ -138,7 +145,7 @@ const { formatDate } = useFormat()
 const { t } = useI18n()
 const { successAlert, errorAlert } = useAlert()
 
-const isAdmin = computed(() => authStore.is("admin"))
+const isAdmin = computed(() => authStore.isRole("admin"))
 
 // API composables
 const { get: fetchVatRates, loading, error, data: response } = useFetchVatRates()

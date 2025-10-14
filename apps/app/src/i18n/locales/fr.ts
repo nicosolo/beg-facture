@@ -75,6 +75,14 @@ export default {
         engineers: "Ingénieurs",
         companies: "Entreprises",
     },
+    home: {
+        title: "Bienvenue dans BEG Gestion",
+        subtitle: "Recherchez un mandat pour accéder rapidement à ses informations.",
+        searchLabel: "Mandat",
+        searchPlaceholder: "Rechercher par numéro ou nom de mandat",
+        searchHint: "Sélectionnez un mandat pour ouvrir sa fiche détaillée.",
+        documentTitle: "BEG - Accueil",
+    },
     auth: {
         login: "Connexion",
         welcome: "Bienvenue",
@@ -90,7 +98,7 @@ export default {
         loginError: "Une erreur est survenue lors de la connexion",
     },
     shared: {
-        selectReferentUser: "Sélectionner un responsable",
+        selectReferentUser: "Responsable",
     },
     projects: {
         title: "Mandats",
@@ -271,7 +279,7 @@ export default {
         integer: "La valeur doit être un nombre entier",
     },
     time: {
-        title: "Gestion des heures",
+        title: "Journal des heures",
         new: "Ajouter des heures",
         columns: {
             date: "Date",
@@ -486,6 +494,7 @@ export default {
         },
     },
     dateRange: {
+        today: "Aujourd'hui",
         week: "Semaine",
         month: "Mois",
         year: "Année",

@@ -504,9 +504,6 @@
                           }
                         : {
                               invoiceId: parseInt(invoice.id),
-                              includeBilled: true,
-                              includeUnbilled: true,
-                              includeDisbursement: false,
                               limit: 30,
                           }
                 "
@@ -676,7 +673,6 @@ const hasPackage = computed(
 
 // Computed properties for template display
 const expensesTravelAmount = computed(() => invoice.value.expensesTravelAmount || 0)
-const expensesTotal = computed(() => invoice.value.expensesTotal || 0)
 const expensesTotalExpenses = computed(() => invoice.value.expensesTotalExpenses || 0)
 const totalHT = computed(() => invoice.value.totalHT || 0)
 const vatAmount = computed(() => invoice.value.vatAmount || 0)
@@ -714,6 +710,7 @@ watch(
         () => invoice.value.expensesThirdPartyAmount,
         () => invoice.value.expensesPackageAmount,
         () => invoice.value.expensesPackagePercentage,
+        () => invoice.value.expensesPackagePercentage,
     ],
     () => {
         // Calculate travel amount
@@ -721,17 +718,18 @@ watch(
             (invoice.value.expensesTravelAdjusted || 0) * (invoice.value.expensesTravelRate || 0.65)
 
         // Calculate total expenses
-        if (
-            (invoice.value.expensesPackagePercentage || 0) > 0 ||
-            (invoice.value.expensesPackageAmount || 0) > 0
-        ) {
+        if ((invoice.value.expensesPackageAmount || 0) > 0) {
             invoice.value.expensesTotalExpenses = invoice.value.expensesPackageAmount || 0
+        } else if ((invoice.value.expensesPackagePercentage || 0) > 0) {
+            invoice.value.expensesTotalExpenses =
+                ((invoice.value.feesFinalTotal || 0) *
+                    (invoice.value.expensesPackagePercentage || 0)) /
+                100
         } else {
-            invoice.value.expensesTotal =
+            invoice.value.expensesTotalExpenses =
                 (invoice.value.expensesTravelAmount || 0) +
                 (invoice.value.expensesOtherAmount || 0) +
                 (invoice.value.expensesThirdPartyAmount || 0)
-            invoice.value.expensesTotalExpenses = invoice.value.expensesTotal
         }
     },
     { immediate: true }
@@ -745,7 +743,6 @@ watch(
         () => invoice.value.vatRate,
     ],
     () => {
-        console.log(invoice.value.feesTotal)
         invoice.value.totalHT =
             (invoice.value.feesTotal || 0) + (invoice.value.expensesTotalExpenses || 0)
         invoice.value.vatAmount = invoice.value.totalHT * ((invoice.value.vatRate || 0) / 100)
@@ -867,7 +864,7 @@ const togglePackage = () => {
         // Apply default package based on current type
         if (packageType.value === "percentage") {
             invoice.value.expensesPackagePercentage = 10
-            invoice.value.expensesPackageAmount = (invoice.value.feesTotal || 0) * 0.1
+            invoice.value.expensesPackageAmount = (invoice.value.feesFinalTotal || 0) * 0.1
         } else {
             invoice.value.expensesPackageAmount = 500
             invoice.value.expensesPackagePercentage = 0
@@ -886,7 +883,7 @@ const setPackageType = (type: "percentage" | "fixed") => {
             invoice.value.expensesPackagePercentage === 0
         ) {
             invoice.value.expensesPackagePercentage = 10
-            invoice.value.expensesPackageAmount = (invoice.value.feesTotal || 0) * 0.1
+            invoice.value.expensesPackageAmount = (invoice.value.feesFinalTotal || 0) * 0.1
         }
     } else {
         // Convert to fixed if was percentage
@@ -902,7 +899,7 @@ const updatePackagePercentage = (value: number) => {
     invoice.value.expensesPackagePercentage = value
     // Calculate package amount based on current feesTotal from invoice
     if (value && invoice.value.feesTotal) {
-        invoice.value.expensesPackageAmount = (invoice.value.feesTotal * value) / 100
+        invoice.value.expensesPackageAmount = (invoice.value.feesFinalTotal * value) / 100
     } else {
         invoice.value.expensesPackageAmount = 0
     }

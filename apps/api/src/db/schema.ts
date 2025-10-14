@@ -322,7 +322,6 @@ export const invoices = sqliteTable(
         expensesTravelAmount: real("expensesTravelAmount").notNull().default(0),
         expensesOtherBase: real("expensesOtherBase").notNull().default(0),
         expensesOtherAmount: real("expensesOtherAmount").notNull().default(0),
-        expensesTotal: real("expensesTotal").notNull().default(0),
         expensesThirdPartyAmount: real("expensesThirdPartyAmount").notNull().default(0),
         expensesPackagePercentage: real("expensesPackagePercentage"),
         expensesPackageAmount: real("expensesPackageAmount"),

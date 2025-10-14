@@ -49,6 +49,7 @@ import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import Button from "@/components/atoms/Button.vue"
 import type { PageResponse, ProjectFilter, ProjectResponse } from "@beg/validations"
 import { useAuthStore } from "@/stores/auth"
+import { getYearRange } from "@/composables/utils/useDateRangePresets"
 
 // Initialize i18n
 const { t } = useI18n()
@@ -68,14 +69,15 @@ const showTimeEntryModal = ref(false)
 const selectedProjectId = ref<number | null>(null)
 const authStore = useAuthStore()
 // Filter state
+const { from, to } = getYearRange()
 const filter = ref<ProjectFilterModel>({
     name: "",
     includeArchived: false,
     includeEnded: false,
     sortBy: "lastActivityDate",
     sortOrder: "desc",
-    fromDate: undefined,
-    toDate: undefined,
+    fromDate: from,
+    toDate: to,
     referentUserId: authStore.user?.id,
     hasUnbilledTime: false,
 })

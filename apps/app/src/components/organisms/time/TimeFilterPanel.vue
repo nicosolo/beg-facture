@@ -30,7 +30,7 @@
 
                         <div
                             class="form-group col-span-1 md:col-span-6 lg:col-span-3"
-                            v-if="showProjectFilter"
+                            v-if="showProjectFilter && is('admin')"
                         >
                             <Label>{{ $t("shared.selectReferentUser") }}</Label>
                             <UserSelect
@@ -91,20 +91,20 @@
                             <label class="flex items-center">
                                 <input
                                     type="checkbox"
-                                    v-model="localFilter.includeBilled"
-                                    @change="handleFilterChange"
-                                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
-                                />
-                                {{ $t("time.filters.billed") }}
-                            </label>
-                            <label class="flex items-center">
-                                <input
-                                    type="checkbox"
                                     v-model="localFilter.includeUnbilled"
                                     @change="handleFilterChange"
                                     class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
                                 />
                                 {{ $t("time.filters.unbilled") }}
+                            </label>
+                            <label class="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    v-model="localFilter.includeBilled"
+                                    @change="handleFilterChange"
+                                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
+                                />
+                                {{ $t("time.filters.billed") }}
                             </label>
                             <label class="flex items-center">
                                 <input
@@ -140,6 +140,8 @@ import { useFetchUsers } from "@/composables/api/useUser"
 import { useFetchActivityTypes } from "@/composables/api/useActivityType"
 import type { ActivityFilter } from "@beg/validations"
 import UserSelect from "@/components/organisms/user/UserSelect.vue"
+import { useAuthStore } from "@/stores/auth"
+import { getTodayRange } from "@/composables/utils/useDateRangePresets"
 
 // For backwards compatibility, keep the old interface name as an alias
 export type TimeFilters = ActivityFilter
@@ -151,7 +153,7 @@ interface Props {
 }
 
 const { filter, showProjectFilter = true, initialFilter } = defineProps<Props>()
-
+const { is } = useAuthStore()
 const emit = defineEmits<{
     "update:filter": [value: ActivityFilter]
 }>()
@@ -206,12 +208,13 @@ const handleFilterChange = () => {
 
 // Reset filters
 const resetFilters = () => {
+    const { from, to } = getTodayRange()
     localFilter.value = {
         userId: undefined,
         projectId: undefined,
         activityTypeId: undefined,
-        fromDate: undefined,
-        toDate: undefined,
+        fromDate: from,
+        toDate: to,
         includeBilled: false,
         includeUnbilled: true,
         includeDisbursement: false,

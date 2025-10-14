@@ -109,9 +109,16 @@ export const projectRepository = {
 
         // If searching by name, add priority sort for projectNumber matches
         if (name && name.trim()) {
-            const searchPattern = `${name.trim()}%`
+            const trimmedSearch = name.trim()
+            const projectNumberPattern = `${trimmedSearch}%`
+            const searchTokens = trimmedSearch.split(/\s+/).join("%")
+            const projectNamePattern = `%${searchTokens}%`
             sortExpressions.push(
-                sql`CASE WHEN ${projects.projectNumber} LIKE ${searchPattern} THEN 0 ELSE 1 END`
+                sql`CASE
+                        WHEN ${projects.projectNumber} LIKE ${projectNumberPattern} THEN 0
+                        WHEN ${projects.name} LIKE ${projectNamePattern} THEN 1
+                        ELSE 2
+                    END`
             )
         }
 
@@ -375,11 +382,11 @@ export const projectRepository = {
                   latitude:
                       data.latitude !== undefined
                           ? data.latitude
-                          : parentProjectData.latitude ?? null,
+                          : (parentProjectData.latitude ?? null),
                   longitude:
                       data.longitude !== undefined
                           ? data.longitude
-                          : parentProjectData.longitude ?? null,
+                          : (parentProjectData.longitude ?? null),
                   createdAt: new Date(),
                   updatedAt: new Date(),
               }

@@ -159,7 +159,6 @@ export const invoiceRepository = {
                     expensesTravelAmount: row.invoice.expensesTravelAmount,
                     expensesOtherBase: row.invoice.expensesOtherBase,
                     expensesOtherAmount: row.invoice.expensesOtherAmount,
-                    expensesTotal: row.invoice.expensesTotal,
                     expensesThirdPartyAmount: row.invoice.expensesThirdPartyAmount,
                     expensesPackagePercentage: row.invoice.expensesPackagePercentage,
                     expensesPackageAmount: row.invoice.expensesPackageAmount,
@@ -304,7 +303,6 @@ export const invoiceRepository = {
             expensesTravelAmount: row.invoice.expensesTravelAmount,
             expensesOtherBase: row.invoice.expensesOtherBase,
             expensesOtherAmount: row.invoice.expensesOtherAmount,
-            expensesTotal: row.invoice.expensesTotal,
             expensesThirdPartyAmount: row.invoice.expensesThirdPartyAmount,
             expensesPackagePercentage: row.invoice.expensesPackagePercentage,
             expensesPackageAmount: row.invoice.expensesPackageAmount,
@@ -408,7 +406,6 @@ export const invoiceRepository = {
                     expensesTravelAmount: data.expensesTravelAmount,
                     expensesOtherBase: data.expensesOtherBase,
                     expensesOtherAmount: data.expensesOtherAmount,
-                    expensesTotal: data.expensesTotal,
                     expensesThirdPartyAmount: data.expensesThirdPartyAmount,
                     expensesPackagePercentage: data.expensesPackagePercentage || null,
                     expensesPackageAmount: data.expensesPackageAmount || null,
@@ -562,7 +559,6 @@ export const invoiceRepository = {
                 updateData.expensesOtherBase = data.expensesOtherBase
             if (data.expensesOtherAmount !== undefined)
                 updateData.expensesOtherAmount = data.expensesOtherAmount
-            if (data.expensesTotal !== undefined) updateData.expensesTotal = data.expensesTotal
             if (data.expensesThirdPartyAmount !== undefined)
                 updateData.expensesThirdPartyAmount = data.expensesThirdPartyAmount
             if (data.expensesPackagePercentage !== undefined)

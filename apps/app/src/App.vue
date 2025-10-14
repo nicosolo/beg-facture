@@ -36,6 +36,11 @@ const handleLogout = () => {
 const navigation = computed(() =>
     [
         {
+            name: t("navigation.home"),
+            to: { name: "home" },
+            current: route.name === "home",
+        },
+        {
             name: t("navigation.time"),
             to: { name: "time-list" },
             current: route.name === "time-list",
@@ -174,7 +179,7 @@ const isExpanded = (itemName: string): boolean => {
                     <div class="flex items-center">
                         <img alt="BEG logo" class="h-7 w-auto mr-4" src="@/assets/logo.png" />
 
-                        <h2 class="text-2xl font-bold">Management</h2>
+                        <h2 class="text-2xl font-bold">Gestion</h2>
                     </div>
                 </RouterLink>
 

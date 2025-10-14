@@ -109,9 +109,9 @@ import type { ProjectFilter } from "@beg/validations"
 import Checkbox from "@/components/atoms/Checkbox.vue"
 import Input from "@/components/atoms/Input.vue"
 import { debounce } from "@/utils/debounce"
+import { getYearRange } from "@/composables/utils/useDateRangePresets"
 
 export type ProjectFilterModel = Omit<ProjectFilter, "page" | "limit" | "accountId">
-
 interface ProjectFilterProps {
     filter: ProjectFilterModel
 }
@@ -171,13 +171,14 @@ const emitInputChange = () => {
 
 // Reset filters
 const resetFilters = () => {
+    const { from, to } = getYearRange()
     filterData.name = ""
     filterData.includeArchived = false
     filterData.includeEnded = false
     filterData.sortBy = "name"
     filterData.sortOrder = "asc"
-    filterData.fromDate = undefined
-    filterData.toDate = undefined
+    filterData.fromDate = from
+    filterData.toDate = to
     filterData.referentUserId = undefined
     filterData.hasUnbilledTime = false
     emitChange()

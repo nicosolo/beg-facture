@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router"
+import HomeView from "@/views/HomeView.vue"
 import ProjectListView from "@/views/project/ProjectListView.vue"
 import InvoiceListView from "@/views/invoice/InvoiceListView.vue"
 import EditInvoiceView from "@/views/invoice/EditInvoiceView.vue"
@@ -33,7 +34,7 @@ const router = createRouter({
         {
             path: "/",
             name: "home",
-            component: ProjectListView,
+            component: HomeView,
             meta: { requiresAuth: true },
         },
         {

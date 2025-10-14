@@ -1,9 +1,7 @@
 <template>
     <div>
         <div class="mb-4" v-if="!hideHeader">
-            <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4"
-            >
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
                 <h2 class="text-lg font-semibold">{{ $t("time.title") }}</h2>
                 <div class="flex flex-wrap gap-2 justify-start sm:justify-end">
                     <Button
@@ -129,7 +127,7 @@ const filter = ref<ActivityFilter>({
     userId: authStore.user?.id,
     activityTypeId: undefined,
     includeBilled: false,
-    includeUnbilled: false,
+    includeUnbilled: true,
     includeDisbursement: false,
     sortBy: "date",
     sortOrder: "desc",

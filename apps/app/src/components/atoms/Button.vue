@@ -1,24 +1,25 @@
 <template>
     <component
-        :is="to ? 'router-link' : 'button'"
-        :type="to ? undefined : type"
-        :to="to"
+        :is="props.to ? 'router-link' : 'button'"
+        :type="props.to ? undefined : props.type"
+        :to="props.to"
         :class="[
             'rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center',
             variantClasses,
             sizeClasses,
-            disabled ? 'cursor-not-allowed opacity-60' : '',
-            className,
+            props.disabled ? 'cursor-not-allowed opacity-60' : '',
+            props.className,
         ]"
-        :disabled="to ? undefined : disabled || loading"
+        :disabled="props.to ? undefined : props.disabled || props.loading"
         @click="$emit('click', $event)"
     >
-        <LoadingSpinner v-if="loading" size="sm" color="white" class="mr-2" />
+        <LoadingSpinner v-if="props.loading" size="sm" color="white" class="mr-2" />
         <slot></slot>
     </component>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue"
 import type { RouteLocationRaw } from "vue-router"
 import LoadingSpinner from "./LoadingSpinner.vue"
 
@@ -39,15 +40,16 @@ interface Props {
     loading?: boolean
 }
 
-const { type = "button", variant, size, disabled, className, to, loading } = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+    type: "button",
+})
 
 defineEmits<{
     (e: "click", event: MouseEvent): void
 }>()
 
-// Generate variant classes
-const variantClasses = (() => {
-    switch (variant) {
+const variantClasses = computed(() => {
+    switch (props.variant) {
         case "primary":
             return "bg-indigo-600 hover:bg-indigo-700 text-white"
         case "secondary":
@@ -65,11 +67,10 @@ const variantClasses = (() => {
         default:
             return "bg-gray-200 hover:bg-gray-300 text-gray-700"
     }
-})()
+})
 
-// Generate size classes
-const sizeClasses = (() => {
-    switch (size) {
+const sizeClasses = computed(() => {
+    switch (props.size) {
         case "xs":
             return "text-sm px-1.5 py-1"
         case "sm":
@@ -77,7 +78,7 @@ const sizeClasses = (() => {
         case "lg":
             return "text-base px-6 py-3"
         default:
-            return "text-sm px-4 py-2" // default to medium
+            return "text-sm px-4 py-2"
     }
-})()
+})
 </script>

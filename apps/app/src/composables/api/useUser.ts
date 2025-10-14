@@ -6,7 +6,7 @@ import {
     type UserResponse,
     type UserDetailResponse,
 } from "@beg/validations"
-import { useGet, usePost, usePut, useDelete } from "./useAPI"
+import { useGet, usePost, usePut } from "./useAPI"
 
 export function useFetchUser() {
     return useGet<UserDetailResponse>("user/:id", {

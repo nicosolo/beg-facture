@@ -74,13 +74,12 @@ export const activityRepository = {
         } = filter
         const offset = (page - 1) * limit
         // Build where conditions
-        const whereConditions = []
+        let whereConditions = []
         if (userId) whereConditions.push(eq(activities.userId, userId))
         if (projectId) whereConditions.push(eq(activities.projectId, projectId))
         if (fromDate) whereConditions.push(gte(activities.date, fromDate))
         if (toDate) whereConditions.push(lte(activities.date, toDate))
         if (activityTypeId) whereConditions.push(eq(activities.activityTypeId, activityTypeId))
-        if (invoiceId) whereConditions.push(eq(activities.invoiceId, invoiceId))
 
         // Billing status filters
         const billingConditions = []
@@ -91,6 +90,11 @@ export const activityRepository = {
         // If any billing conditions are specified, add them as OR conditions
         if (billingConditions.length > 0) {
             whereConditions.push(or(...billingConditions))
+        }
+
+        if (invoiceId) {
+            whereConditions = []
+            whereConditions.push(eq(activities.invoiceId, invoiceId))
         }
 
         // Determine sort column
@@ -160,7 +164,6 @@ export const activityRepository = {
         //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
         //     )
         // }
-
         const data = await (whereConditions.length > 0
             ? baseQuery
                   .where(and(...whereConditions))

@@ -235,6 +235,8 @@ export default {
         next: "Suivant",
         previous: "Précédent",
         page: "Page",
+        last: "Dernière",
+        first: "Première",
     },
     timeEntries: {
         title: "Heures",

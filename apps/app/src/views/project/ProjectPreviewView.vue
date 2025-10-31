@@ -16,7 +16,7 @@
                         </strong>
                     </div>
                     <span class="text-lg text-gray-900 leading-tight">
-                        {{ projectData?.name || $t("projects.noName") }}
+                        {{ projectData?.name || "-" }}
                     </span>
                 </div>
                 <div class="flex flex-wrap gap-2 justify-start md:justify-end">

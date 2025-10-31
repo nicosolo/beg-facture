@@ -123,7 +123,10 @@
 
             <!-- Location Picker -->
             <div class="">
-                <FormField :label="$t('projects.location')" :error="errors.latitude || errors.longitude">
+                <FormField
+                    :label="$t('projects.location')"
+                    :error="errors.latitude || errors.longitude"
+                >
                     <template #input>
                         <LocationPicker
                             :latitude="parsedLatitude"

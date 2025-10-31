@@ -76,7 +76,7 @@
                 @next="nextPage"
                 @go-to="goToPage"
             />
-            <TimeEntriesList
+            <TimeTable
                 :activities="activities"
                 :totals="totals"
                 :sort="sort"
@@ -114,7 +114,7 @@
 import { ref, watch, onMounted, computed } from "vue"
 import { useFetchActivityList, useExportActivities } from "@/composables/api/useActivity"
 import TimeFilterPanel from "@/components/organisms/time/TimeFilterPanel.vue"
-import TimeEntriesList from "@/components/organisms/time/TimeEntriesList.vue"
+import TimeTable from "@/components/organisms/time/TimeTable.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"

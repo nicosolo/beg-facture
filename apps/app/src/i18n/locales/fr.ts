@@ -113,6 +113,12 @@ export default {
             all: "Tout",
             perUser: "Par responsable",
         },
+        map: {
+            title: "Carte des mandats",
+            projectCount: "{count} mandat(s) affiché(s)",
+            noProjects: "Aucun mandat avec coordonnées à afficher",
+            filterInfo: "Mandats avec activité au cours des 5 dernières années uniquement",
+        },
         name: "Nom du mandat",
         mandat: "Numéro mandat",
         date: "Date",

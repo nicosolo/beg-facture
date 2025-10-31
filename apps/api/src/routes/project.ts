@@ -7,8 +7,10 @@ import {
     projectResponseSchema,
     projectCreateSchema,
     projectUpdateSchema,
+    projectMapArrayResponseSchema,
     type ProjectListResponse,
     type ProjectResponse,
+    type ProjectMapArrayResponse,
 } from "@beg/validations"
 import { projectRepository } from "../db/repositories/project.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
@@ -59,6 +61,57 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             headers,
         })
     })
+    .get(
+        "/map",
+        responseValidator({
+            200: projectMapArrayResponseSchema,
+        }),
+        async (c) => {
+            const user = c.get("user")
+
+            // Calculate the date 5 years ago
+            const fiveYearsAgo = new Date()
+            fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5)
+
+            // Get all projects with coordinates, excluding archived and old inactive projects
+            const result = await projectRepository.findAll(user, {
+                includeArchived: false,
+                includeEnded: false,
+                hasUnbilledTime: false,
+                sortBy: "name",
+                sortOrder: "asc",
+                page: 1,
+                limit: 10000,
+            })
+
+            // Filter and transform to lightweight map format
+            const mapData = result.data
+                .filter((project) => {
+                    // Must have coordinates
+                    if (!project.latitude || !project.longitude) return false
+
+                    // If has lastActivityDate, check if it's within 5 years
+                    if (project.lastActivityDate) {
+                        return project.lastActivityDate >= fiveYearsAgo
+                    }
+
+                    // If no lastActivityDate, include the project (might be new)
+                    return true
+                })
+                .map((project) => ({
+                    id: project.id,
+                    projectNumber: project.projectNumber,
+                    name: project.name,
+                    latitude: project.latitude!,
+                    longitude: project.longitude!,
+                    clientName: project.client?.name ?? null,
+                    locationName: project.location?.name ?? null,
+                    lastActivityDate: project.lastActivityDate,
+                }))
+
+            return c.render(mapData as ProjectMapArrayResponse, 200)
+        }
+    )
     .get(
         "/parent-projects",
         responseValidator({

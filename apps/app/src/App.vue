@@ -51,6 +51,11 @@ const navigation = computed(() =>
             current: route.name === "project-list",
         },
         {
+            name: t("projects.map.title"),
+            to: { name: "project-map" },
+            current: route.name === "project-map",
+        },
+        {
             name: t("navigation.invoices"),
             to: { name: "invoice-list" },
             current: route.name === "invoice-list",

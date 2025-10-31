@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router"
 import HomeView from "@/views/HomeView.vue"
 import ProjectListView from "@/views/project/ProjectListView.vue"
+import ProjectMapView from "@/views/project/ProjectMapView.vue"
 import InvoiceListView from "@/views/invoice/InvoiceListView.vue"
 import EditInvoiceView from "@/views/invoice/EditInvoiceView.vue"
 import PreviewInvoiceView from "@/views/invoice/PreviewInvoiceView.vue"
@@ -41,6 +42,12 @@ const router = createRouter({
             path: "/project",
             name: "project-list",
             component: ProjectListView,
+            meta: { requiresAuth: true },
+        },
+        {
+            path: "/project/map",
+            name: "project-map",
+            component: ProjectMapView,
             meta: { requiresAuth: true },
         },
         {

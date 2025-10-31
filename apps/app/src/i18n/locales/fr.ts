@@ -66,7 +66,7 @@ export default {
         invoices: "Factures",
         collaborators: "Collaborateurs",
         settings: "Paramètres",
-        activities: "Heures",
+        activities: "Activités",
         tariffs: "Tarifs",
         time: "Heures",
         projectTypes: "Types de mandat",

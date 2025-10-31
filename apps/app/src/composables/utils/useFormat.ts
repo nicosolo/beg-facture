@@ -1,5 +1,5 @@
-const intlNumberFormat = new Intl.NumberFormat("fr-CH", {
-    minimumFractionDigits: 2,
+const intlNumberFormat = new Intl.NumberFormat("de-CH", {
+    notation: "standard",
 })
 export const useFormat = () => {
     const formatCurrency = (amount: number, showCurrency = true) => {
@@ -12,7 +12,7 @@ export const useFormat = () => {
     }
 
     const formatPercentage = (percentage: number) => {
-        return new Intl.NumberFormat("fr-CH", {
+        return new Intl.NumberFormat("de-CH", {
             style: "percent",
             minimumFractionDigits: 2,
         }).format(percentage)

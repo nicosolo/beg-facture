@@ -67,8 +67,8 @@ const navigation = computed(() =>
                 },
                 {
                     name: t("navigation.activities"),
-                    to: { name: "activity-list" },
-                    current: route.name === "activity-list",
+                    to: { name: "activity-type-list" },
+                    current: route.name === "activity-type-list",
                     visible: hasAdminAccess.value,
                 },
                 {

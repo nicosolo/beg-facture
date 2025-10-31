@@ -133,6 +133,7 @@ import { useFetchMonthlyHoursList, useDeleteMonthlyHours } from "@/composables/a
 import { useAuthStore } from "@/stores/auth"
 import { useAlert } from "@/composables/utils/useAlert"
 import type { MonthlyHours, MonthlyHoursFilter } from "@beg/validations"
+import { useFormat } from "@/composables/utils/useFormat"
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -146,11 +147,7 @@ const isAdmin = computed(() => authStore.isRole("admin"))
 if (!isAdmin.value) {
     router.push({ name: "home" })
 }
-
-// Format number with localization
-const formatNumber = (num: number) => {
-    return new Intl.NumberFormat("fr-FR").format(num)
-}
+const { formatNumber } = useFormat()
 
 // Generate year options (from 2000 to current year + 5)
 const currentYear = new Date().getFullYear()

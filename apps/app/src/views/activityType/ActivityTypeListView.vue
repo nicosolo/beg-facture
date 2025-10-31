@@ -1,16 +1,10 @@
 <template>
     <LoadingOverlay :loading="loading">
         <div class="container mx-auto">
-            <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6"
-            >
-                <h1 class="text-2xl font-bold">Types d'activité</h1>
-                <Button
-                    variant="primary"
-                    @click="openCreateDialog"
-                    class="w-full sm:w-auto"
-                >
-                    Nouveau type d'activité
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+                <h1 class="text-2xl font-bold">{{ $t("navigation.activities") }}</h1>
+                <Button variant="primary" @click="openCreateDialog" class="w-full sm:w-auto">
+                    Nouvelle activité
                 </Button>
             </div>
 
@@ -102,7 +96,7 @@ const activityTypeToDelete = ref<ActivityTypeResponse | null>(null)
 // Computed
 const savingActivityType = computed(() => creatingActivityType.value || updatingActivityType.value)
 const dialogTitle = computed(() =>
-    selectedActivityType.value ? "Modifier le type d'activité" : "Nouveau type d'activité"
+    selectedActivityType.value ? "Modifier l'activité" : "Nouvelle activité"
 )
 
 const columns = [
@@ -115,7 +109,7 @@ const columns = [
 
 // Load activity types on mount
 onMounted(async () => {
-    document.title = 'BEG - Types d\'activité'
+    document.title = "BEG - Activités"
     await fetchActivityTypes()
 })
 

@@ -114,8 +114,8 @@ const router = createRouter({
         },
         // Activity routes
         {
-            path: "/activity",
-            name: "activity-list",
+            path: "/activity-type",
+            name: "activity-type-list",
             component: ActivityTypeListView,
             meta: { requiresAuth: true },
         },

@@ -114,7 +114,7 @@
                 <h2 class="text-lg font-medium mb-4">Heures associées</h2>
                 <div class="bg-gray-50 p-4 rounded-md">
                     <div v-if="loadingActivityTypes" class="text-gray-500">
-                        Chargement des types d'activité...
+                        Chargement des activités...
                     </div>
                     <div
                         v-else-if="!activityTypes || activityTypes.length === 0"

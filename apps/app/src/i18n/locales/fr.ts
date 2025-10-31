@@ -107,6 +107,12 @@ export default {
         new: "Nouveau mandat",
         edit: "Modifier le mandat",
         details: "Détails du mandat",
+        export: {
+            button: "Exporter vers Excel",
+            exporting: "Export en cours...",
+            all: "Tout",
+            perUser: "Par responsable",
+        },
         name: "Nom du mandat",
         mandat: "Numéro mandat",
         date: "Date",

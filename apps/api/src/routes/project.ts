@@ -2,6 +2,7 @@ import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
 import {
     projectFilterSchema,
+    projectExportFilterSchema,
     projectListResponse,
     projectResponseSchema,
     projectCreateSchema,
@@ -16,6 +17,7 @@ import type { Variables } from "@src/types/global"
 import { throwNotFound } from "@src/tools/error-handler"
 import { findProjectFolderSingle } from "@src/tools/project-folder-finder"
 import { PROJECT_BASE_DIR } from "@src/config"
+import { buildProjectsWorkbook } from "@src/tools/project-exporter"
 
 export const projectRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
@@ -32,6 +34,31 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             return c.render(result as ProjectListResponse, 200)
         }
     )
+    .get("/export", zValidator("query", projectExportFilterSchema), async (c) => {
+        const filter = c.req.valid("query")
+        const user = c.get("user")
+
+        // Use findAll without pagination to get all matching projects
+        const result = await projectRepository.findAll(user, { ...filter, limit: 10000 })
+
+        const buffer = await buildProjectsWorkbook(result.data, {
+            perUser: filter.perUser ?? false,
+        })
+
+        const today = new Date().toISOString().split("T")[0]
+        const filename = `mandats-${today}.xlsx`
+
+        const headers = new Headers({
+            "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition": `attachment; filename="${filename}"`,
+            "Content-Length": buffer.byteLength.toString(),
+        })
+
+        return new Response(buffer, {
+            status: 200,
+            headers,
+        })
+    })
     .get(
         "/parent-projects",
         responseValidator({

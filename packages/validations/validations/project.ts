@@ -5,26 +5,36 @@ import type { projectAccessLevelSchema } from "./projectAccess"
 
 // Moved to projectAccess.ts
 // export const projectAccessLevelSchema = z.enum(["read", "write"])
-// Update schema to match activity filter schema pattern
-export const projectFilterSchema = z
-    .object({
-        name: z.string().optional(),
-        referentUserId: z.coerce.number().optional(),
-        fromDate: z.coerce.date().optional(),
-        toDate: z.coerce.date().optional(),
-        sortBy: z
-            .enum(["name", "unBilledDuration", "firstActivityDate", "lastActivityDate"])
-            .optional()
-            .default("name"),
-        sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
-        hasUnbilledTime: booleanSchema.optional().default(false),
-        includeArchived: booleanSchema.optional().default(false),
-        includeEnded: booleanSchema.optional().default(false),
-    })
-    .merge(paginationSchema)
+
+// Base project filter schema without pagination
+const projectBaseFilterSchema = z.object({
+    name: z.string().optional(),
+    referentUserId: z.coerce.number().optional(),
+    fromDate: z.coerce.date().optional(),
+    toDate: z.coerce.date().optional(),
+    sortBy: z
+        .enum(["name", "unBilledDuration", "firstActivityDate", "lastActivityDate"])
+        .optional()
+        .default("name"),
+    sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
+    hasUnbilledTime: booleanSchema.optional().default(false),
+    includeArchived: booleanSchema.optional().default(false),
+    includeEnded: booleanSchema.optional().default(false),
+})
+
+// Project filter schema for listing (includes pagination)
+export const projectFilterSchema = projectBaseFilterSchema.merge(paginationSchema)
 
 export type ProjectFilter = z.infer<typeof projectFilterSchema>
 export type ProjectFilterInput = z.input<typeof projectFilterSchema>
+
+// Project export filter schema (extends base filter with export-specific options)
+export const projectExportFilterSchema = projectBaseFilterSchema.extend({
+    perUser: booleanSchema.default(false).optional(),
+})
+
+export type ProjectExportFilter = z.infer<typeof projectExportFilterSchema>
+export type ProjectExportFilterInput = z.input<typeof projectExportFilterSchema>
 
 // Project response schema with nested objects
 export const projectResponseSchema = z

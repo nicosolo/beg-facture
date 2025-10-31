@@ -1,12 +1,13 @@
 import {
     idParamSchema,
     projectFilterSchema,
+    projectExportFilterSchema,
     projectCreateSchema,
     projectUpdateSchema,
     type ProjectListResponse,
     type ProjectResponse,
 } from "@beg/validations"
-import { useGet, usePost, usePut } from "./useAPI"
+import { useGet, usePost, usePut, useGetBinary } from "./useAPI"
 
 export function useFetchProject() {
     return useGet<
@@ -27,6 +28,14 @@ export function useFetchProjectList() {
         }
     >("project", {
         query: projectFilterSchema,
+    })
+}
+
+export function useExportProjects() {
+    return useGetBinary<{
+        query: typeof projectExportFilterSchema
+    }>("project/export", {
+        query: projectExportFilterSchema,
     })
 }
 

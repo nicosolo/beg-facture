@@ -329,11 +329,11 @@ const { get: fetchProjectFolder, data: projectFolder } = useProjectFolder()
 const { formatNumber, formatDate } = useFormat()
 const { isElectron, openFolder } = useElectron()
 const mapLink = computed(() =>
-    buildGeoAdminUrl(projectData.value?.latitude ?? null, projectData.value?.longitude ?? null)
+    buildGeoAdminUrl(projectData.value?.longitude ?? null, projectData.value?.latitude ?? null)
 )
 
 const googleMapsLink = computed(() =>
-    buildGoogleMapsUrl(projectData.value?.latitude ?? null, projectData.value?.longitude ?? null)
+    buildGoogleMapsUrl(projectData.value?.longitude ?? null, projectData.value?.latitude ?? null)
 )
 
 const formattedCoordinates = computed(() => {

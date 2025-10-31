@@ -1,3 +1,4 @@
+import { convertLv95ToWgs84 } from "@src/utils/coordinates"
 import { db } from "../db"
 import { projects } from "../db/schema"
 import { and, eq, sql } from "drizzle-orm"
@@ -50,6 +51,8 @@ async function updateProjectCoordinates(row: CsvRow) {
 
     let easting = row.easting
     let northing = row.northing
+    let latitude = null
+    let longitude = null
 
     if ((easting === null || northing === null) && row.subProjectName) {
         const parentProject = await db
@@ -69,11 +72,19 @@ async function updateProjectCoordinates(row: CsvRow) {
             parentProject[0].latitude !== null &&
             parentProject[0].longitude !== null
         ) {
-            easting = parentProject[0].latitude
-            northing = parentProject[0].longitude
+            latitude = parentProject[0].latitude
+            longitude = parentProject[0].longitude
             console.log(
-                `Inherited parent coordinates for ${row.projectNumber}/${row.subProjectName}: E=${easting}, N=${northing}`
+                `Inherited parent coordinates for ${row.projectNumber}/${row.subProjectName}: lat=${latitude}, lng=${longitude}`
             )
+        }
+    }
+
+    if (latitude === null && longitude === null && easting !== null && northing !== null) {
+        const converted = convertLv95ToWgs84(easting!, northing!)
+        if (converted && converted.latitude !== null && converted.longitude !== null) {
+            latitude = converted.latitude
+            longitude = converted.longitude
         }
     }
 
@@ -109,14 +120,14 @@ async function updateProjectCoordinates(row: CsvRow) {
     await db
         .update(projects)
         .set({
-            latitude: easting,
-            longitude: northing,
+            latitude: latitude,
+            longitude: longitude,
             updatedAt: new Date(),
         })
         .where(eq(projects.id, project[0].id))
 
     console.log(
-        `Updated project ${row.projectNumber}${row.subProjectName ? `/${row.subProjectName}` : ""} with LV95 E=${easting}, N=${northing}`
+        `Updated project ${row.projectNumber}${row.subProjectName ? `/${row.subProjectName}` : ""} with lat=${latitude}, lng=${longitude}`
     )
 }
 

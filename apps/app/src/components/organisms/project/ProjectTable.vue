@@ -183,5 +183,5 @@ const columns = ref([
 const { formatDuration, formatDate } = useFormat()
 
 const getMapUrl = (project: ProjectResponse) =>
-    buildGeoAdminUrl(project.latitude, project.longitude)
+    buildGeoAdminUrl(project.longitude, project.latitude)
 </script>

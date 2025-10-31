@@ -1,9 +1,7 @@
 <template>
     <div>
         <div class="mb-4" v-if="!hideHeader">
-            <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4"
-            >
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
                 <h2 class="text-lg font-semibold">{{ $t("invoice.title") }}</h2>
                 <Button
                     variant="primary"
@@ -183,13 +181,9 @@ const formatDate = (value: string | Date | null): string => {
 
 const getStatusVariant = (status: string): "success" | "error" | "warning" | "info" | undefined => {
     const variants = {
-        paid: "success",
-        pending: "warning",
         sent: "info",
-        overdue: "error",
         draft: undefined,
         controle: "warning",
-        cancelled: "error",
     } as Record<string, "success" | "error" | "warning" | "info" | undefined>
 
     return variants[status] || undefined

@@ -203,8 +203,8 @@ const isExpanded = (itemName: string): boolean => {
             <main class="flex-1 p-4 w-full">
                 <div class="container mx-auto md:max-w-full md:px-4">
                     <RouterView v-slot="{ Component }">
-                        <KeepAlive :max="3">
-                            <component :is="Component" />
+                        <KeepAlive :max="10">
+                            <component :is="Component" :key="route.fullPath" />
                         </KeepAlive>
                     </RouterView>
                 </div>

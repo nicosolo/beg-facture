@@ -290,10 +290,7 @@ export const invoices = sqliteTable(
             .$type<"accordingToData" | "accordingToOffer" | "accordingToInvoice" | "fixedPrice">()
             .notNull()
             .default("accordingToData"),
-        status: text("status")
-            .$type<"draft" | "controle" | "sent" | "paid" | "overdue" | "cancelled">()
-            .notNull()
-            .default("draft"),
+        status: text("status").$type<"draft" | "controle" | "sent">().notNull().default("draft"),
         issueDate: integer("issueDate", { mode: "timestamp" }).notNull(),
         dueDate: integer("dueDate", { mode: "timestamp" }),
         periodStart: integer("periodStart", { mode: "timestamp" }).notNull(),

@@ -56,18 +56,30 @@
                         id="invoiceBillingMode"
                         v-model="invoice.billingMode"
                         :options="[
-                            { value: 'accordingToData', label: $t('invoice.billingMode.accordingToData') },
-                            { value: 'accordingToOffer', label: $t('invoice.billingMode.accordingToOffer') },
-                            { value: 'accordingToInvoice', label: $t('invoice.billingMode.accordingToInvoice') },
+                            {
+                                value: 'accordingToData',
+                                label: $t('invoice.billingMode.accordingToData'),
+                            },
+                            {
+                                value: 'accordingToOffer',
+                                label: $t('invoice.billingMode.accordingToOffer'),
+                            },
+                            {
+                                value: 'accordingToInvoice',
+                                label: $t('invoice.billingMode.accordingToInvoice'),
+                            },
                             { value: 'fixedPrice', label: $t('invoice.billingMode.fixedPrice') },
                         ]"
                     />
                     <div v-if="invoice.billingMode === 'accordingToInvoice'" class="mt-4">
                         <label class="text-sm font-medium text-gray-700 mb-1">
-                            {{ $t('invoice.document.label') }}
+                            {{ $t("invoice.document.label") }}
                         </label>
                         <DocumentUploadField
-                            :required="invoice.billingMode === 'accordingToInvoice' && !invoice.invoiceDocument"
+                            :required="
+                                invoice.billingMode === 'accordingToInvoice' &&
+                                !invoice.invoiceDocument
+                            "
                             :file-name="invoice.invoiceDocument"
                             :display-name="invoiceDocumentDisplayName"
                             accept=".pdf,.doc,.docx,.xls,.xlsx"
@@ -84,18 +96,20 @@
                                     class="text-blue-600 hover:underline"
                                     @click="downloadInvoiceDocument"
                                 >
-                                    {{ $t('common.view') }}
+                                    {{ $t("common.view") }}
                                 </button>
                             </template>
                         </DocumentUploadField>
-                        <p class="mt-1 text-xs text-gray-500">{{ $t('invoice.document.helper') }}</p>
+                        <p class="mt-1 text-xs text-gray-500">
+                            {{ $t("invoice.document.helper") }}
+                        </p>
                     </div>
                 </div>
             </div>
 
             <div class="mb-4">
                 <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceStatus">
-                    {{ $t('invoice.status.title') }}
+                    {{ $t("invoice.status.title") }}
                 </label>
                 <Select
                     id="invoiceStatus"
@@ -104,9 +118,6 @@
                         { value: 'draft', label: $t('invoice.status.draft') },
                         { value: 'controle', label: $t('invoice.status.controle') },
                         { value: 'sent', label: $t('invoice.status.sent') },
-                        { value: 'paid', label: $t('invoice.status.paid') },
-                        { value: 'overdue', label: $t('invoice.status.overdue') },
-                        { value: 'cancelled', label: $t('invoice.status.cancelled') },
                     ]"
                 />
             </div>
@@ -174,7 +185,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     "update:modelValue": [value: Invoice]
-    "document-file-change": [value: { type: "offer" | "adjudication"; index: number; file: File | null }]
+    "document-file-change": [
+        value: { type: "offer" | "adjudication"; index: number; file: File | null },
+    ]
     "document-entry-removed": [value: { type: "offer" | "adjudication"; index: number }]
     "invoice-document-change": [value: File | null]
 }>()

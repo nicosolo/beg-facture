@@ -460,9 +460,6 @@ export default {
             draft: "Brouillon",
             controle: "Contrôle",
             sent: "Envoyée",
-            paid: "Payée",
-            overdue: "En retard",
-            cancelled: "Annulée",
         },
         billingMode: {
             accordingToData: "Selon données présentes",

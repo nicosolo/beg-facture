@@ -5,9 +5,11 @@ import vue from "@vitejs/plugin-vue"
 import vueDevTools from "vite-plugin-vue-devtools"
 import tailwindcss from "@tailwindcss/vite"
 
+process.env.VITE_GOOGLE_MAPS_API_KEY = "AIzaSyCKYod6aTgm5V_ezwwM-F9a15GVoFJmVR8"
+
 export default defineConfig({
     plugins: [vue(), vueDevTools(), tailwindcss()],
-    publicDir: 'public',
+    publicDir: "public",
     server: {
         port: 8080,
         host: true,

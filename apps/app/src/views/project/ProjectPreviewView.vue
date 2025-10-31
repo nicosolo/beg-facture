@@ -197,7 +197,21 @@
                                             </div>
                                         </div>
                                     </div>
-
+                                    <!-- Map Display -->
+                                    <div
+                                        v-if="
+                                            projectData.latitude !== null &&
+                                            projectData.longitude !== null
+                                        "
+                                        class="mt-3 col-span-3"
+                                    >
+                                        <MapDisplay
+                                            :latitude="projectData.latitude"
+                                            :longitude="projectData.longitude"
+                                            :zoom="14"
+                                            height="250px"
+                                        />
+                                    </div>
                                     <div v-if="projectData.invoicingAddress" class="col-span-2">
                                         <p class="text-sm text-gray-500">
                                             {{ $t("projects.invoicingAddress") }}
@@ -305,6 +319,7 @@ import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import { useFetchProject, useProjectFolder } from "@/composables/api/useProject"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import Dialog from "@/components/molecules/Dialog.vue"
+import MapDisplay from "@/components/molecules/MapDisplay.vue"
 import { useFormat } from "@/composables/utils/useFormat"
 import { useElectron } from "@/composables/useElectron"
 import { buildGeoAdminUrl, buildGoogleMapsUrl } from "@/utils/coordinates"

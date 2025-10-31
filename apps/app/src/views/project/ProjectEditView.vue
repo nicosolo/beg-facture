@@ -121,25 +121,15 @@
                 </FormField>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField :label="$t('projects.latitude')" :error="errors.latitude">
+            <!-- Location Picker -->
+            <div class="">
+                <FormField :label="$t('projects.location')" :error="errors.latitude || errors.longitude">
                     <template #input>
-                        <Input
-                            type="number"
-                            step="any"
-                            v-model="form.latitude"
-                            :placeholder="$t('projects.latitudePlaceholder')"
-                        />
-                    </template>
-                </FormField>
-
-                <FormField :label="$t('projects.longitude')" :error="errors.longitude">
-                    <template #input>
-                        <Input
-                            type="number"
-                            step="any"
-                            v-model="form.longitude"
-                            :placeholder="$t('projects.longitudePlaceholder')"
+                        <LocationPicker
+                            :latitude="parsedLatitude"
+                            :longitude="parsedLongitude"
+                            @update:latitude="updateLatitude"
+                            @update:longitude="updateLongitude"
                         />
                     </template>
                 </FormField>
@@ -257,6 +247,7 @@ import CompanySelect from "@/components/organisms/company/CompanySelect.vue"
 import ProjectTypeSelect from "@/components/organisms/projectType/ProjectTypeSelect.vue"
 import UserSelect from "@/components/organisms/user/UserSelect.vue"
 import ProjectAccessManagement from "@/components/organisms/project/ProjectAccessManagement.vue"
+import LocationPicker from "@/components/molecules/LocationPicker.vue"
 
 // API Composables
 import { useFetchProject, useCreateProject, useUpdateProject } from "@/composables/api/useProject"
@@ -352,6 +343,25 @@ const formattedDate = computed({
         }
     },
 })
+
+// Handle coordinate parsing for LocationPicker
+const parsedLatitude = computed(() => {
+    const value = form.value.latitude?.trim()
+    return value && value !== "" ? Number(value) : null
+})
+
+const parsedLongitude = computed(() => {
+    const value = form.value.longitude?.trim()
+    return value && value !== "" ? Number(value) : null
+})
+
+const updateLatitude = (value: number | null) => {
+    form.value.latitude = value !== null ? value.toString() : ""
+}
+
+const updateLongitude = (value: number | null) => {
+    form.value.longitude = value !== null ? value.toString() : ""
+}
 
 // Generate next project number for new projects
 const generateProjectNumber = () => {

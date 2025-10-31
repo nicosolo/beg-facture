@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue"
+import { ref, onMounted, onUnmounted, onActivated, watch } from "vue"
 import { MarkerClusterer } from "@googlemaps/markerclusterer"
 import type { ProjectMapItemResponse } from "@beg/validations"
 import { useRouter } from "vue-router"
@@ -23,8 +23,7 @@ let map: google.maps.Map | null = null
 let markerClusterer: MarkerClusterer | null = null
 const markers: google.maps.marker.AdvancedMarkerElement[] = []
 
-// Google Maps API key - you may want to move this to environment variables
-const GOOGLE_MAPS_API_KEY = "AIzaSyCKYod6aTgm5V_ezwwM-F9a15GVoFJmVR8"
+// Google Maps API key from environment variables
 
 // Switzerland default center
 const SWITZERLAND_CENTER = { lat: 46.8, lng: 8.2 }
@@ -40,7 +39,7 @@ const loadGoogleMapsScript = (): Promise<void> => {
         }
 
         const script = document.createElement("script")
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=marker`
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=marker`
         script.async = true
         script.defer = true
         script.onload = () => resolve()
@@ -57,10 +56,11 @@ const initMap = async () => {
         await loadGoogleMapsScript()
 
         // Create the map with mapId required for AdvancedMarkerElement
+        // Using HYBRID instead of SATELLITE to show labels on satellite imagery
         map = new google.maps.Map(mapContainer.value, {
             center: SWITZERLAND_CENTER,
             zoom: 8,
-            mapTypeId: google.maps.MapTypeId.SATELLITE,
+            mapTypeId: google.maps.MapTypeId.HYBRID, // Satellite view with place names/labels
             mapTypeControl: true,
             streetViewControl: false,
             fullscreenControl: true,
@@ -189,16 +189,22 @@ onMounted(() => {
     window.addEventListener("navigate-to-project", handleNavigateToProject)
 })
 
+// Handle component reactivation when using KeepAlive
+onActivated(() => {
+    // Re-create markers when component is reactivated from cache
+    if (map && props.projects.length > 0) {
+        createMarkers()
+    }
+})
+
 // Re-create markers when projects change
 watch(() => props.projects, createMarkers, { deep: true })
 
 // Cleanup
-onMounted(() => {
-    return () => {
-        window.removeEventListener("navigate-to-project", handleNavigateToProject)
-        if (markerClusterer) {
-            markerClusterer.clearMarkers()
-        }
+onUnmounted(() => {
+    window.removeEventListener("navigate-to-project", handleNavigateToProject)
+    if (markerClusterer) {
+        markerClusterer.clearMarkers()
     }
 })
 </script>

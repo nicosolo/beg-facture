@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRoute, useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
-import { ref, computed, watch, onMounted } from "vue"
+import { ref, computed, watch, onMounted, KeepAlive } from "vue"
 import { Bars3Icon, XMarkIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/vue/24/outline"
 import { useAuthStore } from "./stores/auth"
 import { useAlert } from "./composables/utils/useAlert"
@@ -202,7 +202,11 @@ const isExpanded = (itemName: string): boolean => {
             <!-- Main content - no margin adjustment, sidebar will overlay -->
             <main class="flex-1 p-4 w-full">
                 <div class="container mx-auto md:max-w-full md:px-4">
-                    <RouterView />
+                    <RouterView v-slot="{ Component }">
+                        <KeepAlive :max="3">
+                            <component :is="Component" />
+                        </KeepAlive>
+                    </RouterView>
                 </div>
             </main>
 

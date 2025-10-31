@@ -8,6 +8,7 @@ import {
     projectCreateSchema,
     projectUpdateSchema,
     projectMapArrayResponseSchema,
+    projectMapFilterSchema,
     type ProjectListResponse,
     type ProjectResponse,
     type ProjectMapArrayResponse,
@@ -63,23 +64,21 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
     })
     .get(
         "/map",
+        zValidator("query", projectMapFilterSchema),
         responseValidator({
             200: projectMapArrayResponseSchema,
         }),
         async (c) => {
+            const filter = c.req.valid("query")
             const user = c.get("user")
 
             // Calculate the date 5 years ago
             const fiveYearsAgo = new Date()
             fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5)
 
-            // Get all projects with coordinates, excluding archived and old inactive projects
+            // Get all projects with applied filters
             const result = await projectRepository.findAll(user, {
-                includeArchived: false,
-                includeEnded: false,
-                hasUnbilledTime: false,
-                sortBy: "name",
-                sortOrder: "asc",
+                ...filter,
                 page: 1,
                 limit: 10000,
             })

@@ -1,7 +1,7 @@
 <template>
     <div class="bg-indigo-50 p-4 border border-gray-200 rounded-lg mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField :label="$t('projects.name')">
+        <div class="grid grid-cols-1 gap-4" :class="showSort ? 'md:grid-cols-3' : 'md:grid-cols-2'">
+            <FormField v-if="showNameInput" :label="$t('projects.name')">
                 <template #input>
                     <Input
                         v-model="filterData.name"
@@ -19,7 +19,7 @@
                 />
             </div>
 
-            <div class="form-group">
+            <div v-if="showSort" class="form-group">
                 <Label>{{ $t("projects.filters.sortBy") }}</Label>
                 <div class="flex gap-2">
                     <Select
@@ -65,7 +65,7 @@
                 />
             </div>
 
-            <div class="form-group">
+            <div v-if="showCheckboxes" class="form-group">
                 <div class="space-y-2">
                     <Checkbox
                         v-model="filterData.hasUnbilledTime"
@@ -114,10 +114,18 @@ import { getYearRange } from "@/composables/utils/useDateRangePresets"
 export type ProjectFilterModel = Omit<ProjectFilter, "page" | "limit" | "accountId">
 interface ProjectFilterProps {
     filter: ProjectFilterModel
+    showSort?: boolean
+    showCheckboxes?: boolean
+    showNameInput?: boolean
 }
 
 // Define props for the component
-const { filter } = defineProps<ProjectFilterProps>()
+const {
+    filter,
+    showSort = true,
+    showCheckboxes = true,
+    showNameInput = true,
+} = defineProps<ProjectFilterProps>()
 
 // Define emitted events
 const emit = defineEmits<{

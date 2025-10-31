@@ -1,5 +1,16 @@
 import { z } from "zod"
-import { dateSchema } from "./base"
+import { booleanSchema, dateSchema } from "./base"
+
+// Filter schema for project map (same as projectBaseFilterSchema but separate)
+export const projectMapFilterSchema = z.object({
+    name: z.string().optional(),
+    referentUserId: z.coerce.number().optional(),
+    fromDate: z.coerce.date().optional(),
+    toDate: z.coerce.date().optional(),
+})
+
+export type ProjectMapFilter = z.infer<typeof projectMapFilterSchema>
+export type ProjectMapFilterInput = z.input<typeof projectMapFilterSchema>
 
 // Lightweight project map item schema for map markers
 export const projectMapItemResponseSchema = z.object({

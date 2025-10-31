@@ -10,6 +10,7 @@ import { MarkerClusterer } from "@googlemaps/markerclusterer"
 import type { ProjectMapItemResponse } from "@beg/validations"
 import { useRouter } from "vue-router"
 import { buildGoogleMapsUrl, buildGeoAdminUrl } from "@/utils/coordinates"
+import { useGoogleMaps } from "@/composables/useGoogleMaps"
 
 interface Props {
     projects: ProjectMapItemResponse[]
@@ -19,34 +20,17 @@ const props = defineProps<Props>()
 const mapContainer = ref<HTMLDivElement | null>(null)
 const router = useRouter()
 
+const { loadGoogleMapsScript } = useGoogleMaps()
+
 let map: google.maps.Map | null = null
 let markerClusterer: MarkerClusterer | null = null
 const markers: google.maps.marker.AdvancedMarkerElement[] = []
-
-// Google Maps API key from environment variables
 
 // Switzerland default center
 const SWITZERLAND_CENTER = { lat: 46.8, lng: 8.2 }
 
 // Unique Map ID for advanced markers (required)
 const MAP_ID = "BEG_PROJECTS_MAP"
-
-const loadGoogleMapsScript = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        if (typeof google !== "undefined" && google.maps) {
-            resolve()
-            return
-        }
-
-        const script = document.createElement("script")
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=marker`
-        script.async = true
-        script.defer = true
-        script.onload = () => resolve()
-        script.onerror = () => reject(new Error("Failed to load Google Maps script"))
-        document.head.appendChild(script)
-    })
-}
 
 const initMap = async () => {
     if (!mapContainer.value) return

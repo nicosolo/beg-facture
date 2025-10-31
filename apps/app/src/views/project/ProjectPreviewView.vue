@@ -310,7 +310,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue"
+import { ref, computed, onMounted, watch, onActivated } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import Button from "@/components/atoms/Button.vue"
 import TimeEntriesManager from "@/components/organisms/time/TimeEntriesManager.vue"

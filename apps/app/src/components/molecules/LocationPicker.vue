@@ -109,8 +109,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from "vue"
+import { ref, onMounted, onActivated, watch, computed } from "vue"
 import { convertLv95ToWgs84, convertWgs84ToLv95 } from "@/utils/coordinates"
+import { useGoogleMaps } from "@/composables/useGoogleMaps"
 
 interface Props {
     latitude?: number | null
@@ -124,6 +125,8 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+const { loadGoogleMapsScript } = useGoogleMaps()
 
 const mapContainer = ref<HTMLDivElement | null>(null)
 const inputMode = ref<"wgs84" | "swiss">("wgs84")
@@ -142,23 +145,6 @@ const MAP_ID = "BEG_LOCATION_PICKER_MAP"
 const SWITZERLAND_CENTER = { lat: 46.8, lng: 8.2 }
 
 const hasCoordinates = computed(() => localLatitude.value !== null && localLongitude.value !== null)
-
-const loadGoogleMapsScript = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        if (typeof google !== "undefined" && google.maps) {
-            resolve()
-            return
-        }
-
-        const script = document.createElement("script")
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=marker`
-        script.async = true
-        script.defer = true
-        script.onload = () => resolve()
-        script.onerror = () => reject(new Error("Failed to load Google Maps script"))
-        document.head.appendChild(script)
-    })
-}
 
 const initMap = async () => {
     if (!mapContainer.value) return
@@ -338,4 +324,16 @@ watch(
 onMounted(() => {
     initMap()
 })
+
+// Handle component reactivation when using KeepAlive
+onActivated(() => {
+    marker = null
+    updateMarker()
+})
+
+const updateMarker = () => {
+    if (!map || !hasCoordinates.value) return
+
+    createMarker({ lat: localLatitude.value!, lng: localLongitude.value! })
+}
 </script>

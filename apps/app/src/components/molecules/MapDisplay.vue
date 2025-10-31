@@ -5,7 +5,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue"
+import { useGoogleMaps } from "@/composables/useGoogleMaps"
+import { ref, onMounted, watch, onActivated } from "vue"
 
 interface Props {
     latitude: number | null
@@ -26,22 +27,7 @@ let marker: google.maps.marker.AdvancedMarkerElement | null = null
 // Google Maps API key from environment variables
 const MAP_ID = "BEG_PROJECT_DISPLAY_MAP"
 
-const loadGoogleMapsScript = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        if (typeof google !== "undefined" && google.maps) {
-            resolve()
-            return
-        }
-
-        const script = document.createElement("script")
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=marker`
-        script.async = true
-        script.defer = true
-        script.onload = () => resolve()
-        script.onerror = () => reject(new Error("Failed to load Google Maps script"))
-        document.head.appendChild(script)
-    })
-}
+const { loadGoogleMapsScript } = useGoogleMaps()
 
 const initMap = async () => {
     if (!mapContainer.value) return
@@ -74,7 +60,7 @@ const initMap = async () => {
 }
 
 const updateMarker = () => {
-    if (!map || props.latitude === null || props.longitude === null) return
+    // if (!map || props.latitude === null || props.longitude === null) return
 
     const position = { lat: props.latitude, lng: props.longitude }
 
@@ -92,6 +78,11 @@ const updateMarker = () => {
 
 onMounted(() => {
     initMap()
+})
+
+onActivated(() => {
+    marker = null
+    updateMarker()
 })
 
 watch([() => props.latitude, () => props.longitude], () => {

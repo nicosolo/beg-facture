@@ -12,11 +12,13 @@ services:
                   ignore:
                       - node_modules/
                       - drizzle/
+                  initial_sync: true
                 - action: sync+restart
                   path: ./packages
                   target: /app/packages
                   ignore:
                       - node_modules/
+                  initial_sync: true
                 - action: rebuild
                   path: apps/api/package.json
                 - action: rebuild
@@ -49,11 +51,13 @@ services:
                   target: /app/apps/app
                   ignore:
                       - node_modules/
+                  initial_sync: true
                 - action: sync+restart
                   path: ./packages
                   target: /app/packages
                   ignore:
                       - node_modules/
+                  initial_sync: true
                 - action: rebuild
                   path: ./apps/app/package.json
                 - action: rebuild

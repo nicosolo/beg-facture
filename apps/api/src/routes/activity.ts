@@ -3,6 +3,7 @@ import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
 import {
     activityFilterSchema,
+    activityExportFilterSchema,
     activityResponseSchema,
     activityCreateSchema,
     activityUpdateSchema,
@@ -21,6 +22,7 @@ import { activityTypeRepository } from "@src/db/repositories/activityType.reposi
 import { rateRepository } from "@src/db/repositories/rate.repository"
 import { userRepository } from "@src/db/repositories/user.repository"
 import { hasRole } from "@src/tools/role-middleware"
+import { buildActivitiesWorkbook } from "@src/tools/activity-exporter"
 
 export const activityRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
@@ -35,6 +37,35 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
             const user = c.get("user")
             const result = await activityRepository.findAll(user, filter)
             return c.render(result, 200)
+        }
+    )
+    .get(
+        "/export",
+        zValidator("query", activityExportFilterSchema),
+        async (c) => {
+            const filter = c.req.valid("query")
+            const user = c.get("user")
+            const activities = await activityRepository.findAllForExport(user, filter)
+            const includeDisbursementColumn = hasRole(user.role, "admin")
+
+            const buffer = await buildActivitiesWorkbook(activities, {
+                includeDisbursementColumn,
+                perUser: filter.perUser ?? false,
+            })
+
+            const today = new Date().toISOString().split("T")[0]
+            const filename = `heures-${today}.xlsx`
+
+            const headers = new Headers({
+                "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "Content-Disposition": `attachment; filename="${filename}"`,
+                "Content-Length": buffer.byteLength.toString(),
+            })
+
+            return new Response(buffer, {
+                status: 200,
+                headers,
+            })
         }
     )
     .get(

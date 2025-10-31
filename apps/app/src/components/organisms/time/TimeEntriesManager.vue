@@ -4,15 +4,51 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
                 <h2 class="text-lg font-semibold">{{ $t("time.title") }}</h2>
                 <div class="flex flex-wrap gap-2 justify-start sm:justify-end">
-                    <Button
-                        variant="secondary"
-                        size="md"
-                        @click="handleExport"
-                        :disabled="exportLoading"
-                        class="w-full sm:w-auto"
-                    >
-                        {{ exportLoading ? "Exporting..." : "Export to Excel" }}
-                    </Button>
+                    <DropdownMenu>
+                        <template #trigger="{ toggle }">
+                            <Button
+                                variant="secondary"
+                                size="md"
+                                @click="toggle"
+                                :disabled="exportLoading"
+                                class="w-full sm:w-auto"
+                            >
+                                {{
+                                    exportLoading
+                                        ? $t("time.export.exporting")
+                                        : $t("time.export.button")
+                                }}
+                            </Button>
+                        </template>
+                        <template #items="{ close }">
+                            <button
+                                @click="
+                                    () => {
+                                        handleExport(false)
+                                        close()
+                                    }
+                                "
+                                class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
+                                role="menuitem"
+                                type="button"
+                            >
+                                {{ $t("time.export.all") }}
+                            </button>
+                            <button
+                                @click="
+                                    () => {
+                                        handleExport(true)
+                                        close()
+                                    }
+                                "
+                                class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
+                                role="menuitem"
+                                type="button"
+                            >
+                                {{ $t("time.export.perUser") }}
+                            </button>
+                        </template>
+                    </DropdownMenu>
                     <Button
                         variant="primary"
                         size="md"
@@ -76,15 +112,14 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from "vue"
-import { useI18n } from "vue-i18n"
-import { useFetchActivityList } from "@/composables/api/useActivity"
+import { useFetchActivityList, useExportActivities } from "@/composables/api/useActivity"
 import TimeFilterPanel from "@/components/organisms/time/TimeFilterPanel.vue"
 import TimeEntriesList from "@/components/organisms/time/TimeEntriesList.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import Button from "@/components/atoms/Button.vue"
-import { exportToCSV, formatDateForExport } from "@/utils/export"
+import DropdownMenu from "@/components/atoms/DropdownMenu.vue"
 import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@beg/validations"
 import { useAuthStore } from "@/stores/auth"
 
@@ -103,11 +138,9 @@ const props = withDefaults(defineProps<Props>(), {
     hideHeader: false,
 })
 
-const { t } = useI18n()
-
 // API client
 const { get: fetchActivities, loading, data } = useFetchActivityList()
-const { get: fetchActivitiesExport, loading: exportLoading } = useFetchActivityList()
+const { get: exportActivities, loading: exportLoading } = useExportActivities()
 
 // State
 const activities = ref<ActivityResponse[]>([])
@@ -230,72 +263,34 @@ const onTimeEntrySaved = () => {
 }
 
 // Export handler
-const handleExport = async () => {
-    exportLoading.value = true
+const handleExport = async (perUser: boolean = false) => {
     try {
-        // Fetch all data without pagination
-        const response = await fetchActivitiesExport({
-            query: { ...filter.value, limit: 20000, page: 1 },
+        const arrayBuffer = await exportActivities({
+            query: { ...filter.value, perUser },
         })
 
-        if (response && response.data) {
-            // Prepare columns for export using translations
-            const columns = [
-                {
-                    key: "date",
-                    label: t("time.columns.date"),
-                    formatter: (value: any) => formatDateForExport(value),
-                },
-                { key: "user.initials", label: t("time.columns.user") },
-                { key: "rateClass", label: t("time.columns.rateClass") },
-                { key: "project.projectNumber", label: t("projects.mandat") },
-                { key: "project.name", label: t("time.columns.project") },
-                { key: "activityType.code", label: t("time.columns.activityType") },
-                {
-                    key: "duration",
-                    label: t("time.columns.duration"),
-                    formatter: (value: any) => value,
-                },
-                { key: "rate", label: "Tarif", formatter: (value: any) => value },
-                {
-                    key: "kilometers",
-                    label: t("time.columns.kilometers"),
-                    formatter: (value: any) => value || "0",
-                },
-                {
-                    key: "expenses",
-                    label: t("time.columns.expenses"),
-                    formatter: (value: any) => value,
-                },
-                { key: "description", label: t("time.columns.description") },
-                {
-                    key: "billed",
-                    label: t("time.columns.billed"),
-                    formatter: (value: any) => (value ? "Oui" : "Non"),
-                },
-                {
-                    key: "disbursement",
-                    label: t("time.columns.disbursement"),
-                    formatter: (value: any) => (value ? "Oui" : "Non"),
-                },
-            ]
-
-            // Generate filename with current date
-            const today = new Date().toISOString().split("T")[0]
-            const filename = `heures-${today}.csv`
-
-            // Export to CSV
-            exportToCSV({
-                filename,
-                columns,
-                data: response.data,
-            })
+        if (!arrayBuffer) {
+            return
         }
+
+        const blob = new Blob([arrayBuffer], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        })
+
+        const today = new Date().toISOString().split("T")[0]
+        const filename = `heures-${today}.xlsx`
+
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
     } catch (error) {
         console.error("Failed to export activities:", error)
         // You might want to show an error message to the user here
-    } finally {
-        exportLoading.value = false
     }
 }
 

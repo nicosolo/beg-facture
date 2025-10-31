@@ -281,6 +281,12 @@ export default {
     time: {
         title: "Journal des heures",
         new: "Ajouter des heures",
+        export: {
+            button: "Exporter vers Excel",
+            exporting: "Export en cours...",
+            all: "Tout",
+            perUser: "Par collaborateur",
+        },
         columns: {
             date: "Date",
             user: "Collaborateur",

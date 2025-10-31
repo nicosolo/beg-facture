@@ -77,7 +77,7 @@
                         <option value="user">Utilisateur</option>
                         <option value="admin">Administrateur</option>
                         <option value="super_admin" :disabled="!canAssignSuperAdmin">
-                            Super administrateur
+                            Administrateur (visa)
                         </option>
                     </select>
                 </div>

@@ -2,28 +2,35 @@ import { z } from "zod"
 import { createPageResponseSchema, paginationSchema } from "./pagination"
 import { booleanSchema, classSchema, dateSchema, timestampsSchema } from "./base"
 
-// Create a schema that parses query string values
-export const activityFilterSchema = z
-    .object({
-        projectId: z.coerce.number().optional(),
-        userId: z.coerce.number().optional(),
-        fromDate: z.coerce.date().optional(),
-        toDate: z.coerce.date().optional(),
-        sortBy: z
-            .enum(["date", "duration", "kilometers", "expenses", "rate"])
-            .optional()
-            .default("date"),
-        sortOrder: z.enum(["asc", "desc"]).default("asc").optional(),
-        includeBilled: booleanSchema.default(false).optional(),
-        includeDisbursement: booleanSchema.default(false).optional(),
-        includeUnbilled: booleanSchema.default(false).optional(),
-        activityTypeId: z.coerce.number().optional(),
-        invoiceId: z.coerce.number().optional(),
-    })
-    .merge(paginationSchema)
+// Base activity filter schema without pagination
+const activityBaseFilterSchema = z.object({
+    projectId: z.coerce.number().optional(),
+    userId: z.coerce.number().optional(),
+    fromDate: z.coerce.date().optional(),
+    toDate: z.coerce.date().optional(),
+    sortBy: z
+        .enum(["date", "duration", "kilometers", "expenses", "rate"])
+        .optional()
+        .default("date"),
+    sortOrder: z.enum(["asc", "desc"]).default("asc").optional(),
+    includeBilled: booleanSchema.default(false).optional(),
+    includeDisbursement: booleanSchema.default(false).optional(),
+    includeUnbilled: booleanSchema.default(false).optional(),
+    activityTypeId: z.coerce.number().optional(),
+    invoiceId: z.coerce.number().optional(),
+})
+
+// Activity filter schema for listing (includes pagination)
+export const activityFilterSchema = activityBaseFilterSchema.merge(paginationSchema)
 
 export type ActivityFilter = z.infer<typeof activityFilterSchema>
-export type ActivityFilterInput = z.input<typeof activityFilterSchema>
+
+// Activity export filter schema (extends base filter with export-specific options)
+export const activityExportFilterSchema = activityBaseFilterSchema.extend({
+    perUser: booleanSchema.default(false).optional(),
+})
+
+export type ActivityExportFilter = z.infer<typeof activityExportFilterSchema>
 
 export const activityCreateSchema = z.object({
     projectId: z.number(),

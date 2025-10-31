@@ -1,12 +1,13 @@
 import {
     idParamSchema,
     activityFilterSchema,
+    activityExportFilterSchema,
     activityCreateSchema,
     activityUpdateSchema,
     type ActivityListResponse,
     type ActivityResponse,
 } from "@beg/validations"
-import { useGet, usePost, usePut, useDelete } from "./useAPI"
+import { useGet, usePost, usePut, useDelete, useGetBinary } from "./useAPI"
 
 export function useFetchActivity() {
     return useGet<
@@ -27,6 +28,14 @@ export function useFetchActivityList() {
         }
     >("activity", {
         query: activityFilterSchema,
+    })
+}
+
+export function useExportActivities() {
+    return useGetBinary<{
+        query: typeof activityExportFilterSchema
+    }>("activity/export", {
+        query: activityExportFilterSchema,
     })
 }
 

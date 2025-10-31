@@ -56,107 +56,117 @@ export async function updateProjectActivityDates(projectId: number) {
         .where(eq(projects.id, projectId))
 }
 
+const selectFields = (user: Variables["user"]) => ({
+    id: activities.id,
+    date: activities.date,
+    duration: activities.duration,
+    kilometers: activities.kilometers,
+    expenses: activities.expenses,
+    rate: activities.rate,
+    rateClass: activities.rateClass,
+    description: activities.description,
+    billed: activities.billed,
+    ...(hasRole(user.role, "admin") ? { disbursement: activities.disbursement } : {}),
+    createdAt: activities.createdAt,
+    updatedAt: activities.updatedAt,
+    invoiceId: activities.invoiceId,
+    user: {
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        initials: users.initials,
+    },
+    project: {
+        id: projects.id,
+        name: projects.name,
+        projectNumber: projects.projectNumber,
+    },
+    activityType: {
+        id: activityTypes.id,
+        name: activityTypes.name,
+        code: activityTypes.code,
+        billable: activityTypes.billable,
+    },
+})
+
+const createBaseQuery = (user: Variables["user"]) =>
+    db
+        .select(selectFields(user))
+        .from(activities)
+        .leftJoin(users, eq(activities.userId, users.id))
+        .leftJoin(projects, eq(activities.projectId, projects.id))
+        .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
+
+const buildFilterComponents = (filter: ActivityFilter) => {
+    const {
+        userId,
+        projectId,
+        fromDate,
+        toDate,
+        sortBy = "date",
+        sortOrder = "asc",
+        includeBilled = false,
+        includeDisbursement = false,
+        includeUnbilled = false,
+        activityTypeId,
+        invoiceId,
+    } = filter
+
+    const whereConditions: any[] = []
+    if (userId) whereConditions.push(eq(activities.userId, userId))
+    if (projectId) whereConditions.push(eq(activities.projectId, projectId))
+    if (fromDate) whereConditions.push(gte(activities.date, fromDate))
+    if (toDate) whereConditions.push(lte(activities.date, toDate))
+    if (activityTypeId) whereConditions.push(eq(activities.activityTypeId, activityTypeId))
+
+    const billingConditions = []
+    if (includeBilled) billingConditions.push(eq(activities.billed, true))
+    if (includeUnbilled) billingConditions.push(eq(activities.billed, false))
+    if (includeDisbursement) billingConditions.push(eq(activities.disbursement, true))
+
+    if (billingConditions.length > 0) {
+        whereConditions.push(or(...billingConditions))
+    }
+
+    if (invoiceId) {
+        whereConditions.splice(0, whereConditions.length, eq(activities.invoiceId, invoiceId))
+    }
+
+    const sortColumn = (() => {
+        switch (sortBy) {
+            case "date":
+                return activities.date
+            case "duration":
+                return activities.duration
+            case "kilometers":
+                return activities.kilometers
+            case "expenses":
+                return activities.expenses
+            case "rate":
+                return activities.rate
+            default:
+                return activities.date
+        }
+    })()
+
+    const sortDirection = sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn)
+    const secondarySort = sortOrder === "desc" ? desc(activities.id) : asc(activities.id)
+
+    return {
+        whereConditions,
+        sortDirection,
+        secondarySort,
+    }
+}
+
 export const activityRepository = {
     findAll: async (user: Variables["user"], filter: ActivityFilter) => {
-        const {
-            page = 1,
-            limit = 10,
-            userId,
-            projectId,
-            fromDate,
-            toDate,
-            sortBy = "date",
-            sortOrder = "asc",
-            includeBilled = false,
-            includeDisbursement = false,
-            includeUnbilled = false,
-            activityTypeId,
-            invoiceId,
-        } = filter
+        const { page = 1, limit = 10 } = filter
         const offset = (page - 1) * limit
-        // Build where conditions
-        let whereConditions = []
-        if (userId) whereConditions.push(eq(activities.userId, userId))
-        if (projectId) whereConditions.push(eq(activities.projectId, projectId))
-        if (fromDate) whereConditions.push(gte(activities.date, fromDate))
-        if (toDate) whereConditions.push(lte(activities.date, toDate))
-        if (activityTypeId) whereConditions.push(eq(activities.activityTypeId, activityTypeId))
-
-        // Billing status filters
-        const billingConditions = []
-        if (includeBilled) billingConditions.push(eq(activities.billed, true))
-        if (includeUnbilled) billingConditions.push(eq(activities.billed, false))
-        if (includeDisbursement) billingConditions.push(eq(activities.disbursement, true))
-
-        // If any billing conditions are specified, add them as OR conditions
-        if (billingConditions.length > 0) {
-            whereConditions.push(or(...billingConditions))
-        }
-
-        if (invoiceId) {
-            whereConditions = []
-            whereConditions.push(eq(activities.invoiceId, invoiceId))
-        }
-
-        // Determine sort column
-        const sortColumn = (() => {
-            switch (sortBy) {
-                case "date":
-                    return activities.date
-                case "duration":
-                    return activities.duration
-                case "kilometers":
-                    return activities.kilometers
-                case "expenses":
-                    return activities.expenses
-                case "rate":
-                    return activities.rate
-                default:
-                    return activities.date
-            }
-        })()
-
-        const sortDirection = sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn)
-        const secondarySort = sortOrder === "desc" ? desc(activities.id) : asc(activities.id)
+        const { whereConditions, sortDirection, secondarySort } = buildFilterComponents(filter)
 
         // Query with conditions
-        const baseQuery = db
-            .select({
-                id: activities.id,
-                date: activities.date,
-                duration: activities.duration,
-                kilometers: activities.kilometers,
-                expenses: activities.expenses,
-                rate: activities.rate,
-                rateClass: activities.rateClass,
-                description: activities.description,
-                billed: activities.billed,
-                ...(hasRole(user.role, "admin") ? { disbursement: activities.disbursement } : {}),
-                createdAt: activities.createdAt,
-                updatedAt: activities.updatedAt,
-                invoiceId: activities.invoiceId,
-                user: {
-                    id: users.id,
-                    firstName: users.firstName,
-                    lastName: users.lastName,
-                    initials: users.initials,
-                },
-                project: {
-                    id: projects.id,
-                    name: projects.name,
-                    projectNumber: projects.projectNumber,
-                },
-                activityType: {
-                    id: activityTypes.id,
-                    name: activityTypes.name,
-                    code: activityTypes.code,
-                    billable: activityTypes.billable,
-                },
-            })
-            .from(activities)
-            .leftJoin(users, eq(activities.userId, users.id))
-            .leftJoin(projects, eq(activities.projectId, projects.id))
-            .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
+        const baseQuery = createBaseQuery(user)
 
         // Disable access control for now
         // if (user.role !== "admin") {
@@ -165,13 +175,16 @@ export const activityRepository = {
         //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
         //     )
         // }
-        const data = await (whereConditions.length > 0
-            ? baseQuery
-                  .where(and(...whereConditions))
-                  .orderBy(sortDirection, secondarySort)
-                  .limit(limit)
-                  .offset(offset)
-            : baseQuery.orderBy(sortDirection, secondarySort).limit(limit).offset(offset))
+        const dataQuery =
+            whereConditions.length > 0
+                ? baseQuery
+                      .where(and(...whereConditions))
+                      .orderBy(sortDirection, secondarySort)
+                      .limit(limit)
+                      .offset(offset)
+                : baseQuery.orderBy(sortDirection, secondarySort).limit(limit).offset(offset)
+
+        const data = await dataQuery
 
         // Count total with same filters and access control
         const countQuery = db
@@ -228,6 +241,18 @@ export const activityRepository = {
             totalPages,
             totals,
         }
+    },
+
+    findAllForExport: async (user: Variables["user"], filter: ActivityFilter) => {
+        const { whereConditions, sortDirection, secondarySort } = buildFilterComponents(filter)
+        const baseQuery = createBaseQuery(user)
+
+        const dataQuery =
+            whereConditions.length > 0
+                ? baseQuery.where(and(...whereConditions)).orderBy(sortDirection, secondarySort)
+                : baseQuery.orderBy(sortDirection, secondarySort)
+
+        return await dataQuery
     },
 
     findById: async (id: number, user: Variables["user"]) => {

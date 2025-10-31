@@ -18,7 +18,7 @@ const createRequest = () => {
 
     const client = hc<ApiRoutes>(baseUrl)
 
-    return async (
+    return async <TResult = any>(
         method: "get" | "post" | "put" | "delete" | "patch",
         endpoint: string,
         schemas?: ApiSchemas,
@@ -26,7 +26,8 @@ const createRequest = () => {
             query?: any
             body?: any
             params?: any
-        }
+        },
+        parseResponse: (response: Response) => Promise<TResult> = (response) => response.json()
     ) => {
         const auth = useAuthStore()
 
@@ -73,7 +74,7 @@ const createRequest = () => {
             throw apiError
         }
 
-        return await response.json()
+        return await parseResponse(response)
     }
 }
 
@@ -108,9 +109,67 @@ export function useGet<
         error.value = null
 
         try {
-            const result = await request("get", endpoint, schemas, options)
+            const result = await request<TResponse>("get", endpoint, schemas, options)
             data.value = result as TResponse
             return result as TResponse
+        } catch (e) {
+            error.value = e instanceof Error ? e.message : "Unknown error"
+            if (e instanceof ApiError) {
+                errorAlert(e.getLocalizedMessage(t))
+            }
+            throw e
+        } finally {
+            loading.value = false
+        }
+    }
+
+    return {
+        loading,
+        error,
+        data,
+        get,
+    }
+}
+
+export function useGetBinary<
+    TSchemas extends {
+        query?: z.ZodType<any>
+        params?: z.ZodType<any>
+    } = {},
+>(
+    endpoint: string,
+    schemas?: {
+        query?: TSchemas["query"]
+        params?: TSchemas["params"]
+    }
+) {
+    const { t } = useI18n()
+    const { errorAlert } = useAlert()
+    const loading = ref(false)
+    const error = ref<string | null>(null)
+    const data = ref<ArrayBuffer | null>(null)
+    const request = createRequest()
+
+    type QueryType = TSchemas["query"] extends z.ZodType<any> ? z.input<TSchemas["query"]> : void
+    type ParamsType = TSchemas["params"] extends z.ZodType<any> ? z.input<TSchemas["params"]> : void
+
+    type GetOptions = {} & (QueryType extends void ? {} : { query?: QueryType }) &
+        (ParamsType extends void ? {} : { params?: ParamsType })
+
+    const get = async (options?: GetOptions) => {
+        loading.value = true
+        error.value = null
+
+        try {
+            const result = await request<ArrayBuffer>(
+                "get",
+                endpoint,
+                schemas,
+                options,
+                (response) => response.arrayBuffer()
+            )
+            data.value = result
+            return result
         } catch (e) {
             error.value = e instanceof Error ? e.message : "Unknown error"
             if (e instanceof ApiError) {
@@ -161,7 +220,7 @@ export function usePost<
         error.value = null
 
         try {
-            const result = await request("post", endpoint, schemas, options)
+            const result = await request<TResponse>("post", endpoint, schemas, options)
             data.value = result as TResponse
             return result as TResponse
         } catch (e) {
@@ -214,7 +273,7 @@ export function usePut<
         error.value = null
 
         try {
-            const result = await request("put", endpoint, schemas, options)
+            const result = await request<TResponse>("put", endpoint, schemas, options)
             data.value = result as TResponse
             return result as TResponse
         } catch (e) {
@@ -267,7 +326,7 @@ export function usePatch<
         error.value = null
 
         try {
-            const result = await request("patch", endpoint, schemas, options)
+            const result = await request<TResponse>("patch", endpoint, schemas, options)
             data.value = result as TResponse
             return result as TResponse
         } catch (e) {
@@ -314,7 +373,7 @@ export function useDelete<
         error.value = null
 
         try {
-            const result = await request("delete", endpoint, schemas, options)
+            const result = await request<TResponse>("delete", endpoint, schemas, options)
             data.value = result as TResponse
             return result as TResponse
         } catch (e) {

@@ -36,7 +36,11 @@
         <div>
             <TimeEntriesManager
                 :show-project-filter="false"
-                :initial-filter="{ includeBilled: false, includeUnbilled: true }"
+                :initial-filter="{
+                    includeBilled: false,
+                    includeUnbilled: true,
+                    userId: authStore.user?.id,
+                }"
                 initial-date-preset="today"
                 empty-message="Aucune entrée d'heure trouvée"
             />
@@ -50,8 +54,10 @@ import { useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
 import ProjectSelect from "@/components/organisms/project/ProjectSelect.vue"
 import TimeEntriesManager from "@/components/organisms/time/TimeEntriesManager.vue"
+import { useAuthStore } from "@/stores/auth"
 
 const router = useRouter()
+const authStore = useAuthStore()
 const { t } = useI18n()
 const selectedProjectId = ref<number | undefined>(undefined)
 

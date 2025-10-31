@@ -14,9 +14,9 @@
 import { computed, onMounted } from "vue"
 import { useRoute } from "vue-router"
 import TimeEntriesManager from "@/components/organisms/time/TimeEntriesManager.vue"
-
+import { useAuthStore } from "@/stores/auth"
 const route = useRoute()
-
+const authStore = useAuthStore()
 // Get projectId from query params if present
 const projectId = computed(() => {
     const id = route.query.projectId as unknown as number
@@ -29,9 +29,10 @@ const showProjectFilter = computed(() => !projectId.value)
 // Initial filter configuration
 const initialFilter = computed(() => ({
     projectId: projectId.value,
+    userId: authStore.user?.id,
 }))
 
 onMounted(() => {
-    document.title = 'BEG - Saisie des heures'
+    document.title = "BEG - Saisie des heures"
 })
 </script>

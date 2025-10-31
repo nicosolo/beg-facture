@@ -121,7 +121,6 @@ import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import Button from "@/components/atoms/Button.vue"
 import DropdownMenu from "@/components/atoms/DropdownMenu.vue"
 import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@beg/validations"
-import { useAuthStore } from "@/stores/auth"
 
 interface Props {
     emptyMessage?: string
@@ -154,10 +153,9 @@ const totals = ref<{ duration: number; kilometers: number; expenses: number } | 
 const showTimeEntryModal = ref(false)
 const selectedActivityId = ref<number | null>(null)
 const defaultProjectId = ref<number | undefined>(undefined)
-const authStore = useAuthStore()
 // Filter state
 const filter = ref<ActivityFilter>({
-    userId: authStore.user?.id,
+    userId: undefined,
     activityTypeId: undefined,
     includeBilled: false,
     includeUnbilled: true,

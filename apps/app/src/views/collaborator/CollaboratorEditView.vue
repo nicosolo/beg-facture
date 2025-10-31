@@ -381,14 +381,6 @@ const activityClassPresets: Record<ActivityPresetKey, Record<string, ClassSchema
 
 const selectedPreset = ref<ActivityPresetOptionValue>("")
 
-const activityCodeIndex = computed(() => {
-    const map = new Map<number, string>()
-    activityTypes.value?.forEach((activity) => {
-        map.set(activity.id, activity.code)
-    })
-    return map
-})
-
 const applyPresetToSelectedActivities = (preset: ActivityPresetKey) => {
     const presetMap = activityClassPresets[preset]
     if (!presetMap) return

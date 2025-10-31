@@ -160,7 +160,6 @@ const emit = defineEmits<{
 
 // Local filter state
 const localFilter = ref<ActivityFilter>({ ...filter })
-const showMobileFilters = ref(false)
 
 // Fetch data for dropdowns
 const { get: fetchUsers, loading: loadingUsers, data: usersData } = useFetchUsers()

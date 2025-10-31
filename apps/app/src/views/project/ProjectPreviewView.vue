@@ -282,7 +282,7 @@
                 <div v-show="activeTab === 'activities'">
                     <TimeEntriesManager
                         :show-project-filter="false"
-                        :initial-filter="{ projectId: projectId }"
+                        :initial-filter="{ projectId: projectId, userId: authStore.user?.id }"
                         :hide-columns="['project']"
                         empty-message="Aucune entrée d'heure trouvée pour ce mandat"
                     />
@@ -323,10 +323,10 @@ import MapDisplay from "@/components/molecules/MapDisplay.vue"
 import { useFormat } from "@/composables/utils/useFormat"
 import { useElectron } from "@/composables/useElectron"
 import { buildGeoAdminUrl, buildGoogleMapsUrl } from "@/utils/coordinates"
-
+import { useAuthStore } from "@/stores/auth"
 const route = useRoute()
 const router = useRouter()
-
+const authStore = useAuthStore()
 // Tab state - get from query string or default to overview
 const activeTab = computed({
     get: () => (route.query.tab as string) || "overview",

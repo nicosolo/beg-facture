@@ -239,7 +239,7 @@ async function importLocations() {
 
             const location = {
                 id: rawLocation.IDlocalité,
-                name: rawLocation.Localité,
+                name: rawLocation.Localité?.trim() || "",
                 country: country as any,
                 canton: canton as any,
                 region,
@@ -253,7 +253,7 @@ async function importLocations() {
             // If no tree details found, create a simple location with just the name
             const location = {
                 id: rawLocation.IDlocalité,
-                name: rawLocation.Localité,
+                name: rawLocation.Localité?.trim() || "",
                 country: "CH" as const, // Default to Switzerland
                 canton: undefined,
                 region: undefined,
@@ -280,7 +280,7 @@ async function importCompanies() {
     for (const rawCompany of companyData) {
         const company = {
             id: rawCompany.IDentreprise,
-            name: rawCompany.Entreprise,
+            name: rawCompany.Entreprise?.trim() || "",
             createdAt: new Date(),
             updatedAt: new Date(),
         } as Company
@@ -299,7 +299,7 @@ async function importClients() {
     for (const rawClient of clientData) {
         const client = {
             id: rawClient.IDmandant,
-            name: rawClient.Mandant,
+            name: rawClient.Mandant?.trim() || "",
             createdAt: new Date(),
             updatedAt: new Date(),
         } satisfies typeof clients.$inferInsert
@@ -318,7 +318,7 @@ async function importProjectTypes() {
     for (const rawType of projectTypeData) {
         const projectType = {
             id: rawType.IDtype,
-            name: rawType.Type,
+            name: rawType.Type?.trim() || "",
             createdAt: new Date(),
             updatedAt: new Date(),
         } satisfies typeof projectTypes.$inferInsert
@@ -337,7 +337,7 @@ async function importEngineers() {
     for (const rawEngineer of engineerData) {
         const engineer = {
             id: rawEngineer.IDingénieur,
-            name: rawEngineer.Ingénieur,
+            name: rawEngineer.Ingénieur?.trim() || "",
             createdAt: new Date(),
             updatedAt: new Date(),
         } satisfies typeof engineers.$inferInsert
@@ -457,7 +457,7 @@ async function importProjects() {
             const project = {
                 id: rawProject.IDmandat,
                 projectNumber: rawProject.Mandat,
-                name: rawProject["Désignation"],
+                name: rawProject["Désignation"]?.trim() || "",
                 projectManagerId: userMap.get(rawProject.Responsable) || null,
                 startDate: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
                 clientId,
@@ -471,7 +471,7 @@ async function importProjects() {
                 createdAt: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
                 updatedAt: new Date(),
                 ended: rawProject.Etat === "Terminé",
-                subProjectName: rawProject["Sous-mandat"] || null,
+                subProjectName: rawProject["Sous-mandat"]?.trim() || null,
             } satisfies typeof projects.$inferInsert
 
             chunkProjects.push(project)

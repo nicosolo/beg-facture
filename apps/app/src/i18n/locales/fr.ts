@@ -150,7 +150,7 @@ export default {
         notes: "Notes",
         statusLabel: "Statut",
         startDate: "Date de début",
-        subProjectName: "Nom du sous-mandat",
+        subProjectName: "Sous-mandat",
         subProjectNamePlaceholder: "Ex: Phase 1, Étape A, etc.",
         parentProject: "Mandat parent",
         selectParentProject: "Sélectionner un mandat parent",

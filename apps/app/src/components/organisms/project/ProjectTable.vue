@@ -64,7 +64,11 @@
                 </Button>
 
                 <Button
-                    :to="{ name: 'time-list', query: { projectId: item.id } }"
+                    :to="{
+                        name: 'project-view',
+                        params: { id: item.id },
+                        query: { tab: 'activities' },
+                    }"
                     variant="ghost-primary"
                     size="sm"
                     class="whitespace-nowrap w-fit"

@@ -16,7 +16,7 @@ import { activityRepository } from "../db/repositories/activity.repository"
 import { projectRepository } from "../db/repositories/project.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
-import { throwNotFound, throwValidationError } from "@src/tools/error-handler"
+import { throwNotFound, throwValidationError, throwActivityLocked } from "@src/tools/error-handler"
 import type { Variables } from "@src/types/global"
 import { activityTypeRepository } from "@src/db/repositories/activityType.repository"
 import { rateRepository } from "@src/db/repositories/rate.repository"
@@ -100,6 +100,15 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
             const activityData = c.req.valid("json")
             const user = c.get("user")
 
+            // Check 60-day lock for non-admin users when creating activities
+            if (!hasRole(user.role, "admin") && !hasRole(user.role, "super_admin")) {
+                const activityDate = new Date(activityData.date)
+                const daysDifference = Math.floor((Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
+                if (daysDifference > 60) {
+                    throwActivityLocked("Cannot create activities older than 60 days")
+                }
+            }
+
             // Check if user has access to the project
             const project = await projectRepository.findById(activityData.projectId ?? 0, user)
             if (!project) {
@@ -178,6 +187,15 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
             const existingActivity = await activityRepository.findById(id, user)
             if (!existingActivity) {
                 throwNotFound("Activity")
+            }
+
+            // Check 60-day lock for non-admin users
+            if (!hasRole(user.role, "admin") && !hasRole(user.role, "super_admin")) {
+                const activityDate = new Date(existingActivity.date)
+                const daysDifference = Math.floor((Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
+                if (daysDifference > 60) {
+                    throwActivityLocked("Cannot modify activities older than 60 days")
+                }
             }
             const userId = activityData.userId
                 ? hasRole(user.role, "admin")
@@ -271,6 +289,21 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 ])
             }
 
+            // Check 60-day lock for non-admin users
+            if (!hasRole(user.role, "admin") && !hasRole(user.role, "super_admin")) {
+                const lockedActivities = activities.filter((activity) => {
+                    if (!activity) return false
+                    const activityDate = new Date(activity.date)
+                    const daysDifference = Math.floor((Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
+                    return daysDifference > 60
+                })
+
+                if (lockedActivities.length > 0) {
+                    const lockedIds = lockedActivities.map((a) => a!.id).join(", ")
+                    throwActivityLocked(`Cannot modify activities older than 60 days. Locked activities: ${lockedIds}`)
+                }
+            }
+
             // Perform bulk update
             const updatedCount = await activityRepository.bulkUpdate(ids, updates)
 
@@ -293,6 +326,15 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
         const existingActivity = await activityRepository.findById(id, user)
         if (!existingActivity) {
             throwNotFound("Activity")
+        }
+
+        // Check 60-day lock for non-admin users
+        if (!hasRole(user.role, "admin") && !hasRole(user.role, "super_admin")) {
+            const activityDate = new Date(existingActivity.date)
+            const daysDifference = Math.floor((Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
+            if (daysDifference > 60) {
+                throwActivityLocked("Cannot delete activities older than 60 days")
+            }
         }
 
         const deleted = await activityRepository.delete(id)

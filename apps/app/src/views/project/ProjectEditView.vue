@@ -227,7 +227,7 @@
         </template>
     </FormLayout>
     <!-- Project Access Management - Only for admins editing existing projects -->
-    <div v-if="!isNewProject && user?.role === 'admin'" class="">
+    <div v-if="!isNewProject && authStore.isRole('admin')" class="">
         <ProjectAccessManagement :project-id="projectId!" />
     </div>
 </template>
@@ -283,7 +283,6 @@ const route = useRoute()
 const router = useRouter()
 const { successAlert, errorAlert } = useAlert()
 const authStore = useAuthStore()
-
 // Get current user
 const user = computed(() => authStore.user)
 

@@ -268,6 +268,8 @@ export default {
         CONSTRAINT_VIOLATION:
             "Impossible de supprimer cet élément car il est référencé par d'autres données",
         OPERATION_NOT_ALLOWED: "Opération non autorisée",
+        ACTIVITY_LOCKED:
+            "Cette activité date de plus de 60 jours et ne peut pas être modifiée. Seuls les administrateurs peuvent modifier les activités de plus de 60 jours",
         INTERNAL_ERROR: "Erreur interne du serveur",
         DATABASE_ERROR: "Erreur de base de données",
         EXTERNAL_SERVICE_ERROR: "Erreur de service externe",
@@ -349,7 +351,16 @@ export default {
             bulkUnmarkedAsDisbursement: "{count} débours retiré(s)",
             updateError: "Erreur lors de la mise à jour",
             bulkUpdateError: "Erreur lors de la mise à jour en masse",
+            bulkUpdateFailed: "Erreur lors de la mise à jour en masse",
+            activityLocked: "Cette activité est verrouillée et ne peut pas être modifiée",
+            activityLockedMessage:
+                "Cette activité date de plus de 60 jours et ne peut pas être modifiée. Seuls les administrateurs peuvent modifier les activités de plus de 60 jours.",
+            lockedActivitiesSkipped: "{count} activité(s) verrouillée(s) ignorée(s) sur {total}",
+            confirmDelete: "Êtes-vous sûr de vouloir supprimer cette saisie d'heures ?",
+            entryDeleted: "Saisie d'heures supprimée",
+            deleteError: "Erreur lors de la suppression",
         },
+        locked: "Verrouillé (+ de 60 jours)",
     },
     location: {
         title: "Localités",

@@ -114,7 +114,9 @@
                     :checked="item.billed"
                     @change="updateBilledStatus(item.id, !item.billed)"
                     @click.stop
-                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                    :disabled="isActivityLocked(item)"
+                    :title="isActivityLocked(item) ? $t('time.locked') : ''"
+                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
             </template>
 
@@ -124,14 +126,22 @@
                     :checked="item.disbursement"
                     @change="updateDisbursementStatus(item.id, !item.disbursement)"
                     @click.stop
-                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                    :disabled="isActivityLocked(item)"
+                    :title="isActivityLocked(item) ? $t('time.locked') : ''"
+                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
             </template>
 
             <template #cell:actions="{ item }">
                 <div class="flex justify-end gap-2">
                     <slot name="actions" :item="item">
-                        <Button variant="ghost-primary" size="sm" @click="$emit('edit', item.id)">
+                        <Button
+                            variant="ghost-primary"
+                            size="sm"
+                            @click="$emit('edit', item.id)"
+                            :disabled="isActivityLocked(item)"
+                            :title="isActivityLocked(item) ? $t('time.locked') : ''"
+                        >
                             {{ $t("common.edit") }}
                         </Button>
                     </slot>
@@ -178,11 +188,13 @@ import { truncateText } from "@/utils/text"
 import TruncateWithTooltip from "@/components/atoms/TruncateWithTooltip.vue"
 import { useAlert } from "@/composables/utils/useAlert"
 import { useAuthStore } from "@/stores/auth"
+import { useActivityLock } from "@/composables/utils/useActivityLock"
 
 const { isRole } = useAuthStore()
 const { formatDuration, formatDate, formatNumber, formatCurrency } = useFormat()
 const { t } = useI18n()
 const { successAlert, errorAlert } = useAlert()
+const { isActivityLocked } = useActivityLock()
 
 interface Props {
     activities: ActivityResponse[]
@@ -283,13 +295,36 @@ const updateDisbursementStatus = async (activityId: number, disbursement: boolea
 // Bulk update selected rows
 const updateSelectedRows = async (field: "billed" | "disbursement", value: boolean) => {
     const ids = Array.from(selectedRows.value).map((id) => Number(id))
-    const count = ids.length
+
+    // Filter out locked activities
+    const selectedActivities = props.activities.filter((activity) => ids.includes(activity.id))
+    const lockedActivities = selectedActivities.filter((activity) => isActivityLocked(activity))
+    const editableIds = selectedActivities
+        .filter((activity) => !isActivityLocked(activity))
+        .map((activity) => activity.id)
+
+    // If there are locked activities, warn the user
+    if (lockedActivities.length > 0) {
+        errorAlert(
+            t("time.alerts.lockedActivitiesSkipped", {
+                count: lockedActivities.length,
+                total: ids.length,
+            })
+        )
+    }
+
+    // If no editable activities, return early
+    if (editableIds.length === 0) {
+        return
+    }
+
+    const count = editableIds.length
 
     try {
-        // Use bulk update endpoint
+        // Use bulk update endpoint with only editable activities
         await bulkUpdateApi.patch({
             body: {
-                ids,
+                ids: editableIds,
                 updates: { [field]: value },
             },
         })

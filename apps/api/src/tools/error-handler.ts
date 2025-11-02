@@ -46,6 +46,12 @@ export function throwValidationError(message: string, details?: ValidationErrorD
     throw new ApiException(400, ErrorCode.VALIDATION_ERROR, message, details)
 }
 
+export function throwActivityLocked(message = "Activity is locked and cannot be modified"): never {
+    throw new ApiException(403, ErrorCode.ACTIVITY_LOCKED, message, [
+        { field: "date", message: "Activities older than 60 days cannot be modified by non-admin users" },
+    ])
+}
+
 export function throwNoProjectFolderError(
     message: string,
     details?: ValidationErrorDetail[]

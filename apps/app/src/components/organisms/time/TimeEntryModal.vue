@@ -6,6 +6,14 @@
     >
         <form @submit.prevent="handleSubmit" ref="formRef" id="timeEntryForm">
             <div class="space-y-4">
+                <!-- Locked activity warning -->
+                <div
+                    v-if="isLocked"
+                    class="p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded"
+                >
+                    {{ $t("time.alerts.activityLockedMessage") }}
+                </div>
+
                 <!-- Error message -->
                 <div
                     v-if="errorMessage"
@@ -36,7 +44,9 @@
                         <input
                             type="date"
                             v-model="formattedDate"
-                            :disabled="loading"
+                            :disabled="loading || isLocked"
+                            :min="minDate"
+                            :max="maxDate"
                             required
                             class="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         />
@@ -57,7 +67,7 @@
                                 { label: $t('common.select', 'Select...'), value: '' },
                                 ...activityTypeOptions,
                             ]"
-                            :disabled="loading"
+                            :disabled="loading || isLocked"
                             :required="true"
                             class="w-full"
                         />
@@ -70,7 +80,7 @@
                         <InputNumber
                             type="time"
                             v-model.number="activity.duration"
-                            :disabled="loading"
+                            :disabled="loading || isLocked"
                             :required="true"
                             class="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         />
@@ -82,7 +92,7 @@
                             v-model.number="activity.kilometers"
                             min="0"
                             step="1"
-                            :disabled="loading"
+                            :disabled="loading || isLocked"
                             class="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         />
                     </div>
@@ -97,7 +107,7 @@
                             v-model.number="activity.expenses"
                             min="0"
                             step="0.01"
-                            :disabled="loading"
+                            :disabled="loading || isLocked"
                             class="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         />
                     </div>
@@ -106,7 +116,7 @@
                         <textarea
                             v-model="activity.description"
                             rows="3"
-                            :disabled="loading"
+                            :disabled="loading || isLocked"
                             class="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         ></textarea>
                     </div>
@@ -123,19 +133,33 @@
         </form>
 
         <template #footer>
-            <Button @click="closeModal" :disabled="saving" variant="secondary">
-                {{ $t("common.cancel") }}
-            </Button>
-            <Button
-                type="submit"
-                form="timeEntryForm"
-                :loading="saving"
-                variant="primary"
-                class="ml-2"
-                @click="submitForm"
-            >
-                {{ $t("common.save") }}
-            </Button>
+            <div class="flex justify-between w-full">
+                <div>
+                    <Button
+                        v-if="!isNewEntry"
+                        @click="handleDelete"
+                        :disabled="saving || isLocked"
+                        variant="danger"
+                    >
+                        {{ $t("common.delete") }}
+                    </Button>
+                </div>
+                <div class="flex gap-2">
+                    <Button @click="closeModal" :disabled="saving" variant="secondary">
+                        {{ $t("common.cancel") }}
+                    </Button>
+                    <Button
+                        type="submit"
+                        form="timeEntryForm"
+                        :loading="saving"
+                        :disabled="isLocked"
+                        variant="primary"
+                        @click="submitForm"
+                    >
+                        {{ $t("common.save") }}
+                    </Button>
+                </div>
+            </div>
         </template>
     </Dialog>
 </template>
@@ -152,6 +176,7 @@ import {
     useFetchActivity,
     useCreateActivity,
     useUpdateActivity,
+    useDeleteActivity,
 } from "@/composables/api/useActivity"
 import { useFetchActivityTypeFiltered } from "@/composables/api/useActivityType"
 import { useAuthStore } from "@/stores/auth"
@@ -159,6 +184,7 @@ import { ApiError } from "@/utils/api-error"
 import type { ActivityCreateInput, ActivityUpdateInput, ActivityResponse } from "@beg/validations"
 import InputNumber from "@/components/atoms/InputNumber.vue"
 import { useAlert } from "@/composables/utils/useAlert"
+import { useActivityLock } from "@/composables/utils/useActivityLock"
 
 interface Props {
     modelValue: boolean
@@ -177,14 +203,22 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const authStore = useAuthStore()
 const { successAlert, errorAlert } = useAlert()
+const { canEditActivity } = useActivityLock()
 
 // Computed properties
 const isNewEntry = computed(() => !props.activityId)
 const currentUser = computed(() => authStore.user)
 
-const saving = computed(() => creatingActivity.value || updatingActivity.value)
+const saving = computed(
+    () => creatingActivity.value || updatingActivity.value || deletingActivity.value
+)
 
 const loading = computed(() => loadingActivity.value || saving.value)
+
+const isLocked = computed(() => {
+    if (isNewEntry.value) return false
+    return !canEditActivity(activity.value)
+})
 
 // State
 const errorMessage = ref<string | null>(null)
@@ -201,7 +235,7 @@ const activity = ref<ActivityCreateInput>({
     expenses: 0,
     description: "",
     billed: false,
-    disbursement: false,
+
     userId: currentUser.value?.id,
 })
 
@@ -209,6 +243,7 @@ const activity = ref<ActivityCreateInput>({
 const { get: fetchActivity, loading: loadingActivity } = useFetchActivity()
 const { post: createActivity, loading: creatingActivity } = useCreateActivity()
 const { put: updateActivity, loading: updatingActivity } = useUpdateActivity()
+const { delete: deleteActivity, loading: deletingActivity } = useDeleteActivity()
 const {
     get: fetchActivityTypes,
     loading: loadingActivityTypes,
@@ -223,6 +258,24 @@ const activityTypeOptions = computed(() => {
               value: type.id,
           }))
         : []
+})
+
+// Date constraints for non-admin users (60 days in the past, max today)
+const minDate = computed(() => {
+    // Admin and super_admin users have no minimum date restriction
+    if (authStore.user?.role === "admin" || authStore.user?.role === "super_admin") {
+        return undefined
+    }
+
+    // Non-admin users can only create/edit activities from the last 60 days
+    const sixtyDaysAgo = new Date()
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
+    return sixtyDaysAgo.toISOString().split("T")[0]
+})
+
+const maxDate = computed(() => {
+    // All users: cannot create activities in the future
+    return new Date().toISOString().split("T")[0]
 })
 
 // Date formatting
@@ -258,7 +311,6 @@ const loadActivityData = async () => {
                 expenses: response.expenses,
                 description: response.description || "",
                 billed: response.billed,
-                disbursement: response.disbursement,
                 userId: response.user?.id,
             }
         }
@@ -296,6 +348,11 @@ const submitForm = () => {
 const saveActivity = async () => {
     errorMessage.value = null
 
+    if (isLocked.value) {
+        errorAlert(t("time.alerts.activityLocked"))
+        return
+    }
+
     try {
         let response: ActivityResponse | null = null
 
@@ -321,7 +378,6 @@ const saveActivity = async () => {
                 expenses: activityData.expenses,
                 description: activityData.description,
                 billed: activityData.billed,
-                disbursement: activityData.disbursement,
             }
 
             response = await updateActivity({
@@ -347,6 +403,37 @@ const saveActivity = async () => {
     }
 }
 
+// Delete activity
+const handleDelete = async () => {
+    if (!props.activityId) return
+
+    if (isLocked.value) {
+        errorAlert(t("time.alerts.activityLocked"))
+        return
+    }
+
+    if (!confirm(t("time.alerts.confirmDelete"))) {
+        return
+    }
+
+    try {
+        await deleteActivity({
+            params: { id: props.activityId },
+        })
+
+        emit("saved", {} as ActivityResponse) // Trigger reload
+        successAlert(t("time.alerts.entryDeleted"))
+        closeModal()
+    } catch (error) {
+        if (error instanceof ApiError) {
+            errorMessage.value = error.message
+        } else {
+            errorMessage.value = t("errors.general")
+        }
+        errorAlert(t("time.alerts.deleteError"))
+    }
+}
+
 // Close modal
 const closeModal = () => {
     emit("update:modelValue", false)
@@ -364,7 +451,6 @@ const resetForm = () => {
         expenses: 0,
         description: "",
         billed: false,
-        disbursement: false,
         userId: currentUser.value?.id,
     }
 }

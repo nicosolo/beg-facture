@@ -147,9 +147,6 @@ export const projects = sqliteTable(
         invoicingAddress: text("invoicingAddress"),
         latitude: real("latitude"),
         longitude: real("longitude"),
-        projectManagerId: integer("projectManagerId").references(() => users.id, {
-            onDelete: "set null",
-        }),
         printFlag: integer("printFlag", { mode: "boolean" }).default(false),
         firstActivityDate: integer("firstActivityDate", { mode: "timestamp" }),
         lastActivityDate: integer("lastActivityDate", { mode: "timestamp" }),
@@ -161,8 +158,6 @@ export const projects = sqliteTable(
         ...timestamps,
     },
     (table) => [
-        // Index for project manager queries (filtering by projectManagerId)
-        index("projects_project_manager_idx").on(table.projectManagerId),
         // Index for project name searches (case-insensitive LIKE queries)
         index("projects_name_idx").on(table.name),
         // Index for project number searches (prefix LIKE queries)
@@ -186,7 +181,29 @@ export const projects = sqliteTable(
         index("projects_un_billed_disbursement_duration_idx").on(
             table.unBilledDisbursementDuration
         ),
-        index("projects_project_manager_idx").on(table.projectManagerId),
+    ]
+)
+
+// ProjectManagers junction table (many-to-many relationship between projects and users)
+export const projectManagers = sqliteTable(
+    "project_managers",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        projectId: integer("projectId")
+            .notNull()
+            .references(() => projects.id, { onDelete: "cascade" }),
+        userId: integer("userId")
+            .notNull()
+            .references(() => users.id, { onDelete: "cascade" }),
+        ...timestamps,
+    },
+    (table) => [
+        // Unique constraint on project-user combination
+        index("project_managers_project_user_unique").on(table.projectId, table.userId),
+        // Index for finding all projects managed by a user
+        index("project_managers_user_idx").on(table.userId),
+        // Index for finding all managers of a project
+        index("project_managers_project_idx").on(table.projectId),
     ]
 )
 

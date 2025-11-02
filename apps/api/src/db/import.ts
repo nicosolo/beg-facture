@@ -4,6 +4,7 @@ import {
     users,
     locations,
     projectAccess,
+    projectManagers,
     companies,
     clients,
     projectTypes,
@@ -70,6 +71,7 @@ async function resetDatabase() {
     await db.delete(invoices)
     await db.delete(activities)
     await db.delete(projectAccess)
+    await db.delete(projectManagers)
     await db.delete(projects)
     await db.delete(activityTypes)
     await db.delete(rateClasses)
@@ -454,11 +456,12 @@ async function importProjects() {
                 ? rawProject.IDmandant
                 : null
 
+            const projectManagerId = userMap.get(rawProject.Responsable)
+
             const project = {
                 id: rawProject.IDmandat,
                 projectNumber: rawProject.Mandat,
                 name: rawProject["Désignation"]?.trim() || "",
-                projectManagerId: userMap.get(rawProject.Responsable) || null,
                 startDate: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
                 clientId,
                 locationId,
@@ -474,12 +477,28 @@ async function importProjects() {
                 subProjectName: rawProject["Sous-mandat"]?.trim() || null,
             } satisfies typeof projects.$inferInsert
 
-            chunkProjects.push(project)
+            chunkProjects.push({ project, projectManagerId })
             imported++
         }
 
-        // Bulk insert the chunk
-        await db.insert(projects).values(chunkProjects)
+        // Bulk insert the chunk of projects
+        const projectsToInsert = chunkProjects.map((item) => item.project)
+        await db.insert(projects).values(projectsToInsert)
+
+        // Bulk insert project managers for this chunk
+        const projectManagersToInsert = chunkProjects
+            .filter((item) => item.projectManagerId !== undefined)
+            .map((item) => ({
+                projectId: item.project.id!,
+                userId: item.projectManagerId!,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            }))
+
+        if (projectManagersToInsert.length > 0) {
+            await db.insert(projectManagers).values(projectManagersToInsert)
+        }
+
         console.log(`Imported ${imported} / ${projectData.length} projects`)
     }
 

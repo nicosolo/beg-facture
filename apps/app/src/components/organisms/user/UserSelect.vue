@@ -1,6 +1,37 @@
 <template>
+    <div v-if="multiple" class="space-y-2">
+        <div class="flex flex-wrap gap-2">
+            <span
+                v-for="userId in (modelValue as number[])"
+                :key="userId"
+                class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm"
+            >
+                {{ getUserDisplay(userId) }}
+                <button
+                    type="button"
+                    @click="removeUser(userId)"
+                    class="hover:text-blue-900 focus:outline-none"
+                >
+                    ×
+                </button>
+            </span>
+        </div>
+        <AutocompleteSelect
+            :model-value="undefined"
+            mode="static"
+            :options="availableUsers"
+            :display-field="formatUserDisplay"
+            :filter-function="filterUsers"
+            :placeholder="placeholder || $t('common.selectUser')"
+            :disabled="disabled"
+            :required="required"
+            :class-name="className"
+            @update:model-value="addUser"
+        />
+    </div>
     <AutocompleteSelect
-        :model-value="modelValue"
+        v-else
+        :model-value="modelValue as number | undefined"
         mode="static"
         :options="filteredUsersByArchived"
         :display-field="formatUserDisplay"
@@ -21,20 +52,22 @@ import AutocompleteSelect from "@/components/atoms/AutocompleteSelect.vue"
 import type { UserResponse } from "@beg/validations"
 
 interface UserSelectProps {
-    modelValue: number | undefined
+    modelValue: number | number[] | undefined
     placeholder?: string
     disabled?: boolean
     className?: string
     showArchived?: boolean
     required?: boolean
+    multiple?: boolean
 }
 
 const props = withDefaults(defineProps<UserSelectProps>(), {
     showArchived: false,
+    multiple: false,
 })
 
-defineEmits<{
-    "update:modelValue": [value: number | undefined]
+const emit = defineEmits<{
+    "update:modelValue": [value: number | number[] | undefined]
 }>()
 
 const { t } = useI18n()
@@ -76,6 +109,37 @@ const sortUsers = () => {
     if (users.value) {
         users.value.sort((a, b) => a.initials.localeCompare(b.initials))
     }
+}
+
+// For multiple mode, filter out already selected users
+const availableUsers = computed(() => {
+    if (!props.multiple) return filteredUsersByArchived.value
+
+    const selectedIds = new Set(Array.isArray(props.modelValue) ? props.modelValue : [])
+    return filteredUsersByArchived.value.filter((user) => !selectedIds.has(user.id))
+})
+
+// Get user display name by ID
+const getUserDisplay = (userId: number): string => {
+    const user = users.value?.find((u) => u.id === userId)
+    return user ? formatUserDisplay(user) : userId.toString()
+}
+
+// Add user to selection (multiple mode)
+const addUser = (userId: number | undefined) => {
+    if (userId === undefined) return
+
+    const currentValue = Array.isArray(props.modelValue) ? props.modelValue : []
+    emit("update:modelValue", [...currentValue, userId])
+}
+
+// Remove user from selection (multiple mode)
+const removeUser = (userId: number) => {
+    const currentValue = Array.isArray(props.modelValue) ? props.modelValue : []
+    emit(
+        "update:modelValue",
+        currentValue.filter((id) => id !== userId)
+    )
 }
 
 onMounted(() => {

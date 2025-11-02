@@ -142,13 +142,22 @@
                                         <p class="font-medium">{{ projectData.client.name }}</p>
                                     </div>
 
-                                    <div v-if="projectData.projectManager">
+                                    <div
+                                        v-if="
+                                            projectData.projectManagers &&
+                                            projectData.projectManagers.length > 0
+                                        "
+                                    >
                                         <p class="text-sm text-gray-500">
                                             {{ $t("projects.responsible") }}
                                         </p>
-                                        <p class="font-medium">
-                                            {{ projectData.projectManager.firstName }}
-                                            {{ projectData.projectManager.lastName }}
+                                        <p
+                                            v-for="manager in projectData.projectManagers"
+                                            :key="manager.id"
+                                            class="font-medium"
+                                        >
+                                            {{ manager.firstName }}
+                                            {{ manager.lastName }}
                                         </p>
                                     </div>
 

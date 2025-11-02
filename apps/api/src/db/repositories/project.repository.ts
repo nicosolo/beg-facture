@@ -9,6 +9,7 @@ import {
     projectTypes,
     users,
     projectAccess,
+    projectManagers,
 } from "../schema"
 import {
     type ProjectFilter,
@@ -57,9 +58,8 @@ export const projectRepository = {
         }
 
         // Referent user filter (project manager)
-        if (referentUserId) {
-            whereConditions.push(eq(projects.projectManagerId, referentUserId))
-        }
+        // Note: This will be handled in the join below
+        const filterByProjectManager = referentUserId !== undefined
 
         // Date filters - filter by project start date
         if (fromDate) {
@@ -126,8 +126,8 @@ export const projectRepository = {
         const sortDirection = sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn)
         sortExpressions.push(sortDirection)
 
-        // Build the main query in a single chain
-        const baseQuery = db
+        // Build the main query with a subquery to filter by project manager if needed
+        let baseQuery = db
             .select({
                 id: projects.id,
                 projectNumber: projects.projectNumber,
@@ -172,31 +172,35 @@ export const projectRepository = {
                     id: projectTypes.id,
                     name: projectTypes.name,
                 },
-                projectManager: {
-                    id: users.id,
-                    firstName: users.firstName,
-                    lastName: users.lastName,
-                    initials: users.initials,
-                },
             })
             .from(projects)
-
             .leftJoin(locations, eq(projects.locationId, locations.id))
             .leftJoin(clients, eq(projects.clientId, clients.id))
             .leftJoin(engineers, eq(projects.engineerId, engineers.id))
             .leftJoin(companies, eq(projects.companyId, companies.id))
             .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
-            .leftJoin(users, eq(projects.projectManagerId, users.id))
+
+        // Add project manager filter if specified
+        if (filterByProjectManager && referentUserId) {
+            baseQuery = baseQuery.innerJoin(
+                projectManagers,
+                and(
+                    eq(projectManagers.projectId, projects.id),
+                    eq(projectManagers.userId, referentUserId)
+                )
+            )
+        }
 
         // Disable access control for now
         // if (user.role !== "admin") {
-        //     baseQuery.innerJoin(
+        //     baseQuery = baseQuery.innerJoin(
         //         projectAccess,
         //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
         //     )
         // }
+
         // Execute query with conditional where clause
-        const data =
+        const rawData =
             whereConditions.length > 0
                 ? await baseQuery
                       .where(and(...whereConditions))
@@ -209,6 +213,46 @@ export const projectRepository = {
                       .limit(limit)
                       .offset(offset)
                       .execute()
+
+        // Get all unique project IDs
+        const projectIds = rawData.map((p) => p.id)
+
+        // Fetch all project managers for these projects in one query
+        const allProjectManagers =
+            projectIds.length > 0
+                ? await db
+                      .select({
+                          projectId: projectManagers.projectId,
+                          id: users.id,
+                          firstName: users.firstName,
+                          lastName: users.lastName,
+                          initials: users.initials,
+                      })
+                      .from(projectManagers)
+                      .innerJoin(users, eq(projectManagers.userId, users.id))
+                      .where(inArray(projectManagers.projectId, projectIds))
+                      .execute()
+                : []
+
+        // Group managers by project ID
+        const managersMapByProject = new Map<number, any[]>()
+        allProjectManagers.forEach((pm) => {
+            if (!managersMapByProject.has(pm.projectId)) {
+                managersMapByProject.set(pm.projectId, [])
+            }
+            managersMapByProject.get(pm.projectId)!.push({
+                id: pm.id,
+                firstName: pm.firstName,
+                lastName: pm.lastName,
+                initials: pm.initials,
+            })
+        })
+
+        // Attach project managers to each project
+        const data = rawData.map((project) => ({
+            ...project,
+            projectManagers: managersMapByProject.get(project.id) || [],
+        }))
 
         // Count total with same filters (excluding pagination)
         const countQuery = db.select({ count: sql<number>`count(*)` }).from(projects)
@@ -282,12 +326,6 @@ export const projectRepository = {
                     id: projectTypes.id,
                     name: projectTypes.name,
                 },
-                projectManager: {
-                    id: users.id,
-                    firstName: users.firstName,
-                    lastName: users.lastName,
-                    initials: users.initials,
-                },
             })
             .from(projects)
             .leftJoin(locations, eq(projects.locationId, locations.id))
@@ -295,7 +333,6 @@ export const projectRepository = {
             .leftJoin(engineers, eq(projects.engineerId, engineers.id))
             .leftJoin(companies, eq(projects.companyId, companies.id))
             .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
-            .leftJoin(users, eq(projects.projectManagerId, users.id))
 
         // Disable access control for now
         // if (user.role !== "admin") {
@@ -308,7 +345,25 @@ export const projectRepository = {
         const results = await query.where(and(eq(projects.id, id))).execute()
         if (!results[0]) return null
 
-        return results[0] as ProjectResponse
+        const project = results[0]
+
+        // Fetch project managers using junction table
+        const managers = await db
+            .select({
+                id: users.id,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                initials: users.initials,
+            })
+            .from(projectManagers)
+            .innerJoin(users, eq(projectManagers.userId, users.id))
+            .where(eq(projectManagers.projectId, id))
+            .execute()
+
+        return {
+            ...project,
+            projectManagers: managers,
+        } as ProjectResponse
     },
 
     create: async (data: ProjectCreateInput, user: Variables["user"]): Promise<ProjectResponse> => {
@@ -361,6 +416,20 @@ export const projectRepository = {
             }
         }
 
+        // Get project managers from data or parent project
+        let managerUserIds: number[] = []
+        if (data.projectManagers && data.projectManagers.length > 0) {
+            managerUserIds = data.projectManagers
+        } else if (parentProjectData) {
+            // Fetch parent project managers
+            const parentManagers = await db
+                .select({ userId: projectManagers.userId })
+                .from(projectManagers)
+                .where(eq(projectManagers.projectId, parentProjectData.id))
+                .execute()
+            managerUserIds = parentManagers.map((pm) => pm.userId)
+        }
+
         // Insert the new project, using parent data if provided
         const projectData = parentProjectData
             ? {
@@ -373,7 +442,6 @@ export const projectRepository = {
                   clientId: data.clientId || parentProjectData.clientId,
                   engineerId: data.engineerId || parentProjectData.engineerId,
                   companyId: data.companyId || parentProjectData.companyId,
-                  projectManagerId: data.projectManagerId || parentProjectData.projectManagerId,
                   remark: data.remark || parentProjectData.remark,
                   printFlag: data.printFlag ?? parentProjectData.printFlag,
                   ended: data.ended ?? parentProjectData.ended,
@@ -400,7 +468,6 @@ export const projectRepository = {
                   clientId: data.clientId || null,
                   engineerId: data.engineerId || null,
                   companyId: data.companyId || null,
-                  projectManagerId: data.projectManagerId || null,
                   remark: data.remark || null,
                   printFlag: data.printFlag || false,
                   ended: data.ended || false,
@@ -416,6 +483,17 @@ export const projectRepository = {
             .values(projectData)
             .returning({ id: projects.id })
             .execute()
+
+        // Insert project managers into junction table
+        if (managerUserIds.length > 0) {
+            const managersToInsert = managerUserIds.map((userId) => ({
+                projectId: newProject.id,
+                userId,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            }))
+            await db.insert(projectManagers).values(managersToInsert).execute()
+        }
 
         // If not admin, grant write access to the creator
         if (!hasRole(user.role, "admin") && newProject) {
@@ -463,7 +541,7 @@ export const projectRepository = {
         //     }
         // }
 
-        // Build update object, filtering out undefined values
+        // Build update object, filtering out undefined values (excluding projectManagers)
         const updateData: any = {}
         if (data.projectNumber !== undefined) updateData.projectNumber = data.projectNumber
         if (data.subProjectName !== undefined)
@@ -475,8 +553,6 @@ export const projectRepository = {
         if (data.clientId !== undefined) updateData.clientId = data.clientId || null
         if (data.engineerId !== undefined) updateData.engineerId = data.engineerId || null
         if (data.companyId !== undefined) updateData.companyId = data.companyId || null
-        if (data.projectManagerId !== undefined)
-            updateData.projectManagerId = data.projectManagerId || null
         if (data.remark !== undefined) updateData.remark = data.remark || null
         if (data.printFlag !== undefined) updateData.printFlag = data.printFlag
         if (data.invoicingAddress !== undefined) updateData.invoicingAddress = data.invoicingAddress
@@ -485,6 +561,7 @@ export const projectRepository = {
         if (data.latitude !== undefined) updateData.latitude = data.latitude
         if (data.longitude !== undefined) updateData.longitude = data.longitude
         console.log(data, updateData)
+
         // Update the project
         await db
             .update(projects)
@@ -494,6 +571,23 @@ export const projectRepository = {
             })
             .where(eq(projects.id, id))
             .execute()
+
+        // Update project managers if provided
+        if (data.projectManagers !== undefined) {
+            // Delete existing project managers
+            await db.delete(projectManagers).where(eq(projectManagers.projectId, id)).execute()
+
+            // Insert new project managers
+            if (data.projectManagers.length > 0) {
+                const managersToInsert = data.projectManagers.map((userId) => ({
+                    projectId: id,
+                    userId,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                }))
+                await db.insert(projectManagers).values(managersToInsert).execute()
+            }
+        }
 
         // Return the updated project
         const updated = await projectRepository.findById(id, user)
@@ -516,6 +610,8 @@ export const projectRepository = {
                 remark: projects.remark,
                 invoicingAddress: projects.invoicingAddress,
                 printFlag: projects.printFlag,
+                latitude: projects.latitude,
+                longitude: projects.longitude,
                 archived: projects.archived,
                 createdAt: projects.createdAt,
                 updatedAt: projects.updatedAt,
@@ -549,12 +645,6 @@ export const projectRepository = {
                     id: projectTypes.id,
                     name: projectTypes.name,
                 },
-                projectManager: {
-                    id: users.id,
-                    firstName: users.firstName,
-                    lastName: users.lastName,
-                    initials: users.initials,
-                },
             })
             .from(projects)
             .leftJoin(locations, eq(projects.locationId, locations.id))
@@ -562,7 +652,6 @@ export const projectRepository = {
             .leftJoin(engineers, eq(projects.engineerId, engineers.id))
             .leftJoin(companies, eq(projects.companyId, companies.id))
             .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
-            .leftJoin(users, eq(projects.projectManagerId, users.id))
 
         // Disable access control for now
         // if (user.role !== "admin") {
@@ -572,10 +661,50 @@ export const projectRepository = {
         //     )
         // }
 
-        const data = await query
+        const rawData = await query
             .where(sql`${projects.subProjectName} IS NULL`)
             .orderBy(asc(projects.name))
             .execute()
+
+        // Get all unique project IDs
+        const projectIds = rawData.map((p) => p.id)
+
+        // Fetch all project managers for these projects in one query
+        const allProjectManagers =
+            projectIds.length > 0
+                ? await db
+                      .select({
+                          projectId: projectManagers.projectId,
+                          id: users.id,
+                          firstName: users.firstName,
+                          lastName: users.lastName,
+                          initials: users.initials,
+                      })
+                      .from(projectManagers)
+                      .innerJoin(users, eq(projectManagers.userId, users.id))
+                      .where(inArray(projectManagers.projectId, projectIds))
+                      .execute()
+                : []
+
+        // Group managers by project ID
+        const managersMapByProject = new Map<number, any[]>()
+        allProjectManagers.forEach((pm) => {
+            if (!managersMapByProject.has(pm.projectId)) {
+                managersMapByProject.set(pm.projectId, [])
+            }
+            managersMapByProject.get(pm.projectId)!.push({
+                id: pm.id,
+                firstName: pm.firstName,
+                lastName: pm.lastName,
+                initials: pm.initials,
+            })
+        })
+
+        // Attach project managers to each project
+        const data = rawData.map((project) => ({
+            ...project,
+            projectManagers: managersMapByProject.get(project.id) || [],
+        }))
 
         return {
             data,

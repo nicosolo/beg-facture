@@ -130,7 +130,6 @@ CREATE TABLE `invoices` (
 	`expensesTravelAmount` real DEFAULT 0 NOT NULL,
 	`expensesOtherBase` real DEFAULT 0 NOT NULL,
 	`expensesOtherAmount` real DEFAULT 0 NOT NULL,
-	`expensesTotal` real DEFAULT 0 NOT NULL,
 	`expensesThirdPartyAmount` real DEFAULT 0 NOT NULL,
 	`expensesPackagePercentage` real,
 	`expensesPackageAmount` real,
@@ -190,6 +189,19 @@ CREATE INDEX `project_access_user_project_idx` ON `project_access` (`userId`,`pr
 CREATE INDEX `project_access_user_idx` ON `project_access` (`userId`);--> statement-breakpoint
 CREATE INDEX `project_access_project_idx` ON `project_access` (`projectId`);--> statement-breakpoint
 CREATE INDEX `project_access_level_idx` ON `project_access` (`accessLevel`);--> statement-breakpoint
+CREATE TABLE `project_managers` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`projectId` integer NOT NULL,
+	`userId` integer NOT NULL,
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `project_managers_project_user_unique` ON `project_managers` (`projectId`,`userId`);--> statement-breakpoint
+CREATE INDEX `project_managers_user_idx` ON `project_managers` (`userId`);--> statement-breakpoint
+CREATE INDEX `project_managers_project_idx` ON `project_managers` (`projectId`);--> statement-breakpoint
 CREATE TABLE `project_types` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
@@ -212,7 +224,6 @@ CREATE TABLE `projects` (
 	`invoicingAddress` text,
 	`latitude` real,
 	`longitude` real,
-	`projectManagerId` integer,
 	`printFlag` integer DEFAULT false,
 	`firstActivityDate` integer,
 	`lastActivityDate` integer,
@@ -227,11 +238,9 @@ CREATE TABLE `projects` (
 	FOREIGN KEY (`clientId`) REFERENCES `clients`(`id`) ON UPDATE no action ON DELETE set null,
 	FOREIGN KEY (`engineerId`) REFERENCES `engineers`(`id`) ON UPDATE no action ON DELETE set null,
 	FOREIGN KEY (`companyId`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`typeId`) REFERENCES `project_types`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`projectManagerId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`typeId`) REFERENCES `project_types`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE INDEX `projects_project_manager_idx` ON `projects` (`projectManagerId`);--> statement-breakpoint
 CREATE INDEX `projects_name_idx` ON `projects` (`name`);--> statement-breakpoint
 CREATE INDEX `projects_project_number_idx` ON `projects` (`projectNumber`);--> statement-breakpoint
 CREATE INDEX `projects_start_date_idx` ON `projects` (`startDate`);--> statement-breakpoint

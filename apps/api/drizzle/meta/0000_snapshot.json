@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "8dcc70b5-53ce-46ee-81b4-8ebe8ed878d7",
+  "id": "b895cb21-583e-434e-99d0-8d02eedaf343",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activities": {
@@ -931,14 +931,6 @@
           "autoincrement": false,
           "default": 0
         },
-        "expensesTotal": {
-          "name": "expensesTotal",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
-        },
         "expensesThirdPartyAmount": {
           "name": "expensesThirdPartyAmount",
           "type": "real",
@@ -1357,6 +1349,103 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "project_managers": {
+      "name": "project_managers",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "projectId": {
+          "name": "projectId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "project_managers_project_user_unique": {
+          "name": "project_managers_project_user_unique",
+          "columns": [
+            "projectId",
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "project_managers_user_idx": {
+          "name": "project_managers_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "project_managers_project_idx": {
+          "name": "project_managers_project_idx",
+          "columns": [
+            "projectId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "project_managers_projectId_projects_id_fk": {
+          "name": "project_managers_projectId_projects_id_fk",
+          "tableFrom": "project_managers",
+          "tableTo": "projects",
+          "columnsFrom": [
+            "projectId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "project_managers_userId_users_id_fk": {
+          "name": "project_managers_userId_users_id_fk",
+          "tableFrom": "project_managers",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "project_types": {
       "name": "project_types",
       "columns": {
@@ -1498,13 +1587,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "projectManagerId": {
-          "name": "projectManagerId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "printFlag": {
           "name": "printFlag",
           "type": "integer",
@@ -1585,13 +1667,6 @@
         }
       },
       "indexes": {
-        "projects_project_manager_idx": {
-          "name": "projects_project_manager_idx",
-          "columns": [
-            "projectManagerId"
-          ],
-          "isUnique": false
-        },
         "projects_name_idx": {
           "name": "projects_name_idx",
           "columns": [
@@ -1764,19 +1839,6 @@
           "tableTo": "project_types",
           "columnsFrom": [
             "typeId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "projects_projectManagerId_users_id_fk": {
-          "name": "projects_projectManagerId_users_id_fk",
-          "tableFrom": "projects",
-          "tableTo": "users",
-          "columnsFrom": [
-            "projectManagerId"
           ],
           "columnsTo": [
             "id"

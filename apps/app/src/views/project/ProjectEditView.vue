@@ -65,11 +65,12 @@
             </div>
             <!-- Second Line: Project Manager, Type, and Company -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormField :label="$t('projects.responsible')" :error="errors.projectManagerId">
+                <FormField :label="$t('projects.responsible')" :error="errors.projectManagers">
                     <template #input>
                         <UserSelect
-                            v-model="form.projectManagerId"
+                            v-model="form.projectManagers"
                             :placeholder="$t('common.select')"
+                            :multiple="true"
                         />
                     </template>
                 </FormField>
@@ -268,7 +269,7 @@ interface ProjectFormState {
     clientId?: number | null
     engineerId?: number | null
     companyId?: number | null
-    projectManagerId?: number | null
+    projectManagers: number[]
     remark?: string
     invoicingAddress?: string
     printFlag: boolean
@@ -317,7 +318,7 @@ const form = ref<ProjectFormState>({
     clientId: undefined,
     engineerId: undefined,
     companyId: undefined,
-    projectManagerId: undefined,
+    projectManagers: [],
     remark: "",
     invoicingAddress: "",
     printFlag: false,
@@ -393,7 +394,8 @@ const handleParentProjectChange = async (parentProjectId: number | undefined) =>
             form.value.clientId = parentProjectData.value.client?.id
             form.value.engineerId = parentProjectData.value.engineer?.id
             form.value.companyId = parentProjectData.value.company?.id
-            form.value.projectManagerId = parentProjectData.value.projectManager?.id
+            form.value.projectManagers =
+                parentProjectData.value.projectManagers?.map((pm) => pm.id) || []
             form.value.latitude =
                 parentProjectData.value.latitude !== null &&
                 parentProjectData.value.latitude !== undefined
@@ -489,7 +491,7 @@ const saveProject = async () => {
             clientId: form.value.clientId || null,
             engineerId: form.value.engineerId || null,
             companyId: form.value.companyId || null,
-            projectManagerId: form.value.projectManagerId || null,
+            projectManagers: form.value.projectManagers || [],
             remark: form.value.remark,
             invoicingAddress: form.value.invoicingAddress,
             printFlag: form.value.printFlag || false,
@@ -566,7 +568,7 @@ onMounted(async () => {
                     clientId: projectData.value.client?.id,
                     engineerId: projectData.value.engineer?.id,
                     companyId: projectData.value.company?.id,
-                    projectManagerId: projectData.value.projectManager?.id,
+                    projectManagers: projectData.value.projectManagers?.map((pm) => pm.id) || [],
                     remark: projectData.value.remark || "",
                     invoicingAddress: projectData.value.invoicingAddress || "",
                     printFlag: projectData.value.printFlag || false,

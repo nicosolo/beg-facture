@@ -81,14 +81,14 @@ export const projectResponseSchema = z
             id: z.number(),
             name: z.string(),
         }),
-        projectManager: z
-            .object({
+        projectManagers: z.array(
+            z.object({
                 id: z.number(),
                 firstName: z.string(),
                 lastName: z.string(),
                 initials: z.string(),
             })
-            .nullable(),
+        ),
         totalDuration: z.number().nullable(),
         unBilledDuration: z.number().nullable(),
         unBilledDisbursementDuration: z.number().nullable(),
@@ -116,7 +116,7 @@ export const projectCreateSchema = z.object({
     clientId: z.number().positive().optional(),
     engineerId: z.number().positive().optional().nullable(),
     companyId: z.number().positive().optional().nullable(),
-    projectManagerId: z.number().positive().optional().nullable(),
+    projectManagers: z.array(z.number().positive()).optional().default([]),
     remark: z.string().optional(),
     invoicingAddress: z.string().optional(),
     printFlag: z.boolean().optional().default(false),

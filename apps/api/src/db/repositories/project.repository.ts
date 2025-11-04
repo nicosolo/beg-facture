@@ -190,8 +190,29 @@ export const projectRepository = {
             .leftJoin(companies, eq(projects.companyId, companies.id))
             .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
 
-        // Add project manager filter if specified
-        if (referentUserId !== undefined && referentUserId) {
+        // Add project manager filter and/or access control
+        const hasManagerFilter = referentUserId !== undefined && referentUserId
+        const needsAccessControl = !hasRole(user.role, "admin")
+
+        if (hasManagerFilter && needsAccessControl) {
+            // Non-admin with manager filter: show projects managed by referentUserId that user has access to
+            // Use join with EXISTS subquery to check both conditions
+            baseQuery = baseQuery.innerJoin(
+                projectUsers,
+                and(
+                    eq(projects.id, projectUsers.projectId),
+                    eq(projectUsers.userId, user.id),
+                    // Project must be managed by referentUserId
+                    sql`EXISTS (
+                        SELECT 1 FROM ${projectUsers} pu2
+                        WHERE pu2.projectId = ${projects.id}
+                        AND pu2.userId = ${referentUserId}
+                        AND pu2.role = 'manager'
+                    )`
+                )
+            )
+        } else if (hasManagerFilter) {
+            // Admin with manager filter: show all projects managed by referentUserId
             baseQuery = baseQuery.innerJoin(
                 projectUsers,
                 and(
@@ -200,15 +221,13 @@ export const projectRepository = {
                     eq(projectUsers.role, "manager")
                 )
             )
+        } else if (needsAccessControl) {
+            // Non-admin without manager filter: show all projects user has access to
+            baseQuery = baseQuery.innerJoin(
+                projectUsers,
+                and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
+            )
         }
-
-        // Disable access control for now
-        // if (user.role !== "admin") {
-        //     baseQuery = baseQuery.innerJoin(
-        //         projectUsers,
-        //         and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
-        //     )
-        // }
 
         // Execute query with conditional where clause
         const rawData =
@@ -246,48 +265,82 @@ export const projectRepository = {
                       .execute()
                 : []
 
-        // Group managers and members by project ID
-        const managersMapByProject = new Map<number, any[]>()
-        const membersMapByProject = new Map<number, any[]>()
-
-        allProjectUsers.forEach((pu) => {
-            const userInfo = {
-                id: pu.id,
-                firstName: pu.firstName,
-                lastName: pu.lastName,
-                initials: pu.initials,
-            }
-
-            if (pu.role === "manager") {
-                if (!managersMapByProject.has(pu.projectId)) {
-                    managersMapByProject.set(pu.projectId, [])
+        const { managersMap, membersMap } = allProjectUsers.reduce(
+            (acc, pu) => {
+                const userInfo = {
+                    id: pu.id,
+                    firstName: pu.firstName,
+                    lastName: pu.lastName,
+                    initials: pu.initials,
                 }
-                managersMapByProject.get(pu.projectId)!.push(userInfo)
-            } else if (pu.role === "member") {
-                if (!membersMapByProject.has(pu.projectId)) {
-                    membersMapByProject.set(pu.projectId, [])
+
+                if (pu.role === "manager") {
+                    if (!acc.managersMap.has(pu.projectId)) {
+                        acc.managersMap.set(pu.projectId, [])
+                    }
+                    acc.managersMap.get(pu.projectId)!.push(userInfo)
+                } else if (pu.role === "member") {
+                    if (!acc.membersMap.has(pu.projectId)) {
+                        acc.membersMap.set(pu.projectId, [])
+                    }
+                    acc.membersMap.get(pu.projectId)!.push(userInfo)
                 }
-                membersMapByProject.get(pu.projectId)!.push(userInfo)
+
+                return acc
+            },
+            {
+                managersMap: new Map<number, any[]>(),
+                membersMap: new Map<number, any[]>(),
             }
-        })
+        )
 
         // Attach project managers and members to each project
         const data = rawData.map((project) => ({
             ...project,
-            projectManagers: managersMapByProject.get(project.id) || [],
-            projectMembers: membersMapByProject.get(project.id) || [],
+            projectManagers: managersMap.get(project.id) || [],
+            projectMembers: membersMap.get(project.id) || [],
         }))
 
         // Count total with same filters (excluding pagination)
-        const countQuery = db.select({ count: sql<number>`count(*)` }).from(projects)
+        let countQuery = db
+            .select({ count: sql<number>`count(DISTINCT ${projects.id})` })
+            .from(projects)
+            .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
 
-        // Disable access control for now
-        // if (user.role !== "admin") {
-        //     countQuery.innerJoin(
-        //         projectUsers,
-        //         and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
-        //     )
-        // }
+        // Apply same filters as main query
+        if (hasManagerFilter && needsAccessControl) {
+            // Non-admin with manager filter: count projects managed by referentUserId that user has access to
+            countQuery = countQuery.innerJoin(
+                projectUsers,
+                and(
+                    eq(projects.id, projectUsers.projectId),
+                    eq(projectUsers.userId, user.id),
+                    // Project must be managed by referentUserId
+                    sql`EXISTS (
+                        SELECT 1 FROM ${projectUsers} pu2
+                        WHERE pu2.projectId = ${projects.id}
+                        AND pu2.userId = ${referentUserId}
+                        AND pu2.role = 'manager'
+                    )`
+                )
+            )
+        } else if (hasManagerFilter) {
+            // Admin with manager filter
+            countQuery = countQuery.innerJoin(
+                projectUsers,
+                and(
+                    eq(projectUsers.projectId, projects.id),
+                    eq(projectUsers.userId, referentUserId),
+                    eq(projectUsers.role, "manager")
+                )
+            )
+        } else if (needsAccessControl) {
+            // Non-admin without manager filter
+            countQuery = countQuery.innerJoin(
+                projectUsers,
+                and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
+            )
+        }
 
         const [{ count }] = await (
             whereConditions.length > 0 ? countQuery.where(and(...whereConditions)) : countQuery
@@ -305,7 +358,7 @@ export const projectRepository = {
     },
 
     findById: async (id: number, user: Variables["user"]): Promise<ProjectResponse | null> => {
-        const query = db
+        let query = db
             .select({
                 id: projects.id,
                 projectNumber: projects.projectNumber,
@@ -358,15 +411,15 @@ export const projectRepository = {
             .leftJoin(companies, eq(projects.companyId, companies.id))
             .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
 
-        // Disable access control for now
-        // if (user.role !== "admin") {
-        //     query.innerJoin(
-        //         projectUsers,
-        //         and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
-        //     )
-        // }
+        // Access control: non-admin users can only see projects they're associated with
+        if (!hasRole(user.role, "admin")) {
+            query = query.innerJoin(
+                projectUsers,
+                and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
+            )
+        }
 
-        const results = await query.where(and(eq(projects.id, id))).execute()
+        const results = await query.where(eq(projects.id, id)).execute()
         if (!results[0]) return null
 
         const project = results[0]
@@ -671,135 +724,5 @@ export const projectRepository = {
         }
 
         return id
-    },
-
-    findMainProjects: async (user: Variables["user"]): Promise<ProjectListResponse> => {
-        // Get main projects (projects without subProjectName)
-        const query = db
-            .select({
-                id: projects.id,
-                projectNumber: projects.projectNumber,
-                subProjectName: projects.subProjectName,
-                name: projects.name,
-                startDate: projects.startDate,
-                remark: projects.remark,
-                invoicingAddress: projects.invoicingAddress,
-                printFlag: projects.printFlag,
-                latitude: projects.latitude,
-                longitude: projects.longitude,
-                archived: projects.archived,
-                createdAt: projects.createdAt,
-                updatedAt: projects.updatedAt,
-                firstActivityDate: projects.firstActivityDate,
-                lastActivityDate: projects.lastActivityDate,
-                totalDuration: projects.totalDuration,
-                unBilledDuration: projects.unBilledDuration,
-                unBilledDisbursementDuration: projects.unBilledDisbursementDuration,
-                ended: projects.ended,
-                location: {
-                    id: locations.id,
-                    name: locations.name,
-                    country: locations.country,
-                    canton: locations.canton,
-                    region: locations.region,
-                    address: locations.address,
-                },
-                client: {
-                    id: clients.id,
-                    name: clients.name,
-                },
-                engineer: {
-                    id: engineers.id,
-                    name: engineers.name,
-                },
-                company: {
-                    id: companies.id,
-                    name: companies.name,
-                },
-                type: {
-                    id: projectTypes.id,
-                    name: projectTypes.name,
-                },
-            })
-            .from(projects)
-            .leftJoin(locations, eq(projects.locationId, locations.id))
-            .leftJoin(clients, eq(projects.clientId, clients.id))
-            .leftJoin(engineers, eq(projects.engineerId, engineers.id))
-            .leftJoin(companies, eq(projects.companyId, companies.id))
-            .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
-
-        // Disable access control for now
-        // if (user.role !== "admin") {
-        //     query.innerJoin(
-        //         projectUsers,
-        //         and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
-        //     )
-        // }
-
-        const rawData = await query
-            .where(sql`${projects.subProjectName} IS NULL`)
-            .orderBy(asc(projects.name))
-            .execute()
-
-        // Get all unique project IDs
-        const projectIds = rawData.map((p) => p.id)
-
-        // Fetch all project users (managers and members) for these projects in one query
-        const allProjectUsers =
-            projectIds.length > 0
-                ? await db
-                      .select({
-                          projectId: projectUsers.projectId,
-                          id: users.id,
-                          firstName: users.firstName,
-                          lastName: users.lastName,
-                          initials: users.initials,
-                          role: projectUsers.role,
-                      })
-                      .from(projectUsers)
-                      .innerJoin(users, eq(projectUsers.userId, users.id))
-                      .where(inArray(projectUsers.projectId, projectIds))
-                      .execute()
-                : []
-
-        // Group managers and members by project ID
-        const managersMapByProject = new Map<number, any[]>()
-        const membersMapByProject = new Map<number, any[]>()
-
-        allProjectUsers.forEach((pu) => {
-            const userInfo = {
-                id: pu.id,
-                firstName: pu.firstName,
-                lastName: pu.lastName,
-                initials: pu.initials,
-            }
-
-            if (pu.role === "manager") {
-                if (!managersMapByProject.has(pu.projectId)) {
-                    managersMapByProject.set(pu.projectId, [])
-                }
-                managersMapByProject.get(pu.projectId)!.push(userInfo)
-            } else if (pu.role === "member") {
-                if (!membersMapByProject.has(pu.projectId)) {
-                    membersMapByProject.set(pu.projectId, [])
-                }
-                membersMapByProject.get(pu.projectId)!.push(userInfo)
-            }
-        })
-
-        // Attach project managers and members to each project
-        const data = rawData.map((project) => ({
-            ...project,
-            projectManagers: managersMapByProject.get(project.id) || [],
-            projectMembers: membersMapByProject.get(project.id) || [],
-        }))
-
-        return {
-            data,
-            total: data.length,
-            page: 1,
-            limit: 1000,
-            totalPages: 1,
-        }
     },
 }

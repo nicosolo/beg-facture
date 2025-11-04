@@ -10,7 +10,7 @@
                     />
                 </template>
             </FormField>
-            <div class="form-group" v-if="isRole('admin')">
+            <div class="form-group">
                 <Label>{{ $t("projects.filters.referentUser") }}</Label>
                 <UserSelect
                     v-model="filterData.referentUserId"

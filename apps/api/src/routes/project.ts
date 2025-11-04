@@ -118,18 +118,6 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
         }
     )
     .get(
-        "/parent-projects",
-        responseValidator({
-            200: projectListResponse,
-        }),
-        async (c) => {
-            const user = c.get("user")
-            // Get projects without subProjectName (main projects only)
-            const result = await projectRepository.findMainProjects(user)
-            return c.render(result as ProjectListResponse, 200)
-        }
-    )
-    .get(
         "/:id",
         responseValidator({
             200: projectResponseSchema,

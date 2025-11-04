@@ -3,7 +3,7 @@
         <Transition name="dialog-fade">
             <div
                 v-if="modelValue"
-                class="fixed inset-0 z-50 overflow-y-auto"
+                class="fixed inset-0 z-20 overflow-y-auto"
                 aria-labelledby="modal-title"
                 role="dialog"
                 aria-modal="true"
@@ -11,7 +11,7 @@
                 <div
                     :class="[
                         'flex items-end justify-center min-h-screen text-center sm:block',
-                        mobileFullScreen ? '' : 'pt-4 px-4 pb-20'
+                        mobileFullScreen ? '' : 'pt-4 px-4 pb-20',
                     ]"
                 >
                     <!-- Background overlay -->
@@ -53,8 +53,18 @@
                                             @click="closeDialog"
                                             class="sm:hidden p-2 -mr-2 text-gray-400 hover:text-gray-500"
                                         >
-                                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            <svg
+                                                class="h-6 w-6"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12"
+                                                />
                                             </svg>
                                         </button>
                                     </div>

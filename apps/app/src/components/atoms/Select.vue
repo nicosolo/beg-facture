@@ -4,13 +4,18 @@
         :disabled="disabled"
         :required="required"
         :class="[
-            'w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
+            'w-full px-3 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
             disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white',
             className,
         ]"
         @change="handleChange"
     >
-        <option v-for="option in options" :key="String(option.value)" :value="option.value ?? ''" :disabled="required && option.value === ''">
+        <option
+            v-for="option in options"
+            :key="String(option.value)"
+            :value="option.value ?? ''"
+            :disabled="required && option.value === ''"
+        >
             {{ option.label }}
         </option>
     </select>

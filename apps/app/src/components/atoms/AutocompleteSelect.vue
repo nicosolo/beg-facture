@@ -1,6 +1,7 @@
 <template>
     <div class="relative">
         <input
+            :id="id"
             v-model="searchTerm"
             :placeholder="placeholder"
             :disabled="disabled"
@@ -11,7 +12,7 @@
             @keydown="handleKeyDown"
             :ref="(el) => (inputRef = el as HTMLInputElement)"
             :class="[
-                'w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
+                'w-full px-3 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
                 disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white',
                 className,
             ]"
@@ -25,7 +26,7 @@
         <!-- Dropdown -->
         <div
             v-if="showDropdown"
-            class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto"
+            class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg min-h-30 max-h-60 overflow-auto"
         >
             <!-- No results (only for async mode, static mode always shows full list when no match) -->
             <div
@@ -61,6 +62,7 @@ import LoadingSpinner from "@/components/atoms/LoadingSpinner.vue"
 
 interface AutocompleteSelectProps {
     modelValue: number | string | undefined | null
+    id?: string
     placeholder?: string
     disabled?: boolean
     required?: boolean

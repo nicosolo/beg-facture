@@ -39,22 +39,32 @@
                             required
                         />
                     </div>
-                    <div>
-                        <Label>{{ $t("projects.date") }}</Label>
-                        <input
-                            type="date"
-                            v-model="formattedDate"
-                            :disabled="loading || isLocked"
-                            :min="minDate"
-                            :max="maxDate"
-                            required
-                            class="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        />
-                    </div>
+                    <DateField
+                        label="Date"
+                        v-model="activity.date"
+                        :disabled="loading || isLocked"
+                    />
                 </div>
+                <!-- Project and Date section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div v-if="currentUser">
+                        <Label for="user">{{ $t("time.columns.user") }}</Label>
+                        <UserSelect
+                            id="user"
+                            v-if="isRole('admin')"
+                            v-model="activity.userId"
+                            :disabled="loading || isLocked"
+                            :required="true"
+                            class="w-full"
+                        />
 
-                <!-- Activity details section -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div
+                            class="w-full p-2 border border-gray-300 rounded-md bg-gray-100"
+                            v-else
+                        >
+                            {{ currentUser.firstName }} {{ currentUser.lastName }}
+                        </div>
+                    </div>
                     <div>
                         <Label
                             >{{ $t("time.columns.activityType") }}
@@ -72,28 +82,43 @@
                             class="w-full"
                         />
                     </div>
+                </div>
+
+                <!-- Activity details section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <div>
-                        <Label
+                        <Label for="duration"
                             >{{ $t("time.columns.duration") }}
                             <span class="text-red-500">*</span></Label
                         >
                         <InputNumber
+                            id="duration"
                             type="time"
                             v-model.number="activity.duration"
                             :disabled="loading || isLocked"
-                            :required="true"
-                            class="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         />
                     </div>
                     <div>
-                        <Label>{{ $t("time.columns.kilometers") }}</Label>
-                        <input
-                            type="number"
+                        <Label for="kilometers">{{ $t("time.columns.kilometers") }}</Label>
+                        <InputNumber
+                            id="kilometers"
+                            type="distance"
                             v-model.number="activity.kilometers"
                             min="0"
-                            step="1"
                             :disabled="loading || isLocked"
-                            class="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                    </div>
+                    <div>
+                        <Label for="expenses">{{ $t("time.columns.expenses") }} (CHF)</Label>
+                        <InputNumber
+                            id="expenses"
+                            type="amount"
+                            v-model.number="activity.expenses"
+                            min="0"
+                            :disabled="loading || isLocked"
+                            class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         />
                     </div>
                 </div>
@@ -101,32 +126,12 @@
                 <!-- Expenses and Description -->
                 <div class="space-y-4">
                     <div>
-                        <Label>{{ $t("time.columns.expenses") }} (CHF)</Label>
-                        <input
-                            type="number"
-                            v-model.number="activity.expenses"
-                            min="0"
-                            step="0.01"
-                            :disabled="loading || isLocked"
-                            class="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        />
-                    </div>
-                    <div>
                         <Label>{{ $t("time.columns.description") }}</Label>
-                        <textarea
+                        <Textarea
                             v-model="activity.description"
                             rows="3"
                             :disabled="loading || isLocked"
-                            class="w-full px-3 py-2 border rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        ></textarea>
-                    </div>
-                </div>
-
-                <!-- User info (read-only) -->
-                <div v-if="currentUser">
-                    <Label>{{ $t("time.columns.user") }}</Label>
-                    <div class="w-full p-2 border border-gray-300 rounded-md bg-gray-100">
-                        {{ currentUser.firstName }} {{ currentUser.lastName }}
+                        />
                     </div>
                 </div>
             </div>
@@ -179,13 +184,15 @@ import {
     useDeleteActivity,
 } from "@/composables/api/useActivity"
 import { useFetchActivityTypeFiltered } from "@/composables/api/useActivityType"
-import { useAuthStore } from "@/stores/auth"
 import { ApiError } from "@/utils/api-error"
 import type { ActivityCreateInput, ActivityUpdateInput, ActivityResponse } from "@beg/validations"
 import InputNumber from "@/components/atoms/InputNumber.vue"
 import { useAlert } from "@/composables/utils/useAlert"
 import { useActivityLock } from "@/composables/utils/useActivityLock"
-
+import UserSelect from "../user/UserSelect.vue"
+import { useAuthStore } from "@/stores/auth"
+import Textarea from "@/components/atoms/Textarea.vue"
+import DateField from "@/components/molecules/DateField.vue"
 interface Props {
     modelValue: boolean
     activityId?: number | null
@@ -201,13 +208,13 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const authStore = useAuthStore()
+const { isRole, user } = useAuthStore()
 const { successAlert, errorAlert } = useAlert()
 const { canEditActivity } = useActivityLock()
 
 // Computed properties
 const isNewEntry = computed(() => !props.activityId)
-const currentUser = computed(() => authStore.user)
+const currentUser = computed(() => user)
 
 const saving = computed(
     () => creatingActivity.value || updatingActivity.value || deletingActivity.value
@@ -328,12 +335,6 @@ const handleSubmit = async () => {
 // Submit form programmatically
 const submitForm = () => {
     if (formRef.value) {
-        // Check duration separately since it uses custom inputs
-        if (activity.value.duration === 0) {
-            errorMessage.value = t("validation.required", { field: t("time.columns.duration") })
-            return
-        }
-
         // Check if form is valid
         if (formRef.value.checkValidity()) {
             handleSubmit()

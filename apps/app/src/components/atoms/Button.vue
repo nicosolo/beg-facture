@@ -33,7 +33,7 @@ interface Props {
         | "custom"
         | "ghost-danger"
         | "ghost-primary"
-    size?: "xs" | "sm" | "md" | "lg"
+    size?: "xxs" | "xs" | "sm" | "md" | "lg"
     disabled?: boolean
     className?: string
     to?: RouteLocationRaw
@@ -71,6 +71,8 @@ const variantClasses = computed(() => {
 
 const sizeClasses = computed(() => {
     switch (props.size) {
+        case "xxs":
+            return "text-xs px-1 py-0.5"
         case "xs":
             return "text-sm px-1.5 py-1"
         case "sm":

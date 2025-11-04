@@ -144,25 +144,6 @@
                                         <p class="font-medium">{{ projectData.client.name }}</p>
                                     </div>
 
-                                    <div
-                                        v-if="
-                                            projectData.projectManagers &&
-                                            projectData.projectManagers.length > 0
-                                        "
-                                    >
-                                        <p class="text-sm text-gray-500">
-                                            {{ $t("projects.responsible") }}
-                                        </p>
-                                        <p
-                                            v-for="manager in projectData.projectManagers"
-                                            :key="manager.id"
-                                            class="font-medium"
-                                        >
-                                            {{ manager.firstName }}
-                                            {{ manager.lastName }}
-                                        </p>
-                                    </div>
-
                                     <div v-if="projectData.company">
                                         <p class="text-sm text-gray-500">
                                             {{ $t("projects.enterprise") }}
@@ -175,6 +156,55 @@
                                             {{ $t("projects.type") }}
                                         </p>
                                         <p class="font-medium">{{ projectData.type.name }}</p>
+                                    </div>
+
+                                    <div v-if="projectData.engineer">
+                                        <p class="text-sm text-gray-500">
+                                            {{ $t("projects.engineer") }}
+                                        </p>
+                                        <p class="font-medium">{{ projectData.engineer.name }}</p>
+                                    </div>
+
+                                    <div
+                                        v-if="
+                                            projectData.projectManagers &&
+                                            projectData.projectManagers.length > 0
+                                        "
+                                        class="col-span-2"
+                                    >
+                                        <p class="text-sm text-gray-500 mb-2">
+                                            {{ $t("projects.responsible") }}
+                                        </p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span
+                                                v-for="manager in projectData.projectManagers"
+                                                :key="manager.id"
+                                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                                            >
+                                                {{ manager.firstName }} {{ manager.lastName }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        v-if="
+                                            projectData.projectMembers &&
+                                            projectData.projectMembers.length > 0
+                                        "
+                                        class="col-span-2"
+                                    >
+                                        <p class="text-sm text-gray-500 mb-2">
+                                            {{ $t("projects.members") }}
+                                        </p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span
+                                                v-for="member in projectData.projectMembers"
+                                                :key="member.id"
+                                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700"
+                                            >
+                                                {{ member.firstName }} {{ member.lastName }}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <div v-if="mapLink" class="col-span-2">
@@ -207,22 +237,23 @@
                                                 </a>
                                             </div>
                                         </div>
+                                        <div
+                                            v-if="
+                                                projectData.latitude !== null &&
+                                                projectData.longitude !== null
+                                            "
+                                            class="mt-2 col-span-3"
+                                        >
+                                            <MapDisplay
+                                                :latitude="projectData.latitude"
+                                                :longitude="projectData.longitude"
+                                                :zoom="14"
+                                                height="250px"
+                                            />
+                                        </div>
                                     </div>
                                     <!-- Map Display -->
-                                    <div
-                                        v-if="
-                                            projectData.latitude !== null &&
-                                            projectData.longitude !== null
-                                        "
-                                        class="mt-3 col-span-3"
-                                    >
-                                        <MapDisplay
-                                            :latitude="projectData.latitude"
-                                            :longitude="projectData.longitude"
-                                            :zoom="14"
-                                            height="250px"
-                                        />
-                                    </div>
+
                                     <div v-if="projectData.invoicingAddress" class="col-span-2">
                                         <p class="text-sm text-gray-500">
                                             {{ $t("projects.invoicingAddress") }}
@@ -388,9 +419,9 @@ const formattedCoordinates = computed(() => {
     }
 
     const formatCoordinate = (value: number) =>
-        Number.isInteger(value) ? value.toString() : value.toFixed(2)
+        Number.isInteger(value) ? value.toString() : value.toFixed(6)
 
-    return `E ${formatCoordinate(projectData.value.latitude)}, N ${formatCoordinate(projectData.value.longitude)}`
+    return `${formatCoordinate(projectData.value.latitude)}, ${formatCoordinate(projectData.value.longitude)}`
 })
 
 // Get project ID from route

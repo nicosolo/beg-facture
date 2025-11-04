@@ -136,7 +136,7 @@ export default {
         showLocation: "Afficher sur la carte",
         mapPickerTitle: "Localisation du mandat",
         mapNotAvailable: "Aucune carte disponible pour ces coordonnées",
-        coordinates: "Coordonnées (E, N)",
+        coordinates: "Coordonnées (Lat, Long)",
         enterprise: "Entreprise",
         type: "Type",
         responsible: "Responsable",

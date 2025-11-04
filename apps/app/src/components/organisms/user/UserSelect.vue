@@ -2,22 +2,19 @@
     <div v-if="multiple" class="space-y-2">
         <div class="flex flex-wrap gap-2">
             <span
-                v-for="userId in (modelValue as number[])"
+                v-for="userId in modelValue as number[]"
                 :key="userId"
                 class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm"
             >
                 {{ getUserDisplay(userId) }}
-                <button
-                    type="button"
-                    @click="removeUser(userId)"
-                    class="hover:text-blue-900 focus:outline-none"
-                >
-                    ×
-                </button>
+                <Button type="button" @click="removeUser(userId)" variant="ghost" size="xxs">
+                    <XMarkIcon class="w-5 h-5" />
+                </Button>
             </span>
         </div>
         <AutocompleteSelect
             :model-value="undefined"
+            :id="id"
             mode="static"
             :options="availableUsers"
             :display-field="formatUserDisplay"
@@ -32,6 +29,7 @@
     <AutocompleteSelect
         v-else
         :model-value="modelValue as number | undefined"
+        :id="id"
         mode="static"
         :options="filteredUsersByArchived"
         :display-field="formatUserDisplay"
@@ -50,7 +48,8 @@ import { useI18n } from "vue-i18n"
 import { useFetchUsers } from "@/composables/api/useUser"
 import AutocompleteSelect from "@/components/atoms/AutocompleteSelect.vue"
 import type { UserResponse } from "@beg/validations"
-
+import { XMarkIcon } from "@heroicons/vue/24/outline"
+import Button from "@/components/atoms/Button.vue"
 interface UserSelectProps {
     modelValue: number | number[] | undefined
     placeholder?: string
@@ -59,11 +58,13 @@ interface UserSelectProps {
     showArchived?: boolean
     required?: boolean
     multiple?: boolean
+    id?: string
 }
 
 const props = withDefaults(defineProps<UserSelectProps>(), {
     showArchived: false,
     multiple: false,
+    id: undefined,
 })
 
 const emit = defineEmits<{
@@ -126,11 +127,11 @@ const getUserDisplay = (userId: number): string => {
 }
 
 // Add user to selection (multiple mode)
-const addUser = (userId: number | undefined) => {
-    if (userId === undefined) return
+const addUser = (userId: string | number | null | undefined) => {
+    if (userId === undefined || userId === null) return
 
     const currentValue = Array.isArray(props.modelValue) ? props.modelValue : []
-    emit("update:modelValue", [...currentValue, userId])
+    emit("update:modelValue", [...currentValue, parseInt(userId as string)])
 }
 
 // Remove user from selection (multiple mode)

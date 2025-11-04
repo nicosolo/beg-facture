@@ -39,35 +39,31 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
             return c.render(result, 200)
         }
     )
-    .get(
-        "/export",
-        zValidator("query", activityExportFilterSchema),
-        async (c) => {
-            const filter = c.req.valid("query")
-            const user = c.get("user")
-            const activities = await activityRepository.findAllForExport(user, filter)
-            const includeDisbursementColumn = hasRole(user.role, "admin")
+    .get("/export", zValidator("query", activityExportFilterSchema), async (c) => {
+        const filter = c.req.valid("query")
+        const user = c.get("user")
+        const activities = await activityRepository.findAllForExport(user, filter)
+        const includeDisbursementColumn = hasRole(user.role, "admin")
 
-            const buffer = await buildActivitiesWorkbook(activities, {
-                includeDisbursementColumn,
-                perUser: filter.perUser ?? false,
-            })
+        const buffer = await buildActivitiesWorkbook(activities, {
+            includeDisbursementColumn,
+            perUser: filter.perUser ?? false,
+        })
 
-            const today = new Date().toISOString().split("T")[0]
-            const filename = `heures-${today}.xlsx`
+        const today = new Date().toISOString().split("T")[0]
+        const filename = `heures-${today}.xlsx`
 
-            const headers = new Headers({
-                "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "Content-Disposition": `attachment; filename="${filename}"`,
-                "Content-Length": buffer.byteLength.toString(),
-            })
+        const headers = new Headers({
+            "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition": `attachment; filename="${filename}"`,
+            "Content-Length": buffer.byteLength.toString(),
+        })
 
-            return new Response(buffer, {
-                status: 200,
-                headers,
-            })
-        }
-    )
+        return new Response(buffer, {
+            status: 200,
+            headers,
+        })
+    })
     .get(
         "/:id",
         responseValidator({
@@ -101,9 +97,11 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
             const user = c.get("user")
 
             // Check 60-day lock for non-admin users when creating activities
-            if (!hasRole(user.role, "admin") && !hasRole(user.role, "super_admin")) {
+            if (!hasRole(user.role, "admin")) {
                 const activityDate = new Date(activityData.date)
-                const daysDifference = Math.floor((Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
+                const daysDifference = Math.floor(
+                    (Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24)
+                )
                 if (daysDifference > 60) {
                     throwActivityLocked("Cannot create activities older than 60 days")
                 }
@@ -192,7 +190,9 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
             // Check 60-day lock for non-admin users
             if (!hasRole(user.role, "admin") && !hasRole(user.role, "super_admin")) {
                 const activityDate = new Date(existingActivity.date)
-                const daysDifference = Math.floor((Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
+                const daysDifference = Math.floor(
+                    (Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24)
+                )
                 if (daysDifference > 60) {
                     throwActivityLocked("Cannot modify activities older than 60 days")
                 }
@@ -294,13 +294,17 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 const lockedActivities = activities.filter((activity) => {
                     if (!activity) return false
                     const activityDate = new Date(activity.date)
-                    const daysDifference = Math.floor((Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
+                    const daysDifference = Math.floor(
+                        (Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24)
+                    )
                     return daysDifference > 60
                 })
 
                 if (lockedActivities.length > 0) {
                     const lockedIds = lockedActivities.map((a) => a!.id).join(", ")
-                    throwActivityLocked(`Cannot modify activities older than 60 days. Locked activities: ${lockedIds}`)
+                    throwActivityLocked(
+                        `Cannot modify activities older than 60 days. Locked activities: ${lockedIds}`
+                    )
                 }
             }
 
@@ -331,7 +335,9 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
         // Check 60-day lock for non-admin users
         if (!hasRole(user.role, "admin") && !hasRole(user.role, "super_admin")) {
             const activityDate = new Date(existingActivity.date)
-            const daysDifference = Math.floor((Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24))
+            const daysDifference = Math.floor(
+                (Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24)
+            )
             if (daysDifference > 60) {
                 throwActivityLocked("Cannot delete activities older than 60 days")
             }

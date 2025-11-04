@@ -32,14 +32,19 @@
 
             <!-- First Line: Number (1/3) and Name (2/3) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FormField :label="$t('projects.mandat')" :error="errors.projectNumber" required>
+                <FormField :label="$t('projects.mandat')" :error="errors.projectNumber">
                     <template #input>
                         <Input
                             type="text"
                             v-model="form.projectNumber"
                             :disabled="!!form.parentProjectId"
-                            required
+                            :placeholder="$t('projects.mandatPlaceholder')"
                         />
+                    </template>
+                    <template #help>
+                        <p class="text-sm text-gray-500 mt-1">
+                            {{ $t("projects.mandatHelp") }}
+                        </p>
                     </template>
                 </FormField>
                 <FormField :label="$t('projects.designation')" :error="errors.name" required>
@@ -121,7 +126,11 @@
 
                 <FormField :label="$t('projects.client')" :error="errors.clientId">
                     <template #input>
-                        <ClientSelect v-model="form.clientId" :placeholder="$t('common.select')" />
+                        <ClientSelect
+                            required
+                            v-model="form.clientId"
+                            :placeholder="$t('common.select')"
+                        />
                     </template>
                 </FormField>
 
@@ -433,10 +442,8 @@ const validateForm = (): boolean => {
     errors.value = {}
     let isValid = true
 
-    if (!form.value.projectNumber) {
-        errors.value.projectNumber = t("validation.required")
-        isValid = false
-    }
+    // projectNumber is now optional (for draft projects)
+    // No validation needed for projectNumber
 
     if (!form.value.name) {
         errors.value.name = t("validation.required")
@@ -492,8 +499,9 @@ const saveProject = async () => {
         const longitudeValue = form.value.longitude?.trim() ?? ""
         const parsedLatitude = latitudeValue ? Number(latitudeValue) : null
         const parsedLongitude = longitudeValue ? Number(longitudeValue) : null
+        const projectNumberValue = form.value.projectNumber?.trim()
         const submitData = {
-            projectNumber: form.value.projectNumber,
+            projectNumber: projectNumberValue || null,
             name: form.value.name,
             startDate: form.value.startDate,
             typeId: form.value.typeId!, // We validated it exists

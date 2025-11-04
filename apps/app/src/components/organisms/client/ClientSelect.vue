@@ -23,7 +23,7 @@ import { useFetchClientList, useFetchClient } from "@/composables/api/useClient"
 import type { Client } from "@beg/validations"
 
 interface Props {
-    modelValue?: number | undefined
+    modelValue?: number | null | undefined | string
     placeholder?: string
     required?: boolean
     disabled?: boolean
@@ -35,18 +35,25 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-    "update:modelValue": [value: number | undefined]
+    "update:modelValue": [value: number | null | undefined | string]
 }>()
 
 const { get: fetchClientListApi, loading } = useFetchClientList()
 const { get: fetchSingleClient } = useFetchClient()
-const selected = ref<number | undefined>(props.modelValue || undefined)
+const selected = ref<number | null | undefined | string>(props.modelValue || undefined)
 const clients = ref<Client[]>([])
 
 // Fetch selected item when modelValue changes
 const fetchSelectedItem = async () => {
     if (props.modelValue && !clients.value.find((c) => c.id === props.modelValue)) {
-        const data = await fetchSingleClient({ params: { id: props.modelValue } })
+        const data = await fetchSingleClient({
+            params: {
+                id:
+                    typeof props.modelValue === "string"
+                        ? parseInt(props.modelValue)
+                        : props.modelValue,
+            },
+        })
         if (data) {
             // Add the selected item to the clients array if not already there
             clients.value = [data, ...clients.value.filter((c) => c.id !== data!.id)]
@@ -67,8 +74,11 @@ watch(
 )
 
 // Emit changes
-const handleChange = (value: string | number | undefined) => {
-    emit("update:modelValue", typeof value === 'string' ? parseInt(value) : value as number | undefined)
+const handleChange = (value: string | number | null | undefined) => {
+    emit(
+        "update:modelValue",
+        typeof value === "string" ? parseInt(value) : (value as number | undefined)
+    )
 }
 
 // Fetch clients for autocomplete

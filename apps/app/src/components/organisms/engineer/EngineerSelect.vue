@@ -23,7 +23,7 @@ import { useFetchEngineerList, useFetchEngineer } from "@/composables/api/useEng
 import type { Engineer } from "@beg/validations"
 
 interface Props {
-    modelValue?: number | undefined
+    modelValue?: number | null | undefined | string
     placeholder?: string
     required?: boolean
     disabled?: boolean
@@ -35,18 +35,25 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-    "update:modelValue": [value: number | undefined]
+    "update:modelValue": [value: number | null | undefined | string]
 }>()
 
 const { get: fetchEngineerListApi, loading } = useFetchEngineerList()
 const { get: fetchSingleEngineer } = useFetchEngineer()
-const selected = ref<number | undefined>(props.modelValue || undefined)
+const selected = ref<number | null | undefined | string>(props.modelValue || undefined)
 const engineers = ref<Engineer[]>([])
 
 // Fetch selected item when modelValue changes
 const fetchSelectedItem = async () => {
     if (props.modelValue && !engineers.value.find((e) => e.id === props.modelValue)) {
-        const data = await fetchSingleEngineer({ params: { id: props.modelValue } })
+        const data = await fetchSingleEngineer({
+            params: {
+                id:
+                    typeof props.modelValue === "string"
+                        ? parseInt(props.modelValue)
+                        : props.modelValue,
+            },
+        })
         if (data) {
             // Add the selected item to the engineers array if not already there
             engineers.value = [data, ...engineers.value.filter((e) => e.id !== data!.id)]
@@ -67,8 +74,11 @@ watch(
 )
 
 // Emit changes
-const handleChange = (value: string | number | undefined) => {
-    emit("update:modelValue", typeof value === 'string' ? parseInt(value) : value as number | undefined)
+const handleChange = (value: string | number | null | undefined) => {
+    emit(
+        "update:modelValue",
+        typeof value === "string" ? parseInt(value) : (value as number | undefined)
+    )
 }
 
 // Fetch engineers for autocomplete

@@ -16,6 +16,7 @@ const projectBaseFilterSchema = z.object({
     hasUnbilledTime: booleanSchema.optional().default(false),
     includeArchived: booleanSchema.optional().default(false),
     includeEnded: booleanSchema.optional().default(false),
+    includeDraft: booleanSchema.optional().default(false),
 })
 
 // Project filter schema for listing (includes pagination)
@@ -36,7 +37,7 @@ export type ProjectExportFilterInput = z.input<typeof projectExportFilterSchema>
 export const projectResponseSchema = z
     .object({
         id: z.number(),
-        projectNumber: z.string(),
+        projectNumber: z.string().nullable(),
         subProjectName: z.string().nullable(),
         name: z.string(),
         startDate: dateSchema,
@@ -101,6 +102,7 @@ export const projectResponseSchema = z
         firstActivityDate: z.coerce.date().nullable(),
         lastActivityDate: z.coerce.date().nullable(),
         ended: z.boolean().nullable(),
+        isDraft: z.boolean(),
     })
     .merge(nullableTimestampsSchema)
 
@@ -112,7 +114,7 @@ export type ProjectListResponse = z.infer<typeof projectListResponse>
 
 // Project create schema
 export const projectCreateSchema = z.object({
-    projectNumber: z.string().min(1),
+    projectNumber: z.string().min(1).optional().nullable(),
     subProjectName: z.string().optional(),
     parentProjectId: z.number().positive().optional().nullable(),
     name: z.string().min(1),

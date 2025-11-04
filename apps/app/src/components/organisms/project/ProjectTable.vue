@@ -10,8 +10,11 @@
     >
         <template #cell:name="{ item }">
             <div>
+                <span v-if="item.isDraft" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 mr-2">
+                    {{ $t('projects.draft') }}
+                </span>
                 <span class="text-md font-medium mr-2"
-                    >{{ item.projectNumber
+                    >{{ item.projectNumber || $t('projects.noNumber')
                     }}{{ item.subProjectName ? ` ${item.subProjectName}` : "" }}</span
                 >
 

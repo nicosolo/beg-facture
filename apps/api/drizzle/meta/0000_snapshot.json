@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "1cf84a67-00cd-4044-b843-731b4ad2e39e",
+  "id": "40e7b9f2-e723-41f1-8bb6-b70a9f3feadf",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activities": {
@@ -1411,7 +1411,7 @@
           "name": "projectNumber",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
         "subProjectName": {

@@ -130,7 +130,7 @@ export const projects = sqliteTable(
     "projects",
     {
         id: integer("id").primaryKey({ autoIncrement: true }),
-        projectNumber: text("projectNumber").notNull(),
+        projectNumber: text("projectNumber"),
         subProjectName: text("subProjectName"),
         name: text("name").notNull(),
         startDate: integer("startDate", { mode: "timestamp" }).notNull(),

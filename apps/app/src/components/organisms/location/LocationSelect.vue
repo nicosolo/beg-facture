@@ -22,7 +22,7 @@ import AutocompleteSelect from "@/components/atoms/AutocompleteSelect.vue"
 import { COUNTRIES, SWISS_CANTONS, type Location } from "@beg/validations"
 
 interface LocationSelectProps {
-    modelValue: number | undefined
+    modelValue: number | null | undefined | string
     placeholder?: string
     disabled?: boolean
     className?: string

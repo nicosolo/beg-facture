@@ -55,11 +55,17 @@ export const projectRepository = {
             sortOrder = "asc",
             hasUnbilledTime = undefined,
             includeEnded = false,
+            includeDraft = false,
         } = filters || {}
         const offset = (page - 1) * limit
 
         // Build where conditions
         const whereConditions = []
+
+        // Draft filter - exclude drafts by default (only show when includeDraft is true)
+        if (!includeDraft) {
+            whereConditions.push(sql`${projects.projectNumber} IS NOT NULL AND ${projects.projectNumber} != ''`)
+        }
 
         // Name filter (case-insensitive search)
         if (name && name.trim()) {
@@ -299,6 +305,7 @@ export const projectRepository = {
             ...project,
             projectManagers: managersMap.get(project.id) || [],
             projectMembers: membersMap.get(project.id) || [],
+            isDraft: !project.projectNumber || project.projectNumber.trim() === "",
         }))
 
         // Count total with same filters (excluding pagination)
@@ -461,6 +468,7 @@ export const projectRepository = {
             ...project,
             projectManagers: managers,
             projectMembers: members,
+            isDraft: !project.projectNumber || project.projectNumber.trim() === "",
         } as ProjectResponse
     },
 
@@ -481,36 +489,39 @@ export const projectRepository = {
         }
 
         // Check for duplicate project number + subProjectName combination
-        const whereConditions = [eq(projects.projectNumber, data.projectNumber)]
-        if (data.subProjectName) {
-            whereConditions.push(eq(projects.subProjectName, data.subProjectName))
-        } else {
-            // If no subProjectName, check if main project exists
-            const existing = await db
-                .select({ id: projects.id })
-                .from(projects)
-                .where(
-                    and(
-                        eq(projects.projectNumber, data.projectNumber),
-                        sql`${projects.subProjectName} IS NULL`
+        // Skip check for draft projects (projectNumber is null or empty)
+        if (data.projectNumber && data.projectNumber.trim() !== "") {
+            const whereConditions = [eq(projects.projectNumber, data.projectNumber)]
+            if (data.subProjectName) {
+                whereConditions.push(eq(projects.subProjectName, data.subProjectName))
+            } else {
+                // If no subProjectName, check if main project exists
+                const existing = await db
+                    .select({ id: projects.id })
+                    .from(projects)
+                    .where(
+                        and(
+                            eq(projects.projectNumber, data.projectNumber),
+                            sql`${projects.subProjectName} IS NULL`
+                        )
                     )
-                )
-                .execute()
+                    .execute()
 
-            if (existing.length > 0) {
-                throw new Error("Project number already exists")
+                if (existing.length > 0) {
+                    throw new Error("Project number already exists")
+                }
             }
-        }
 
-        if (data.subProjectName) {
-            const existing = await db
-                .select({ id: projects.id })
-                .from(projects)
-                .where(and(...whereConditions))
-                .execute()
+            if (data.subProjectName) {
+                const existing = await db
+                    .select({ id: projects.id })
+                    .from(projects)
+                    .where(and(...whereConditions))
+                    .execute()
 
-            if (existing.length > 0) {
-                throw new Error("Sub-project with this name already exists for this project number")
+                if (existing.length > 0) {
+                    throw new Error("Sub-project with this name already exists for this project number")
+                }
             }
         }
 

@@ -85,6 +85,13 @@
                         :label="$t('projects.filters.includeEnded')"
                         id="includeEnded"
                     />
+                    <Checkbox
+                        v-if="isRole('admin')"
+                        v-model="filterData.includeDraft"
+                        @update:model-value="emitChange"
+                        :label="$t('projects.filters.includeDraft')"
+                        id="includeDraft"
+                    />
                 </div>
             </div>
         </div>
@@ -141,6 +148,7 @@ const filterData = reactive<ProjectFilterProps["filter"]>({
     name: filter.name,
     includeArchived: filter.includeArchived,
     includeEnded: filter.includeEnded,
+    includeDraft: filter.includeDraft || false,
     sortBy: filter.sortBy,
     sortOrder: filter.sortOrder,
     fromDate: filter.fromDate,
@@ -156,6 +164,7 @@ watch(
         filterData.name = newFilter.name
         filterData.includeArchived = newFilter.includeArchived
         filterData.includeEnded = newFilter.includeEnded
+        filterData.includeDraft = newFilter.includeDraft
         filterData.sortBy = newFilter.sortBy
         filterData.sortOrder = newFilter.sortOrder
         filterData.fromDate = newFilter.fromDate
@@ -186,6 +195,7 @@ const resetFilters = () => {
     filterData.name = ""
     filterData.includeArchived = false
     filterData.includeEnded = false
+    filterData.includeDraft = false
     filterData.sortBy = "name"
     filterData.sortOrder = "asc"
     filterData.fromDate = from

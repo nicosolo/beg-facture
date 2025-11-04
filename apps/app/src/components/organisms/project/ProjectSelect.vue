@@ -47,10 +47,13 @@ const projects = ref<ProjectResponse[]>([])
 
 // Format project display
 const formatProjectDisplay = (project: ProjectResponse): string => {
+    const draftPrefix = project.isDraft ? "[BROUILLON] " : ""
+    const projectNumber = project.projectNumber || "Sans numéro"
+
     if (project.subProjectName) {
-        return `${project.projectNumber} ${project.subProjectName} - ${project.name}`
+        return `${draftPrefix}${projectNumber} ${project.subProjectName} - ${project.name}`
     }
-    return `${project.projectNumber} - ${project.name}`
+    return `${draftPrefix}${projectNumber} - ${project.name}`
 }
 
 // Fetch selected item when modelValue changes

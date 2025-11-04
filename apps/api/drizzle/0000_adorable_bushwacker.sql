@@ -199,7 +199,7 @@ CREATE INDEX `project_users_role_idx` ON `project_users` (`role`);--> statement-
 CREATE INDEX `project_users_project_role_idx` ON `project_users` (`projectId`,`role`);--> statement-breakpoint
 CREATE TABLE `projects` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`projectNumber` text NOT NULL,
+	`projectNumber` text,
 	`subProjectName` text,
 	`name` text NOT NULL,
 	`startDate` integer NOT NULL,

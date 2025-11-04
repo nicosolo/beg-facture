@@ -10,7 +10,7 @@
                     />
                 </template>
             </FormField>
-            <div class="form-group">
+            <div class="form-group" v-if="isRole('admin')">
                 <Label>{{ $t("projects.filters.referentUser") }}</Label>
                 <UserSelect
                     v-model="filterData.referentUserId"
@@ -110,6 +110,7 @@ import Checkbox from "@/components/atoms/Checkbox.vue"
 import Input from "@/components/atoms/Input.vue"
 import { debounce } from "@/utils/debounce"
 import { getYearRange } from "@/composables/utils/useDateRangePresets"
+import { useAuthStore } from "@/stores/auth"
 
 export type ProjectFilterModel = Omit<ProjectFilter, "page" | "limit" | "accountId">
 interface ProjectFilterProps {
@@ -118,6 +119,8 @@ interface ProjectFilterProps {
     showCheckboxes?: boolean
     showNameInput?: boolean
 }
+
+const { isRole } = useAuthStore()
 
 // Define props for the component
 const {

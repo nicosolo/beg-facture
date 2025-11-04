@@ -21,6 +21,7 @@
                 </div>
                 <div class="flex flex-wrap gap-2 justify-start md:justify-end">
                     <Button
+                        v-if="canEditProject"
                         class="w-full sm:w-auto"
                         variant="primary"
                         :to="{ name: 'project-edit', params: { id: projectId } }"
@@ -28,8 +29,9 @@
                         {{ $t("common.edit") }}
                     </Button>
                     <Button
+                        v-if="canEditProject"
                         class="w-full sm:w-auto"
-                        variant="secondary"
+                        variant="primary"
                         :to="{ name: 'invoice-new', query: { projectId: projectId } }"
                     >
                         {{ $t("invoice.new") }}
@@ -41,14 +43,14 @@
                     >
                         {{ $t("time.new") }}
                     </Button>
-                    <button
+                    <Button
                         @click="openProjectFolder"
                         v-if="projectFolder?.found"
                         type="button"
                         class="text-sm px-3 py-1.5 rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center hover:bg-indigo-200 text-indigo-700 w-full sm:w-auto"
                     >
                         Ouvrir dossier
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>
@@ -359,6 +361,21 @@ const mapLink = computed(() =>
 const googleMapsLink = computed(() =>
     buildGoogleMapsUrl(projectData.value?.longitude ?? null, projectData.value?.latitude ?? null)
 )
+
+// Check if current user can edit this project
+const canEditProject = computed(() => {
+    // Admins can always edit
+    if (authStore.isRole("admin")) {
+        return true
+    }
+
+    // Check if user is a project manager of this project
+    if (projectData.value?.projectManagers && authStore.user) {
+        return projectData.value.projectManagers.some((pm) => pm.id === authStore.user?.id)
+    }
+
+    return false
+})
 
 const formattedCoordinates = computed(() => {
     if (

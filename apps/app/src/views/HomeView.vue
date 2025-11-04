@@ -1,5 +1,5 @@
 <template>
-    <div class="max-w-6xl mx-auto py-12 space-y-8">
+    <div class="max-w-8xl py-12 space-y-8">
         <div class="text-center space-y-2">
             <h1 class="text-3xl font-bold text-gray-900">
                 {{ $t("home.title") }}
@@ -9,7 +9,7 @@
             </p>
         </div>
 
-        <div class="bg-white border border-gray-200 shadow-sm rounded-lg p-6">
+        <div class="max-w-4xl mx-auto bg-white border border-gray-200 shadow-sm rounded-lg p-6">
             <form @submit.prevent>
                 <div class="space-y-2">
                     <label

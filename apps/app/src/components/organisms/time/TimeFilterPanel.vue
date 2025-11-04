@@ -6,8 +6,15 @@
                 <!-- Left section with main filters -->
                 <div class="flex-1">
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                        <!-- DateRange takes full width on mobile, 7 columns on desktop -->
-                        <div class="col-span-1 md:col-span-12 lg:col-span-6">
+                        <!-- DateRange - adapts width based on whether user filter is shown -->
+                        <div
+                            class="col-span-1 md:col-span-12"
+                            :class="{
+                                'lg:col-span-6': isRole('admin'),
+                                'lg:col-span-8': !isRole('admin') && showProjectFilter,
+                                'lg:col-span-9': !isRole('admin') && !showProjectFilter,
+                            }"
+                        >
                             <DateRange
                                 :from-date="localFilter.fromDate"
                                 :to-date="localFilter.toDate"
@@ -28,9 +35,10 @@
                             />
                         </div>
 
+                        <!-- User Filter - only shown for admin -->
                         <div
                             class="form-group col-span-1 md:col-span-6 lg:col-span-3"
-                            v-if="showProjectFilter && isRole('admin')"
+                            v-if="isRole('admin')"
                         >
                             <Label>{{ $t("shared.selectReferentUser") }}</Label>
                             <UserSelect
@@ -40,19 +48,13 @@
                             />
                         </div>
 
-                        <!-- When project filter is not shown, user takes more space -->
-                        <div class="form-group col-span-1 md:col-span-6 lg:col-span-3" v-else>
-                            <Label>{{ $t("shared.selectReferentUser") }}</Label>
-                            <UserSelect
-                                v-model="localFilter.userId"
-                                :placeholder="$t('shared.selectReferentUser')"
-                                @update:modelValue="handleFilterChange"
-                            />
-                        </div>
-
-                        <!-- Project Filter - full width on mobile, specific columns on desktop -->
+                        <!-- Project Filter - adapts width when user filter is not shown -->
                         <div
-                            class="form-group col-span-1 md:col-span-6 lg:col-span-2"
+                            class="form-group col-span-1 md:col-span-6"
+                            :class="{
+                                'lg:col-span-2': isRole('admin'),
+                                'lg:col-span-3': !isRole('admin'),
+                            }"
                             v-if="showProjectFilter"
                         >
                             <Label>{{ $t("time.filters.project") }}</Label>
@@ -63,10 +65,13 @@
                             />
                         </div>
 
-                        <!-- Activity Type Filter - full width on mobile -->
+                        <!-- Activity Type Filter - adapts to fill remaining space -->
                         <div
                             class="form-group col-span-1 md:col-span-12"
-                            :class="showProjectFilter ? 'lg:col-span-12' : 'lg:col-span-3'"
+                            :class="{
+                                'lg:col-span-12': showProjectFilter,
+                                'lg:col-span-3': !showProjectFilter,
+                            }"
                         >
                             <Label>{{ $t("time.filters.activityType") }}</Label>
                             <Select

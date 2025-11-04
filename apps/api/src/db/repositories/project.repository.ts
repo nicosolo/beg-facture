@@ -367,6 +367,11 @@ export const projectRepository = {
     },
 
     create: async (data: ProjectCreateInput, user: Variables["user"]): Promise<ProjectResponse> => {
+        // Only admins can create projects
+        if (!hasRole(user.role, "admin")) {
+            throw throwForbidden("Only administrators can create new projects")
+        }
+
         // Handle parent project data copying if parentProjectId is provided
         let parentProjectData = null
         if (data.parentProjectId) {
@@ -521,25 +526,34 @@ export const projectRepository = {
         data: ProjectUpdateInput,
         user: Variables["user"]
     ): Promise<ProjectResponse> => {
-        // Check if user has write access
-        // Disable access control for now
-        // if (user.role !== "admin") {
-        //     const access = await db
-        //         .select({ accessLevel: projectAccess.accessLevel })
-        //         .from(projectAccess)
-        //         .where(
-        //             and(
-        //                 eq(projectAccess.projectId, id),
-        //                 eq(projectAccess.userId, user.id),
-        //                 eq(projectAccess.accessLevel, "write")
-        //             )
-        //         )
-        //         .execute()
+        const isAdmin = hasRole(user.role, "admin")
 
-        //     if (access.length === 0) {
-        //         throw throwForbidden("You do not have permission to update this project")
-        //     }
-        // }
+        // Check if user is a project manager of this project
+        const isProjectManager = await db
+            .select({ userId: projectManagers.userId })
+            .from(projectManagers)
+            .where(and(eq(projectManagers.projectId, id), eq(projectManagers.userId, user.id)))
+            .execute()
+
+        const userIsProjectManager = isProjectManager.length > 0
+
+        // If user is not admin and not a project manager, deny all updates
+        if (!isAdmin && !userIsProjectManager) {
+            throw throwForbidden("You do not have permission to update this project")
+        }
+
+        // If user is a project manager (but not admin), only allow updating projectManagers field
+        if (!isAdmin && userIsProjectManager) {
+            // Check if user is trying to update fields other than projectManagers
+            const { projectManagers: _, ...otherFields } = data
+            const hasOtherFields = Object.keys(otherFields).length > 0
+
+            if (hasOtherFields) {
+                throw throwForbidden(
+                    "Project managers can only add or remove other project managers"
+                )
+            }
+        }
 
         // Build update object, filtering out undefined values (excluding projectManagers)
         const updateData: any = {}

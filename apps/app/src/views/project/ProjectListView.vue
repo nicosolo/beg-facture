@@ -41,7 +41,12 @@
                     </button>
                 </template>
             </DropdownMenu>
-            <Button :to="{ name: 'project-new' }" variant="primary" size="md">
+            <Button
+                v-if="authStore.isRole('admin')"
+                :to="{ name: 'project-new' }"
+                variant="primary"
+                size="md"
+            >
                 {{ $t("projects.new") }}
             </Button>
         </div>

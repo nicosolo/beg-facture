@@ -4,8 +4,8 @@ import { timestamps } from "./column.helper"
 import type {
     ActivityRateUser,
     ClassSchema,
-    ProjectAccessLevel,
     UserRole,
+    ProjectUserRole,
     COUNTRIES,
     SWISS_CANTONS,
 } from "@beg/validations"
@@ -184,9 +184,9 @@ export const projects = sqliteTable(
     ]
 )
 
-// ProjectManagers junction table (many-to-many relationship between projects and users)
-export const projectManagers = sqliteTable(
-    "project_managers",
+// ProjectUsers junction table (many-to-many relationship between projects and users with roles)
+export const projectUsers = sqliteTable(
+    "project_users",
     {
         id: integer("id").primaryKey({ autoIncrement: true }),
         projectId: integer("projectId")
@@ -195,41 +195,20 @@ export const projectManagers = sqliteTable(
         userId: integer("userId")
             .notNull()
             .references(() => users.id, { onDelete: "cascade" }),
+        role: text("role").$type<ProjectUserRole>().notNull(),
         ...timestamps,
     },
     (table) => [
         // Unique constraint on project-user combination
-        index("project_managers_project_user_unique").on(table.projectId, table.userId),
-        // Index for finding all projects managed by a user
-        index("project_managers_user_idx").on(table.userId),
-        // Index for finding all managers of a project
-        index("project_managers_project_idx").on(table.projectId),
-    ]
-)
-
-// ProjectAccess table
-export const projectAccess = sqliteTable(
-    "project_access",
-    {
-        id: integer("id").primaryKey({ autoIncrement: true }),
-        projectId: integer("projectId")
-            .notNull()
-            .references(() => projects.id, { onDelete: "cascade" }),
-        userId: integer("userId")
-            .notNull()
-            .references(() => users.id, { onDelete: "cascade" }),
-        accessLevel: text("accessLevel").$type<ProjectAccessLevel>().notNull(),
-        ...timestamps,
-    },
-    (table) => [
-        // Index for user-project access queries (most common pattern)
-        index("project_access_user_project_idx").on(table.userId, table.projectId),
+        index("project_users_project_user_unique").on(table.projectId, table.userId),
         // Index for finding all projects a user has access to
-        index("project_access_user_idx").on(table.userId),
-        // Index for finding all users with access to a project
-        index("project_access_project_idx").on(table.projectId),
-        // Index for access level queries
-        index("project_access_level_idx").on(table.accessLevel),
+        index("project_users_user_idx").on(table.userId),
+        // Index for finding all users of a project
+        index("project_users_project_idx").on(table.projectId),
+        // Index for role-based queries
+        index("project_users_role_idx").on(table.role),
+        // Composite index for finding managers of a specific project
+        index("project_users_project_role_idx").on(table.projectId, table.role),
     ]
 )
 

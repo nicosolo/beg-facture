@@ -174,34 +174,6 @@ CREATE TABLE `monthly_hours` (
 );
 --> statement-breakpoint
 CREATE INDEX `monthly_hours_year_month_unique` ON `monthly_hours` (`year`,`month`);--> statement-breakpoint
-CREATE TABLE `project_access` (
-	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`projectId` integer NOT NULL,
-	`userId` integer NOT NULL,
-	`accessLevel` text NOT NULL,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
-);
---> statement-breakpoint
-CREATE INDEX `project_access_user_project_idx` ON `project_access` (`userId`,`projectId`);--> statement-breakpoint
-CREATE INDEX `project_access_user_idx` ON `project_access` (`userId`);--> statement-breakpoint
-CREATE INDEX `project_access_project_idx` ON `project_access` (`projectId`);--> statement-breakpoint
-CREATE INDEX `project_access_level_idx` ON `project_access` (`accessLevel`);--> statement-breakpoint
-CREATE TABLE `project_managers` (
-	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-	`projectId` integer NOT NULL,
-	`userId` integer NOT NULL,
-	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
-);
---> statement-breakpoint
-CREATE INDEX `project_managers_project_user_unique` ON `project_managers` (`projectId`,`userId`);--> statement-breakpoint
-CREATE INDEX `project_managers_user_idx` ON `project_managers` (`userId`);--> statement-breakpoint
-CREATE INDEX `project_managers_project_idx` ON `project_managers` (`projectId`);--> statement-breakpoint
 CREATE TABLE `project_types` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
@@ -209,6 +181,22 @@ CREATE TABLE `project_types` (
 	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE `project_users` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`projectId` integer NOT NULL,
+	`userId` integer NOT NULL,
+	`role` text NOT NULL,
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `project_users_project_user_unique` ON `project_users` (`projectId`,`userId`);--> statement-breakpoint
+CREATE INDEX `project_users_user_idx` ON `project_users` (`userId`);--> statement-breakpoint
+CREATE INDEX `project_users_project_idx` ON `project_users` (`projectId`);--> statement-breakpoint
+CREATE INDEX `project_users_role_idx` ON `project_users` (`role`);--> statement-breakpoint
+CREATE INDEX `project_users_project_role_idx` ON `project_users` (`projectId`,`role`);--> statement-breakpoint
 CREATE TABLE `projects` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`projectNumber` text NOT NULL,

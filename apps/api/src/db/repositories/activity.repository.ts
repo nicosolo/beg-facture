@@ -1,6 +1,6 @@
 import { and, eq, sql, desc, asc, gte, lte, or } from "drizzle-orm"
 import { db } from "../index"
-import { activities, activityTypes, projects, users, projectAccess } from "../schema"
+import { activities, activityTypes, projects, users, projectUsers } from "../schema"
 import type { ActivityFilter } from "@beg/validations"
 import type { Variables } from "@src/types/global"
 import { hasRole } from "@src/tools/role-middleware"
@@ -171,8 +171,8 @@ export const activityRepository = {
         // Disable access control for now
         // if (user.role !== "admin") {
         //     baseQuery.innerJoin(
-        //         projectAccess,
-        //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+        //         projectUsers,
+        //         and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
         //     )
         // }
         const dataQuery =
@@ -195,8 +195,8 @@ export const activityRepository = {
         // Disable access control for now
         // if (user.role !== "admin") {
         //     countQuery.innerJoin(
-        //         projectAccess,
-        //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+        //         projectUsers,
+        //         and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
         //     )
         // }
 
@@ -218,8 +218,8 @@ export const activityRepository = {
         // Disable access control for now
         // if (user.role !== "admin") {
         //     totalsQuery.innerJoin(
-        //         projectAccess,
-        //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+        //         projectUsers,
+        //         and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
         //     )
         // }
 
@@ -297,8 +297,8 @@ export const activityRepository = {
         // Disable access control for now
         // if (user.role !== "admin") {
         //     query.innerJoin(
-        //         projectAccess,
-        //         and(eq(projects.id, projectAccess.projectId), eq(projectAccess.userId, user.id))
+        //         projectUsers,
+        //         and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
         //     )
         // }
 

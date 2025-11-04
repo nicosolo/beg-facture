@@ -17,7 +17,8 @@ import { projectRepository } from "../db/repositories/project.repository"
 import { authMiddleware } from "@src/tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import type { Variables } from "@src/types/global"
-import { throwNotFound } from "@src/tools/error-handler"
+import { throwNotFound, throwForbidden, throwInternalError } from "@src/tools/error-handler"
+import { hasRole } from "@src/tools/role-middleware"
 import { findProjectFolderSingle } from "@src/tools/project-folder-finder"
 import { PROJECT_BASE_DIR } from "@src/config"
 import { buildProjectsWorkbook } from "@src/tools/project-exporter"
@@ -79,6 +80,11 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             // Get all projects with applied filters
             const result = await projectRepository.findAll(user, {
                 ...filter,
+                sortBy: "name",
+                sortOrder: "asc",
+                hasUnbilledTime: false,
+                includeArchived: false,
+                includeEnded: false,
                 page: 1,
                 limit: 10000,
             })
@@ -191,9 +197,19 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
         async (c) => {
             const data = c.req.valid("json")
             const user = c.get("user")
-
+            const isAdmin = hasRole(user.role, "admin")
+            if (!isAdmin) {
+                throw throwForbidden("You do not have permission to create projects")
+            }
             try {
-                const project = await projectRepository.create(data, user)
+                const projectId = await projectRepository.create(data)
+                if (!projectId) {
+                    throw throwInternalError("Failed to create project")
+                }
+                const project = await projectRepository.findById(projectId, user)
+                if (!project) {
+                    throw throwNotFound("Project not found")
+                }
                 return c.render(project as ProjectResponse, 201)
             } catch (error: any) {
                 if (error.message === "Project number already exists") {
@@ -218,7 +234,23 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             const data = c.req.valid("json")
             const user = c.get("user")
 
-            const project = await projectRepository.update(id, data, user)
+            // Authorization checks
+            const isAdmin = hasRole(user.role, "admin")
+            const isManager = await projectRepository.isProjectManager(id, user.id)
+
+            // If user is not admin and not a project manager, deny all updates
+            if (!isAdmin && !isManager) {
+                throw throwForbidden("You do not have permission to update this project")
+            }
+
+            const projectId = await projectRepository.update(id, data)
+            if (!projectId) {
+                throw throwInternalError("Failed to update project")
+            }
+            const project = await projectRepository.findById(projectId, user)
+            if (!project) {
+                throw throwNotFound("Project not found")
+            }
             return c.render(project as ProjectResponse, 200)
         }
     )

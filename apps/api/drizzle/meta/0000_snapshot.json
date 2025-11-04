@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b895cb21-583e-434e-99d0-8d02eedaf343",
+  "id": "1cf84a67-00cd-4044-b843-731b4ad2e39e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activities": {
@@ -1238,214 +1238,6 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "project_access": {
-      "name": "project_access",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "projectId": {
-          "name": "projectId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "userId": {
-          "name": "userId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "accessLevel": {
-          "name": "accessLevel",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "CURRENT_TIMESTAMP"
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "CURRENT_TIMESTAMP"
-        }
-      },
-      "indexes": {
-        "project_access_user_project_idx": {
-          "name": "project_access_user_project_idx",
-          "columns": [
-            "userId",
-            "projectId"
-          ],
-          "isUnique": false
-        },
-        "project_access_user_idx": {
-          "name": "project_access_user_idx",
-          "columns": [
-            "userId"
-          ],
-          "isUnique": false
-        },
-        "project_access_project_idx": {
-          "name": "project_access_project_idx",
-          "columns": [
-            "projectId"
-          ],
-          "isUnique": false
-        },
-        "project_access_level_idx": {
-          "name": "project_access_level_idx",
-          "columns": [
-            "accessLevel"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "project_access_projectId_projects_id_fk": {
-          "name": "project_access_projectId_projects_id_fk",
-          "tableFrom": "project_access",
-          "tableTo": "projects",
-          "columnsFrom": [
-            "projectId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "project_access_userId_users_id_fk": {
-          "name": "project_access_userId_users_id_fk",
-          "tableFrom": "project_access",
-          "tableTo": "users",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "project_managers": {
-      "name": "project_managers",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "projectId": {
-          "name": "projectId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "userId": {
-          "name": "userId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "CURRENT_TIMESTAMP"
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "CURRENT_TIMESTAMP"
-        }
-      },
-      "indexes": {
-        "project_managers_project_user_unique": {
-          "name": "project_managers_project_user_unique",
-          "columns": [
-            "projectId",
-            "userId"
-          ],
-          "isUnique": false
-        },
-        "project_managers_user_idx": {
-          "name": "project_managers_user_idx",
-          "columns": [
-            "userId"
-          ],
-          "isUnique": false
-        },
-        "project_managers_project_idx": {
-          "name": "project_managers_project_idx",
-          "columns": [
-            "projectId"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "project_managers_projectId_projects_id_fk": {
-          "name": "project_managers_projectId_projects_id_fk",
-          "tableFrom": "project_managers",
-          "tableTo": "projects",
-          "columnsFrom": [
-            "projectId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "project_managers_userId_users_id_fk": {
-          "name": "project_managers_userId_users_id_fk",
-          "tableFrom": "project_managers",
-          "tableTo": "users",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
     "project_types": {
       "name": "project_types",
       "columns": {
@@ -1482,6 +1274,125 @@
       },
       "indexes": {},
       "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "project_users": {
+      "name": "project_users",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "projectId": {
+          "name": "projectId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "project_users_project_user_unique": {
+          "name": "project_users_project_user_unique",
+          "columns": [
+            "projectId",
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "project_users_user_idx": {
+          "name": "project_users_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "project_users_project_idx": {
+          "name": "project_users_project_idx",
+          "columns": [
+            "projectId"
+          ],
+          "isUnique": false
+        },
+        "project_users_role_idx": {
+          "name": "project_users_role_idx",
+          "columns": [
+            "role"
+          ],
+          "isUnique": false
+        },
+        "project_users_project_role_idx": {
+          "name": "project_users_project_role_idx",
+          "columns": [
+            "projectId",
+            "role"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "project_users_projectId_projects_id_fk": {
+          "name": "project_users_projectId_projects_id_fk",
+          "tableFrom": "project_users",
+          "tableTo": "projects",
+          "columnsFrom": [
+            "projectId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "project_users_userId_users_id_fk": {
+          "name": "project_users_userId_users_id_fk",
+          "tableFrom": "project_users",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

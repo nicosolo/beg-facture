@@ -3,8 +3,7 @@ import { db } from "./index"
 import {
     users,
     locations,
-    projectAccess,
-    projectManagers,
+    projectUsers,
     companies,
     clients,
     projectTypes,
@@ -22,13 +21,7 @@ import fs from "fs/promises"
 import { existsSync } from "fs"
 import path from "path"
 import { hashPassword } from "@src/tools/auth"
-import type {
-    ActivityRateUser,
-    ClassSchema,
-    Company,
-    ProjectAccessLevel,
-    UserRole,
-} from "@beg/validations"
+import type { ActivityRateUser, ClassSchema, Company, UserRole } from "@beg/validations"
 import { updateProjectActivityDates } from "./repositories/activity.repository"
 import { importProjectCoordinatesFromCsv } from "../scripts/import-project-coordinates"
 
@@ -70,8 +63,7 @@ async function resetDatabase() {
 
     await db.delete(invoices)
     await db.delete(activities)
-    await db.delete(projectAccess)
-    await db.delete(projectManagers)
+    await db.delete(projectUsers)
     await db.delete(projects)
     await db.delete(activityTypes)
     await db.delete(rateClasses)
@@ -491,12 +483,13 @@ async function importProjects() {
             .map((item) => ({
                 projectId: item.project.id!,
                 userId: item.projectManagerId!,
+                role: "manager" as const,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             }))
 
         if (projectManagersToInsert.length > 0) {
-            await db.insert(projectManagers).values(projectManagersToInsert)
+            await db.insert(projectUsers).values(projectManagersToInsert)
         }
 
         console.log(`Imported ${imported} / ${projectData.length} projects`)
@@ -757,7 +750,7 @@ async function importActivities() {
 }
 
 // Create Project access based on who did hours on a project
-async function importProjectAccess() {
+async function importProjectMemebers() {
     console.log("Creating project access entries...")
 
     // Single query to get all unique user-project combinations that have activities
@@ -773,25 +766,27 @@ async function importProjectAccess() {
         `Found ${userProjectCombinations.length} unique user-project combinations with activities`
     )
 
-    // Create project access entries in bulk
-    const accessEntries = userProjectCombinations.map((combination) => ({
+    // Create project user entries (members) in bulk
+    const userEntries = userProjectCombinations.map((combination) => ({
         userId: combination.userId,
         projectId: combination.projectId,
-        accessLevel: "write" as ProjectAccessLevel,
+        role: "member" as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
     }))
 
     // Insert in chunks to avoid potential query size limits
     const chunkSize = 1000
     let imported = 0
 
-    for (let i = 0; i < accessEntries.length; i += chunkSize) {
-        const chunk = accessEntries.slice(i, i + chunkSize)
-        await db.insert(projectAccess).values(chunk)
+    for (let i = 0; i < userEntries.length; i += chunkSize) {
+        const chunk = userEntries.slice(i, i + chunkSize)
+        await db.insert(projectUsers).values(chunk)
         imported += chunk.length
-        console.log(`Created ${imported} access entries`)
+        console.log(`Created ${imported} project user entries`)
     }
 
-    console.log(`Created ${imported} access entries`)
+    console.log(`Created ${imported} project user entries`)
 }
 
 async function importWorkloads() {
@@ -954,8 +949,8 @@ export async function runImport(customExportDir?: string) {
         importProjectCoordinates,
         importActivityTypes,
         importActivities,
-        importProjectAccess,
         importWorkloads,
+        importProjectMemebers,
         importVatRates,
         importMonthlyHours,
     ]

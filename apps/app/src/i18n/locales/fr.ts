@@ -140,6 +140,7 @@ export default {
         enterprise: "Entreprise",
         type: "Type",
         responsible: "Responsable",
+        members: "Collaborateur",
         invoice: "Adresse de facturation",
         invoicingAddress: "Adresse de facturation",
         invoicingAddressPlaceholder: "Entrez l'adresse de facturation complète",

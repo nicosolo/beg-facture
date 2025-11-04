@@ -1,10 +1,6 @@
 import { z } from "zod"
 import { paginationSchema, createPageResponseSchema } from "./pagination"
 import { booleanSchema, dateSchema, nullableTimestampsSchema, timestampsSchema } from "./base"
-import type { projectAccessLevelSchema } from "./projectAccess"
-
-// Moved to projectAccess.ts
-// export const projectAccessLevelSchema = z.enum(["read", "write"])
 
 // Base project filter schema without pagination
 const projectBaseFilterSchema = z.object({
@@ -89,6 +85,16 @@ export const projectResponseSchema = z
                 initials: z.string(),
             })
         ),
+        projectMembers: z
+            .array(
+                z.object({
+                    id: z.number(),
+                    firstName: z.string(),
+                    lastName: z.string(),
+                    initials: z.string(),
+                })
+            )
+            .optional(),
         totalDuration: z.number().nullable(),
         unBilledDuration: z.number().nullable(),
         unBilledDisbursementDuration: z.number().nullable(),
@@ -117,6 +123,7 @@ export const projectCreateSchema = z.object({
     engineerId: z.number().positive().optional().nullable(),
     companyId: z.number().positive().optional().nullable(),
     projectManagers: z.array(z.number().positive()).optional().default([]),
+    projectMembers: z.array(z.number().positive()).optional().default([]),
     remark: z.string().optional(),
     invoicingAddress: z.string().optional(),
     printFlag: z.boolean().optional().default(false),

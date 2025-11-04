@@ -75,6 +75,16 @@
                     </template>
                 </FormField>
 
+                <FormField :label="$t('projects.members')" :error="errors.projectMembers">
+                    <template #input>
+                        <UserSelect
+                            v-model="form.projectMembers"
+                            :placeholder="$t('common.select')"
+                            :multiple="true"
+                        />
+                    </template>
+                </FormField>
+
                 <FormField :label="$t('projects.type')" :error="errors.typeId" required>
                     <template #input>
                         <ProjectTypeSelect
@@ -84,7 +94,10 @@
                         />
                     </template>
                 </FormField>
+            </div>
 
+            <!-- Third Line: Company -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField :label="$t('projects.enterprise')" :error="errors.companyId">
                     <template #input>
                         <CompanySelect
@@ -227,10 +240,6 @@
             </Button>
         </template>
     </FormLayout>
-    <!-- Project Access Management - Only for admins editing existing projects -->
-    <div v-if="!isNewProject && authStore.isRole('admin')" class="">
-        <ProjectAccessManagement :project-id="projectId!" />
-    </div>
 </template>
 
 <script setup lang="ts">
@@ -250,7 +259,6 @@ import EngineerSelect from "@/components/organisms/engineer/EngineerSelect.vue"
 import CompanySelect from "@/components/organisms/company/CompanySelect.vue"
 import ProjectTypeSelect from "@/components/organisms/projectType/ProjectTypeSelect.vue"
 import UserSelect from "@/components/organisms/user/UserSelect.vue"
-import ProjectAccessManagement from "@/components/organisms/project/ProjectAccessManagement.vue"
 import LocationPicker from "@/components/molecules/LocationPicker.vue"
 
 // API Composables
@@ -270,6 +278,7 @@ interface ProjectFormState {
     engineerId?: number | null
     companyId?: number | null
     projectManagers: number[]
+    projectMembers: number[]
     remark?: string
     invoicingAddress?: string
     printFlag: boolean
@@ -319,6 +328,7 @@ const form = ref<ProjectFormState>({
     engineerId: undefined,
     companyId: undefined,
     projectManagers: [],
+    projectMembers: [],
     remark: "",
     invoicingAddress: "",
     printFlag: false,
@@ -396,6 +406,8 @@ const handleParentProjectChange = async (parentProjectId: number | undefined) =>
             form.value.companyId = parentProjectData.value.company?.id
             form.value.projectManagers =
                 parentProjectData.value.projectManagers?.map((pm) => pm.id) || []
+            form.value.projectMembers =
+                parentProjectData.value.projectMembers?.map((pm) => pm.id) || []
             form.value.latitude =
                 parentProjectData.value.latitude !== null &&
                 parentProjectData.value.latitude !== undefined
@@ -492,6 +504,7 @@ const saveProject = async () => {
             engineerId: form.value.engineerId || null,
             companyId: form.value.companyId || null,
             projectManagers: form.value.projectManagers || [],
+            projectMembers: form.value.projectMembers || [],
             remark: form.value.remark,
             invoicingAddress: form.value.invoicingAddress,
             printFlag: form.value.printFlag || false,
@@ -569,6 +582,7 @@ onMounted(async () => {
                     engineerId: projectData.value.engineer?.id,
                     companyId: projectData.value.company?.id,
                     projectManagers: projectData.value.projectManagers?.map((pm) => pm.id) || [],
+                    projectMembers: projectData.value.projectMembers?.map((pm) => pm.id) || [],
                     remark: projectData.value.remark || "",
                     invoicingAddress: projectData.value.invoicingAddress || "",
                     printFlag: projectData.value.printFlag || false,

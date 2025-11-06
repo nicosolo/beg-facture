@@ -7,7 +7,7 @@ export-mdb
 **/.git
 .env.prod
 .env
-apps/electron/
+apps/desktop/
 legacy/
 odys-info
 .cursor

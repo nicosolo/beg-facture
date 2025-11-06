@@ -2,7 +2,8 @@
     "name": "beg-management",
     "private": true,
     "workspaces": [
-        "apps/*",
+        "apps/app",
+        "apps/api",
         "packages/*"
     ],
     "scripts": {

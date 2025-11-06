@@ -363,7 +363,7 @@ import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import Dialog from "@/components/molecules/Dialog.vue"
 import MapDisplay from "@/components/molecules/MapDisplay.vue"
 import { useFormat } from "@/composables/utils/useFormat"
-import { useElectron } from "@/composables/useElectron"
+import { useTauri } from "@/composables/useTauri"
 import { buildGeoAdminUrl, buildGoogleMapsUrl } from "@/utils/coordinates"
 import { useAuthStore } from "@/stores/auth"
 const route = useRoute()
@@ -384,7 +384,7 @@ const showTimeEntryModal = ref(false)
 const { get: fetchProject, loading, data: projectData } = useFetchProject()
 const { get: fetchProjectFolder, data: projectFolder } = useProjectFolder()
 const { formatNumber, formatDate } = useFormat()
-const { isElectron, openFolder } = useElectron()
+const { isTauri, openFolder } = useTauri()
 const mapLink = computed(() =>
     buildGeoAdminUrl(projectData.value?.longitude ?? null, projectData.value?.latitude ?? null)
 )
@@ -437,8 +437,11 @@ watch(
 
 // Load project data on mount
 onMounted(async () => {
+    console.log("onMounted")
+    console.log(isTauri.value)
     if (projectId.value && !isNaN(projectId.value)) {
-        if (isElectron.value) {
+        if (isTauri.value) {
+            console.log("fetching project folder")
             await fetchProjectFolder({ params: { id: projectId.value } })
         }
         await fetchProject({ params: { id: projectId.value } })
@@ -459,7 +462,7 @@ const handleTimeEntrySaved = async () => {
 const openProjectFolder = async (e?: Event) => {
     if (!projectFolder.value?.folder?.fullPath) return
 
-    if (isElectron.value) {
+    if (isTauri.value) {
         // Prevent default link behavior in Electron
         e?.preventDefault()
 

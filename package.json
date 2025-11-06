@@ -7,9 +7,7 @@
     ],
     "scripts": {
         "dev": "docker compose up --watch",
-        "electron:dev": "cd apps/electron && bun run dev",
-        "electron:start": "cd apps/electron && bun run start",
-        "electron:build": "cd apps/electron && bun run dist",
+        "desktop:dev": "cd apps/desktop && bun run dev",
         "docker:build": "./scripts/build-docker.sh"
     },
     "module": "index.ts",

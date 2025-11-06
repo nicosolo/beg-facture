@@ -1,0 +1,6 @@
+{
+    "build": {
+        "devUrl": null,
+        "frontendDist": "https://192.168.0.102:8084"
+    }
+}

@@ -1,0 +1,60 @@
+{
+    "productName": "BEG Gestion",
+    "version": "0.1.0",
+    "identifier": "com.beg.gestion",
+    "build": {
+        "beforeDevCommand": "",
+        "beforeBuildCommand": "",
+        "devUrl": "http://localhost:8084",
+        "frontendDist": "https://192.168.0.102:8443"
+    },
+    "app": {
+        "windows": [
+            {
+                "title": "BEG Gestion",
+                "width": 1400,
+                "height": 900,
+                "resizable": true,
+                "fullscreen": false,
+                "alwaysOnTop": false
+            }
+        ],
+        "security": {
+            "csp": null
+        },
+        "macOSPrivateApi": false
+    },
+    "bundle": {
+        "active": true,
+        "targets": "all",
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/128x128@2x.png",
+            "icons/icon.icns",
+            "icons/icon.ico"
+        ],
+        "resources": [],
+        "externalBin": [],
+        "copyright": "",
+        "category": "Business",
+        "shortDescription": "Gestion application",
+        "longDescription": "",
+        "macOS": {
+            "frameworks": [],
+            "minimumSystemVersion": "10.15",
+            "exceptionDomain": "",
+            "signingIdentity": null,
+            "entitlements": null
+        },
+        "windows": {
+            "certificateThumbprint": null,
+            "digestAlgorithm": "sha256",
+            "timestampUrl": "",
+            "webviewInstallMode": {
+                "type": "embedBootstrapper"
+            }
+        }
+    },
+    "plugins": {}
+}

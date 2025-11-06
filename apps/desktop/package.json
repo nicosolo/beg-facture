@@ -1,0 +1,17 @@
+{
+    "name": "beg-gestion-desktop",
+    "version": "0.1.0",
+    "devDependencies": {
+        "@tauri-apps/cli": "^2.2.0"
+    },
+    "private": true,
+    "scripts": {
+        "tauri": "tauri",
+        "dev": "tauri dev",
+        "build": "tauri build --config src-tauri/tauri.conf.json",
+        "generate-icons": "tauri icon ../app/src/assets/icon.png",
+        "build:windows:x86": "tauri build --config src-tauri/tauri.conf.json --runner cargo-xwin --target x86_64-pc-windows-msvc",
+        "build:windows:arm64": "tauri build --config src-tauri/tauri.conf.json --runner cargo-xwin --target aarch64-pc-windows-msvc"
+    },
+    "type": "module"
+}

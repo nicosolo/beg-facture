@@ -1,4 +1,5 @@
 import { computed } from "vue"
+import { useTauri } from "./useTauri"
 
 // Type definition for the Electron API
 interface ElectronAPI {
@@ -12,9 +13,19 @@ interface ElectronAPI {
     openFolder: (folderPath: string) => Promise<{ success: boolean; error?: string }>
 }
 
+/**
+ * @deprecated Use useTauri() instead for new desktop features
+ * This composable maintains backward compatibility with Electron
+ * but will check for Tauri first
+ */
 export function useElectron() {
+    // First check if we're in Tauri
+    const tauri = useTauri()
+    console.log(tauri)
     // Check if we're running in Electron when the composable is used
     const isElectron = computed(() => {
+        // If Tauri is available, we're not in Electron
+        if (tauri.isTauri.value) return false
         return typeof window !== "undefined" && !!window.electronAPI
     })
 
@@ -26,6 +37,12 @@ export function useElectron() {
     })
 
     const openFolder = async (folderPath: string): Promise<boolean> => {
+        // Try Tauri first
+        if (tauri.isTauri.value) {
+            return tauri.openFolder(folderPath)
+        }
+
+        // Fall back to Electron
         if (!electronAPI.value) {
             return false
         }

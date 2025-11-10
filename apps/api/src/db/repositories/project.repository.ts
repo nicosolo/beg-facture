@@ -63,8 +63,10 @@ export const projectRepository = {
         const whereConditions = []
 
         // Draft filter - exclude drafts by default (only show when includeDraft is true)
-        if (!includeDraft) {
-            whereConditions.push(sql`${projects.projectNumber} IS NOT NULL AND ${projects.projectNumber} != ''`)
+        if (includeDraft) {
+            whereConditions.push(
+                sql`${projects.projectNumber} IS NULL OR ${projects.projectNumber} = ''`
+            )
         }
 
         // Name filter (case-insensitive search)
@@ -152,7 +154,6 @@ export const projectRepository = {
                 startDate: projects.startDate,
                 remark: projects.remark,
                 invoicingAddress: projects.invoicingAddress,
-                printFlag: projects.printFlag,
                 latitude: projects.latitude,
                 longitude: projects.longitude,
                 archived: projects.archived,
@@ -374,7 +375,6 @@ export const projectRepository = {
                 startDate: projects.startDate,
                 remark: projects.remark,
                 invoicingAddress: projects.invoicingAddress,
-                printFlag: projects.printFlag,
                 latitude: projects.latitude,
                 longitude: projects.longitude,
                 archived: projects.archived,
@@ -520,7 +520,9 @@ export const projectRepository = {
                     .execute()
 
                 if (existing.length > 0) {
-                    throw new Error("Sub-project with this name already exists for this project number")
+                    throw new Error(
+                        "Sub-project with this name already exists for this project number"
+                    )
                 }
             }
         }
@@ -576,7 +578,6 @@ export const projectRepository = {
                   engineerId: data.engineerId || parentProjectData.engineerId,
                   companyId: data.companyId || parentProjectData.companyId,
                   remark: data.remark || parentProjectData.remark,
-                  printFlag: data.printFlag ?? parentProjectData.printFlag,
                   ended: data.ended ?? parentProjectData.ended,
                   archived: data.archived ?? parentProjectData.archived,
                   invoicingAddress: data.invoicingAddress || parentProjectData.invoicingAddress,
@@ -602,7 +603,6 @@ export const projectRepository = {
                   engineerId: data.engineerId || null,
                   companyId: data.companyId || null,
                   remark: data.remark || null,
-                  printFlag: data.printFlag || false,
                   ended: data.ended || false,
                   archived: data.archived || false,
                   latitude: data.latitude ?? null,
@@ -674,7 +674,6 @@ export const projectRepository = {
         if (data.engineerId !== undefined) updateData.engineerId = data.engineerId || null
         if (data.companyId !== undefined) updateData.companyId = data.companyId || null
         if (data.remark !== undefined) updateData.remark = data.remark || null
-        if (data.printFlag !== undefined) updateData.printFlag = data.printFlag
         if (data.invoicingAddress !== undefined) updateData.invoicingAddress = data.invoicingAddress
         if (data.ended !== undefined) updateData.ended = data.ended
         if (data.archived !== undefined) updateData.archived = data.archived

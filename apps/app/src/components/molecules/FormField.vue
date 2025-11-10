@@ -2,6 +2,11 @@
     <div class="form-group">
         <Label :className="labelClassName" v-if="label">{{ label }}</Label>
         <slot name="input"> </slot>
+        <slot name="help">
+            <p class="text-sm text-gray-500 mt-1">
+                <slot name="help-text"> </slot>
+            </p>
+        </slot>
     </div>
 </template>
 

@@ -35,7 +35,6 @@ export const projectCreateSchema = z.object({
     companyId: z.number().positive().optional(),
     projectManagerId: z.number().positive().optional(),
     remark: z.string().optional(),
-    printFlag: z.boolean().optional().default(false),
 })
 
 export const projectUpdateSchema = projectCreateSchema.partial()
@@ -114,7 +113,6 @@ export function useUpdateProject() {
     - `IDtype` → `typeId`
     - `Responsable` → `projectManagerId`
     - `Remarque` → `remark`
-    - `Imprimer` → `printFlag`
 
 ### 3.2 Connect to Real Data
 
@@ -216,7 +214,6 @@ const form = ref<ProjectCreateInput>({
     companyId: undefined,
     projectManagerId: undefined,
     remark: "",
-    printFlag: false,
 })
 
 // Load data on mount
@@ -247,7 +244,6 @@ onMounted(async () => {
                 companyId: project.company?.id,
                 projectManagerId: project.projectManager?.id,
                 remark: project.remark || "",
-                printFlag: project.printFlag || false,
             }
         }
     }

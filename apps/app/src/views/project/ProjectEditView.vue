@@ -194,19 +194,6 @@
 
             <!-- Flags -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <FormField :label="$t('projects.printFlag')">
-                    <template #input>
-                        <label class="flex items-center">
-                            <input
-                                type="checkbox"
-                                v-model="form.printFlag"
-                                class="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                            <span>{{ $t("projects.enablePrint") }}</span>
-                        </label>
-                    </template>
-                </FormField>
-
                 <FormField :label="$t('projects.statusLabel')">
                     <template #input>
                         <label class="flex items-center">
@@ -290,7 +277,6 @@ interface ProjectFormState {
     projectMembers: number[]
     remark?: string
     invoicingAddress?: string
-    printFlag: boolean
     ended: boolean
     archived: boolean
     latitude: string
@@ -340,7 +326,6 @@ const form = ref<ProjectFormState>({
     projectMembers: [],
     remark: "",
     invoicingAddress: "",
-    printFlag: false,
     ended: false,
     archived: false,
     latitude: "",
@@ -505,7 +490,6 @@ const saveProject = async () => {
             projectMembers: form.value.projectMembers || [],
             remark: form.value.remark,
             invoicingAddress: form.value.invoicingAddress,
-            printFlag: form.value.printFlag || false,
             ended: form.value.ended || false,
             archived: form.value.archived || false,
             latitude: parsedLatitude,
@@ -583,7 +567,6 @@ onMounted(async () => {
                     projectMembers: projectData.value.projectMembers?.map((pm) => pm.id) || [],
                     remark: projectData.value.remark || "",
                     invoicingAddress: projectData.value.invoicingAddress || "",
-                    printFlag: projectData.value.printFlag || false,
                     ended: projectData.value.ended || false,
                     archived: false, // This field doesn't exist in current response
                     latitude:

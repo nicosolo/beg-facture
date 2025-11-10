@@ -85,6 +85,7 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
                 hasUnbilledTime: false,
                 includeArchived: false,
                 includeEnded: false,
+                includeDraft: false,
                 page: 1,
                 limit: 10000,
             })
@@ -148,7 +149,7 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
 
         // First get the project to obtain its project number
         const project = await projectRepository.findById(id, user)
-        if (!project) {
+        if (!project || !project.projectNumber) {
             return c.json({ error: "Project not found" }, 404)
         }
 

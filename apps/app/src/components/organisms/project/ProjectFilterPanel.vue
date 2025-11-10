@@ -27,6 +27,7 @@
                         @update:model-value="emitChange"
                         :options="[
                             { label: $t('projects.unBilledDuration'), value: 'unBilledDuration' },
+                            { label: $t('projects.totalDuration'), value: 'totalDuration' },
                             { label: $t('projects.firstActivity'), value: 'firstActivityDate' },
                             { label: $t('projects.lastActivity'), value: 'lastActivityDate' },
                             { label: $t('projects.name'), value: 'name' },
@@ -154,7 +155,7 @@ const filterData = reactive<ProjectFilterProps["filter"]>({
     fromDate: filter.fromDate,
     toDate: filter.toDate,
     referentUserId: filter.referentUserId || undefined,
-    hasUnbilledTime: filter.hasUnbilledTime || true,
+    hasUnbilledTime: filter.hasUnbilledTime || false,
 })
 
 // Watch for external filter changes

@@ -147,7 +147,6 @@ export const projects = sqliteTable(
         invoicingAddress: text("invoicingAddress"),
         latitude: real("latitude"),
         longitude: real("longitude"),
-        printFlag: integer("printFlag", { mode: "boolean" }).default(false),
         firstActivityDate: integer("firstActivityDate", { mode: "timestamp" }),
         lastActivityDate: integer("lastActivityDate", { mode: "timestamp" }),
         totalDuration: real("totalDuration").default(0),

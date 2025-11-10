@@ -9,7 +9,13 @@ const projectBaseFilterSchema = z.object({
     fromDate: z.coerce.date().optional(),
     toDate: z.coerce.date().optional(),
     sortBy: z
-        .enum(["name", "unBilledDuration", "firstActivityDate", "lastActivityDate"])
+        .enum([
+            "name",
+            "unBilledDuration",
+            "firstActivityDate",
+            "lastActivityDate",
+            "totalDuration",
+        ])
         .optional()
         .default("name"),
     sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
@@ -43,7 +49,6 @@ export const projectResponseSchema = z
         startDate: dateSchema,
         remark: z.string().nullable(),
         invoicingAddress: z.string().nullable(),
-        printFlag: z.boolean().nullable(),
         latitude: z.number().nullable(),
         longitude: z.number().nullable(),
         location: z
@@ -128,7 +133,6 @@ export const projectCreateSchema = z.object({
     projectMembers: z.array(z.number().positive()).optional().default([]),
     remark: z.string().optional(),
     invoicingAddress: z.string().optional(),
-    printFlag: z.boolean().optional().default(false),
     ended: z.boolean().optional().default(false),
     archived: z.boolean().optional().default(false),
     latitude: z.number().optional().nullable(),

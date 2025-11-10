@@ -1,17 +1,5 @@
 <template>
     <div v-if="multiple" class="space-y-2">
-        <div class="flex flex-wrap gap-2">
-            <span
-                v-for="userId in modelValue as number[]"
-                :key="userId"
-                class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm"
-            >
-                {{ getUserDisplay(userId) }}
-                <Button type="button" @click="removeUser(userId)" variant="ghost" size="xxs">
-                    <XMarkIcon class="w-5 h-5" />
-                </Button>
-            </span>
-        </div>
         <AutocompleteSelect
             :model-value="undefined"
             :id="id"
@@ -25,6 +13,18 @@
             :class-name="className"
             @update:model-value="addUser"
         />
+        <div class="flex flex-wrap gap-2">
+            <span
+                v-for="userId in modelValue as number[]"
+                :key="userId"
+                class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm"
+            >
+                {{ getUserDisplay(userId) }}
+                <Button type="button" @click="removeUser(userId)" variant="ghost" size="xxs">
+                    <XMarkIcon class="w-5 h-5" />
+                </Button>
+            </span>
+        </div>
     </div>
     <AutocompleteSelect
         v-else

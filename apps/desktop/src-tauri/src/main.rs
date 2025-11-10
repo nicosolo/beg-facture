@@ -8,13 +8,20 @@ use std::path::PathBuf;
 fn open_project_folder(relative_path: String) -> Result<String, String> {
     // Get base path from environment variable or use default
     let base_path = std::env::var("HOST_PROJECT_FOLDER")
-        .unwrap_or_else(|_| "N://Mandats".to_string());
+        .unwrap_or_else(|_| "N:\\Mandats".to_string());
 
     // Combine base path with relative path
     let mut full_path = PathBuf::from(base_path);
 
     // Remove leading slash from relative path if present
-    let clean_relative = relative_path.trim_start_matches('/').trim_start_matches('\\');
+    let mut clean_relative = relative_path.trim_start_matches('/').trim_start_matches('\\').to_string();
+
+    // On Windows, replace all forward slashes with backslashes
+    #[cfg(target_os = "windows")]
+    {
+        clean_relative = clean_relative.replace('/', "\\");
+    }
+
     full_path.push(clean_relative);
 
     // Convert to string for opening
@@ -53,7 +60,14 @@ fn open_project_folder(relative_path: String) -> Result<String, String> {
 #[tauri::command]
 fn get_project_base_path() -> String {
     std::env::var("HOST_PROJECT_FOLDER")
-        .unwrap_or_else(|_| "N://Mandats".to_string())
+        .unwrap_or_else(|_| {
+            // Use platform-appropriate separators
+            if cfg!(target_os = "windows") {
+                "N:\\Mandats".to_string()
+            } else {
+                "N://Mandats".to_string()
+            }
+        })
 }
 
 fn main() {

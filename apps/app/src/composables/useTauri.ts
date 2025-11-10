@@ -24,14 +24,12 @@ export function useTauri() {
 
         try {
             // Import invoke dynamically
-            const { invoke } = await import("@tauri-apps/api/core")
 
             console.log("Opening folder with base path:", folderPath)
             // Use the custom command that handles base path logic
             const fullPath = await invoke<string>("open_project_folder", {
                 relativePath: folderPath,
             })
-
             console.log("Opened folder at:", fullPath)
             return true
         } catch (error) {
@@ -40,29 +38,9 @@ export function useTauri() {
         }
     }
 
-    /**
-     * Get the project base path from environment variable
-     * @returns Promise<string> - The base path
-     */
-    const getProjectBasePath = async (): Promise<string> => {
-        if (!isTauri.value) {
-            console.warn("Tauri is not available")
-            return ""
-        }
-
-        try {
-            const basePath = await invoke<string>("get_project_base_path")
-            return basePath
-        } catch (error) {
-            console.error("Failed to get project base path:", error)
-            return ""
-        }
-    }
-
     return {
         isTauri: computed(() => isTauri.value),
         openFolder,
-        getProjectBasePath,
     }
 }
 

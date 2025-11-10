@@ -385,16 +385,6 @@ const updateLongitude = (value: number | null) => {
     form.value.longitude = value !== null ? value.toString() : ""
 }
 
-// Generate next project number for new projects
-const generateProjectNumber = () => {
-    // Simple implementation - in production, this should query the backend for the next available number
-    const year = new Date().getFullYear()
-    const random = Math.floor(Math.random() * 10000)
-        .toString()
-        .padStart(4, "0")
-    return `${year}${random}`
-}
-
 // Create a separate instance for fetching parent project
 const { get: fetchParentProjectData, data: parentProjectData } = useFetchProject()
 
@@ -406,7 +396,7 @@ const handleParentProjectChange = async (parentProjectId: number | undefined) =>
 
         if (parentProjectData.value) {
             // Copy parent project data
-            form.value.projectNumber = parentProjectData.value.projectNumber
+            form.value.projectNumber = parentProjectData.value.projectNumber || ""
             form.value.typeId = parentProjectData.value.type?.id
             form.value.name = parentProjectData.value.name
             form.value.locationId = parentProjectData.value.location?.id
@@ -414,9 +404,9 @@ const handleParentProjectChange = async (parentProjectId: number | undefined) =>
             form.value.engineerId = parentProjectData.value.engineer?.id
             form.value.companyId = parentProjectData.value.company?.id
             form.value.projectManagers =
-                parentProjectData.value.projectManagers?.map((pm) => pm.id) || []
+                parentProjectData.value.projectManagers?.map((pm: any) => pm.id) || []
             form.value.projectMembers =
-                parentProjectData.value.projectMembers?.map((pm) => pm.id) || []
+                parentProjectData.value.projectMembers?.map((pm: any) => pm.id) || []
             form.value.latitude =
                 parentProjectData.value.latitude !== null &&
                 parentProjectData.value.latitude !== undefined
@@ -430,7 +420,7 @@ const handleParentProjectChange = async (parentProjectId: number | undefined) =>
         }
     } else if (!parentProjectId) {
         // Clear copied data when parent is deselected
-        form.value.projectNumber = generateProjectNumber()
+        form.value.projectNumber = ""
         form.value.subProjectName = ""
         form.value.latitude = ""
         form.value.longitude = ""
@@ -579,7 +569,7 @@ onMounted(async () => {
             if (projectData.value) {
                 // Map API response to form
                 form.value = {
-                    projectNumber: projectData.value.projectNumber,
+                    projectNumber: projectData.value.projectNumber || "",
                     subProjectName: projectData.value.subProjectName || "",
                     parentProjectId: undefined,
                     name: projectData.value.name,
@@ -608,9 +598,6 @@ onMounted(async () => {
                             : "",
                 }
             }
-        } else if (isNewProject.value) {
-            // Generate project number for new projects
-            form.value.projectNumber = generateProjectNumber()
         }
     } catch (error) {
         console.error("Error loading data:", error)

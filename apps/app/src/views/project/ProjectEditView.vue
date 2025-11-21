@@ -192,6 +192,26 @@
                 </FormField>
             </div>
 
+            <!-- Offer Amount -->
+            <div class="">
+                <FormField :label="$t('projects.offerAmount')" :error="errors.offerAmount">
+                    <template #input>
+                        <Input
+                            type="number"
+                            v-model.number="form.offerAmount"
+                            step="0.05"
+                            min="0"
+                            :placeholder="$t('projects.offerAmountPlaceholder')"
+                        />
+                    </template>
+                    <template #help>
+                        <p class="text-sm text-gray-500 mt-1">
+                            {{ $t("projects.offerAmountHelp") }}
+                        </p>
+                    </template>
+                </FormField>
+            </div>
+
             <!-- Flags -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <FormField :label="$t('projects.statusLabel')">
@@ -277,6 +297,7 @@ interface ProjectFormState {
     projectMembers: number[]
     remark?: string
     invoicingAddress?: string
+    offerAmount?: number | null
     ended: boolean
     archived: boolean
     latitude: string
@@ -326,6 +347,7 @@ const form = ref<ProjectFormState>({
     projectMembers: [],
     remark: "",
     invoicingAddress: "",
+    offerAmount: null,
     ended: false,
     archived: false,
     latitude: "",
@@ -490,6 +512,7 @@ const saveProject = async () => {
             projectMembers: form.value.projectMembers || [],
             remark: form.value.remark,
             invoicingAddress: form.value.invoicingAddress,
+            offerAmount: form.value.offerAmount || null,
             ended: form.value.ended || false,
             archived: form.value.archived || false,
             latitude: parsedLatitude,
@@ -567,6 +590,7 @@ onMounted(async () => {
                     projectMembers: projectData.value.projectMembers?.map((pm) => pm.id) || [],
                     remark: projectData.value.remark || "",
                     invoicingAddress: projectData.value.invoicingAddress || "",
+                    offerAmount: projectData.value.offerAmount || null,
                     ended: projectData.value.ended || false,
                     archived: false, // This field doesn't exist in current response
                     latitude:

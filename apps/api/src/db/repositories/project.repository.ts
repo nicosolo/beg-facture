@@ -164,6 +164,7 @@ export const projectRepository = {
                 totalDuration: projects.totalDuration,
                 unBilledDuration: projects.unBilledDuration,
                 unBilledDisbursementDuration: projects.unBilledDisbursementDuration,
+                offerAmount: projects.offerAmount,
                 ended: projects.ended,
                 location: {
                     id: locations.id,
@@ -385,6 +386,7 @@ export const projectRepository = {
                 totalDuration: projects.totalDuration,
                 unBilledDuration: projects.unBilledDuration,
                 unBilledDisbursementDuration: projects.unBilledDisbursementDuration,
+                offerAmount: projects.offerAmount,
                 ended: projects.ended,
                 location: {
                     id: locations.id,
@@ -581,6 +583,10 @@ export const projectRepository = {
                   ended: data.ended ?? parentProjectData.ended,
                   archived: data.archived ?? parentProjectData.archived,
                   invoicingAddress: data.invoicingAddress || parentProjectData.invoicingAddress,
+                  offerAmount:
+                      data.offerAmount !== undefined
+                          ? data.offerAmount
+                          : (parentProjectData.offerAmount ?? null),
                   latitude:
                       data.latitude !== undefined
                           ? data.latitude
@@ -605,6 +611,8 @@ export const projectRepository = {
                   remark: data.remark || null,
                   ended: data.ended || false,
                   archived: data.archived || false,
+                  invoicingAddress: data.invoicingAddress || null,
+                  offerAmount: data.offerAmount ?? null,
                   latitude: data.latitude ?? null,
                   longitude: data.longitude ?? null,
                   createdAt: new Date(),
@@ -679,6 +687,7 @@ export const projectRepository = {
         if (data.archived !== undefined) updateData.archived = data.archived
         if (data.latitude !== undefined) updateData.latitude = data.latitude
         if (data.longitude !== undefined) updateData.longitude = data.longitude
+        if (data.offerAmount !== undefined) updateData.offerAmount = data.offerAmount
         console.log(data, updateData)
 
         // Update the project

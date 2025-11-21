@@ -282,6 +282,14 @@
                                     {{ $t("projects.statistics") }}
                                 </h2>
                                 <div class="space-y-4">
+                                    <div v-if="projectData.offerAmount">
+                                        <p class="text-sm text-gray-500">
+                                            {{ $t("projects.offerAmount") }}
+                                        </p>
+                                        <p class="font-medium text-lg">
+                                            CHF {{ formatNumber(projectData.offerAmount) }}
+                                        </p>
+                                    </div>
                                     <div v-if="projectData.totalDuration">
                                         <p class="text-sm text-gray-500">
                                             {{ $t("projects.totalDuration") }}

@@ -15,6 +15,13 @@
       "when": 1762783136459,
       "tag": "0001_outstanding_doctor_doom",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1763723824891,
+      "tag": "0002_steady_catseye",
+      "breakpoints": true
     }
   ]
 }

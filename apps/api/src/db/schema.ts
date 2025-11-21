@@ -152,6 +152,7 @@ export const projects = sqliteTable(
         totalDuration: real("totalDuration").default(0),
         unBilledDuration: real("unBilledDuration").default(0),
         unBilledDisbursementDuration: real("unBilledDisbursementDuration").default(0),
+        offerAmount: real("offerAmount"),
         ended: integer("ended", { mode: "boolean" }).default(false),
         archived: integer("archived", { mode: "boolean" }).default(false),
         ...timestamps,

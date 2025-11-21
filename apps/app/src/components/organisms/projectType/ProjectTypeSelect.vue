@@ -1,10 +1,9 @@
 <template>
     <AutocompleteSelect
         :model-value="modelValue"
-        mode="async"
-        :items="projectTypes || []"
+        mode="static"
+        :options="projectTypes || []"
         :loading="loading"
-        :fetch-function="fetchProjectTypes"
         :display-field="(type: ProjectTypeSchema) => type.name"
         :placeholder="placeholder || $t('common.select')"
         :disabled="disabled"
@@ -37,16 +36,6 @@ defineEmits<{
 
 const {} = useI18n()
 const { loading, data: projectTypes, get } = useFetchProjectTypes()
-
-// Fetch function that receives search text
-const fetchProjectTypes = async (searchText: string) => {
-    // For now, fetch all project types
-    // In the future, the API could support search parameter
-    await get()
-
-    // If we had search support in the API:
-    // await get({ query: { search: searchText } })
-}
 
 onMounted(() => {
     // Load initial data

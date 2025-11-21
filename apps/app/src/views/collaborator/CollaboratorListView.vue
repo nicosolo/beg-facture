@@ -1,9 +1,7 @@
 <template>
     <LoadingOverlay :loading="loading">
         <div class="container mx-auto">
-            <div
-                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6"
-            >
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
                 <h1 class="text-2xl font-bold">Collaborateurs</h1>
                 <Button
                     variant="primary"
@@ -19,9 +17,16 @@
                 :columns="columns"
                 item-key="IDcollaborateur"
                 empty-message="Aucun collaborateur trouvé"
+                :row-class="(item) => (item.archived ? 'bg-gray-300' : '')"
             >
                 <template #cell:fullName="{ item }">
                     {{ item.firstName }} {{ item.lastName }}
+                </template>
+
+                <template #cell:archived="{ item }">
+                    <Badge :variant="item.archived ? 'danger' : 'success'">
+                        {{ item.archived ? "Oui" : "Non" }}
+                    </Badge>
                 </template>
 
                 <template #cell:actions="{ item }">
@@ -59,12 +64,13 @@ const columns: Column[] = [
     { key: "email", label: "Email" },
     { key: "role", label: "Rôle" },
     { key: "initials", label: "Initiales" },
+    { key: "archived", label: "Archivé" },
     { key: "actions", label: "Actions" },
 ]
 
 // Load users on mount
 onMounted(async () => {
-    document.title = 'BEG - Liste des collaborateurs'
+    document.title = "BEG - Liste des collaborateurs"
     await fetchUsers({})
 })
 </script>

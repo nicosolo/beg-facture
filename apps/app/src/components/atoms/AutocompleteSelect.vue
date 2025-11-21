@@ -30,7 +30,7 @@
         >
             <!-- No results (only for async mode, static mode always shows full list when no match) -->
             <div
-                v-if="mode === 'async' && filteredItems.length === 0 && searchTerm.length > 0"
+                v-if="filteredItems.length === 0 && searchTerm.length > 0"
                 class="px-3 py-2 text-gray-500"
             >
                 {{ $t("common.noResults") }}
@@ -76,15 +76,19 @@ interface AutocompleteSelectProps {
     options?: any[]
     searchFields?: string[]
     filterFunction?: (item: any, searchText: string) => boolean
+    clearOnSelect?: boolean
     // Common display props
     displayField: (item: any) => string
     valueField?: string
+    fallback?: string
 }
 
 const props = withDefaults(defineProps<AutocompleteSelectProps>(), {
     mode: "static",
     valueField: "id",
     searchFields: () => [],
+    fallback: "",
+    clearOnSelect: false,
 })
 
 const emit = defineEmits<{
@@ -115,6 +119,11 @@ const filteredItems = computed(() => {
         // Static mode filtering
         if (!props.options) return []
 
+        const item = props.options.find((i) => getItemValue(i) === props.modelValue)
+
+        if (item && searchTerm.value.trim() === props.displayField(item)) {
+            return props.options
+        }
         if (!debouncedSearchTerm.value.trim()) {
             return props.options
         }
@@ -143,11 +152,6 @@ const filteredItems = computed(() => {
                     return false
                 })
             })
-        }
-
-        // In static mode: if no results found and dropdown is shown, return all options
-        if (filtered.length === 0 && showDropdown.value) {
-            return props.options
         }
 
         return filtered
@@ -258,9 +262,14 @@ const handleBlur = () => {
 
 // Select item
 const selectItem = (item: any) => {
-    selectedItemDisplay.value = props.displayField(item)
-    searchTerm.value = selectedItemDisplay.value
-    debouncedSearchTerm.value = searchTerm.value
+    if (props.clearOnSelect) {
+        searchTerm.value = ""
+        debouncedSearchTerm.value = ""
+    } else {
+        selectedItemDisplay.value = props.displayField(item)
+        searchTerm.value = selectedItemDisplay.value
+        debouncedSearchTerm.value = searchTerm.value
+    }
     emit("update:modelValue", getItemValue(item))
     inputRef.value?.blur()
     showDropdown.value = false
@@ -279,6 +288,8 @@ const loadInitialItem = () => {
         selectedItemDisplay.value = props.displayField(item)
         searchTerm.value = selectedItemDisplay.value
         debouncedSearchTerm.value = searchTerm.value
+    } else {
+        searchTerm.value = props.fallback || ""
     }
 }
 

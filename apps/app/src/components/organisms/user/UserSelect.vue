@@ -12,6 +12,8 @@
             :required="required"
             :class-name="className"
             @update:model-value="addUser"
+            :clear-on-select="true"
+            :fallback="fallback"
         />
         <div class="flex flex-wrap gap-2">
             <span
@@ -39,6 +41,7 @@
         :required="required"
         :class-name="className"
         @update:model-value="$emit('update:modelValue', $event as number | undefined)"
+        :fallback="fallback"
     />
 </template>
 
@@ -56,6 +59,7 @@ interface UserSelectProps {
     disabled?: boolean
     className?: string
     showArchived?: boolean
+    fallback?: string
     required?: boolean
     multiple?: boolean
     id?: string

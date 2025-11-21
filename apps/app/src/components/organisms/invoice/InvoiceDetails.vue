@@ -752,12 +752,11 @@ watch(
     },
     { immediate: true }
 )
-
 // Discount and package type states
 const discountType = ref<"percentage" | "fixed">(
-    invoice.value.feesDiscountPercentage && invoice.value.feesDiscountPercentage > 0
-        ? "percentage"
-        : "fixed"
+    invoice.value.feesDiscountAmount && invoice.value.feesDiscountAmount > 0
+        ? "fixed"
+        : "percentage"
 )
 const packageType = ref<"percentage" | "fixed">(
     invoice.value.expensesPackagePercentage && invoice.value.expensesPackagePercentage > 0
@@ -805,9 +804,10 @@ const toggleDiscount = () => {
         invoice.value.feesDiscountPercentage = 0
         invoice.value.feesDiscountAmount = 0
     } else {
+        console.log(discountType.value)
         // Apply default discount based on current type
         if (discountType.value === "percentage") {
-            invoice.value.feesDiscountPercentage = 10
+            invoice.value.feesDiscountPercentage = 4
             invoice.value.feesDiscountAmount = (invoice.value.feesFinalTotal || 0) * 0.1
         } else {
             invoice.value.feesDiscountAmount = 100
@@ -823,7 +823,7 @@ const setDiscountType = (type: "percentage" | "fixed") => {
     if (type === "percentage") {
         // Convert to percentage if was fixed
         if (!invoice.value.feesDiscountPercentage || invoice.value.feesDiscountPercentage === 0) {
-            invoice.value.feesDiscountPercentage = 10
+            invoice.value.feesDiscountPercentage = 4
             invoice.value.feesDiscountAmount = (invoice.value.feesFinalTotal || 0) * 0.1
         }
     } else {

@@ -1,4 +1,4 @@
-export type DateRangePresetKey = "today" | "week" | "month" | "year"
+export type DateRangePresetKey = "today" | "week" | "month" | "year" | "allTime"
 
 export interface DateRangeInterval {
     from: Date
@@ -97,7 +97,7 @@ export function normaliseToDate(date: Date): Date {
 }
 
 export function detectPreset(from?: Date, to?: Date): DateRangePresetKey | null {
-    if (!from || !to) return null
+    if (!from || !to) return "allTime"
 
     const todayRange = getTodayRange()
     if (isSameTimestamp(from, todayRange.from) && isSameTimestamp(to, todayRange.to)) {

@@ -499,12 +499,14 @@
                               projectId: invoice.projectId,
                               includeBilled: false,
                               includeUnbilled: true,
-                              fromDate: invoice.periodStart,
-                              toDate: invoice.periodEnd,
+                              fromDate: undefined,
+                              toDate: undefined,
                           }
                         : {
                               invoiceId: parseInt(invoice.id),
                               limit: 30,
+                              fromDate: undefined,
+                              toDate: undefined,
                           }
                 "
                 :show-project-filter="false"

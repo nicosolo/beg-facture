@@ -15,6 +15,8 @@ import { computed, onMounted } from "vue"
 import { useRoute } from "vue-router"
 import TimeEntriesManager from "@/components/organisms/time/TimeEntriesManager.vue"
 import { useAuthStore } from "@/stores/auth"
+import { getTodayRange } from "@/composables/utils/useDateRangePresets"
+const { from: initialFromDate, to: initialToDate } = getTodayRange()
 const route = useRoute()
 const authStore = useAuthStore()
 // Get projectId from query params if present
@@ -30,6 +32,8 @@ const showProjectFilter = computed(() => !projectId.value)
 const initialFilter = computed(() => ({
     projectId: projectId.value,
     userId: authStore.user?.id,
+    fromDate: initialFromDate,
+    toDate: initialToDate,
 }))
 
 onMounted(() => {

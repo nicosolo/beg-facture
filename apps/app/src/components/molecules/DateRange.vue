@@ -10,37 +10,22 @@
         <!-- Preset and Navigation buttons -->
         <div class="flex flex-wrap gap-1 sm:gap-2">
             <!-- Quick presets -->
+            <Button
+                @click="setAllTime"
+                :variant="presetVariant('allTime')"
+                class="text-xs sm:text-sm"
+                :title="$t('dateRange.allTime')"
+            >
+                <span class="hidden sm:inline">{{ $t("dateRange.allTime") }}</span>
+            </Button>
             <Button @click="setToday" :variant="presetVariant('today')" class="text-xs sm:text-sm">
-                <span class="hidden sm:inline">{{ $t("dateRange.today") }}</span>
-                <span class="sm:hidden">{{ $t("dateRange.today") }}</span>
-            </Button>
-            <Button
-                @click="setThisWeek"
-                :variant="presetVariant('week')"
-                class="text-xs sm:text-sm"
-            >
-                <span class="hidden sm:inline">{{ $t("dateRange.thisWeek") }}</span>
-                <span class="sm:hidden">{{ $t("dateRange.week") }}</span>
-            </Button>
-            <Button
-                @click="setThisMonth"
-                :variant="presetVariant('month')"
-                class="text-xs sm:text-sm"
-            >
-                <span class="hidden sm:inline">{{ $t("dateRange.thisMonth") }}</span>
-                <span class="sm:hidden">{{ $t("dateRange.month") }}</span>
-            </Button>
-            <Button
-                @click="setThisYear"
-                :variant="presetVariant('year')"
-                class="text-xs sm:text-sm"
-            >
-                <span class="hidden sm:inline">{{ $t("dateRange.thisYear") }}</span>
-                <span class="sm:hidden">{{ $t("dateRange.year") }}</span>
+                <span>{{ $t("dateRange.today") }}</span>
             </Button>
 
             <!-- Week navigation -->
-            <div class="flex items-center gap-0 sm:gap-1 rounded-lg border border-gray-300">
+            <div
+                class="flex items-center gap-0 sm:gap-1 rounded-lg border border-gray-300 bg-gray-200"
+            >
                 <Button
                     @click="navigateWeek(-1)"
                     :title="$t('dateRange.previousWeek')"
@@ -48,9 +33,14 @@
                 >
                     ‹
                 </Button>
-                <span class="px-1 sm:px-2 py-1 text-xs sm:text-sm text-gray-600">
+                <Button
+                    @click="setThisWeek"
+                    :variant="presetVariant('week')"
+                    :title="$t('dateRange.week')"
+                    class="text-xs sm:text-sm px-1 sm:px-2 min-w-[50px] hover:bg-gray-100"
+                >
                     {{ $t("dateRange.week") }}
-                </span>
+                </Button>
                 <Button
                     @click="navigateWeek(1)"
                     :title="$t('dateRange.nextWeek')"
@@ -61,7 +51,9 @@
             </div>
 
             <!-- Month navigation -->
-            <div class="flex items-center gap-0 sm:gap-1 border border-gray-300 rounded-lg">
+            <div
+                class="flex items-center gap-0 sm:gap-1 border border-gray-300 rounded-lg bg-gray-200"
+            >
                 <Button
                     @click="navigateMonth(-1)"
                     :title="$t('dateRange.previousMonth')"
@@ -69,9 +61,14 @@
                 >
                     ‹
                 </Button>
-                <span class="px-1 sm:px-2 py-1 text-xs sm:text-sm text-gray-600">
+                <Button
+                    @click="setThisMonth"
+                    :variant="presetVariant('month')"
+                    :title="$t('dateRange.month')"
+                    class="text-xs sm:text-sm px-1 sm:px-2 min-w-[50px] hover:bg-gray-100"
+                >
                     {{ $t("dateRange.month") }}
-                </span>
+                </Button>
                 <Button
                     @click="navigateMonth(1)"
                     :title="$t('dateRange.nextMonth')"
@@ -82,7 +79,9 @@
             </div>
 
             <!-- Year navigation -->
-            <div class="flex items-center gap-0 sm:gap-1 border border-gray-300 rounded-lg">
+            <div
+                class="flex items-center gap-0 sm:gap-1 border border-gray-300 rounded-lg bg-gray-200"
+            >
                 <Button
                     @click="navigateYear(-1)"
                     :title="$t('dateRange.previousYear')"
@@ -90,9 +89,14 @@
                 >
                     ‹
                 </Button>
-                <span class="px-1 sm:px-2 py-1 text-xs sm:text-sm text-gray-600">
+                <Button
+                    @click="setThisYear"
+                    :variant="presetVariant('year')"
+                    :title="$t('dateRange.year')"
+                    class="text-xs sm:text-sm px-1 sm:px-2 min-w-[50px] hover:bg-gray-100"
+                >
                     {{ $t("dateRange.year") }}
-                </span>
+                </Button>
                 <Button
                     @click="navigateYear(1)"
                     :title="$t('dateRange.nextYear')"
@@ -106,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from "vue"
+import { ref, watch, computed } from "vue"
 import DateField from "./DateField.vue"
 import Button from "../atoms/Button.vue"
 import {
@@ -241,6 +245,14 @@ function applyRange(from: Date, to: Date) {
     emit("change", { fromDate: from, toDate: to })
 }
 
+function setAllTime() {
+    localFromDate.value = undefined
+    localToDate.value = undefined
+    emit("update:fromDate", undefined)
+    emit("update:toDate", undefined)
+    emit("change", { fromDate: undefined, toDate: undefined })
+}
+
 // Preset functions
 function setToday() {
     const { from, to } = getTodayRange()
@@ -279,10 +291,4 @@ function navigateYear(direction: number) {
     const { from, to } = shiftYearRange(localFromDate.value, direction)
     applyRange(from, to)
 }
-
-onMounted(() => {
-    if (!localFromDate.value && !localToDate.value) {
-        setToday()
-    }
-})
 </script>

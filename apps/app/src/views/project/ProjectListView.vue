@@ -51,7 +51,6 @@
             </Button>
         </div>
     </div>
-
     <ProjectFilterPanel v-model:filter="filter" />
     <LoadingOverlay :loading="loading">
         <ProjectTable
@@ -96,7 +95,6 @@ import Button from "@/components/atoms/Button.vue"
 import DropdownMenu from "@/components/atoms/DropdownMenu.vue"
 import type { PageResponse, ProjectFilter, ProjectResponse } from "@beg/validations"
 import { useAuthStore } from "@/stores/auth"
-import { getYearRange } from "@/composables/utils/useDateRangePresets"
 
 // Initialize i18n
 const { t } = useI18n()
@@ -117,7 +115,7 @@ const showTimeEntryModal = ref(false)
 const selectedProjectId = ref<number | null>(null)
 const authStore = useAuthStore()
 // Filter state
-const { from, to } = getYearRange()
+
 const filter = ref<ProjectFilterModel>({
     name: "",
     includeArchived: false,
@@ -125,8 +123,8 @@ const filter = ref<ProjectFilterModel>({
     includeDraft: false,
     sortBy: "lastActivityDate",
     sortOrder: "desc",
-    fromDate: from,
-    toDate: to,
+    fromDate: undefined,
+    toDate: undefined,
     referentUserId: authStore.user?.id,
     hasUnbilledTime: false,
 })

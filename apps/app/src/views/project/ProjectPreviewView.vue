@@ -324,7 +324,12 @@
                 <div v-show="activeTab === 'activities'">
                     <TimeEntriesManager
                         :show-project-filter="false"
-                        :initial-filter="{ projectId: projectId, userId: authStore.user?.id }"
+                        :initial-filter="{
+                            projectId: projectId,
+                            userId: authStore.user?.id,
+                            fromDate: initialFromDate,
+                            toDate: initialToDate,
+                        }"
                         :hide-columns="['project']"
                         empty-message="Aucune entrée d'heure trouvée pour ce mandat"
                     />
@@ -366,9 +371,11 @@ import { useFormat } from "@/composables/utils/useFormat"
 import { useTauri } from "@/composables/useTauri"
 import { buildGeoAdminUrl, buildGoogleMapsUrl } from "@/utils/coordinates"
 import { useAuthStore } from "@/stores/auth"
+import { getMonthRange } from "@/composables/utils/useDateRangePresets"
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { from: initialFromDate, to: initialToDate } = getMonthRange()
 // Tab state - get from query string or default to overview
 const activeTab = computed({
     get: () => (route.query.tab as string) || "overview",

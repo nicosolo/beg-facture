@@ -40,6 +40,8 @@
                     includeBilled: false,
                     includeUnbilled: true,
                     userId: authStore.user?.id,
+                    fromDate: initialFromDate,
+                    toDate: initialToDate,
                 }"
                 initial-date-preset="today"
                 empty-message="Aucune entrée d'heure trouvée"
@@ -55,12 +57,13 @@ import { useI18n } from "vue-i18n"
 import ProjectSelect from "@/components/organisms/project/ProjectSelect.vue"
 import TimeEntriesManager from "@/components/organisms/time/TimeEntriesManager.vue"
 import { useAuthStore } from "@/stores/auth"
+import { getTodayRange } from "@/composables/utils/useDateRangePresets"
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { t } = useI18n()
 const selectedProjectId = ref<number | undefined>(undefined)
-
+const { from: initialFromDate, to: initialToDate } = getTodayRange()
 onMounted(() => {
     document.title = t("home.documentTitle")
 })

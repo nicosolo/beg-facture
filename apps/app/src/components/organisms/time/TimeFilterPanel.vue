@@ -220,7 +220,7 @@ const resetFilters = () => {
         fromDate: from,
         toDate: to,
         includeBilled: false,
-        includeUnbilled: true,
+        includeUnbilled: false,
         includeDisbursement: false,
         sortBy: "date",
         sortOrder: "desc",

@@ -804,7 +804,6 @@ const toggleDiscount = () => {
         invoice.value.feesDiscountPercentage = 0
         invoice.value.feesDiscountAmount = 0
     } else {
-        console.log(discountType.value)
         // Apply default discount based on current type
         if (discountType.value === "percentage") {
             invoice.value.feesDiscountPercentage = 4

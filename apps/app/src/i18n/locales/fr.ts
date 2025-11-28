@@ -300,6 +300,7 @@ export default {
         url: "L'URL n'est pas valide",
         number: "La valeur doit être un nombre",
         integer: "La valeur doit être un nombre entier",
+        pleaseFillRequired: "Veuillez remplir tous les champs requis",
     },
     time: {
         title: "Journal des heures",

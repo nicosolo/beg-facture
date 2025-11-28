@@ -80,10 +80,12 @@ export const projectResponseSchema = z
                 name: z.string(),
             })
             .nullable(),
-        type: z.object({
-            id: z.number(),
-            name: z.string(),
-        }),
+        types: z.array(
+            z.object({
+                id: z.number(),
+                name: z.string(),
+            })
+        ),
         projectManagers: z.array(
             z.object({
                 id: z.number(),
@@ -126,7 +128,7 @@ export const projectCreateSchema = z.object({
     parentProjectId: z.number().positive().optional().nullable(),
     name: z.string().min(1),
     startDate: dateSchema,
-    typeId: z.number().positive(),
+    projectTypeIds: z.array(z.number().positive()).min(1),
     locationId: z.number().positive().optional().nullable(),
     clientId: z.number().positive().optional(),
     engineerId: z.number().positive().optional().nullable(),

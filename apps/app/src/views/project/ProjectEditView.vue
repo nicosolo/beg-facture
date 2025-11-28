@@ -90,12 +90,11 @@
                     </template>
                 </FormField>
 
-                <FormField :label="$t('projects.type')" :error="errors.typeId" required>
+                <FormField :label="$t('projects.type')" :error="errors.projectTypeIds" required>
                     <template #input>
-                        <ProjectTypeSelect
-                            v-model="form.typeId"
+                        <MultiProjectTypeSelect
+                            v-model="form.projectTypeIds"
                             :placeholder="$t('common.select')"
-                            :required="true"
                         />
                     </template>
                 </FormField>
@@ -273,7 +272,7 @@ import LocationSelect from "@/components/organisms/location/LocationSelect.vue"
 import ClientSelect from "@/components/organisms/client/ClientSelect.vue"
 import EngineerSelect from "@/components/organisms/engineer/EngineerSelect.vue"
 import CompanySelect from "@/components/organisms/company/CompanySelect.vue"
-import ProjectTypeSelect from "@/components/organisms/projectType/ProjectTypeSelect.vue"
+import MultiProjectTypeSelect from "@/components/organisms/projectType/MultiProjectTypeSelect.vue"
 import UserSelect from "@/components/organisms/user/UserSelect.vue"
 import LocationPicker from "@/components/molecules/LocationPicker.vue"
 
@@ -288,7 +287,7 @@ interface ProjectFormState {
     parentProjectId?: number
     name: string
     startDate: Date
-    typeId?: number
+    projectTypeIds: number[]
     locationId?: number | null
     clientId?: number | null
     engineerId?: number | null
@@ -331,14 +330,14 @@ const { put: updateProject, loading: updating } = useUpdateProject()
 
 // Note: Select components handle their own data fetching
 
-// Form state - Using partial type to allow undefined typeId
+// Form state
 const form = ref<ProjectFormState>({
     projectNumber: "",
     subProjectName: "",
     parentProjectId: undefined,
     name: "",
     startDate: new Date(),
-    typeId: undefined,
+    projectTypeIds: [],
     locationId: undefined,
     clientId: undefined,
     engineerId: undefined,
@@ -404,7 +403,7 @@ const handleParentProjectChange = async (parentProjectId: number | undefined) =>
         if (parentProjectData.value) {
             // Copy parent project data
             form.value.projectNumber = parentProjectData.value.projectNumber || ""
-            form.value.typeId = parentProjectData.value.type?.id
+            form.value.projectTypeIds = parentProjectData.value.types?.map((t: any) => t.id) || []
             form.value.name = parentProjectData.value.name
             form.value.locationId = parentProjectData.value.location?.id
             form.value.clientId = parentProjectData.value.client?.id
@@ -452,8 +451,8 @@ const validateForm = (): boolean => {
         isValid = false
     }
 
-    if (!form.value.typeId) {
-        errors.value.typeId = t("validation.required")
+    if (!form.value.projectTypeIds || form.value.projectTypeIds.length === 0) {
+        errors.value.projectTypeIds = t("validation.required")
         isValid = false
     }
 
@@ -501,7 +500,7 @@ const saveProject = async () => {
             projectNumber: projectNumberValue || null,
             name: form.value.name,
             startDate: form.value.startDate,
-            typeId: form.value.typeId!, // We validated it exists
+            projectTypeIds: form.value.projectTypeIds,
             subProjectName: form.value.subProjectName,
             parentProjectId: form.value.parentProjectId,
             locationId: form.value.locationId || null,
@@ -581,7 +580,7 @@ onMounted(async () => {
                     parentProjectId: undefined,
                     name: projectData.value.name,
                     startDate: projectData.value.startDate,
-                    typeId: projectData.value.type?.id,
+                    projectTypeIds: projectData.value.types?.map((t) => t.id) || [],
                     locationId: projectData.value.location?.id,
                     clientId: projectData.value.client?.id,
                     engineerId: projectData.value.engineer?.id,

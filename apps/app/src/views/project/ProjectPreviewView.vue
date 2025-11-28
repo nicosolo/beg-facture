@@ -81,6 +81,7 @@
                     {{ $t("projects.tabs.activities") }}
                 </button>
                 <button
+                    v-if="canEditProject"
                     @click="activeTab = 'invoices'"
                     :class="[
                         'py-4 px-6 font-medium text-sm cursor-pointer shrink-0',
@@ -151,11 +152,20 @@
                                         <p class="font-medium">{{ projectData.company.name }}</p>
                                     </div>
 
-                                    <div v-if="projectData.type">
-                                        <p class="text-sm text-gray-500">
+                                    <div v-if="projectData.types && projectData.types.length > 0">
+                                        <p class="text-sm text-gray-500 mb-2">
                                             {{ $t("projects.type") }}
                                         </p>
-                                        <p class="font-medium">{{ projectData.type.name }}</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <Badge
+                                                v-for="type in projectData.types"
+                                                :key="type.id"
+                                                variant="amber"
+                                                size="md"
+                                            >
+                                                {{ type.name }}
+                                            </Badge>
+                                        </div>
                                     </div>
 
                                     <div v-if="projectData.engineer">
@@ -176,13 +186,14 @@
                                             {{ $t("projects.responsible") }}
                                         </p>
                                         <div class="flex flex-wrap gap-2">
-                                            <span
+                                            <Badge
                                                 v-for="manager in projectData.projectManagers"
                                                 :key="manager.id"
-                                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                                                variant="blue"
+                                                size="md"
                                             >
                                                 {{ manager.firstName }} {{ manager.lastName }}
-                                            </span>
+                                            </Badge>
                                         </div>
                                     </div>
 
@@ -197,13 +208,13 @@
                                             {{ $t("projects.members") }}
                                         </p>
                                         <div class="flex flex-wrap gap-2">
-                                            <span
+                                            <Badge
                                                 v-for="member in projectData.projectMembers"
                                                 :key="member.id"
-                                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700"
+                                                size="md"
                                             >
                                                 {{ member.firstName }} {{ member.lastName }}
-                                            </span>
+                                            </Badge>
                                         </div>
                                     </div>
 
@@ -376,6 +387,7 @@
 import { ref, computed, onMounted, watch, onActivated } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import Button from "@/components/atoms/Button.vue"
+import Badge from "@/components/atoms/Badge.vue"
 import TimeEntriesManager from "@/components/organisms/time/TimeEntriesManager.vue"
 import InvoiceListManager from "@/components/organisms/invoice/InvoiceListManager.vue"
 import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"

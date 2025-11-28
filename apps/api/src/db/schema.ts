@@ -140,9 +140,6 @@ export const projects = sqliteTable(
         clientId: integer("clientId").references(() => clients.id, { onDelete: "set null" }),
         engineerId: integer("engineerId").references(() => engineers.id, { onDelete: "set null" }),
         companyId: integer("companyId").references(() => companies.id, { onDelete: "set null" }),
-        typeId: integer("typeId")
-            .notNull()
-            .references(() => projectTypes.id, { onDelete: "set null" }),
         remark: text("remark"),
         invoicingAddress: text("invoicingAddress"),
         latitude: real("latitude"),
@@ -171,7 +168,6 @@ export const projects = sqliteTable(
         index("projects_client_idx").on(table.clientId),
         index("projects_engineer_idx").on(table.engineerId),
         index("projects_company_idx").on(table.companyId),
-        index("projects_type_idx").on(table.typeId),
         index("projects_first_activity_date_idx").on(table.firstActivityDate),
         index("projects_last_activity_date_idx").on(table.lastActivityDate),
         index("projects_total_duration_idx").on(table.totalDuration),
@@ -209,6 +205,29 @@ export const projectUsers = sqliteTable(
         index("project_users_role_idx").on(table.role),
         // Composite index for finding managers of a specific project
         index("project_users_project_role_idx").on(table.projectId, table.role),
+    ]
+)
+
+// ProjectProjectTypes junction table (many-to-many relationship between projects and project types)
+export const projectProjectTypes = sqliteTable(
+    "project_project_types",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        projectId: integer("projectId")
+            .notNull()
+            .references(() => projects.id, { onDelete: "cascade" }),
+        projectTypeId: integer("projectTypeId")
+            .notNull()
+            .references(() => projectTypes.id, { onDelete: "cascade" }),
+        ...timestamps,
+    },
+    (table) => [
+        // Unique constraint on project-type combination
+        index("project_project_types_unique").on(table.projectId, table.projectTypeId),
+        // Index for finding all types of a project
+        index("project_project_types_project_idx").on(table.projectId),
+        // Index for finding all projects of a type
+        index("project_project_types_type_idx").on(table.projectTypeId),
     ]
 )
 

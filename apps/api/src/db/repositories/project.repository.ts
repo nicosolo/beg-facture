@@ -7,6 +7,7 @@ import {
     engineers,
     locations,
     projectTypes,
+    projectProjectTypes,
     users,
     projectUsers,
 } from "../schema"
@@ -229,17 +230,12 @@ export const projectRepository = {
                     id: companies.id,
                     name: companies.name,
                 },
-                type: {
-                    id: projectTypes.id,
-                    name: projectTypes.name,
-                },
             })
             .from(projects)
             .leftJoin(locations, eq(projects.locationId, locations.id))
             .leftJoin(clients, eq(projects.clientId, clients.id))
             .leftJoin(engineers, eq(projects.engineerId, engineers.id))
             .leftJoin(companies, eq(projects.companyId, companies.id))
-            .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
 
         // Add project manager filter and/or access control
         const hasManagerFilter = referentUserId !== undefined && referentUserId
@@ -345,11 +341,39 @@ export const projectRepository = {
             }
         )
 
-        // Attach project managers and members to each project
+        // Fetch all project types for these projects
+        const allProjectTypes =
+            projectIds.length > 0
+                ? await db
+                      .select({
+                          projectId: projectProjectTypes.projectId,
+                          id: projectTypes.id,
+                          name: projectTypes.name,
+                      })
+                      .from(projectProjectTypes)
+                      .innerJoin(projectTypes, eq(projectProjectTypes.projectTypeId, projectTypes.id))
+                      .where(inArray(projectProjectTypes.projectId, projectIds))
+                      .execute()
+                : []
+
+        // Group types by project
+        const typesMap = allProjectTypes.reduce(
+            (acc, pt) => {
+                if (!acc.has(pt.projectId)) {
+                    acc.set(pt.projectId, [])
+                }
+                acc.get(pt.projectId)!.push({ id: pt.id, name: pt.name })
+                return acc
+            },
+            new Map<number, { id: number; name: string }[]>()
+        )
+
+        // Attach project managers, members and types to each project
         const data = rawData.map((project) => ({
             ...project,
             projectManagers: managersMap.get(project.id) || [],
             projectMembers: membersMap.get(project.id) || [],
+            types: typesMap.get(project.id) || [],
             isDraft: !project.projectNumber || project.projectNumber.trim() === "",
         }))
 
@@ -357,7 +381,6 @@ export const projectRepository = {
         let countQuery = db
             .select({ count: sql<number>`count(DISTINCT ${projects.id})` })
             .from(projects)
-            .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
 
         // Apply same filters as main query
         if (hasManagerFilter && needsAccessControl) {
@@ -451,17 +474,12 @@ export const projectRepository = {
                     id: companies.id,
                     name: companies.name,
                 },
-                type: {
-                    id: projectTypes.id,
-                    name: projectTypes.name,
-                },
             })
             .from(projects)
             .leftJoin(locations, eq(projects.locationId, locations.id))
             .leftJoin(clients, eq(projects.clientId, clients.id))
             .leftJoin(engineers, eq(projects.engineerId, engineers.id))
             .leftJoin(companies, eq(projects.companyId, companies.id))
-            .innerJoin(projectTypes, eq(projects.typeId, projectTypes.id))
 
         // Access control: non-admin users can only see projects they're associated with
         if (!hasRole(user.role, "admin")) {
@@ -509,10 +527,22 @@ export const projectRepository = {
                 initials: u.initials,
             }))
 
+        // Fetch project types
+        const projectTypesList = await db
+            .select({
+                id: projectTypes.id,
+                name: projectTypes.name,
+            })
+            .from(projectProjectTypes)
+            .innerJoin(projectTypes, eq(projectProjectTypes.projectTypeId, projectTypes.id))
+            .where(eq(projectProjectTypes.projectId, id))
+            .execute()
+
         return {
             ...project,
             projectManagers: managers,
             projectMembers: members,
+            types: projectTypesList,
             isDraft: !project.projectNumber || project.projectNumber.trim() === "",
         } as ProjectResponse
     },
@@ -617,7 +647,6 @@ export const projectRepository = {
                   subProjectName: data.subProjectName || null,
                   name: data.name,
                   startDate: data.startDate || parentProjectData.startDate,
-                  typeId: data.typeId || parentProjectData.typeId,
                   locationId: data.locationId || parentProjectData.locationId,
                   clientId: data.clientId || parentProjectData.clientId,
                   engineerId: data.engineerId || parentProjectData.engineerId,
@@ -646,7 +675,6 @@ export const projectRepository = {
                   subProjectName: data.subProjectName || null,
                   name: data.name,
                   startDate: data.startDate,
-                  typeId: data.typeId,
                   locationId: data.locationId || null,
                   clientId: data.clientId || null,
                   engineerId: data.engineerId || null,
@@ -708,6 +736,28 @@ export const projectRepository = {
             await db.insert(projectUsers).values(projectUsersToInsert).execute()
         }
 
+        // Insert project types into junction table
+        // Get type IDs from data or parent project
+        let typeIds: number[] = data.projectTypeIds || []
+        if (typeIds.length === 0 && parentProjectData) {
+            const parentTypes = await db
+                .select({ projectTypeId: projectProjectTypes.projectTypeId })
+                .from(projectProjectTypes)
+                .where(eq(projectProjectTypes.projectId, parentProjectData.id))
+                .execute()
+            typeIds = parentTypes.map((pt) => pt.projectTypeId)
+        }
+
+        if (typeIds.length > 0) {
+            const projectTypesToInsert = typeIds.map((typeId) => ({
+                projectId: newProject.id,
+                projectTypeId: typeId,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            }))
+            await db.insert(projectProjectTypes).values(projectTypesToInsert).execute()
+        }
+
         return newProject.id
     },
 
@@ -719,7 +769,6 @@ export const projectRepository = {
             updateData.subProjectName = data.subProjectName || null
         if (data.name !== undefined) updateData.name = data.name
         if (data.startDate !== undefined) updateData.startDate = data.startDate
-        if (data.typeId !== undefined) updateData.typeId = data.typeId
         if (data.locationId !== undefined) updateData.locationId = data.locationId || null
         if (data.clientId !== undefined) updateData.clientId = data.clientId || null
         if (data.engineerId !== undefined) updateData.engineerId = data.engineerId || null
@@ -782,6 +831,26 @@ export const projectRepository = {
                     updatedAt: new Date(),
                 }))
                 await db.insert(projectUsers).values(membersToInsert).execute()
+            }
+        }
+
+        // Update project types if provided
+        if (data.projectTypeIds !== undefined) {
+            // Delete existing project types
+            await db
+                .delete(projectProjectTypes)
+                .where(eq(projectProjectTypes.projectId, id))
+                .execute()
+
+            // Insert new project types
+            if (data.projectTypeIds.length > 0) {
+                const typesToInsert = data.projectTypeIds.map((typeId) => ({
+                    projectId: id,
+                    projectTypeId: typeId,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                }))
+                await db.insert(projectProjectTypes).values(typesToInsert).execute()
             }
         }
 

@@ -75,3 +75,12 @@ Then run the containers with docker-compose:
 ```bash
 docker-compose -f docker-compose.yml up -d
 ```
+
+## Reset all migrations
+
+```bash
+rm data/db.sqlite*
+# remove the existing migrations folder
+docker compose run --build api bunx drizzle-kit generate
+docker compose run --build api bun run db:import
+```

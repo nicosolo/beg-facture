@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm"
 import { db } from "../index"
-import { projectTypes, projects } from "../schema"
+import { projectTypes, projectProjectTypes } from "../schema"
 import type {
     ProjectTypeSchema,
     ProjectTypeCreateInput,
@@ -92,8 +92,8 @@ export const projectTypeRepository = {
     hasProjects: async (id: number): Promise<boolean> => {
         const [result] = await db
             .select({ count: sql<number>`count(*)` })
-            .from(projects)
-            .where(eq(projects.typeId, id))
+            .from(projectProjectTypes)
+            .where(eq(projectProjectTypes.projectTypeId, id))
         return result.count > 0
     },
 }

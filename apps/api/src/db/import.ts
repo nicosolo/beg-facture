@@ -7,6 +7,7 @@ import {
     companies,
     clients,
     projectTypes,
+    projectProjectTypes,
     engineers,
     rateClasses,
     projects,
@@ -459,7 +460,6 @@ async function importProjects() {
                 locationId,
                 engineerId,
                 companyId,
-                typeId,
                 remark: rawProject.Remarque,
                 invoicingAddress: rawProject.Facture || null,
                 createdAt: rawProject.Début ? parseAccessDate(rawProject.Début) : new Date(),
@@ -468,7 +468,7 @@ async function importProjects() {
                 subProjectName: rawProject["Sous-mandat"]?.trim() || null,
             } satisfies typeof projects.$inferInsert
 
-            chunkProjects.push({ project, projectManagerId })
+            chunkProjects.push({ project, projectManagerId, typeId })
             imported++
         }
 
@@ -489,6 +489,20 @@ async function importProjects() {
 
         if (projectManagersToInsert.length > 0) {
             await db.insert(projectUsers).values(projectManagersToInsert)
+        }
+
+        // Bulk insert project types for this chunk
+        const projectTypesToInsert = chunkProjects
+            .filter((item) => item.typeId !== null)
+            .map((item) => ({
+                projectId: item.project.id!,
+                projectTypeId: item.typeId!,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            }))
+
+        if (projectTypesToInsert.length > 0) {
+            await db.insert(projectProjectTypes).values(projectTypesToInsert)
         }
 
         console.log(`Imported ${imported} / ${projectData.length} projects`)

@@ -174,6 +174,19 @@ CREATE TABLE `monthly_hours` (
 );
 --> statement-breakpoint
 CREATE INDEX `monthly_hours_year_month_unique` ON `monthly_hours` (`year`,`month`);--> statement-breakpoint
+CREATE TABLE `project_project_types` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`projectId` integer NOT NULL,
+	`projectTypeId` integer NOT NULL,
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`projectTypeId`) REFERENCES `project_types`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `project_project_types_unique` ON `project_project_types` (`projectId`,`projectTypeId`);--> statement-breakpoint
+CREATE INDEX `project_project_types_project_idx` ON `project_project_types` (`projectId`);--> statement-breakpoint
+CREATE INDEX `project_project_types_type_idx` ON `project_project_types` (`projectTypeId`);--> statement-breakpoint
 CREATE TABLE `project_types` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
@@ -207,17 +220,16 @@ CREATE TABLE `projects` (
 	`clientId` integer,
 	`engineerId` integer,
 	`companyId` integer,
-	`typeId` integer NOT NULL,
 	`remark` text,
 	`invoicingAddress` text,
 	`latitude` real,
 	`longitude` real,
-	`printFlag` integer DEFAULT false,
 	`firstActivityDate` integer,
 	`lastActivityDate` integer,
 	`totalDuration` real DEFAULT 0,
 	`unBilledDuration` real DEFAULT 0,
 	`unBilledDisbursementDuration` real DEFAULT 0,
+	`offerAmount` real,
 	`ended` integer DEFAULT false,
 	`archived` integer DEFAULT false,
 	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -225,8 +237,7 @@ CREATE TABLE `projects` (
 	FOREIGN KEY (`locationId`) REFERENCES `locations`(`id`) ON UPDATE no action ON DELETE set null,
 	FOREIGN KEY (`clientId`) REFERENCES `clients`(`id`) ON UPDATE no action ON DELETE set null,
 	FOREIGN KEY (`engineerId`) REFERENCES `engineers`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`companyId`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`typeId`) REFERENCES `project_types`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`companyId`) REFERENCES `companies`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
 CREATE INDEX `projects_name_idx` ON `projects` (`name`);--> statement-breakpoint
@@ -237,7 +248,6 @@ CREATE INDEX `projects_location_idx` ON `projects` (`locationId`);--> statement-
 CREATE INDEX `projects_client_idx` ON `projects` (`clientId`);--> statement-breakpoint
 CREATE INDEX `projects_engineer_idx` ON `projects` (`engineerId`);--> statement-breakpoint
 CREATE INDEX `projects_company_idx` ON `projects` (`companyId`);--> statement-breakpoint
-CREATE INDEX `projects_type_idx` ON `projects` (`typeId`);--> statement-breakpoint
 CREATE INDEX `projects_first_activity_date_idx` ON `projects` (`firstActivityDate`);--> statement-breakpoint
 CREATE INDEX `projects_last_activity_date_idx` ON `projects` (`lastActivityDate`);--> statement-breakpoint
 CREATE INDEX `projects_total_duration_idx` ON `projects` (`totalDuration`);--> statement-breakpoint

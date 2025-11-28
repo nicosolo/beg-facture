@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm"
+import { and, desc, eq, gte, lte, sql, inArray } from "drizzle-orm"
 import { db } from "../index"
 import {
     invoices,
@@ -8,30 +8,47 @@ import {
     projects,
     activities,
     clients,
+    projectUsers,
 } from "../schema"
 import type { InvoiceCreateInput, InvoiceUpdateInput, InvoiceFilter } from "@beg/validations"
 import { projectRepository } from "./project.repository"
 import type { Variables } from "@src/types/global"
 import { hasRole } from "@src/tools/role-middleware"
 
+// Helper to get project IDs where user is a manager
+const getManagerProjectIds = async (userId: number): Promise<number[]> => {
+    const result = await db
+        .select({ projectId: projectUsers.projectId })
+        .from(projectUsers)
+        .where(and(eq(projectUsers.userId, userId), eq(projectUsers.role, "manager")))
+        .execute()
+    return result.map((r) => r.projectId)
+}
+
+// Helper to check if user is manager of a project
+const isProjectManager = async (projectId: number, userId: number): Promise<boolean> => {
+    const result = await db
+        .select({ projectId: projectUsers.projectId })
+        .from(projectUsers)
+        .where(
+            and(
+                eq(projectUsers.projectId, projectId),
+                eq(projectUsers.userId, userId),
+                eq(projectUsers.role, "manager")
+            )
+        )
+        .execute()
+    return result.length > 0
+}
+
 export const invoiceRepository = {
     async findAll(user: Variables["user"], filter: InvoiceFilter) {
         const where = []
 
-        // Access control
+        // Access control: admin sees all, others see only invoices for projects they manage
         if (!hasRole(user.role, "admin")) {
-            // Get all projects the user has access to
-            const userProjects = await projectRepository.findAll(user, {
-                sortBy: "name",
-                sortOrder: "asc",
-                page: 1,
-                limit: 1000,
-                hasUnbilledTime: false,
-                includeArchived: false,
-                includeEnded: true,
-            })
-            const projectIds = userProjects.data.map((p) => p.id)
-            if (projectIds.length === 0) {
+            const managerProjectIds = await getManagerProjectIds(user.id)
+            if (managerProjectIds.length === 0) {
                 return {
                     data: [],
                     total: 0,
@@ -39,7 +56,7 @@ export const invoiceRepository = {
                     limit: filter.limit || 20,
                 }
             }
-            where.push(sql`${invoices.projectId} IN (${sql.join(projectIds, sql`, `)})`)
+            where.push(inArray(invoices.projectId, managerProjectIds))
         }
 
         // Apply filters
@@ -241,10 +258,10 @@ export const invoiceRepository = {
 
         const row = result[0]
 
-        // Check access
+        // Check access: admin or project manager only
         if (!hasRole(user.role, "admin")) {
-            const hasAccess = await projectRepository.findById(row.invoice.projectId, user)
-            if (!hasAccess) {
+            const isManager = await isProjectManager(row.invoice.projectId, user.id)
+            if (!isManager) {
                 return null
             }
         }
@@ -358,10 +375,18 @@ export const invoiceRepository = {
     },
 
     async create(data: InvoiceCreateInput, user: Variables["user"]) {
-        // Check project access
+        // Check project access: admin or project manager only
+        if (!hasRole(user.role, "admin")) {
+            const isManager = await isProjectManager(data.projectId, user.id)
+            if (!isManager) {
+                throw new Error("Access denied: must be admin or project manager")
+            }
+        }
+
+        // Verify project exists
         const project = await projectRepository.findById(data.projectId, user)
         if (!project) {
-            throw new Error("Project not found or access denied")
+            throw new Error("Project not found")
         }
 
         // Start transaction

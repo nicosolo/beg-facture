@@ -332,9 +332,17 @@
                 <div v-show="activeTab === 'activities'">
                     <TimeEntriesManager
                         :show-project-filter="false"
+                        :show-user-filter="
+                            projectData.projectManagers.some((pm) => pm.id === authStore.user?.id)
+                        "
+                        :available-users="availableUsers"
                         :initial-filter="{
                             projectId: projectId,
-                            userId: authStore.user?.id,
+                            userId: projectData.projectManagers.some(
+                                (pm) => pm.id === authStore.user?.id
+                            )
+                                ? undefined
+                                : authStore.user?.id,
                             fromDate: initialFromDate,
                             toDate: initialToDate,
                         }"
@@ -407,7 +415,12 @@ const mapLink = computed(() =>
 const googleMapsLink = computed(() =>
     buildGoogleMapsUrl(projectData.value?.longitude ?? null, projectData.value?.latitude ?? null)
 )
-
+const availableUsers = computed(() => {
+    return [
+        ...(projectData.value?.projectManagers?.map((pm) => pm.id) || []),
+        ...(projectData.value?.projectMembers?.map((pm) => pm.id) || []),
+    ]
+})
 // Check if current user can edit this project
 const canEditProject = computed(() => {
     // Admins can always edit

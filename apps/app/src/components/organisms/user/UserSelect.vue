@@ -63,12 +63,14 @@ interface UserSelectProps {
     required?: boolean
     multiple?: boolean
     id?: string
+    onlyShow?: number[]
 }
 
 const props = withDefaults(defineProps<UserSelectProps>(), {
     showArchived: false,
     multiple: false,
     id: undefined,
+    onlyShow: undefined,
 })
 
 const emit = defineEmits<{
@@ -89,6 +91,7 @@ const filteredUsersByArchived = computed(() => {
     if (!users.value) return []
 
     return users.value.filter((user) => {
+        if (props.onlyShow && !props.onlyShow.includes(user.id)) return false
         if (!props.showArchived && user.archived) return false
         return true
     })

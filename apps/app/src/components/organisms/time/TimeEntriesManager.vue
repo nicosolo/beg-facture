@@ -62,6 +62,8 @@
             <TimeFilterPanel
                 v-model:filter="filter"
                 :show-project-filter="showProjectFilter"
+                :show-user-filter="showUserFilter"
+                :available-users="availableUsers"
                 :initial-filter="initialFilter"
             />
         </div>
@@ -125,6 +127,8 @@ import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@be
 interface Props {
     emptyMessage?: string
     showProjectFilter?: boolean
+    showUserFilter?: boolean
+    availableUsers?: number[]
     initialFilter?: Partial<ActivityFilter>
     hideColumns?: string[]
     hideHeader?: boolean
@@ -135,6 +139,8 @@ const props = withDefaults(defineProps<Props>(), {
     emptyMessage: "Aucune entrée d'heure trouvée",
     showProjectFilter: true,
     hideHeader: false,
+    showUserFilter: false,
+    availableUsers: undefined,
 })
 
 // API client

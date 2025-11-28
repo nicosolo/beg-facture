@@ -216,12 +216,12 @@ export const activityRepository = {
             .leftJoin(projects, eq(activities.projectId, projects.id))
 
         // Disable access control for now
-        // if (user.role !== "admin") {
-        //     totalsQuery.innerJoin(
-        //         projectUsers,
-        //         and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
-        //     )
-        // }
+        if (user.role !== "admin") {
+            totalsQuery.innerJoin(
+                projectUsers,
+                and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
+            )
+        }
 
         const [totalsResult] = await (whereConditions.length > 0
             ? totalsQuery.where(and(...whereConditions))

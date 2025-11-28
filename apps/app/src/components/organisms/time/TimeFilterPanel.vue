@@ -38,10 +38,11 @@
                         <!-- User Filter - only shown for admin -->
                         <div
                             class="form-group col-span-1 md:col-span-6 lg:col-span-3"
-                            v-if="isRole('admin')"
+                            v-if="isRole('admin') || showUserFilter"
                         >
                             <Label>{{ $t("shared.selectReferentUser") }}</Label>
                             <UserSelect
+                                :only-show="availableUsers"
                                 v-model="localFilter.userId"
                                 :placeholder="$t('shared.selectReferentUser')"
                                 @update:modelValue="handleFilterChange"
@@ -154,10 +155,18 @@ export type TimeFilters = ActivityFilter
 interface Props {
     filter: ActivityFilter
     showProjectFilter?: boolean
+    showUserFilter?: boolean
+    availableUsers?: number[]
     initialFilter?: Partial<ActivityFilter>
 }
 
-const { filter, showProjectFilter = true, initialFilter } = defineProps<Props>()
+const {
+    filter,
+    showProjectFilter = true,
+    showUserFilter = false,
+    availableUsers = undefined,
+    initialFilter,
+} = defineProps<Props>()
 const { isRole } = useAuthStore()
 const emit = defineEmits<{
     "update:filter": [value: ActivityFilter]

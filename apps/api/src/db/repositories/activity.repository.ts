@@ -106,8 +106,9 @@ const buildFilterComponents = (filter: ActivityFilter) => {
         sortBy = "date",
         sortOrder = "asc",
         includeBilled = false,
-        includeDisbursement = false,
         includeUnbilled = false,
+        includeDisbursed = false,
+        includeNotDisbursed = false,
         activityTypeId,
         invoiceId,
     } = filter
@@ -122,7 +123,12 @@ const buildFilterComponents = (filter: ActivityFilter) => {
     const billingConditions = []
     if (includeBilled) billingConditions.push(eq(activities.billed, true))
     if (includeUnbilled) billingConditions.push(eq(activities.billed, false))
-    if (includeDisbursement) billingConditions.push(eq(activities.disbursement, true))
+
+    // Disbursement filters - only for activities with expenses > 0
+    if (includeDisbursed)
+        billingConditions.push(and(eq(activities.disbursement, true), sql`${activities.expenses} > 0`))
+    if (includeNotDisbursed)
+        billingConditions.push(and(eq(activities.disbursement, false), sql`${activities.expenses} > 0`))
 
     if (billingConditions.length > 0) {
         whereConditions.push(or(...billingConditions))

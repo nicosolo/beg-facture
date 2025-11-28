@@ -333,7 +333,8 @@ export default {
             toDate: "Date de fin",
             billed: "Facturé",
             unbilled: "Non facturé",
-            disbursement: "Débours",
+            disbursed: "Débours",
+            notDisbursed: "Frais non débours.",
         },
         status: {
             billed: "Facturé",

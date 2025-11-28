@@ -106,7 +106,7 @@
 
             <!-- Right section: Checkboxes -->
             <div
-                class="w-full lg:w-40 border-t lg:border-t-0 lg:border-l border-gray-300 pt-4 lg:pt-0 lg:pl-4"
+                class="w-full lg:w-48 border-t lg:border-t-0 lg:border-l border-gray-300 pt-4 lg:pt-0 lg:pl-4"
             >
                 <div class="space-y-2">
                     <Checkbox
@@ -133,15 +133,27 @@
                     />
                     <Checkbox
                         v-if="isRole('admin')"
-                        :model-value="!!localFilter.includeDisbursement"
+                        :model-value="!!localFilter.includeNotDisbursed"
                         @update:model-value="
                             (v) => {
-                                localFilter.includeDisbursement = v
+                                localFilter.includeNotDisbursed = v
                                 handleFilterChange()
                             }
                         "
-                        :label="$t('time.filters.disbursement')"
-                        id="includeDisbursement"
+                        :label="$t('time.filters.notDisbursed')"
+                        id="includeNotDisbursed"
+                    />
+                    <Checkbox
+                        v-if="isRole('admin')"
+                        :model-value="!!localFilter.includeDisbursed"
+                        @update:model-value="
+                            (v) => {
+                                localFilter.includeDisbursed = v
+                                handleFilterChange()
+                            }
+                        "
+                        :label="$t('time.filters.disbursed')"
+                        id="includeDisbursed"
                     />
                 </div>
             </div>
@@ -245,7 +257,8 @@ const resetFilters = () => {
         toDate: to,
         includeBilled: false,
         includeUnbilled: false,
-        includeDisbursement: false,
+        includeDisbursed: false,
+        includeNotDisbursed: false,
         sortBy: "date",
         sortOrder: "desc",
         ...(initialFilter || {}),

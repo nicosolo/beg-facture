@@ -70,13 +70,40 @@ export const projectRepository = {
         }
 
         // Name filter (case-insensitive search)
+        // Split search terms: numbers match projectNumber, text matches name
         if (name && name.trim()) {
-            whereConditions.push(
-                or(
-                    like(projects.name, `%${name.split(" ").join("%")}%`),
-                    like(projects.projectNumber, `${name.split(" ").join("%")}%`)
+            const terms = name.trim().split(/\s+/)
+            const numberTerms = terms.filter((t) => /^\d+$/.test(t))
+            const textTerms = terms.filter((t) => !/^\d+$/.test(t))
+
+            const conditions = []
+
+            // Match number terms against projectNumber
+            if (numberTerms.length > 0) {
+                const numberPattern = numberTerms.join("%")
+                conditions.push(like(projects.projectNumber, `${numberPattern}%`))
+            }
+
+            // Match text terms against name
+            if (textTerms.length > 0) {
+                const textPattern = `%${textTerms.join("%")}%`
+                conditions.push(like(projects.name, textPattern))
+            }
+
+            // If only numbers or only text, also try matching full string against both
+            if (numberTerms.length === 0 || textTerms.length === 0) {
+                const fullPattern = `%${terms.join("%")}%`
+                whereConditions.push(
+                    or(
+                        like(projects.name, fullPattern),
+                        like(projects.projectNumber, `${terms.join("%")}%`),
+                        ...(conditions.length > 0 ? [and(...conditions)] : [])
+                    )
                 )
-            )
+            } else {
+                // Both number and text terms - require both to match their respective fields
+                whereConditions.push(and(...conditions))
+            }
         }
 
         // Date filters - filter by project start date
@@ -125,19 +152,33 @@ export const projectRepository = {
         // Create custom sort order to prioritize projectNumber matches when searching by name
         const sortExpressions = []
 
-        // If searching by name, add priority sort for projectNumber matches
+        // If searching by name, add priority sort for exact projectNumber matches
         if (name && name.trim()) {
-            const trimmedSearch = name.trim()
-            const projectNumberPattern = `${trimmedSearch}%`
-            const searchTokens = trimmedSearch.split(/\s+/).join("%")
-            const projectNamePattern = `%${searchTokens}%`
-            sortExpressions.push(
-                sql`CASE
-                        WHEN ${projects.projectNumber} LIKE ${projectNumberPattern} THEN 0
-                        WHEN ${projects.name} LIKE ${projectNamePattern} THEN 1
-                        ELSE 2
-                    END`
-            )
+            const terms = name.trim().split(/\s+/)
+            const numberTerms = terms.filter((t) => /^\d+$/.test(t))
+
+            // Prioritize exact projectNumber match for number terms
+            if (numberTerms.length > 0) {
+                const exactNumber = numberTerms[0] // First number for exact match
+                sortExpressions.push(
+                    sql`CASE
+                            WHEN ${projects.projectNumber} = ${exactNumber} THEN 0
+                            WHEN ${projects.projectNumber} LIKE ${exactNumber + "%"} THEN 1
+                            ELSE 2
+                        END`
+                )
+            } else {
+                // No number terms - use original logic for text-only search
+                const searchTokens = terms.join("%")
+                const projectNamePattern = `%${searchTokens}%`
+                sortExpressions.push(
+                    sql`CASE
+                            WHEN ${projects.projectNumber} LIKE ${terms.join("%") + "%"} THEN 0
+                            WHEN ${projects.name} LIKE ${projectNamePattern} THEN 1
+                            ELSE 2
+                        END`
+                )
+            }
         }
 
         // Add the main sort column

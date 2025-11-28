@@ -4,10 +4,10 @@ import { paginationSchema } from "./pagination.js"
 // Country and canton constants for location selection
 
 export const COUNTRIES = {
-    CH: "Switzerland",
+    CH: "Suisse",
     FR: "France",
-    IT: "Italy",
-    DE: "Germany",
+    IT: "Italie",
+    DE: "Allemagne",
 } as const
 
 export const SWISS_CANTONS = {

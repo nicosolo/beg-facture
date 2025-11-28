@@ -30,6 +30,7 @@
                             { label: $t('projects.totalDuration'), value: 'totalDuration' },
                             { label: $t('projects.firstActivity'), value: 'firstActivityDate' },
                             { label: $t('projects.lastActivity'), value: 'lastActivityDate' },
+                            { label: $t('projects.projectNumber'), value: 'projectNumber' },
                             { label: $t('projects.name'), value: 'name' },
                         ]"
                     ></Select>

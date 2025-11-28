@@ -1,135 +1,149 @@
 <template>
-    <div>
-        <!-- Desktop filters (hidden on mobile) -->
-        <div class="bg-indigo-50 p-4 border border-gray-200 rounded-lg mb-6">
-            <div class="flex flex-col lg:flex-row gap-4">
-                <!-- Left section with main filters -->
-                <div class="flex-1">
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                        <!-- DateRange - adapts width based on whether user filter is shown -->
-                        <div
-                            class="col-span-1 md:col-span-12"
-                            :class="{
-                                'lg:col-span-6': isRole('admin'),
-                                'lg:col-span-8': !isRole('admin') && showProjectFilter,
-                                'lg:col-span-9': !isRole('admin') && !showProjectFilter,
-                            }"
-                        >
-                            <DateRange
-                                :from-date="localFilter.fromDate"
-                                :to-date="localFilter.toDate"
-                                :from-label="$t('time.filters.fromDate')"
-                                :to-label="$t('time.filters.toDate')"
-                                @update:from-date="
-                                    (value) => {
-                                        localFilter.fromDate = value
-                                        handleFilterChange()
-                                    }
-                                "
-                                @update:to-date="
-                                    (value) => {
-                                        localFilter.toDate = value
-                                        handleFilterChange()
-                                    }
-                                "
-                            />
-                        </div>
+    <div class="bg-indigo-50 p-4 border border-gray-200 rounded-lg mb-6">
+        <div class="flex flex-col lg:flex-row gap-4">
+            <!-- Left section: Filters -->
+            <div class="flex-1">
+                <!-- Row 1: Project, User, Sort (adapts based on visible filters) -->
+                <div
+                    class="grid grid-cols-1 gap-4"
+                    :class="{
+                        'md:grid-cols-3': showProjectFilter && (isRole('admin') || showUserFilter),
+                        'md:grid-cols-2': showProjectFilter !== (isRole('admin') || showUserFilter),
+                        'md:grid-cols-1': !showProjectFilter && !isRole('admin') && !showUserFilter,
+                    }"
+                >
+                    <!-- Project Filter -->
+                    <div class="form-group" v-if="showProjectFilter">
+                        <Label>{{ $t("time.filters.project") }}</Label>
+                        <ProjectSelect
+                            v-model="localFilter.projectId"
+                            :placeholder="$t('projects.filters.searchByNameAndNumber')"
+                            @update:modelValue="handleFilterChange"
+                        />
+                    </div>
 
-                        <!-- User Filter - only shown for admin -->
-                        <div
-                            class="form-group col-span-1 md:col-span-6 lg:col-span-3"
-                            v-if="isRole('admin') || showUserFilter"
-                        >
-                            <Label>{{ $t("shared.selectReferentUser") }}</Label>
-                            <UserSelect
-                                :only-show="availableUsers"
-                                v-model="localFilter.userId"
-                                :placeholder="$t('shared.selectReferentUser')"
-                                @update:modelValue="handleFilterChange"
-                            />
-                        </div>
+                    <!-- User Filter -->
+                    <div class="form-group" v-if="isRole('admin') || showUserFilter">
+                        <Label>{{ $t("shared.selectReferentUser") }}</Label>
+                        <UserSelect
+                            :only-show="availableUsers"
+                            v-model="localFilter.userId"
+                            :placeholder="$t('shared.selectReferentUser')"
+                            @update:modelValue="handleFilterChange"
+                        />
+                    </div>
 
-                        <!-- Project Filter - adapts width when user filter is not shown -->
-                        <div
-                            class="form-group col-span-1 md:col-span-6"
-                            :class="{
-                                'lg:col-span-2': isRole('admin'),
-                                'lg:col-span-3': !isRole('admin'),
-                            }"
-                            v-if="showProjectFilter"
-                        >
-                            <Label>{{ $t("time.filters.project") }}</Label>
-                            <ProjectSelect
-                                v-model="localFilter.projectId"
-                                :placeholder="$t('projects.filters.searchByNameAndNumber')"
-                                @update:modelValue="handleFilterChange"
-                            />
-                        </div>
-
-                        <!-- Activity Type Filter - adapts to fill remaining space -->
-                        <div
-                            class="form-group col-span-1 md:col-span-12"
-                            :class="{
-                                'lg:col-span-12': showProjectFilter,
-                                'lg:col-span-3': !showProjectFilter,
-                            }"
-                        >
-                            <Label>{{ $t("time.filters.activityType") }}</Label>
+                    <!-- Sort controls -->
+                    <div class="form-group">
+                        <Label>{{ $t("projects.filters.sortBy") }}</Label>
+                        <div class="flex gap-2">
                             <Select
-                                v-model="localFilter.activityTypeId"
-                                :loading="loadingActivityTypes"
+                                v-model="localFilter.sortBy"
                                 :options="[
-                                    { label: $t('common.all'), value: null },
-                                    ...activityTypeOptions,
+                                    { label: $t('time.columns.date'), value: 'date' },
+                                    { label: $t('time.columns.durationLong'), value: 'duration' },
+                                    { label: $t('time.columns.kilometers'), value: 'kilometers' },
+                                    { label: $t('time.columns.expenses'), value: 'expenses' },
+                                ]"
+                                @update:modelValue="handleFilterChange"
+                            ></Select>
+                            <Select
+                                v-model="localFilter.sortOrder"
+                                :options="[
+                                    { label: $t('projects.filters.ascending'), value: 'asc' },
+                                    { label: $t('projects.filters.descending'), value: 'desc' },
                                 ]"
                                 @update:modelValue="handleFilterChange"
                             ></Select>
                         </div>
                     </div>
-
-                    <div class="mt-4"></div>
                 </div>
 
-                <!-- Right section with billing status checkboxes -->
-                <div class="w-full lg:w-48 border-t lg:border-t-0 lg:border-l pt-4 lg:pt-0 lg:pl-4">
-                    <div class="form-group">
-                        <div class="space-y-2 mt-2">
-                            <label class="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    v-model="localFilter.includeUnbilled"
-                                    @change="handleFilterChange"
-                                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
-                                />
-                                {{ $t("time.filters.unbilled") }}
-                            </label>
-                            <label class="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    v-model="localFilter.includeBilled"
-                                    @change="handleFilterChange"
-                                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
-                                />
-                                {{ $t("time.filters.billed") }}
-                            </label>
-                            <label class="flex items-center" v-if="isRole('admin')">
-                                <input
-                                    type="checkbox"
-                                    v-model="localFilter.includeDisbursement"
-                                    @change="handleFilterChange"
-                                    class="h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2"
-                                />
-                                {{ $t("time.filters.disbursement") }}
-                            </label>
-                        </div>
+                <!-- Row 2: DateRange, Activity Type -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    <div class="md:col-span-2">
+                        <DateRange
+                            :from-date="localFilter.fromDate"
+                            :to-date="localFilter.toDate"
+                            :from-label="$t('time.filters.fromDate')"
+                            :to-label="$t('time.filters.toDate')"
+                            @update:from-date="
+                                (value) => {
+                                    localFilter.fromDate = value
+                                    handleFilterChange()
+                                }
+                            "
+                            @update:to-date="
+                                (value) => {
+                                    localFilter.toDate = value
+                                    handleFilterChange()
+                                }
+                            "
+                        />
                     </div>
+
+                    <!-- Activity Type Filter -->
+                    <div class="form-group">
+                        <Label>{{ $t("time.filters.activityType") }}</Label>
+                        <Select
+                            v-model="localFilter.activityTypeId"
+                            :loading="loadingActivityTypes"
+                            :options="[
+                                { label: $t('common.all'), value: null },
+                                ...activityTypeOptions,
+                            ]"
+                            @update:modelValue="handleFilterChange"
+                        ></Select>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <Button @click="resetFilters" variant="secondary">
+                        {{ $t("common.resetFilters") }}
+                    </Button>
                 </div>
             </div>
 
-            <div class="flex mt-4">
-                <Button @click="resetFilters" variant="secondary">
-                    {{ $t("common.resetFilters") }}
-                </Button>
+            <!-- Right section: Checkboxes -->
+            <div
+                class="w-full lg:w-40 border-t lg:border-t-0 lg:border-l border-gray-300 pt-4 lg:pt-0 lg:pl-4"
+            >
+                <div class="space-y-2">
+                    <Checkbox
+                        :model-value="!!localFilter.includeUnbilled"
+                        @update:model-value="
+                            (v) => {
+                                localFilter.includeUnbilled = v
+                                handleFilterChange()
+                            }
+                        "
+                        :label="$t('time.filters.unbilled')"
+                        id="includeUnbilled"
+                    />
+                    <Checkbox
+                        :model-value="!!localFilter.includeBilled"
+                        @update:model-value="
+                            (v) => {
+                                localFilter.includeBilled = v
+                                handleFilterChange()
+                            }
+                        "
+                        :label="$t('time.filters.billed')"
+                        id="includeBilled"
+                    />
+                    <Checkbox
+                        v-if="isRole('admin')"
+                        :model-value="!!localFilter.includeDisbursement"
+                        @update:model-value="
+                            (v) => {
+                                localFilter.includeDisbursement = v
+                                handleFilterChange()
+                            }
+                        "
+                        :label="$t('time.filters.disbursement')"
+                        id="includeDisbursement"
+                    />
+                </div>
             </div>
         </div>
     </div>
@@ -140,6 +154,7 @@ import { ref, watch, onMounted } from "vue"
 import Label from "@/components/atoms/Label.vue"
 import Select from "@/components/atoms/Select.vue"
 import Button from "@/components/atoms/Button.vue"
+import Checkbox from "@/components/atoms/Checkbox.vue"
 import DateRange from "@/components/molecules/DateRange.vue"
 import ProjectSelect from "@/components/organisms/project/ProjectSelect.vue"
 import { useFetchUsers } from "@/composables/api/useUser"

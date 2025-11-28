@@ -173,6 +173,7 @@ export default {
         createSuccess: "Mandat créé avec succès",
         updateSuccess: "Mandat mis à jour avec succès",
         projectNumberExists: "Ce numéro de mandat existe déjà",
+        projectNumber: "Numéro",
         preview: "Mandat",
         remarkPlaceholder: "Ajoutez des notes ou commentaires sur le mandat",
         endDate: "Date de fin",
@@ -315,6 +316,7 @@ export default {
             project: "Mandat",
             activityType: "Activité",
             duration: "H",
+            durationLong: "Heures",
             kilometers: "Km",
             expenses: "Frais",
             description: "Description",
@@ -578,7 +580,8 @@ export default {
             errors: {
                 empty: "Le chemin ne peut pas être vide",
                 invalid: "Le chemin n'est pas valide",
-                invalidWindows: "Le chemin Windows doit commencer par une lettre de lecteur (ex: C:\\)",
+                invalidWindows:
+                    "Le chemin Windows doit commencer par une lettre de lecteur (ex: C:\\)",
                 pathNotFound: "Le dossier n'existe pas à cet emplacement",
                 testFailed: "Impossible de tester le chemin",
             },

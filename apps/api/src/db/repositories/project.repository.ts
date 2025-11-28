@@ -132,6 +132,8 @@ export const projectRepository = {
         // Apply sorting
         const sortColumn = (() => {
             switch (sortBy) {
+                case "projectNumber":
+                    return projects.projectNumber
                 case "name":
                     return projects.name
                 case "unBilledDuration":

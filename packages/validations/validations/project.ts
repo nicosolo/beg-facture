@@ -15,6 +15,7 @@ const projectBaseFilterSchema = z.object({
             "firstActivityDate",
             "lastActivityDate",
             "totalDuration",
+            "projectNumber",
         ])
         .optional()
         .default("name"),

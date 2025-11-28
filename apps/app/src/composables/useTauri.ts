@@ -1,5 +1,6 @@
 import { computed } from "vue"
 import { invoke } from "@tauri-apps/api/core"
+import { useAlert } from "@/composables/utils/useAlert"
 // Dynamically import Tauri modules only when running in Tauri
 
 // Check if we're in Tauri environment
@@ -10,10 +11,11 @@ const isTauriEnvironment = () => {
 export function useTauri() {
     // Check if we're running in Tauri
     const isTauri = computed(() => isTauriEnvironment())
+    const { errorAlert } = useAlert()
 
     /**
      * Open a folder in the system's file explorer
-     * @param folderPath - The relative path to the folder (will be combined with HOST_PROJECT_FOLDER)
+     * @param folderPath - The absolute path to the folder
      * @returns Promise<boolean> - True if successful, false otherwise
      */
     const openFolder = async (folderPath: string): Promise<boolean> => {
@@ -25,15 +27,20 @@ export function useTauri() {
         try {
             // Import invoke dynamically
 
-            console.log("Opening folder with base path:", folderPath)
-            // Use the custom command that handles base path logic
+            console.log("Opening folder at:", folderPath)
+            // Use the custom command with absolute path
             const fullPath = await invoke<string>("open_project_folder", {
-                relativePath: folderPath,
+                absolutePath: folderPath,
             })
-            console.log("Opened folder at:", fullPath)
+            console.log("Successfully opened folder at:", fullPath)
             return true
         } catch (error) {
             console.error("Failed to open folder:", error)
+
+            // Show error alert to user
+            const errorMessage = error instanceof Error ? error.message : String(error)
+            errorAlert(`Impossible d'ouvrir le dossier: ${errorMessage}`, 5000)
+
             return false
         }
     }

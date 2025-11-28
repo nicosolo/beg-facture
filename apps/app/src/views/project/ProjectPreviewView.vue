@@ -373,12 +373,12 @@ import InvoiceListManager from "@/components/organisms/invoice/InvoiceListManage
 import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import { useFetchProject, useProjectFolder } from "@/composables/api/useProject"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
-import Dialog from "@/components/molecules/Dialog.vue"
 import MapDisplay from "@/components/molecules/MapDisplay.vue"
 import { useFormat } from "@/composables/utils/useFormat"
 import { useTauri } from "@/composables/useTauri"
 import { buildGeoAdminUrl, buildGoogleMapsUrl } from "@/utils/coordinates"
 import { useAuthStore } from "@/stores/auth"
+import { useAppSettingsStore } from "@/stores/appSettings"
 import { getMonthRange } from "@/composables/utils/useDateRangePresets"
 const route = useRoute()
 const router = useRouter()
@@ -478,13 +478,17 @@ const openProjectFolder = async (e?: Event) => {
     if (!projectFolder.value?.folder?.fullPath) return
 
     if (isTauri.value) {
-        // Prevent default link behavior in Electron
+        // Prevent default link behavior in Tauri
         e?.preventDefault()
 
-        // Use Electron API to open folder
-        const success = await openFolder(projectFolder.value.folder.fullPath)
+        // Get app settings store to build absolute path
+        const appSettingsStore = useAppSettingsStore()
+        const absolutePath = appSettingsStore.getAbsolutePath(projectFolder.value.folder.fullPath)
+
+        // Use Tauri API to open folder with absolute path
+        const success = await openFolder(absolutePath)
         if (!success) {
-            console.error("Failed to open folder in Electron")
+            console.error("Failed to open folder in Tauri")
         }
         console.log(success)
     }

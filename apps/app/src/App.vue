@@ -5,12 +5,14 @@ import { ref, computed, watch, onMounted, KeepAlive } from "vue"
 import { Bars3Icon, XMarkIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/vue/24/outline"
 import { useAuthStore } from "./stores/auth"
 import { useAlert } from "./composables/utils/useAlert"
+import { useTauri } from "./composables/useTauri"
 import Snackbar from "./components/atoms/Snackbar.vue"
 import Button from "./components/atoms/Button.vue"
 
 const { t } = useI18n()
 const isSidebarOpen = ref(false)
 const { alerts, removeAlert } = useAlert()
+const { isTauri } = useTauri()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
@@ -135,6 +137,13 @@ const navigation = computed(() =>
             get current() {
                 return this.children.some((child) => child.current)
             },
+        },
+        // App Settings - only visible in Tauri environment
+        {
+            name: t("appSettings.title"),
+            to: { name: "app-settings" },
+            current: route.name === "app-settings",
+            visible: isTauri.value,
         },
     ].filter((item) => item.visible !== false)
 )

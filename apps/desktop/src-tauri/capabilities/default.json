@@ -7,22 +7,6 @@
         "core:default",
         "dialog:default",
         "opener:default",
-        "shell:allow-open",
-        {
-            "identifier": "opener:allow-open-path",
-            "allow": [
-                {
-                    "path": "**"
-                }
-            ]
-        },
-        {
-            "identifier": "opener:allow-reveal-item-in-dir",
-            "allow": [
-                {
-                    "path": "**"
-                }
-            ]
-        }
+        "shell:allow-open"
     ]
 }

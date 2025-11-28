@@ -4,7 +4,7 @@
         :type="props.to ? undefined : props.type"
         :to="props.to"
         :class="[
-            'rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center',
+            'rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center flex items-center justify-center',
             variantClasses,
             sizeClasses,
             props.disabled ? 'cursor-not-allowed opacity-60' : '',

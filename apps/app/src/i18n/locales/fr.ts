@@ -565,4 +565,23 @@ export default {
             toolsNotInstalled: "Outils MDB non installés",
         },
     },
+    appSettings: {
+        title: "Paramètres de l'application",
+        resetToDefault: "Réinitialiser par défaut",
+        basePath: {
+            label: "Dossier de base des mandats",
+            description: "Le dossier racine où sont stockés tous les dossiers de mandats",
+            placeholder: "Ex: N:\\Mandats",
+            default: "Par défaut",
+            test: "Tester",
+            success: "Le chemin semble valide",
+            errors: {
+                empty: "Le chemin ne peut pas être vide",
+                invalid: "Le chemin n'est pas valide",
+                invalidWindows: "Le chemin Windows doit commencer par une lettre de lecteur (ex: C:\\)",
+                pathNotFound: "Le dossier n'existe pas à cet emplacement",
+                testFailed: "Impossible de tester le chemin",
+            },
+        },
+    },
 }

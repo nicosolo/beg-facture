@@ -21,6 +21,7 @@ import VatRateListView from "../views/vatRate/VatRateListView.vue"
 import MonthlyHoursListView from "../views/monthlyHours/MonthlyHoursListView.vue"
 import LoginView from "../views/LoginView.vue"
 import DatabaseImportView from "../views/admin/DatabaseImportView.vue"
+import AppSettingsView from "../views/settings/AppSettingsView.vue"
 import { useAuthStore } from "../stores/auth"
 
 const router = createRouter({
@@ -183,6 +184,13 @@ const router = createRouter({
             name: "database-import",
             component: DatabaseImportView,
             meta: { requiresAuth: true, requiresAdmin: true },
+        },
+        // App settings (Tauri only)
+        {
+            path: "/app-settings",
+            name: "app-settings",
+            component: AppSettingsView,
+            meta: { requiresAuth: true },
         },
     ],
 })

@@ -41,6 +41,7 @@
                                 v-model="localFilter.sortBy"
                                 :options="[
                                     { label: $t('time.columns.date'), value: 'date' },
+                                    { label: $t('time.columns.project'), value: 'projectId' },
                                     { label: $t('time.columns.durationLong'), value: 'duration' },
                                     { label: $t('time.columns.kilometers'), value: 'kilometers' },
                                     { label: $t('time.columns.expenses'), value: 'expenses' },

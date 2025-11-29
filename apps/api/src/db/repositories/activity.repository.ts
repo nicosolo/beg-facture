@@ -150,6 +150,8 @@ const buildFilterComponents = (filter: ActivityFilter) => {
                 return activities.expenses
             case "rate":
                 return activities.rate
+            case "projectId":
+                return projects.projectNumber
             default:
                 return activities.date
         }

@@ -16,7 +16,7 @@
                 class="text-xs sm:text-sm"
                 :title="$t('dateRange.allTime')"
             >
-                <span class="hidden sm:inline">{{ $t("dateRange.allTime") }}</span>
+                {{ $t("dateRange.allTime") }}
             </Button>
             <Button @click="setToday" :variant="presetVariant('today')" class="text-xs sm:text-sm">
                 <span>{{ $t("dateRange.today") }}</span>

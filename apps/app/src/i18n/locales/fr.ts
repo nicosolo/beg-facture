@@ -203,6 +203,7 @@ export default {
             hasUnbilledTime: "Avec heures non facturées",
             searchByNameAndNumber: "Rechercher par numéro ou nom",
             referentUser: "Responsable",
+            selectType: "Filtrer par type...",
         },
         options: "Options",
         status: {
@@ -235,6 +236,7 @@ export default {
             activities: "Heures",
             invoices: "Factures",
         },
+        location: "Localisation",
     },
     pagination: {
         showing: "Affichage de {from} à {to} sur {total} éléments",

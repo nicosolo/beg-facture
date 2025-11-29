@@ -33,6 +33,7 @@ interface Props {
         | "custom"
         | "ghost-danger"
         | "ghost-primary"
+        | "amber"
     size?: "xxs" | "xs" | "sm" | "md" | "lg"
     disabled?: boolean
     className?: string
@@ -62,6 +63,8 @@ const variantClasses = computed(() => {
             return "hover:bg-indigo-200 text-indigo-700"
         case "ghost-danger":
             return "hover:bg-red-100 text-red-600"
+        case "amber":
+            return "bg-amber-600 hover:bg-amber-700 text-white"
         case "custom":
             return ""
         default:

@@ -126,6 +126,7 @@ const filter = ref<ProjectFilterModel>({
     fromDate: undefined,
     toDate: undefined,
     referentUserId: authStore.user?.id,
+    projectTypeIds: [],
     hasUnbilledTime: false,
 })
 
@@ -158,9 +159,12 @@ watch(
 )
 
 const loadProjects = async () => {
+    const { projectTypeIds, ...rest } = filter.value
     await fetchProjects({
         query: {
-            ...filter.value,
+            ...rest,
+            // Convert array to comma-separated string for query param
+            projectTypeIds: projectTypeIds?.length ? projectTypeIds : undefined,
             page: currentPage.value,
             limit: pageSize.value,
         },
@@ -222,8 +226,13 @@ const onTimeEntrySaved = () => {
 // Export handler
 const handleExport = async (perUser: boolean = false) => {
     try {
+        const { projectTypeIds, ...rest } = filter.value
         const arrayBuffer = await exportProjects({
-            query: { ...filter.value, perUser },
+            query: {
+                ...rest,
+                projectTypeIds: projectTypeIds?.length ? projectTypeIds.join(",") : undefined,
+                perUser,
+            },
         })
 
         if (!arrayBuffer) {

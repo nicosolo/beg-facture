@@ -18,7 +18,7 @@
             <span
                 v-for="typeId in modelValue"
                 :key="typeId"
-                class="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-sm"
+                class="inline-flex items-center gap-1 px-2 py-1 bg-amber-200 text-amber-800 rounded text-sm"
             >
                 {{ getTypeDisplay(typeId) }}
                 <Button type="button" @click="removeType(typeId)" variant="ghost" size="xxs">

@@ -6,6 +6,20 @@ import { booleanSchema, dateSchema, nullableTimestampsSchema, timestampsSchema }
 const projectBaseFilterSchema = z.object({
     name: z.string().optional(),
     referentUserId: z.coerce.number().optional(),
+    projectTypeIds: z
+        .union([z.coerce.string(), z.array(z.coerce.string())])
+        .optional()
+        .transform((val) => {
+            if (!val) return undefined
+            // Handle both string (single value or comma-separated) and array
+            if (Array.isArray(val)) {
+                return val.map(Number).filter((n) => n > 0)
+            }
+            return val
+                .split(",")
+                .map(Number)
+                .filter((n) => n > 0)
+        }),
     fromDate: z.coerce.date().optional(),
     toDate: z.coerce.date().optional(),
     sortBy: z

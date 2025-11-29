@@ -1,73 +1,107 @@
 <template>
     <div class="bg-indigo-50 p-4 border border-gray-200 rounded-lg mb-6">
-        <div class="grid grid-cols-1 gap-4" :class="showSort ? 'md:grid-cols-3' : 'md:grid-cols-2'">
-            <FormField v-if="showNameInput" :label="$t('projects.name')">
-                <template #input>
-                    <Input
-                        v-model="filterData.name"
-                        :placeholder="$t('projects.filters.searchByNameAndNumber')"
-                        @update:model-value="emitInputChange"
-                    />
-                </template>
-            </FormField>
-            <div class="form-group">
-                <Label>{{ $t("projects.filters.referentUser") }}</Label>
-                <UserSelect
-                    v-model="filterData.referentUserId"
-                    :placeholder="$t('shared.selectReferentUser')"
-                    @update:model-value="emitChange"
-                />
-            </div>
+        <div class="flex flex-col lg:flex-row gap-4">
+            <!-- Left section: Filters -->
+            <div class="flex-1">
+                <!-- Row 1: Name, User, Type -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField v-if="showNameInput" :label="$t('projects.name')">
+                        <template #input>
+                            <Input
+                                v-model="filterData.name"
+                                :placeholder="$t('projects.filters.searchByNameAndNumber')"
+                                @update:model-value="emitInputChange"
+                            />
+                        </template>
+                    </FormField>
+                    <div class="form-group">
+                        <Label>{{ $t("projects.filters.referentUser") }}</Label>
+                        <UserSelect
+                            v-model="filterData.referentUserId"
+                            :placeholder="$t('shared.selectReferentUser')"
+                            @update:model-value="emitChange"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <Label>{{ $t("projects.type") }}</Label>
+                        <MultiProjectTypeSelect
+                            v-model="filterData.projectTypeIds!"
+                            :placeholder="$t('projects.filters.selectType')"
+                            @update:model-value="emitChange"
+                        />
+                    </div>
+                </div>
 
-            <div v-if="showSort" class="form-group">
-                <Label>{{ $t("projects.filters.sortBy") }}</Label>
-                <div class="flex gap-2">
-                    <Select
-                        v-model="filterData.sortBy"
-                        @update:model-value="emitChange"
-                        :options="[
-                            { label: $t('projects.unBilledDuration'), value: 'unBilledDuration' },
-                            { label: $t('projects.totalDuration'), value: 'totalDuration' },
-                            { label: $t('projects.firstActivity'), value: 'firstActivityDate' },
-                            { label: $t('projects.lastActivity'), value: 'lastActivityDate' },
-                            { label: $t('projects.projectNumber'), value: 'projectNumber' },
-                            { label: $t('projects.name'), value: 'name' },
-                        ]"
-                    ></Select>
-                    <Select
-                        v-model="filterData.sortOrder"
-                        @update:model-value="emitChange"
-                        :options="[
-                            { label: $t('projects.filters.ascending'), value: 'asc' },
-                            { label: $t('projects.filters.descending'), value: 'desc' },
-                        ]"
-                    ></Select>
+                <!-- Row 2: DateRange, Sort -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    <div class="md:col-span-2">
+                        <DateRange
+                            :from-date="filterData.fromDate"
+                            :to-date="filterData.toDate"
+                            :from-label="$t('projects.filters.fromDate')"
+                            :to-label="$t('projects.filters.toDate')"
+                            @update:from-date="
+                                (value) => {
+                                    filterData.fromDate = value
+                                    emitChange()
+                                }
+                            "
+                            @update:to-date="
+                                (value) => {
+                                    filterData.toDate = value
+                                    emitChange()
+                                }
+                            "
+                        />
+                    </div>
+                    <div v-if="showSort" class="form-group">
+                        <Label>{{ $t("projects.filters.sortBy") }}</Label>
+                        <div class="flex gap-2">
+                            <Select
+                                v-model="filterData.sortBy"
+                                @update:model-value="emitChange"
+                                :options="[
+                                    {
+                                        label: $t('projects.unBilledDuration'),
+                                        value: 'unBilledDuration',
+                                    },
+                                    { label: $t('projects.totalDuration'), value: 'totalDuration' },
+                                    {
+                                        label: $t('projects.firstActivity'),
+                                        value: 'firstActivityDate',
+                                    },
+                                    {
+                                        label: $t('projects.lastActivity'),
+                                        value: 'lastActivityDate',
+                                    },
+                                    { label: $t('projects.projectNumber'), value: 'projectNumber' },
+                                    { label: $t('projects.name'), value: 'name' },
+                                ]"
+                            ></Select>
+                            <Select
+                                v-model="filterData.sortOrder"
+                                @update:model-value="emitChange"
+                                :options="[
+                                    { label: $t('projects.filters.ascending'), value: 'asc' },
+                                    { label: $t('projects.filters.descending'), value: 'desc' },
+                                ]"
+                            ></Select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <Button @click="resetFilters" variant="secondary">
+                        {{ $t("projects.filters.reset") }}
+                    </Button>
                 </div>
             </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <div class="md:col-span-2">
-                <DateRange
-                    :from-date="filterData.fromDate"
-                    :to-date="filterData.toDate"
-                    :from-label="$t('projects.filters.fromDate')"
-                    :to-label="$t('projects.filters.toDate')"
-                    @update:from-date="
-                        (value) => {
-                            filterData.fromDate = value
-                            emitChange()
-                        }
-                    "
-                    @update:to-date="
-                        (value) => {
-                            filterData.toDate = value
-                            emitChange()
-                        }
-                    "
-                />
-            </div>
 
-            <div v-if="showCheckboxes" class="form-group">
+            <!-- Right section: Checkboxes -->
+            <div
+                v-if="showCheckboxes"
+                class="w-full lg:w-48 border-t lg:border-t-0 lg:border-l border-gray-300 pt-4 lg:pt-0 lg:pl-4"
+            >
                 <div class="space-y-2">
                     <Checkbox
                         v-model="filterData.hasUnbilledTime"
@@ -97,12 +131,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="flex mt-4">
-            <Button @click="resetFilters" variant="secondary">{{
-                $t("projects.filters.reset")
-            }}</Button>
-        </div>
     </div>
 </template>
 
@@ -114,6 +142,7 @@ import Button from "../../atoms/Button.vue"
 import FormField from "../../molecules/FormField.vue"
 import DateRange from "../../molecules/DateRange.vue"
 import UserSelect from "../../organisms/user/UserSelect.vue"
+import MultiProjectTypeSelect from "../../organisms/projectType/MultiProjectTypeSelect.vue"
 import type { ProjectFilter } from "@beg/validations"
 import Checkbox from "@/components/atoms/Checkbox.vue"
 import Input from "@/components/atoms/Input.vue"
@@ -156,6 +185,7 @@ const filterData = reactive<ProjectFilterProps["filter"]>({
     fromDate: filter.fromDate,
     toDate: filter.toDate,
     referentUserId: filter.referentUserId || undefined,
+    projectTypeIds: filter.projectTypeIds || [],
     hasUnbilledTime: filter.hasUnbilledTime || false,
 })
 
@@ -172,6 +202,7 @@ watch(
         filterData.fromDate = newFilter.fromDate
         filterData.toDate = newFilter.toDate
         filterData.referentUserId = newFilter.referentUserId
+        filterData.projectTypeIds = newFilter.projectTypeIds
         filterData.hasUnbilledTime = newFilter.hasUnbilledTime
     },
     { deep: true }
@@ -203,6 +234,7 @@ const resetFilters = () => {
     filterData.fromDate = from
     filterData.toDate = to
     filterData.referentUserId = undefined
+    filterData.projectTypeIds = []
     filterData.hasUnbilledTime = false
     emitChange()
 }

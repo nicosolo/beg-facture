@@ -50,6 +50,7 @@ export const projectRepository = {
             name,
             includeArchived = false,
             referentUserId,
+            projectTypeIds,
             fromDate,
             toDate,
             sortBy = "name",
@@ -125,6 +126,20 @@ export const projectRepository = {
         }
         if (hasUnbilledTime === true) {
             whereConditions.push(gt(projects.unBilledDuration, 0))
+        }
+
+        // Project type filter - filter projects that have at least one of the specified types
+        if (projectTypeIds && projectTypeIds.length > 0) {
+            whereConditions.push(
+                sql`EXISTS (
+                    SELECT 1 FROM ${projectProjectTypes} ppt
+                    WHERE ppt.projectId = ${projects.id}
+                    AND ppt.projectTypeId IN (${sql.join(
+                        projectTypeIds.map((id) => sql`${id}`),
+                        sql`, `
+                    )})
+                )`
+            )
         }
 
         // Note: archived filter is not implemented as projects table doesn't have archived field

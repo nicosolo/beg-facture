@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm"
+import { asc, eq, sql } from "drizzle-orm"
 import { db } from "../index"
 import { projectTypes, projectProjectTypes } from "../schema"
 import type {
@@ -17,6 +17,7 @@ export const projectTypeRepository = {
                 updatedAt: projectTypes.updatedAt,
             })
             .from(projectTypes)
+            .orderBy(asc(projectTypes.name), asc(projectTypes.id))
     },
 
     findById: async (id: number) => {

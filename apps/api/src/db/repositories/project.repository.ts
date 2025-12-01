@@ -152,6 +152,10 @@ export const projectRepository = {
                     return projects.projectNumber
                 case "name":
                     return projects.name
+                case "totalDuration":
+                    // For unbilled duration, we'll sort by project name as fallback
+                    // since calculating unbilled duration requires complex aggregation
+                    return projects.totalDuration
                 case "unBilledDuration":
                     // For unbilled duration, we'll sort by project name as fallback
                     // since calculating unbilled duration requires complex aggregation
@@ -366,22 +370,22 @@ export const projectRepository = {
                           name: projectTypes.name,
                       })
                       .from(projectProjectTypes)
-                      .innerJoin(projectTypes, eq(projectProjectTypes.projectTypeId, projectTypes.id))
+                      .innerJoin(
+                          projectTypes,
+                          eq(projectProjectTypes.projectTypeId, projectTypes.id)
+                      )
                       .where(inArray(projectProjectTypes.projectId, projectIds))
                       .execute()
                 : []
 
         // Group types by project
-        const typesMap = allProjectTypes.reduce(
-            (acc, pt) => {
-                if (!acc.has(pt.projectId)) {
-                    acc.set(pt.projectId, [])
-                }
-                acc.get(pt.projectId)!.push({ id: pt.id, name: pt.name })
-                return acc
-            },
-            new Map<number, { id: number; name: string }[]>()
-        )
+        const typesMap = allProjectTypes.reduce((acc, pt) => {
+            if (!acc.has(pt.projectId)) {
+                acc.set(pt.projectId, [])
+            }
+            acc.get(pt.projectId)!.push({ id: pt.id, name: pt.name })
+            return acc
+        }, new Map<number, { id: number; name: string }[]>())
 
         // Attach project managers, members and types to each project
         const data = rawData.map((project) => ({

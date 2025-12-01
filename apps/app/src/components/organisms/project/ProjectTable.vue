@@ -147,6 +147,7 @@ const columns = ref([
         key: "name",
         label: t("projects.name"),
         sortable: true,
+        sortKey: "name",
     },
 
     {
@@ -154,6 +155,7 @@ const columns = ref([
         label: t("projects.unBilledDuration"),
         nowrap: true,
         sortable: true,
+        sortKey: "unBilledDuration",
         width: "8rem",
     },
     {
@@ -161,6 +163,7 @@ const columns = ref([
         label: t("projects.totalDuration"),
         nowrap: true,
         sortKey: "totalDuration",
+        sortable: true,
         width: "8rem",
     },
     // {

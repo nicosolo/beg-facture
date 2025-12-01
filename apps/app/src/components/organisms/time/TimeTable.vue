@@ -232,7 +232,7 @@ const defaultColumns: Column[] = [
     { key: "date", label: t("time.columns.date"), sortKey: "date", width: "7rem" },
     { key: "user", label: t("time.columns.user"), width: "3rem" },
     { key: "rateClass", label: t("time.columns.rateClass"), width: "3rem" },
-    { key: "project", label: t("time.columns.project"), width: "11rem" },
+    { key: "project", label: t("time.columns.project"), sortKey: "projectId", width: "11rem" },
     { key: "activityType", label: t("time.columns.activityType"), width: "4rem" },
     { key: "duration", label: t("time.columns.duration"), sortKey: "duration", width: "4rem" },
     {

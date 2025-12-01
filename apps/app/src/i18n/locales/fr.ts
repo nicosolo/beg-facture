@@ -476,9 +476,9 @@ export default {
         deleteError: "Erreur lors de la suppression de la facture",
         type: {
             invoice: "Facture",
-            credit_note: "Note de crédit",
-            proforma: "Facture proforma",
-            quote: "Devis",
+            final_invoice: "Facture finale",
+            situation: "Situation",
+            deposit: "Acompte",
         },
         status: {
             title: "Statut",

@@ -41,9 +41,9 @@
                         v-model="invoice.type"
                         :options="[
                             { value: 'invoice', label: $t('invoice.type.invoice') },
-                            { value: 'credit_note', label: $t('invoice.type.credit_note') },
-                            { value: 'proforma', label: $t('invoice.type.proforma') },
-                            { value: 'quote', label: $t('invoice.type.quote') },
+                            { value: 'final_invoice', label: $t('invoice.type.final_invoice') },
+                            { value: 'situation', label: $t('invoice.type.situation') },
+                            { value: 'deposit', label: $t('invoice.type.deposit') },
                         ]"
                     />
                 </div>

@@ -7,7 +7,7 @@ import { dateSchema, timestampsSchema } from "./base"
 // ============================================================================
 
 // Invoice type enum
-export const InvoiceTypeEnum = z.enum(["invoice", "credit_note", "proforma", "quote"])
+export const InvoiceTypeEnum = z.enum(["invoice", "final_invoice", "situation", "deposit"])
 
 export type InvoiceType = z.infer<typeof InvoiceTypeEnum>
 

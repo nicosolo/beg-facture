@@ -298,7 +298,7 @@ export const invoices = sqliteTable(
         invoiceNumber: text("invoiceNumber"),
         reference: text("reference"),
         type: text("type")
-            .$type<"invoice" | "credit_note" | "proforma" | "quote">()
+            .$type<"invoice" | "final_invoice" | "situation" | "deposit">()
             .notNull()
             .default("invoice"),
         billingMode: text("billingMode")

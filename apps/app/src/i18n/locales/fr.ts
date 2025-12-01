@@ -532,6 +532,12 @@ export default {
         save: {
             success: "La facture a été enregistrée",
         },
+        visaByUser: "À viser par",
+        selectVisaUser: "Sélectionner un viseur",
+        filters: {
+            fromDate: "Date de début",
+            toDate: "Date de fin",
+        },
     },
     dateRange: {
         allTime: "Tout",

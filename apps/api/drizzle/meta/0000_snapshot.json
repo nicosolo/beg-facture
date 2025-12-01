@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "0ef3810e-0f17-4561-b238-7ad40deb0f50",
+  "id": "b94c2e72-84bb-48cd-90a7-66b56ff3514d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activities": {
@@ -807,6 +807,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "visaByUserId": {
+          "name": "visaByUserId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "visaBy": {
           "name": "visaBy",
           "type": "text",
@@ -1095,6 +1102,19 @@
           "tableTo": "projects",
           "columnsFrom": [
             "projectId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "invoices_visaByUserId_users_id_fk": {
+          "name": "invoices_visaByUserId_users_id_fk",
+          "tableFrom": "invoices",
+          "tableTo": "users",
+          "columnsFrom": [
+            "visaByUserId"
           ],
           "columnsTo": [
             "id"

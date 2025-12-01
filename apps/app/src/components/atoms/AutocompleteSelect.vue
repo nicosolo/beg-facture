@@ -2,6 +2,7 @@
     <div class="relative">
         <input
             :id="id"
+            autocomplete="off"
             v-model="searchTerm"
             :placeholder="placeholder"
             :disabled="disabled"

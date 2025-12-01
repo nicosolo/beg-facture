@@ -8,6 +8,9 @@ import type {
     ProjectUserRole,
     COUNTRIES,
     SWISS_CANTONS,
+    BillingMode,
+    InvoiceType,
+    InvoiceStatus,
 } from "@beg/validations"
 // User table
 export const users = sqliteTable(
@@ -297,15 +300,9 @@ export const invoices = sqliteTable(
             .references(() => projects.id, { onDelete: "set null" }),
         invoiceNumber: text("invoiceNumber"),
         reference: text("reference"),
-        type: text("type")
-            .$type<"invoice" | "final_invoice" | "situation" | "deposit">()
-            .notNull()
-            .default("invoice"),
-        billingMode: text("billingMode")
-            .$type<"accordingToData" | "accordingToOffer" | "accordingToInvoice" | "fixedPrice">()
-            .notNull()
-            .default("accordingToData"),
-        status: text("status").$type<"draft" | "controle" | "sent">().notNull().default("draft"),
+        type: text("type").$type<InvoiceType>().notNull().default("invoice"),
+        billingMode: text("billingMode").$type<BillingMode>().notNull().default("accordingToData"),
+        status: text("status").$type<InvoiceStatus>().notNull().default("draft"),
         issueDate: integer("issueDate", { mode: "timestamp" }).notNull(),
         dueDate: integer("dueDate", { mode: "timestamp" }),
         periodStart: integer("periodStart", { mode: "timestamp" }).notNull(),
@@ -316,6 +313,7 @@ export const invoices = sqliteTable(
         description: text("description"),
         note: text("note"),
         invoiceDocument: text("invoiceDocument"),
+        visaByUserId: integer("visaByUserId").references(() => users.id, { onDelete: "set null" }),
         visaBy: text("visaBy"),
         visaDate: integer("visaDate", { mode: "timestamp" }),
         // Fee totals

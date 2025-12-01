@@ -14,6 +14,9 @@
             </div>
         </div>
 
+        <!-- Filters -->
+        <InvoiceFilterPanel :filter="filters" @update:filter="onFilterChange" />
+
         <LoadingOverlay :loading="loading">
             <div v-if="error" class="mb-4 p-4 bg-red-100 text-red-700 rounded">
                 {{ $t("errors.loadingData") }}: {{ error }}
@@ -25,6 +28,8 @@
                 item-key="id"
                 :empty-message="emptyMessage"
                 :loading="loading"
+                :sort="currentSort"
+                @sort-change="onSortChange"
             >
                 <template #cell:invoiceNumber="{ item }">
                     {{ item.invoiceNumber || item.reference || "-" }}
@@ -87,13 +92,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue"
+import { ref, reactive, computed, onMounted } from "vue"
 import { useI18n } from "vue-i18n"
 import Button from "@/components/atoms/Button.vue"
 import Badge from "@/components/atoms/Badge.vue"
 import DataTable from "@/components/molecules/DataTable.vue"
 import Pagination from "@/components/organisms/Pagination.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
+import InvoiceFilterPanel, {
+    type InvoiceFilterModel,
+    type InvoiceSortBy,
+    type SortOrder,
+} from "@/components/organisms/invoice/InvoiceFilterPanel.vue"
 import { useFetchInvoiceList } from "@/composables/api/useInvoice"
 import { useAlert } from "@/composables/utils/useAlert"
 import type { InvoiceFilter } from "@beg/validations"
@@ -117,14 +127,72 @@ const props = withDefaults(defineProps<Props>(), {
 const { t } = useI18n()
 const { errorAlert } = useAlert()
 
-// Define all possible columns
+// Filter state
+const filters = reactive<InvoiceFilterModel>({
+    status: "",
+    visaByUserId: null,
+    fromDate: undefined,
+    toDate: undefined,
+    sortBy: "date",
+    sortOrder: "desc",
+})
+
+// Computed sort for DataTable
+const currentSort = computed(() => ({
+    key: sortByToKey(filters.sortBy),
+    direction: filters.sortOrder,
+}))
+
+// Map sortBy values to column keys
+const sortByToKey = (sortBy: InvoiceSortBy): string => {
+    const map: Record<InvoiceSortBy, string> = {
+        date: "issueDate",
+        reference: "invoiceNumber",
+        total: "totalTTC",
+        status: "status",
+    }
+    return map[sortBy]
+}
+
+// Map column keys back to sortBy values
+const keyToSortBy = (key: string): InvoiceSortBy => {
+    const map: Record<string, InvoiceSortBy> = {
+        issueDate: "date",
+        invoiceNumber: "reference",
+        totalTTC: "total",
+        status: "status",
+    }
+    return map[key] || "date"
+}
+
+// Handle sort change from table header click
+const onSortChange = (sort: { key: string; direction: "asc" | "desc" }) => {
+    filters.sortBy = keyToSortBy(sort.key)
+    filters.sortOrder = sort.direction as SortOrder
+    currentPage.value = 1
+    loadInvoices()
+}
+
+// Handle filter changes from InvoiceFilterPanel
+const onFilterChange = (newFilters: InvoiceFilterModel) => {
+    filters.status = newFilters.status
+    filters.visaByUserId = newFilters.visaByUserId
+    filters.fromDate = newFilters.fromDate
+    filters.toDate = newFilters.toDate
+    filters.sortBy = newFilters.sortBy
+    filters.sortOrder = newFilters.sortOrder
+    currentPage.value = 1
+    loadInvoices()
+}
+
+// Define all possible columns with sortKey for sortable columns
 const allColumns = [
-    { key: "invoiceNumber", label: t("invoice.invoiceNumber"), width: "w-1/6" },
+    { key: "invoiceNumber", label: t("invoice.invoiceNumber"), width: "w-1/6", sortKey: "invoiceNumber" },
     { key: "client", label: t("projects.client"), width: "w-1/6" },
     { key: "project", label: t("projects.title"), width: "w-1/6" },
-    { key: "issueDate", label: t("invoice.issueDate") },
-    { key: "totalTTC", label: t("invoice.totalTTC") },
-    { key: "status", label: t("invoice.status.title") },
+    { key: "issueDate", label: t("invoice.issueDate"), sortKey: "issueDate" },
+    { key: "totalTTC", label: t("invoice.totalTTC"), sortKey: "totalTTC" },
+    { key: "status", label: t("invoice.status.title"), sortKey: "status" },
     { key: "actions", label: t("common.actions") },
 ]
 
@@ -150,13 +218,29 @@ const loadInvoices = async (page?: number) => {
     if (page) currentPage.value = page
 
     try {
-        await fetchInvoices({
-            query: {
-                page: currentPage.value,
-                limit: itemsPerPage.value,
-                ...props.initialFilter,
-            },
-        })
+        const query: Record<string, unknown> = {
+            page: currentPage.value,
+            limit: itemsPerPage.value,
+            sortBy: filters.sortBy,
+            sortOrder: filters.sortOrder,
+            ...props.initialFilter,
+        }
+
+        // Add filters if set
+        if (filters.status) {
+            query.status = filters.status
+        }
+        if (filters.visaByUserId) {
+            query.visaByUserId = filters.visaByUserId
+        }
+        if (filters.fromDate) {
+            query.fromDate = filters.fromDate
+        }
+        if (filters.toDate) {
+            query.toDate = filters.toDate
+        }
+
+        await fetchInvoices({ query })
     } catch (err) {
         console.error("Failed to load invoices:", err)
         errorAlert(t("errors.loadingData"))

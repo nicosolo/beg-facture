@@ -66,6 +66,9 @@ export const invoiceRepository = {
         if (filter.status) {
             where.push(eq(invoices.status, filter.status))
         }
+        if (filter.visaByUserId) {
+            where.push(eq(invoices.visaByUserId, filter.visaByUserId))
+        }
         if (filter.fromDate) {
             where.push(gte(invoices.issueDate, filter.fromDate))
         }
@@ -147,6 +150,7 @@ export const invoiceRepository = {
                     note: row.invoice.note,
                     invoiceDocument: row.invoice.invoiceDocument,
                     visaBy: row.invoice.visaBy,
+                    visaByUserId: row.invoice.visaByUserId,
                     visaDate: row.invoice.visaDate,
 
                     // Dates - flat
@@ -290,6 +294,7 @@ export const invoiceRepository = {
             note: row.invoice.note,
             invoiceDocument: row.invoice.invoiceDocument,
             visaBy: row.invoice.visaBy,
+            visaByUserId: row.invoice.visaByUserId,
             visaDate: row.invoice.visaDate,
 
             // Dates - flat
@@ -415,6 +420,7 @@ export const invoiceRepository = {
                     note: data.note,
                     invoiceDocument: data.invoiceDocument || null,
                     visaBy: data.visaBy || null,
+                    visaByUserId: data.visaByUserId || null,
                     visaDate: data.visaDate || null,
                     // Store real values directly - all flat fields
                     feesBase: data.feesBase,
@@ -545,6 +551,7 @@ export const invoiceRepository = {
             if (data.note !== undefined) updateData.note = data.note
             if (data.invoiceDocument !== undefined)
                 updateData.invoiceDocument = data.invoiceDocument
+            if (data.visaByUserId !== undefined) updateData.visaByUserId = data.visaByUserId
             if (data.visaBy !== undefined) updateData.visaBy = data.visaBy
             if (data.visaDate !== undefined) updateData.visaDate = data.visaDate
 

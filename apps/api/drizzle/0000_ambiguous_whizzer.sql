@@ -114,6 +114,7 @@ CREATE TABLE `invoices` (
 	`description` text,
 	`note` text,
 	`invoiceDocument` text,
+	`visaByUserId` integer,
 	`visaBy` text,
 	`visaDate` integer,
 	`feesBase` real DEFAULT 0 NOT NULL,
@@ -145,7 +146,8 @@ CREATE TABLE `invoices` (
 	`remarksThirdPartyExpenses` text DEFAULT '',
 	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE set null,
+	FOREIGN KEY (`visaByUserId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
 CREATE INDEX `invoices_invoice_number_idx` ON `invoices` (`invoiceNumber`);--> statement-breakpoint

@@ -30,7 +30,7 @@
     </div>
     <AutocompleteSelect
         v-else
-        :model-value="modelValue as number | undefined"
+        :model-value="(modelValue as number | undefined) ?? undefined"
         :id="id"
         mode="static"
         :options="filteredUsersByArchived"
@@ -50,11 +50,11 @@ import { computed, onMounted } from "vue"
 import { useI18n } from "vue-i18n"
 import { useFetchUsers } from "@/composables/api/useUser"
 import AutocompleteSelect from "@/components/atoms/AutocompleteSelect.vue"
-import type { UserResponse } from "@beg/validations"
+import type { UserResponse, UserRole } from "@beg/validations"
 import { XMarkIcon } from "@heroicons/vue/24/outline"
 import Button from "@/components/atoms/Button.vue"
 interface UserSelectProps {
-    modelValue: number | number[] | undefined
+    modelValue: number | number[] | undefined | null
     placeholder?: string
     disabled?: boolean
     className?: string
@@ -64,6 +64,7 @@ interface UserSelectProps {
     multiple?: boolean
     id?: string
     onlyShow?: number[]
+    roles?: UserRole[]
 }
 
 const props = withDefaults(defineProps<UserSelectProps>(), {
@@ -71,10 +72,11 @@ const props = withDefaults(defineProps<UserSelectProps>(), {
     multiple: false,
     id: undefined,
     onlyShow: undefined,
+    roles: undefined,
 })
 
 const emit = defineEmits<{
-    "update:modelValue": [value: number | number[] | undefined]
+    "update:modelValue": [value: number | number[] | undefined | null]
 }>()
 
 const { t } = useI18n()
@@ -86,13 +88,14 @@ const formatUserDisplay = (user: UserResponse): string => {
     return user.archived ? `${base} (${t("common.archived")})` : base
 }
 
-// Pre-filter users based on archived status
+// Pre-filter users based on archived status and roles
 const filteredUsersByArchived = computed(() => {
     if (!users.value) return []
 
     return users.value.filter((user) => {
         if (props.onlyShow && !props.onlyShow.includes(user.id)) return false
         if (!props.showArchived && user.archived) return false
+        if (props.roles && !props.roles.includes(user.role)) return false
         return true
     })
 })

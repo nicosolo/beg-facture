@@ -107,19 +107,33 @@
                 </div>
             </div>
 
-            <div class="mb-4">
-                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceStatus">
-                    {{ $t("invoice.status.title") }}
-                </label>
-                <Select
-                    id="invoiceStatus"
-                    v-model="invoice.status"
-                    :options="[
-                        { value: 'draft', label: $t('invoice.status.draft') },
-                        { value: 'controle', label: $t('invoice.status.controle') },
-                        { value: 'sent', label: $t('invoice.status.sent') },
-                    ]"
-                />
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceStatus">
+                        {{ $t("invoice.status.title") }}
+                    </label>
+                    <Select
+                        id="invoiceStatus"
+                        v-model="invoice.status"
+                        :options="[
+                            { value: 'draft', label: $t('invoice.status.draft') },
+                            { value: 'controle', label: $t('invoice.status.controle') },
+                            { value: 'sent', label: $t('invoice.status.sent') },
+                        ]"
+                    />
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium text-gray-700 mb-1" for="visaByUserId">
+                        {{ $t("invoice.visaByUser") }}
+                    </label>
+                    <UserSelect
+                        id="visaByUserId"
+                        v-model="invoice.visaByUserId"
+                        :roles="['super_admin']"
+                        :placeholder="$t('invoice.selectVisaUser')"
+                    />
+                </div>
             </div>
 
             <div class="mb-4">
@@ -177,6 +191,7 @@ import Select from "@/components/atoms/Select.vue"
 import Textarea from "@/components/atoms/Textarea.vue"
 import InvoiceDocumentEntries from "./InvoiceDocumentEntries.vue"
 import DocumentUploadField from "@/components/molecules/DocumentUploadField.vue"
+import UserSelect from "@/components/organisms/user/UserSelect.vue"
 import { useInvoiceDocuments } from "@/composables/invoice/useInvoiceDocuments"
 
 const props = defineProps<{

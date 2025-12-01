@@ -124,6 +124,7 @@ export const InvoiceSchema = z.object({
     remarksThirdPartyExpenses: z.string().default(""),
 
     // Visa
+    visaByUserId: z.number().nullable().default(null),
     visaBy: z.string().nullable().default(null),
     visaDate: dateSchema.nullable().default(null),
 
@@ -201,6 +202,7 @@ export const invoiceCreateSchema = z.object({
     remarksExpenses: z.string().default(""),
     remarksThirdPartyExpenses: z.string().default(""),
 
+    visaByUserId: z.number().nullable().optional(),
     visaBy: z.string().nullable().optional(),
     visaDate: dateSchema.optional(),
 
@@ -288,6 +290,7 @@ export const invoiceResponseSchema = z
         remarksExpenses: z.string(),
         remarksThirdPartyExpenses: z.string(),
 
+        visaByUserId: z.number().nullable(),
         visaBy: z.string().nullable(),
         visaDate: z.date().nullable(),
 
@@ -323,6 +326,7 @@ export const invoiceFilterSchema = z
     .object({
         projectId: z.coerce.number().optional(),
         status: InvoiceStatusEnum.optional(),
+        visaByUserId: z.coerce.number().optional(),
         fromDate: z.coerce.date().optional(),
         toDate: z.coerce.date().optional(),
         sortBy: z.enum(["date", "reference", "total", "status"]).optional().default("date"),

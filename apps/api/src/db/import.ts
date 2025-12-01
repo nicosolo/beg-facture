@@ -119,6 +119,58 @@ async function readJsonFile(filename: string) {
     }
 }
 
+// Load project type mapping from TSV file
+// Returns: Map<oldTypeName, newTypeNames[]>
+async function loadProjectTypeMapping(): Promise<{
+    mapping: Map<string, string[]>
+    allNewTypes: Set<string>
+}> {
+    const tsvPath = "/app/initial-data/projectTypes.tsv"
+    const mapping = new Map<string, string[]>()
+    const allNewTypes = new Set<string>()
+
+    // Always include "Non renseigné" for unmapped types
+    allNewTypes.add("Non renseigné")
+
+    try {
+        const data = await fs.readFile(tsvPath, "utf8")
+        const lines = data.split("\n").filter((line) => line.trim() !== "")
+
+        // Skip header row
+        for (let i = 1; i < lines.length; i++) {
+            const columns = lines[i].split("\t")
+            const oldType = columns[0]?.trim()?.replace(/^"|"$/g, "") // Remove quotes if present
+
+            if (!oldType) continue
+
+            // Get new types from columns 1, 2, 3 (New 1, New 2, New 3)
+            const newTypes: string[] = []
+            for (let col = 1; col <= 3; col++) {
+                const newType = columns[col]?.trim()
+                if (newType && newType !== "") {
+                    newTypes.push(newType)
+                    allNewTypes.add(newType)
+                }
+            }
+
+            // If no new types mapped, use "Non renseigné"
+            if (newTypes.length === 0) {
+                newTypes.push("Non renseigné")
+            }
+
+            mapping.set(oldType, newTypes)
+        }
+
+        console.log(
+            `Loaded ${mapping.size} project type mappings, ${allNewTypes.size} unique new types`
+        )
+    } catch (error) {
+        console.error("Error loading project type mapping:", error)
+    }
+
+    return { mapping, allNewTypes }
+}
+
 // Map French names to DB table structure
 function mapUserData(data: any): typeof users.$inferInsert {
     // Use original ID if available
@@ -306,23 +358,49 @@ async function importClients() {
     console.log(`Imported ${importedClients.length} clients`)
 }
 
+// Store globally for use in importProjects
+let projectTypeMappingData: {
+    mapping: Map<string, string[]>
+    oldTypeIdToName: Map<number, string>
+    newTypeNameToId: Map<string, number>
+} | null = null
+
 async function importProjectTypes() {
-    const projectTypeData = await readJsonFile("Types")
-    if (projectTypeData.length === 0) return
-
-    for (const rawType of projectTypeData) {
-        const projectType = {
-            id: rawType.IDtype,
-            name: rawType.Type?.trim() || "",
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        } satisfies typeof projectTypes.$inferInsert
-
-        await db.insert(projectTypes).values(projectType)
+    // Load mapping from TSV
+    const { mapping, allNewTypes } = await loadProjectTypeMapping()
+    // Load old Types.json to get IDtype -> typeName mapping
+    const oldTypeData = await readJsonFile("Types")
+    const oldTypeIdToName = new Map<number, string>()
+    for (const rawType of oldTypeData) {
+        oldTypeIdToName.set(rawType.IDtype, rawType.Type?.trim() || "")
     }
 
-    const importedProjectTypes = await db.select().from(projectTypes)
-    console.log(`Imported ${importedProjectTypes.length} project types`)
+    // Insert new project types from TSV
+    const newTypeNameToId = new Map<string, number>()
+    const typesToInsert = Array.from(allNewTypes).map((name) => ({
+        name,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    }))
+
+    if (typesToInsert.length > 0) {
+        await db.insert(projectTypes).values(typesToInsert)
+    }
+
+    // Get the inserted types to build name->id mapping
+    const insertedTypes = await db.select().from(projectTypes)
+    for (const type of insertedTypes) {
+        newTypeNameToId.set(type.name, type.id)
+    }
+
+    // Store for use in importProjects
+    projectTypeMappingData = {
+        mapping,
+        oldTypeIdToName,
+        newTypeNameToId,
+    }
+
+    console.log(`Imported ${insertedTypes.length} project types from TSV mapping`)
 }
 
 async function importEngineers() {
@@ -405,14 +483,18 @@ async function importProjects() {
     const projectData = await readJsonFile("Mandats")
     if (projectData.length === 0) return
 
+    if (!projectTypeMappingData) {
+        console.error("Project type mapping not loaded. Run importProjectTypes first.")
+        return
+    }
+
+    const { mapping, oldTypeIdToName, newTypeNameToId } = projectTypeMappingData
+
     const allUsers = await db.select().from(users)
     const userMap = new Map(allUsers.map((u) => [u.initials, u.id]))
 
     const allEngineers = await db.select({ id: engineers.id }).from(engineers)
     const engineersArray = allEngineers.map((e) => e.id)
-
-    const allProjectTypes = await db.select({ id: projectTypes.id }).from(projectTypes)
-    const projectTypesArray = allProjectTypes.map((pt) => pt.id)
 
     const allClients = await db.select({ id: clients.id }).from(clients)
     const clientsArray = allClients.map((c) => c.id)
@@ -429,7 +511,11 @@ async function importProjects() {
 
     for (let i = 0; i < projectData.length; i += chunkSize) {
         const chunk = projectData.slice(i, i + chunkSize)
-        const chunkProjects = []
+        const chunkProjects: {
+            project: typeof projects.$inferInsert
+            projectManagerId: number | undefined
+            oldTypeId: number | null
+        }[] = []
 
         for (const rawProject of chunk) {
             const engineerId = engineersArray.includes(rawProject.IDingénieur)
@@ -438,8 +524,6 @@ async function importProjects() {
             const companyId = companiesArray.includes(rawProject.IDentreprise)
                 ? rawProject.IDentreprise
                 : null
-
-            const typeId = projectTypesArray.includes(rawProject.IDtype) ? rawProject.IDtype : null
 
             const locationId = locationsArray.includes(rawProject.IDlocalité)
                 ? rawProject.IDlocalité
@@ -468,7 +552,7 @@ async function importProjects() {
                 subProjectName: rawProject["Sous-mandat"]?.trim() || null,
             } satisfies typeof projects.$inferInsert
 
-            chunkProjects.push({ project, projectManagerId, typeId })
+            chunkProjects.push({ project, projectManagerId, oldTypeId: rawProject.IDtype || null })
             imported++
         }
 
@@ -491,15 +575,36 @@ async function importProjects() {
             await db.insert(projectUsers).values(projectManagersToInsert)
         }
 
-        // Bulk insert project types for this chunk
-        const projectTypesToInsert = chunkProjects
-            .filter((item) => item.typeId !== null)
-            .map((item) => ({
-                projectId: item.project.id!,
-                projectTypeId: item.typeId!,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            }))
+        // Bulk insert project types for this chunk (now supports multiple types per project)
+        const projectTypesToInsert: (typeof projectProjectTypes.$inferInsert)[] = []
+
+        for (const item of chunkProjects) {
+            // Get old type name from IDtype
+            const oldTypeName = item.oldTypeId ? oldTypeIdToName.get(item.oldTypeId) : null
+
+            // Get new type names from mapping
+            let newTypeNames: string[] = []
+            if (oldTypeName && mapping.has(oldTypeName)) {
+                newTypeNames = mapping.get(oldTypeName)!
+            } else {
+                // No mapping found, use default
+                newTypeNames = ["Non renseigné"]
+                console.log(`No mapping found for ${oldTypeName}`)
+            }
+
+            // Convert type names to IDs and create junction entries
+            for (const typeName of newTypeNames) {
+                const typeId = newTypeNameToId.get(typeName)
+                if (typeId) {
+                    projectTypesToInsert.push({
+                        projectId: item.project.id!,
+                        projectTypeId: typeId,
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                    })
+                }
+            }
+        }
 
         if (projectTypesToInsert.length > 0) {
             await db.insert(projectProjectTypes).values(projectTypesToInsert)

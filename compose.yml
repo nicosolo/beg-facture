@@ -33,6 +33,7 @@ services:
             - ./apps/api/drizzle:/app/apps/api/drizzle
             - ./data:/app/data
             - ./export-mdb:/app/export-mdb
+            - ./initial-data:/app/initial-data
             - $MANDATS_PATH:/mandats
             - $MS_ACCESS_DB_PATH:/export-mdb/beg.mdb:ro
         working_dir: /app/apps/api

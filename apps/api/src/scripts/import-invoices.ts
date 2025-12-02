@@ -7,6 +7,7 @@ import {
     invoiceSituations,
     invoiceDocuments,
     projects,
+    users,
 } from "../db/schema"
 import { eq, and } from "drizzle-orm"
 import fs from "fs/promises"
@@ -16,6 +17,13 @@ import type { InvoiceType, BillingMode, InvoiceStatus } from "@beg/validations"
 
 // Base path for mandats in container
 const MANDATS_BASE_PATH = "/mandats"
+
+// Map legacy edtVisa index to user initials
+const VISA_USER_INITIALS: Record<string, string> = {
+    "0": "fp",
+    "1": "js",
+    "2": "mo",
+}
 
 interface FabData {
     internal: Record<string, string>
@@ -246,9 +254,23 @@ function mapBillingMode(edtMode: string): BillingMode {
     }
 }
 
-// Map edtVisa to InvoiceStatus
+// Map edtVisa to InvoiceStatus (sent if visa user is set)
 function mapInvoiceStatus(edtVisa: string): InvoiceStatus {
-    return edtVisa === "1" ? "sent" : "draft"
+    return VISA_USER_INITIALS[edtVisa] ? "sent" : "draft"
+}
+
+// Get visa user ID from legacy edtVisa index
+async function getVisaUserId(edtVisa: string): Promise<number | null> {
+    const initials = VISA_USER_INITIALS[edtVisa]
+    if (!initials) return null
+
+    const [user] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.initials, initials))
+        .limit(1)
+
+    return user?.id ?? null
 }
 
 // Generate invoice number from filename
@@ -384,6 +406,9 @@ async function importInvoiceFromFab(fabPath: string): Promise<boolean> {
         const vatAmount = parseSwissNumber(d["grdFacture25.4"])
         const totalTTC = parseSwissNumber(d["grdFacture26.4"])
 
+        // Get visa user ID
+        const visaByUserId = await getVisaUserId(d["edtVisa"] || "")
+
         // Insert invoice
         const [insertedInvoice] = await db
             .insert(invoices)
@@ -405,6 +430,7 @@ async function importInvoiceFromFab(fabPath: string): Promise<boolean> {
                 note,
                 otherServices,
                 visaDate,
+                visaByUserId,
                 feesBase,
                 feesAdjusted,
                 feesTotal,

@@ -768,7 +768,7 @@ Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,xxx,Type 1,Type 2,Type 3
 9764,,2592301,1121781,Granois Savièse,,,Infiltration,0,0
 9765,,2603963,1122007,Itravers Grône,,,Essais,0,0
 
-Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
+
 8588,,2592258.00,1115484.00,Nendaz,,Géotechnique,0,0
 8589,,2593683.00,1118742.00,Sion,,Infiltration,0,0
 8590,,2583400.00,1105022.00,Verbier,,Essais de plaque,0,0
@@ -1184,7 +1184,7 @@ Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
 8998,,2602798.00,1123140.00,Granges,,Polluants des bâtiments,0,0
 8999,,2566574.00,1116115.00,St-Maurice,,Dangers naturels,0,0
 
-Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
+
 8001,,2604244.375,1101768.71,Evolène,,Dangers naturels,Géotechnique,0
 8002,,2557454.722,1144199.34,Montreux,,Géothermie,0,0
 8003,,2589206.454,1115451.14,Haute-Nendaz,,Dangers naturels,0,0
@@ -1782,7 +1782,7 @@ Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
 8587,,2596939.455,1119599.98,Sion,,Géotechnique,0,0
 
 
-MANDAT,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
+
 7001,,2586705.7,1119061.25,,,Environnement,0,0
 7002,,2593158.645,1133477.09,,,Sonde géothermique,0,0
 7003,,2588051.655,1113607.22,,,Géotechnique,0,0
@@ -2772,7 +2772,7 @@ MANDAT,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
 7998,,2610409.599,1129153.11,Salquenen,,Infiltration,0,0
 7999,,2604244.375,1101768.71,Evolène,,Dangers naturels,Géotechnique,0
 
-Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
+
 6002,,2556725.134,1137976.88,,,Diagnostic amiante,0,0
 6004,,2586595.261,1118636.53,,,Hydro,Géotechnique,0
 6005,,2588213.486,1119121.91,,,Infiltration,0,0
@@ -3771,7 +3771,7 @@ Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
 6999,,2568061.327,1131591.79,,,Dangers naturels,0,0
 
 
-Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
+
 5001,,2587528.304,1110031.04,,,Géotechnique,0,0
 5002,,,,,Essaie ME Route de Vaas-Granges,Essais de plaque,0,0
 5003,,,,,Essaie ME Lens,Essais de plaque,0,0
@@ -4434,8 +4434,6 @@ Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
 5996,,2594141.154,1120375.03,,,Essais de plaque,0,0
 5997,,2592696.443,1122339.13,,,Danger hydrologique,0,0
 5999,,2589688.943,1111820.32,,,Dangers naturels,0,0
-
-Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
 4003,,2588648.932,1115012.88,,,Géotechnique,0,0
 4004,,2596249.905,1115078.83,,,Géotechnique,0,0
 4005,,2595949.495,1114330.1,,,Géotechnique,0,0
@@ -5053,7 +5051,7 @@ Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
 4999,,2560477.686,1141151.36,,,Géotechnique,0,0
 
 
-Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
+
 3001,,2589257.98,1114294.13,,,Géotechnique,0,0
 3003,,2587846.06,1114338.29,,,Géotechnique,0,0
 3005,,2591875.054,1113007.53,,,Hydrogéologie,0,0
@@ -5531,7 +5529,7 @@ Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
 320a,a,,,,,,,
 320b,b,,,,,,,
 
-Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
+
 2011,,2589519.405,1118275.08,,,Géotechnique,0,0
 2012,,2595999.411,1113399.87,,,Géotechnique,0,0
 2012,,2597099.399,1112999.84,,,Géotechnique,0,0
@@ -6357,7 +6355,7 @@ Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
 2998,,2595994.847,1114262.57,,,Géotechnique,0,0
 2999,,2601915.309,1122303.27,,,Géotechnique,0,0
 
-Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
+
 1002,,2541531.512,1150814.5,,Emplacement à vérifier ,,,
 1004,,2592463.435,1114776.07,,,Géotechnique,0,0
 1021,,2560738.693,1141412.38,,,Géotechnique,0,0
@@ -6376,7 +6374,7 @@ Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
 1711,,2591970.181,1118383.21,,,Géotechnique,0,0
 1797,,2599900.485,1126071.01,,Emplacement à vérifier ,Géotechnique,0,0
 
-Mandat,Sous-mandat,Coord_X,Coord_Y,Commune,Info,Type 1,Type 2,Type 3
+
 302,,2590443.045,1119332.83,,,,,
 304,,2534577.572,1154571.5,,,,,
 307,,2593854.454,1120238.81,,,,,

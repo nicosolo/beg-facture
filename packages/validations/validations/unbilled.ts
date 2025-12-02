@@ -6,7 +6,6 @@ import { vatRateSchema } from "./vatRate"
 
 // Response schema for unbilled activities
 export const UnbilledActivitiesResponseSchema = z.object({
-    activities: z.array(activityResponseSchema),
     rates: z.array(RateItemSchema),
     totalKilometers: z.number(),
     expensesTravelRate: z.number(),

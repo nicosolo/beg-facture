@@ -51,18 +51,6 @@ app.get(
             return c.json({ error: "Project not found" }, 404)
         }
 
-        // Fetch ALL unbilled activities for display
-        const allActivities = await activityRepository.findAll(user, {
-            projectId,
-            sortBy: "date",
-            sortOrder: "asc",
-            page: 1,
-            limit: 10000,
-            includeBilled: false,
-            includeDisbursement: false,
-            includeUnbilled: true,
-        })
-
         // Fetch activities within period for calculation
         const activitiesInPeriod = await activityRepository.findAll(user, {
             projectId,
@@ -71,15 +59,13 @@ app.get(
             page: 1,
             limit: 10000,
             includeBilled: false,
-            includeDisbursement: false,
             includeUnbilled: true,
             fromDate: periodStart || undefined,
             toDate: periodEnd || undefined,
         })
 
         // Filter to only unbilled activities
-        const unbilledActivities = allActivities.data.filter((a) => !a.billed)
-        const activitiesForCalculation = activitiesInPeriod.data.filter((a) => !a.billed)
+        const activitiesForCalculation = activitiesInPeriod.data
 
         const allUsers = await userRepository.findAllDetails()
         const userMap = new Map<number, (typeof allUsers)[0]>(allUsers.map((u) => [u.id, u]))
@@ -130,11 +116,8 @@ app.get(
             const classTotals = rateClassTotals.get(rateClass)!
 
             // Add duration to the rate class (duration is in minutes)
-            if (activity.activityType?.billable && !activity.disbursement) {
-                classTotals.base += activity.duration
-                classTotals.adjusted += activity.duration
-            }
-
+            classTotals.base += activity.duration
+            classTotals.adjusted += activity.duration
             // Sum up kilometers and expenses
             totalKilometers += activity.kilometers || 0
             totalExpenses += activity.expenses || 0
@@ -167,7 +150,6 @@ app.get(
         const activityIds = activitiesForCalculation.map((a) => a.id)
 
         const response: UnbilledActivitiesResponse = {
-            activities: unbilledActivities,
             rates,
             totalKilometers,
             totalExpenses,

@@ -538,7 +538,6 @@ import { useVModel } from "@vueuse/core"
 
 const props = defineProps<{
     modelValue: Invoice
-    unbilledActivities?: ActivityResponse[]
 }>()
 
 const emit = defineEmits<{

@@ -51,7 +51,6 @@
                 <InvoiceDetails
                     v-if="activeTab === 'details' && activityBasedBilling"
                     v-model="invoice"
-                    :unbilledActivities="unbilledActivities"
                 />
             </div>
             <template #actions>
@@ -138,7 +137,6 @@ const savingError = ref<string | null>(null)
 
 // Form state
 const invoice = ref<Invoice | null>(null)
-const unbilledActivities = ref<ActivityResponse[]>([])
 
 watch(
     () => invoice.value?.offers ?? [],
@@ -561,7 +559,6 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
         })
 
         if (unbilledData) {
-            unbilledActivities.value = unbilledData.activities || []
             // Keep the original period if it was passed, otherwise use API calculation
             const finalPeriodStart =
                 periodStart ||

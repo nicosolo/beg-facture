@@ -225,13 +225,16 @@ function parseAttachedFiles(
 }
 
 // Map edtType to InvoiceType
+// DFM Items: 0='Facture', 1='Facture finale', 2='Situation', 3='Acompte'
 function mapInvoiceType(edtType: string): InvoiceType {
     switch (edtType) {
+        case "0":
+            return "invoice"
         case "1":
             return "final_invoice"
         case "2":
-            return "invoice"
-        case "0":
+            return "situation"
+        case "3":
             return "deposit"
         default:
             return "invoice"

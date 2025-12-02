@@ -43,6 +43,8 @@ type UploadedInvoiceFiles = {
     invoiceDocument?: File
     offers: Record<number, File>
     adjudications: Record<number, File>
+    situations: Record<number, File>
+    documents: Record<number, File>
 }
 
 const invoiceFileParamSchema = z.object({
@@ -57,6 +59,8 @@ const collectUploadedFiles = (formData: FormData): UploadedInvoiceFiles => {
     const files: UploadedInvoiceFiles = {
         offers: {},
         adjudications: {},
+        situations: {},
+        documents: {},
     }
 
     const invoiceDocument = formData.get("invoiceDocument")
@@ -76,6 +80,18 @@ const collectUploadedFiles = (formData: FormData): UploadedInvoiceFiles => {
         const adjudicationMatch = key.match(/^adjudicationFiles\[(\d+)\]$/)
         if (adjudicationMatch) {
             files.adjudications[Number(adjudicationMatch[1])] = value
+            return
+        }
+
+        const situationMatch = key.match(/^situationFiles\[(\d+)\]$/)
+        if (situationMatch) {
+            files.situations[Number(situationMatch[1])] = value
+            return
+        }
+
+        const documentMatch = key.match(/^documentFiles\[(\d+)\]$/)
+        if (documentMatch) {
+            files.documents[Number(documentMatch[1])] = value
         }
     })
 
@@ -130,7 +146,7 @@ const parseInvoiceRequestBody = async (
     try {
         const jsonPayload = await c.req.json()
         const invoiceData = await parseInvoicePayload(jsonPayload, mode)
-        return { invoiceData, uploadedFiles: { offers: {}, adjudications: {} } }
+        return { invoiceData, uploadedFiles: { offers: {}, adjudications: {}, situations: {}, documents: {} } }
     } catch (error) {
         if (error instanceof SyntaxError) {
             throwValidationError("Invalid invoice payload")
@@ -143,7 +159,9 @@ const hasUploadedFiles = (files: UploadedInvoiceFiles) => {
     return (
         Boolean(files.invoiceDocument) ||
         Object.keys(files.offers).length > 0 ||
-        Object.keys(files.adjudications).length > 0
+        Object.keys(files.adjudications).length > 0 ||
+        Object.keys(files.situations).length > 0 ||
+        Object.keys(files.documents).length > 0
     )
 }
 
@@ -213,6 +231,46 @@ const persistUploadedFiles = async (
 
         invoiceData.adjudications = adjudications as any
     }
+
+    if (files.situations) {
+        const situations = Array.isArray(invoiceData.situations)
+            ? [...invoiceData.situations]
+            : []
+
+        for (const [indexKey, file] of Object.entries(files.situations)) {
+            const index = Number(indexKey)
+            if (!file) continue
+            const safeName = sanitizeFileName(file.name)
+            const destinationPath = path.join(destinationFolder, safeName)
+            await writeUploadedFile(file, destinationPath)
+
+            const existing = situations[index] ? { ...situations[index] } : ({} as any)
+            existing.file = destinationPath.replace(/\\/g, "/")
+            situations[index] = existing
+        }
+
+        invoiceData.situations = situations as any
+    }
+
+    if (files.documents) {
+        const documents = Array.isArray(invoiceData.documents)
+            ? [...invoiceData.documents]
+            : []
+
+        for (const [indexKey, file] of Object.entries(files.documents)) {
+            const index = Number(indexKey)
+            if (!file) continue
+            const safeName = sanitizeFileName(file.name)
+            const destinationPath = path.join(destinationFolder, safeName)
+            await writeUploadedFile(file, destinationPath)
+
+            const existing = documents[index] ? { ...documents[index] } : ({} as any)
+            existing.file = destinationPath.replace(/\\/g, "/")
+            documents[index] = existing
+        }
+
+        invoiceData.documents = documents as any
+    }
 }
 
 const handleInvoiceUploads = async (
@@ -237,7 +295,7 @@ const handleInvoiceUploads = async (
         ])
     }
 
-    const invoiceFolder = await findProjectInvoiceFolder(project.projectNumber)
+    const invoiceFolder = await findProjectInvoiceFolder(project.projectNumber || "undefined")
     if (!invoiceFolder) {
         throwNoProjectFolderError("Invoice folder not found", [
             {
@@ -307,6 +365,14 @@ export const invoiceRoutes = new Hono<{ Variables: Variables }>()
             (invoice.adjudications?.some((adj: any) =>
                 matchesStoredPath(adj.file, normalizedFileName)
             ) ??
+                false) ||
+            (invoice.situations?.some((sit: any) =>
+                matchesStoredPath(sit.file, normalizedFileName)
+            ) ??
+                false) ||
+            (invoice.documents?.some((doc: any) =>
+                matchesStoredPath(doc.file, normalizedFileName)
+            ) ??
                 false)
         if (!isKnownDocument) {
             throwNotFound("Invoice document")
@@ -353,6 +419,8 @@ export const invoiceRoutes = new Hono<{ Variables: Variables }>()
         addStoredCandidates(invoice.invoiceDocument)
         invoice.offers?.forEach((offer: any) => addStoredCandidates(offer.file))
         invoice.adjudications?.forEach((adj: any) => addStoredCandidates(adj.file))
+        invoice.situations?.forEach((sit: any) => addStoredCandidates(sit.file))
+        invoice.documents?.forEach((doc: any) => addStoredCandidates(doc.file))
         candidatePaths.add(path.resolve(invoiceFolder.fullPath, fileBaseName(normalizedFileName)))
 
         let targetPath: string | null = null

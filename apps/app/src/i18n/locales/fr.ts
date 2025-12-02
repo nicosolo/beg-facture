@@ -509,6 +509,16 @@ export default {
                 add: "Ajouter une adjudication",
                 empty: "Aucune adjudication enregistrée",
             },
+            situation: {
+                title: "Situations",
+                add: "Ajouter une situation",
+                empty: "Aucune situation enregistrée",
+            },
+            document: {
+                title: "Documents",
+                add: "Ajouter un document",
+                empty: "Aucun document enregistré",
+            },
             headers: {
                 file: "Fichier",
                 date: "Date",

@@ -60,6 +60,27 @@ export const AdjudicationSchema = z.object({
     remark: z.string().default(""),
 })
 
+// Situation schema (same as Adjudication)
+export const SituationSchema = z.object({
+    file: z.string().default(""),
+    date: z
+        .date()
+        .optional()
+        .or(z.string().transform((str) => (str ? new Date(str) : new Date()))),
+    amount: z.number().default(0),
+    remark: z.string().default(""),
+})
+
+// Document schema (same as Adjudication but without amount)
+export const DocumentSchema = z.object({
+    file: z.string().default(""),
+    date: z
+        .date()
+        .optional()
+        .or(z.string().transform((str) => (str ? new Date(str) : new Date()))),
+    remark: z.string().default(""),
+})
+
 // ============================================================================
 // Frontend Invoice Schema (with flat structure matching DB)
 // ============================================================================
@@ -132,6 +153,8 @@ export const InvoiceSchema = z.object({
     rates: z.array(RateItemSchema).default([]),
     offers: z.array(OfferSchema).default([]),
     adjudications: z.array(AdjudicationSchema).default([]),
+    situations: z.array(SituationSchema).default([]),
+    documents: z.array(DocumentSchema).default([]),
 
     // Activity IDs for marking as billed after invoice creation
     activityIds: z.array(z.number()).optional(),
@@ -210,6 +233,8 @@ export const invoiceCreateSchema = z.object({
     rates: z.array(RateItemSchema).default([]),
     offers: z.array(OfferSchema).default([]),
     adjudications: z.array(AdjudicationSchema).default([]),
+    situations: z.array(SituationSchema).default([]),
+    documents: z.array(DocumentSchema).default([]),
 
     // Activity IDs to mark as billed after invoice creation
     activityIds: z.array(z.number()).optional(),
@@ -298,6 +323,8 @@ export const invoiceResponseSchema = z
         rates: z.array(RateItemSchema),
         offers: z.array(OfferSchema),
         adjudications: z.array(AdjudicationSchema),
+        situations: z.array(SituationSchema),
+        documents: z.array(DocumentSchema),
 
         project: z
             .object({

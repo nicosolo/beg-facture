@@ -130,6 +130,8 @@ const authStore = useAuthStore()
 
 const pendingOfferFiles = ref<(File | null)[]>([])
 const pendingAdjudicationFiles = ref<(File | null)[]>([])
+const pendingSituationFiles = ref<(File | null)[]>([])
+const pendingDocumentFiles = ref<(File | null)[]>([])
 const pendingInvoiceDocumentFile = ref<File | null>(null)
 const savingInvoice = ref(false)
 const savingError = ref<string | null>(null)
@@ -156,10 +158,30 @@ watch(
     { deep: true, immediate: true }
 )
 
+watch(
+    () => invoice.value?.situations ?? [],
+    (situations) => {
+        const next = situations.map((_, index) => pendingSituationFiles.value[index] ?? null)
+        pendingSituationFiles.value = next
+    },
+    { deep: true, immediate: true }
+)
+
+watch(
+    () => invoice.value?.documents ?? [],
+    (documents) => {
+        const next = documents.map((_, index) => pendingDocumentFiles.value[index] ?? null)
+        pendingDocumentFiles.value = next
+    },
+    { deep: true, immediate: true }
+)
+
 const hasPendingUploads = computed(
     () =>
         pendingOfferFiles.value.some(Boolean) ||
         pendingAdjudicationFiles.value.some(Boolean) ||
+        pendingSituationFiles.value.some(Boolean) ||
+        pendingDocumentFiles.value.some(Boolean) ||
         Boolean(pendingInvoiceDocumentFile.value)
 )
 
@@ -168,7 +190,7 @@ const handleDocumentFileChange = ({
     index,
     file,
 }: {
-    type: "offer" | "adjudication"
+    type: "offer" | "adjudication" | "situation" | "document"
     index: number
     file: File | null
 }) => {
@@ -176,10 +198,18 @@ const handleDocumentFileChange = ({
         const next = [...pendingOfferFiles.value]
         next[index] = file ?? null
         pendingOfferFiles.value = next
-    } else {
+    } else if (type === "adjudication") {
         const next = [...pendingAdjudicationFiles.value]
         next[index] = file ?? null
         pendingAdjudicationFiles.value = next
+    } else if (type === "situation") {
+        const next = [...pendingSituationFiles.value]
+        next[index] = file ?? null
+        pendingSituationFiles.value = next
+    } else {
+        const next = [...pendingDocumentFiles.value]
+        next[index] = file ?? null
+        pendingDocumentFiles.value = next
     }
 }
 
@@ -187,17 +217,25 @@ const handleDocumentEntryRemoved = ({
     type,
     index,
 }: {
-    type: "offer" | "adjudication"
+    type: "offer" | "adjudication" | "situation" | "document"
     index: number
 }) => {
     if (type === "offer") {
         const next = [...pendingOfferFiles.value]
         next.splice(index, 1)
         pendingOfferFiles.value = next
-    } else {
+    } else if (type === "adjudication") {
         const next = [...pendingAdjudicationFiles.value]
         next.splice(index, 1)
         pendingAdjudicationFiles.value = next
+    } else if (type === "situation") {
+        const next = [...pendingSituationFiles.value]
+        next.splice(index, 1)
+        pendingSituationFiles.value = next
+    } else {
+        const next = [...pendingDocumentFiles.value]
+        next.splice(index, 1)
+        pendingDocumentFiles.value = next
     }
 }
 
@@ -295,6 +333,8 @@ const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
         rates: response.rates || [],
         offers: response.offers || [],
         adjudications: response.adjudications || [],
+        situations: response.situations || [],
+        documents: response.documents || [],
     }
 }
 
@@ -359,6 +399,8 @@ const convertInvoiceToInput = (invoice: Invoice): any => {
         rates: invoice.rates || [],
         offers: invoice.offers || [],
         adjudications: invoice.adjudications || [],
+        situations: invoice.situations || [],
+        documents: invoice.documents || [],
 
         // Activity IDs if present
         activityIds: invoice.activityIds,
@@ -423,6 +465,18 @@ const handleSave = async () => {
                 }
             })
 
+            pendingSituationFiles.value.forEach((file, index) => {
+                if (file) {
+                    formData.append(`situationFiles[${index}]`, file)
+                }
+            })
+
+            pendingDocumentFiles.value.forEach((file, index) => {
+                if (file) {
+                    formData.append(`documentFiles[${index}]`, file)
+                }
+            })
+
             body = formData
         } else {
             headers["Content-Type"] = "application/json"
@@ -448,6 +502,8 @@ const handleSave = async () => {
 
         pendingOfferFiles.value = pendingOfferFiles.value.map(() => null)
         pendingAdjudicationFiles.value = pendingAdjudicationFiles.value.map(() => null)
+        pendingSituationFiles.value = pendingSituationFiles.value.map(() => null)
+        pendingDocumentFiles.value = pendingDocumentFiles.value.map(() => null)
         pendingInvoiceDocumentFile.value = null
 
         successAlert(t("invoice.save.success"), 4000)

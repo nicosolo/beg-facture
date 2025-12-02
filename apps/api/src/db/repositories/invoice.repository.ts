@@ -5,6 +5,8 @@ import {
     invoiceRates,
     invoiceOffers,
     invoiceAdjudications,
+    invoiceSituations,
+    invoiceDocuments,
     projects,
     activities,
     clients,
@@ -137,6 +139,16 @@ export const invoiceRepository = {
                     .from(invoiceAdjudications)
                     .where(eq(invoiceAdjudications.invoiceId, row.invoice.id))
 
+                const situations = await db
+                    .select()
+                    .from(invoiceSituations)
+                    .where(eq(invoiceSituations.invoiceId, row.invoice.id))
+
+                const documents = await db
+                    .select()
+                    .from(invoiceDocuments)
+                    .where(eq(invoiceDocuments.invoiceId, row.invoice.id))
+
                 return {
                     // Basic fields
                     id: row.invoice.id,
@@ -218,6 +230,17 @@ export const invoiceRepository = {
                         amount: a.amount,
                         remark: a.remark || "",
                     })),
+                    situations: situations.map((s) => ({
+                        file: s.file,
+                        date: s.date,
+                        amount: s.amount,
+                        remark: s.remark || "",
+                    })),
+                    documents: documents.map((d) => ({
+                        file: d.file,
+                        date: d.date,
+                        remark: d.remark || "",
+                    })),
 
                     // Project info - flat
                     project: {
@@ -279,6 +302,16 @@ export const invoiceRepository = {
             .select()
             .from(invoiceAdjudications)
             .where(eq(invoiceAdjudications.invoiceId, id))
+
+        const situations = await db
+            .select()
+            .from(invoiceSituations)
+            .where(eq(invoiceSituations.invoiceId, id))
+
+        const documents = await db
+            .select()
+            .from(invoiceDocuments)
+            .where(eq(invoiceDocuments.invoiceId, id))
 
         // Transform and return - fully flat structure
         return {
@@ -362,6 +395,17 @@ export const invoiceRepository = {
                 date: a.date,
                 amount: a.amount,
                 remark: a.remark || "",
+            })),
+            situations: situations.map((s) => ({
+                file: s.file,
+                date: s.date,
+                amount: s.amount,
+                remark: s.remark || "",
+            })),
+            documents: documents.map((d) => ({
+                file: d.file,
+                date: d.date,
+                remark: d.remark || "",
             })),
 
             // Project info - flat
@@ -495,6 +539,35 @@ export const invoiceRepository = {
                         date: adj.date || new Date(),
                         amount: adj.amount,
                         remark: adj.remark,
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                    }))
+                )
+            }
+
+            // Create situations
+            if (data.situations && data.situations.length > 0) {
+                await tx.insert(invoiceSituations).values(
+                    data.situations.map((sit) => ({
+                        invoiceId: invoice.id,
+                        file: sit.file,
+                        date: sit.date || new Date(),
+                        amount: sit.amount,
+                        remark: sit.remark,
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                    }))
+                )
+            }
+
+            // Create documents
+            if (data.documents && data.documents.length > 0) {
+                await tx.insert(invoiceDocuments).values(
+                    data.documents.map((doc) => ({
+                        invoiceId: invoice.id,
+                        file: doc.file,
+                        date: doc.date || new Date(),
+                        remark: doc.remark,
                         createdAt: new Date(),
                         updatedAt: new Date(),
                     }))
@@ -670,6 +743,41 @@ export const invoiceRepository = {
                             date: adj.date || new Date(),
                             amount: adj.amount,
                             remark: adj.remark,
+                            createdAt: new Date(),
+                            updatedAt: new Date(),
+                        }))
+                    )
+                }
+            }
+
+            // Update situations if provided
+            if (data.situations) {
+                await tx.delete(invoiceSituations).where(eq(invoiceSituations.invoiceId, id))
+                if (data.situations.length > 0) {
+                    await tx.insert(invoiceSituations).values(
+                        data.situations.map((sit) => ({
+                            invoiceId: id,
+                            file: sit.file,
+                            date: sit.date || new Date(),
+                            amount: sit.amount,
+                            remark: sit.remark,
+                            createdAt: new Date(),
+                            updatedAt: new Date(),
+                        }))
+                    )
+                }
+            }
+
+            // Update documents if provided
+            if (data.documents) {
+                await tx.delete(invoiceDocuments).where(eq(invoiceDocuments.invoiceId, id))
+                if (data.documents.length > 0) {
+                    await tx.insert(invoiceDocuments).values(
+                        data.documents.map((doc) => ({
+                            invoiceId: id,
+                            file: doc.file,
+                            date: doc.date || new Date(),
+                            remark: doc.remark,
                             createdAt: new Date(),
                             updatedAt: new Date(),
                         }))

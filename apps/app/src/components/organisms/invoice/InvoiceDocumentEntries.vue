@@ -23,7 +23,7 @@
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                             {{ t("invoice.documents.headers.date") }}
                         </th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th v-if="showAmount" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                             {{ t("invoice.documents.headers.amount") }}
                         </th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
@@ -36,7 +36,7 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     <tr v-if="!entries.length">
-                        <td class="px-4 py-3 text-sm text-gray-500" colspan="5">
+                        <td class="px-4 py-3 text-sm text-gray-500" :colspan="showAmount ? 5 : 4">
                             {{ emptyStateLabel }}
                         </td>
                     </tr>
@@ -73,7 +73,7 @@
                                 @update:modelValue="(value) => updateEntry(index, 'date', value)"
                             />
                         </td>
-                        <td class="px-4 py-2 text-sm text-gray-900">
+                        <td v-if="showAmount" class="px-4 py-2 text-sm text-gray-900">
                             <Input
                                 type="number"
                                 :modelValue="formatAmount(entry.amount)"
@@ -120,14 +120,17 @@ export interface InvoiceDocumentEntry {
     remark?: string | null
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     title: string
     addButtonLabel: string
     emptyStateLabel: string
-    entryType: "offer" | "adjudication"
+    entryType: "offer" | "adjudication" | "situation" | "document"
     modelValue: InvoiceDocumentEntry[]
     accept?: string
-}>()
+    showAmount?: boolean
+}>(), {
+    showAmount: true,
+})
 
 const emit = defineEmits<{
     (e: "update:modelValue", value: InvoiceDocumentEntry[]): void
@@ -144,6 +147,8 @@ const entries = computed({
 })
 
 const accept = computed(() => props.accept || ".pdf,.doc,.docx,.xls,.xlsx")
+
+const showAmount = computed(() => props.showAmount)
 
 const addEntry = () => {
     entries.value = [

@@ -424,6 +424,45 @@ export const invoiceAdjudications = sqliteTable(
     ]
 )
 
+// Invoice situations table
+export const invoiceSituations = sqliteTable(
+    "invoice_situations",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        invoiceId: integer("invoiceId")
+            .notNull()
+            .references(() => invoices.id, { onDelete: "cascade" }),
+        file: text("file").notNull().default(""),
+        date: integer("date", { mode: "timestamp" }).notNull(),
+        amount: integer("amount").notNull().default(0),
+        remark: text("remark").default(""),
+        ...timestamps,
+    },
+    (table) => [
+        // Index for invoice queries
+        index("invoice_situations_invoice_idx").on(table.invoiceId),
+    ]
+)
+
+// Invoice documents table
+export const invoiceDocuments = sqliteTable(
+    "invoice_documents",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        invoiceId: integer("invoiceId")
+            .notNull()
+            .references(() => invoices.id, { onDelete: "cascade" }),
+        file: text("file").notNull().default(""),
+        date: integer("date", { mode: "timestamp" }).notNull(),
+        remark: text("remark").default(""),
+        ...timestamps,
+    },
+    (table) => [
+        // Index for invoice queries
+        index("invoice_documents_invoice_idx").on(table.invoiceId),
+    ]
+)
+
 // VAT rates table
 export const vatRates = sqliteTable(
     "vat_rates",

@@ -490,6 +490,62 @@
                     </tr>
                 </tbody>
             </table>
+
+            <table
+                class="line w-full border border-gray-300 border-collapse"
+                v-if="invoice.situations && invoice.situations.length > 0"
+            >
+                <caption class="sub text-left font-bold p-1 text-sm">
+                    Liste des situations
+                </caption>
+                <tbody>
+                    <tr v-for="(situation, index) in invoice.situations" :key="index">
+                        <td class="doc1 w-[1.8cm] border-none p-1 text-sm">
+                            {{ formatDate(situation.date) }}
+                        </td>
+                        <td class="doc2 w-[5.7cm] border-none p-1 text-sm">
+                            <button
+                                v-if="buildFileUrl(situation.file)"
+                                type="button"
+                                class="text-blue-600 hover:underline"
+                                @click="downloadInvoiceFile(situation.file)"
+                            >
+                                {{ extractFileName(situation.file) }}
+                            </button>
+                            <template v-else>{{ extractFileName(situation.file) }}</template>
+                        </td>
+                        <td class="doc3 border-none p-1 text-sm">{{ situation.remark }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table
+                class="line w-full border border-gray-300 border-collapse"
+                v-if="invoice.documents && invoice.documents.length > 0"
+            >
+                <caption class="sub text-left font-bold p-1 text-sm">
+                    Liste des documents
+                </caption>
+                <tbody>
+                    <tr v-for="(document, index) in invoice.documents" :key="index">
+                        <td class="doc1 w-[1.8cm] border-none p-1 text-sm">
+                            {{ formatDate(document.date) }}
+                        </td>
+                        <td class="doc2 w-[5.7cm] border-none p-1 text-sm">
+                            <button
+                                v-if="buildFileUrl(document.file)"
+                                type="button"
+                                class="text-blue-600 hover:underline"
+                                @click="downloadInvoiceFile(document.file)"
+                            >
+                                {{ extractFileName(document.file) }}
+                            </button>
+                            <template v-else>{{ extractFileName(document.file) }}</template>
+                        </td>
+                        <td class="doc3 border-none p-1 text-sm">{{ document.remark }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </template>

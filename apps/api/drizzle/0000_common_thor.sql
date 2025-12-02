@@ -69,6 +69,18 @@ CREATE TABLE `invoice_adjudications` (
 );
 --> statement-breakpoint
 CREATE INDEX `invoice_adjudications_invoice_idx` ON `invoice_adjudications` (`invoiceId`);--> statement-breakpoint
+CREATE TABLE `invoice_documents` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`invoiceId` integer NOT NULL,
+	`file` text DEFAULT '' NOT NULL,
+	`date` integer NOT NULL,
+	`remark` text DEFAULT '',
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`invoiceId`) REFERENCES `invoices`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `invoice_documents_invoice_idx` ON `invoice_documents` (`invoiceId`);--> statement-breakpoint
 CREATE TABLE `invoice_offers` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`invoiceId` integer NOT NULL,
@@ -96,6 +108,19 @@ CREATE TABLE `invoice_rates` (
 );
 --> statement-breakpoint
 CREATE INDEX `invoice_rates_invoice_idx` ON `invoice_rates` (`invoiceId`);--> statement-breakpoint
+CREATE TABLE `invoice_situations` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`invoiceId` integer NOT NULL,
+	`file` text DEFAULT '' NOT NULL,
+	`date` integer NOT NULL,
+	`amount` integer DEFAULT 0 NOT NULL,
+	`remark` text DEFAULT '',
+	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`invoiceId`) REFERENCES `invoices`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `invoice_situations_invoice_idx` ON `invoice_situations` (`invoiceId`);--> statement-breakpoint
 CREATE TABLE `invoices` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`projectId` integer NOT NULL,

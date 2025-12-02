@@ -28,6 +28,23 @@
                 </label>
                 <Textarea id="invoiceNote" v-model="invoice.note" :rows="4" />
             </div>
+            <div class="mb-4">
+                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceClientAddress">
+                    Adresse de facturation (société)
+                </label>
+                <Textarea id="invoiceClientAddress" v-model="invoice.clientAddress" :rows="4" />
+            </div>
+
+            <div>
+                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceRecipientAddress">
+                    Adresse d'envoi de la facture
+                </label>
+                <Textarea
+                    id="invoiceRecipientAddress"
+                    v-model="invoice.recipientAddress"
+                    :rows="4"
+                />
+            </div>
         </div>
 
         <div>
@@ -162,22 +179,27 @@
                 @file-change="(payload) => handleDocumentFileChange('adjudication', payload)"
                 @entry-removed="(payload) => handleDocumentEntryRemoved('adjudication', payload)"
             />
-        </div>
-    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <div>
-            <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceClientAddress">
-                Adresse de facturation (société)
-            </label>
-            <Textarea id="invoiceClientAddress" v-model="invoice.clientAddress" :rows="4" />
-        </div>
+            <InvoiceDocumentEntries
+                v-model="invoice.situations"
+                :title="$t('invoice.documents.situation.title')"
+                :add-button-label="$t('invoice.documents.situation.add')"
+                :empty-state-label="$t('invoice.documents.situation.empty')"
+                entry-type="situation"
+                @file-change="(payload) => handleDocumentFileChange('situation', payload)"
+                @entry-removed="(payload) => handleDocumentEntryRemoved('situation', payload)"
+            />
 
-        <div>
-            <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceRecipientAddress">
-                Adresse d'envoi de la facture
-            </label>
-            <Textarea id="invoiceRecipientAddress" v-model="invoice.recipientAddress" :rows="4" />
+            <InvoiceDocumentEntries
+                v-model="invoice.documents"
+                :title="$t('invoice.documents.document.title')"
+                :add-button-label="$t('invoice.documents.document.add')"
+                :empty-state-label="$t('invoice.documents.document.empty')"
+                entry-type="document"
+                :show-amount="false"
+                @file-change="(payload) => handleDocumentFileChange('document', payload)"
+                @entry-removed="(payload) => handleDocumentEntryRemoved('document', payload)"
+            />
         </div>
     </div>
 </template>
@@ -201,9 +223,15 @@ const props = defineProps<{
 const emit = defineEmits<{
     "update:modelValue": [value: Invoice]
     "document-file-change": [
-        value: { type: "offer" | "adjudication"; index: number; file: File | null },
+        value: {
+            type: "offer" | "adjudication" | "situation" | "document"
+            index: number
+            file: File | null
+        },
     ]
-    "document-entry-removed": [value: { type: "offer" | "adjudication"; index: number }]
+    "document-entry-removed": [
+        value: { type: "offer" | "adjudication" | "situation" | "document"; index: number },
+    ]
     "invoice-document-change": [value: File | null]
 }>()
 
@@ -228,13 +256,16 @@ const invoiceDocumentPreviewUrl = computed(() => {
 const invoiceDocumentDisplayName = computed(() => extractFileName(invoice.value.invoiceDocument))
 
 const handleDocumentFileChange = (
-    type: "offer" | "adjudication",
+    type: "offer" | "adjudication" | "situation" | "document",
     payload: { index: number; file: File | null }
 ) => {
     emit("document-file-change", { type, ...payload })
 }
 
-const handleDocumentEntryRemoved = (type: "offer" | "adjudication", payload: { index: number }) => {
+const handleDocumentEntryRemoved = (
+    type: "offer" | "adjudication" | "situation" | "document",
+    payload: { index: number }
+) => {
     emit("document-entry-removed", { type, ...payload })
 }
 

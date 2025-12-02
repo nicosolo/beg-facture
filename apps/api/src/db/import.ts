@@ -1072,7 +1072,7 @@ export async function runImport(customExportDir?: string) {
         importProjectMemebers,
         importVatRates,
         importMonthlyHours,
-        importInvoices,
+        // importInvoices,
     ]
 
     for (const importFunction of importFunctions) {

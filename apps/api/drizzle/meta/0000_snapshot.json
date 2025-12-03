@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b8a6420a-9df3-4148-857c-2f6b57059652",
+  "id": "b584b814-b02e-49da-ac04-f91e0060e4d8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activities": {
@@ -251,6 +251,14 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "adminOnly": {
+          "name": "adminOnly",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
         },
         "updatedAt": {
           "name": "updatedAt",

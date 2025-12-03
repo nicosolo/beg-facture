@@ -5,6 +5,8 @@
             type="date"
             :model-value="dateString"
             :disabled="disabled"
+            :min="minString"
+            :max="maxString"
             @update:model-value="handleDateChange"
         />
     </div>
@@ -20,9 +22,11 @@ interface DateFieldProps {
     modelValue?: Date
     disabled?: boolean
     labelClassName?: string
+    min?: Date
+    max?: Date
 }
 
-const { label, modelValue, disabled, labelClassName } = defineProps<DateFieldProps>()
+const { label, modelValue, disabled, labelClassName, min, max } = defineProps<DateFieldProps>()
 
 const emit = defineEmits<{
     (e: "update:modelValue", value?: Date): void
@@ -32,6 +36,9 @@ const dateString = computed(() => {
     if (!modelValue) return ""
     return modelValue.toISOString().split("T")[0]
 })
+
+const minString = computed(() => min?.toISOString().split("T")[0])
+const maxString = computed(() => max?.toISOString().split("T")[0])
 
 function handleDateChange(value: string) {
     if (!value) {

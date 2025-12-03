@@ -86,6 +86,7 @@ const selectFields = (user: Variables["user"]) => ({
         name: activityTypes.name,
         code: activityTypes.code,
         billable: activityTypes.billable,
+        adminOnly: activityTypes.adminOnly,
     },
 })
 
@@ -97,7 +98,7 @@ const createBaseQuery = (user: Variables["user"]) =>
         .leftJoin(projects, eq(activities.projectId, projects.id))
         .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
 
-const buildFilterComponents = (filter: ActivityFilter) => {
+const buildFilterComponents = (filter: ActivityFilter, user?: Variables["user"]) => {
     const {
         userId,
         projectId,
@@ -119,6 +120,7 @@ const buildFilterComponents = (filter: ActivityFilter) => {
     if (fromDate) whereConditions.push(gte(activities.date, fromDate))
     if (toDate) whereConditions.push(lte(activities.date, toDate))
     if (activityTypeId) whereConditions.push(eq(activities.activityTypeId, activityTypeId))
+    // Non-admin users cannot see activities with adminOnly activity types
 
     const billingConditions = []
     if (includeBilled) billingConditions.push(eq(activities.billed, true))
@@ -126,9 +128,16 @@ const buildFilterComponents = (filter: ActivityFilter) => {
 
     // Disbursement filters - only for activities with expenses > 0
     if (includeDisbursed)
-        billingConditions.push(and(eq(activities.disbursement, true), sql`${activities.expenses} > 0`))
+        billingConditions.push(
+            and(eq(activities.disbursement, true), sql`${activities.expenses} > 0`)
+        )
     if (includeNotDisbursed)
-        billingConditions.push(and(eq(activities.disbursement, false), sql`${activities.expenses} > 0`))
+        billingConditions.push(
+            and(eq(activities.disbursement, false), sql`${activities.expenses} > 0`)
+        )
+    if (user && !hasRole(user.role, "admin")) {
+        whereConditions.push(eq(activityTypes.adminOnly, false))
+    }
 
     if (billingConditions.length > 0) {
         whereConditions.push(or(...billingConditions))
@@ -171,7 +180,10 @@ export const activityRepository = {
     findAll: async (user: Variables["user"], filter: ActivityFilter) => {
         const { page = 1, limit = 10 } = filter
         const offset = (page - 1) * limit
-        const { whereConditions, sortDirection, secondarySort } = buildFilterComponents(filter)
+        const { whereConditions, sortDirection, secondarySort } = buildFilterComponents(
+            filter,
+            user
+        )
 
         // Query with conditions
         const baseQuery = createBaseQuery(user)
@@ -199,7 +211,7 @@ export const activityRepository = {
             .select({ count: sql<number>`count(*)` })
             .from(activities)
             .leftJoin(projects, eq(activities.projectId, projects.id))
-
+            .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
         // Disable access control for now
         // if (user.role !== "admin") {
         //     countQuery.innerJoin(
@@ -222,7 +234,7 @@ export const activityRepository = {
             })
             .from(activities)
             .leftJoin(projects, eq(activities.projectId, projects.id))
-
+            .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
         // Disable access control for now
         if (user.role !== "admin") {
             totalsQuery.innerJoin(
@@ -252,7 +264,10 @@ export const activityRepository = {
     },
 
     findAllForExport: async (user: Variables["user"], filter: ActivityFilter) => {
-        const { whereConditions, sortDirection, secondarySort } = buildFilterComponents(filter)
+        const { whereConditions, sortDirection, secondarySort } = buildFilterComponents(
+            filter,
+            user
+        )
         const baseQuery = createBaseQuery(user)
 
         const dataQuery =
@@ -295,6 +310,7 @@ export const activityRepository = {
                     name: activityTypes.name,
                     code: activityTypes.code,
                     billable: activityTypes.billable,
+                    adminOnly: activityTypes.adminOnly,
                 },
             })
             .from(activities)
@@ -302,15 +318,14 @@ export const activityRepository = {
             .leftJoin(projects, eq(activities.projectId, projects.id))
             .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
 
-        // Disable access control for now
-        // if (user.role !== "admin") {
-        //     query.innerJoin(
-        //         projectUsers,
-        //         and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
-        //     )
-        // }
+        // Build where conditions
+        const whereConditions = [eq(activities.id, id)]
+        // Non-admin users cannot see activities with adminOnly activity types
+        if (!hasRole(user.role, "admin")) {
+            whereConditions.push(eq(activityTypes.adminOnly, false))
+        }
 
-        const result = await query.where(eq(activities.id, id))
+        const result = await query.where(and(...whereConditions))
 
         return result[0] || null
     },

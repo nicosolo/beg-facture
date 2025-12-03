@@ -20,6 +20,12 @@
                     </span>
                 </template>
 
+                <template #cell:adminOnly="{ item }">
+                    <span :class="item.adminOnly ? 'text-orange-600' : 'text-gray-400'">
+                        {{ item.adminOnly ? "Oui" : "Non" }}
+                    </span>
+                </template>
+
                 <template #cell:actions="{ item }">
                     <div class="flex justify-end gap-2">
                         <Button variant="ghost-primary" size="sm" @click="openEditDialog(item)">
@@ -101,10 +107,11 @@ const dialogTitle = computed(() =>
 
 const columns = [
     { key: "id", label: "ID", width: "10%" },
-    { key: "name", label: "Nom", width: "35%" },
-    { key: "code", label: "Code", width: "20%" },
-    { key: "billable", label: "Facturable", width: "20%" },
-    { key: "actions", label: "Actions", width: "15%", actions: true },
+    { key: "name", label: "Nom", width: "25%" },
+    { key: "code", label: "Code", width: "15%" },
+    { key: "billable", label: "Facturable", width: "15%" },
+    { key: "adminOnly", label: "Admin", width: "15%" },
+    { key: "actions", label: "Actions", width: "20%", actions: true },
 ]
 
 // Load activity types on mount
@@ -130,7 +137,7 @@ const closeDialog = () => {
 }
 
 // Save handler
-const handleSave = async (data: { name: string; code: string; billable: boolean }) => {
+const handleSave = async (data: { name: string; code: string; billable: boolean; adminOnly: boolean }) => {
     if (selectedActivityType.value) {
         // Update existing activity type
         await updateActivityType({

@@ -5,6 +5,8 @@
         :placeholder="placeholder"
         :disabled="disabled"
         :required="required"
+        :min="min"
+        :max="max"
         :class="[
             'w-full h-[39px] px-3 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500',
             disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white',
@@ -22,6 +24,8 @@ defineProps<{
     disabled?: boolean
     className?: string
     required?: boolean
+    min?: string
+    max?: string
 }>()
 
 defineEmits<{

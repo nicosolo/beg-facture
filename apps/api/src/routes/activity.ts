@@ -118,6 +118,15 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                     { field: "activityTypeId", message: "Activity type not found" },
                 ])
             }
+            // Non-admin users cannot create activities with adminOnly activity types
+            if (activityType.adminOnly && !hasRole(user.role, "admin")) {
+                throwValidationError("Access denied", [
+                    {
+                        field: "activityTypeId",
+                        message: "This activity type is restricted to admins",
+                    },
+                ])
+            }
             const userId =
                 hasRole(user.role, "admin") && activityData.userId ? activityData.userId : user.id
             const userData = await userRepository.findById(userId)
@@ -130,16 +139,13 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
             const userClass = userData.activityRates?.find(
                 (rate) => rate.activityId === activityType.id
             )
-            if (!userClass) {
-                throwValidationError("User class not found", [
-                    { field: "userId", message: "User class not found" },
-                ])
+            let activityRate = null
+            if (userClass) {
+                activityRate = await rateRepository.findByClassAndYear(
+                    userClass.class,
+                    activityData.date.getFullYear()
+                )
             }
-
-            const activityRate = await rateRepository.findByClassAndYear(
-                userClass.class,
-                activityData.date.getFullYear()
-            )
             console.log(activityRate, userClass)
             // Add the current user's ID to the activity data
             const newActivity = await activityRepository.create({
@@ -150,8 +156,8 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 userId: userId,
                 kilometers: activityData.kilometers ?? 0,
                 expenses: activityData.expenses ?? 0,
-                rate: activityRate.amount,
-                rateClass: userClass.class,
+                rate: activityRate?.amount ?? 0,
+                rateClass: userClass?.class ?? null,
                 billed: activityData.billed ?? false,
                 disbursement: false,
                 description: activityData.description ?? "",
@@ -221,6 +227,15 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 if (!activityType) {
                     throwValidationError("Activity type not found", [
                         { field: "activityTypeId", message: "Activity type not found" },
+                    ])
+                }
+                // Non-admin users cannot update activities to use adminOnly activity types
+                if (activityType.adminOnly && !hasRole(user.role, "admin")) {
+                    throwValidationError("Access denied", [
+                        {
+                            field: "activityTypeId",
+                            message: "This activity type is restricted to admins",
+                        },
                     ])
                 }
                 const userData = await userRepository.findById(userId)

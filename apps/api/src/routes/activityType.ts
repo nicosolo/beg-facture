@@ -15,21 +15,25 @@ import { authMiddleware } from "../tools/auth-middleware"
 import { responseValidator } from "@src/tools/response-validator"
 import { ApiException } from "@src/tools/error-handler"
 import type { Variables } from "@src/types/global"
-import { roleMiddleware } from "@src/tools/role-middleware"
+import { roleMiddleware, hasRole } from "@src/tools/role-middleware"
 import { userRepository } from "@src/db/repositories/user.repository"
 
 // Create the app and apply auth middleware to all routes
 export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
 
-    // Get all activity types
+    // Get all activity types (admins see all, users only see non-adminOnly)
     .get(
         "/",
         responseValidator({
             200: activityTypesArrayResponseSchema,
         }),
         async (c) => {
-            const activityTypes = await activityTypeRepository.findAll()
+            const user = c.get("user")
+            let activityTypes = await activityTypeRepository.findAll()
+            if (!hasRole(user.role, "admin")) {
+                activityTypes = activityTypes.filter((at) => !at.adminOnly)
+            }
             return c.render(activityTypes as ActivityTypeResponse[], 200)
         }
     )
@@ -45,11 +49,16 @@ export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
                 return c.json({ error: "User not found" }, 404)
             }
             let activityTypes = await activityTypeRepository.findAll()
+            // Filter by user's activity rates
             activityTypes = activityTypes.filter((activity) =>
                 (userWithActivities?.activityRates || []).some(
                     (activityRate) => activityRate.activityId === activity.id
                 )
             )
+            // Non-admin users cannot see adminOnly activity types
+            if (!hasRole(user.role, "admin")) {
+                activityTypes = activityTypes.filter((at) => !at.adminOnly)
+            }
             return c.render(
                 activityTypes.filter((at) => at.code != "x"),
                 200

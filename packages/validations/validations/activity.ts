@@ -95,7 +95,7 @@ export const activityResponseSchema = z
             .object({
                 id: z.number(),
                 name: z.string(),
-                projectNumber: z.string(),
+                projectNumber: z.string().nullable(),
             })
             .nullable(),
         activityType: z
@@ -104,6 +104,7 @@ export const activityResponseSchema = z
                 name: z.string(),
                 code: z.string(),
                 billable: z.boolean(),
+                adminOnly: z.boolean(),
             })
             .nullable(),
     })

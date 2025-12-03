@@ -242,6 +242,7 @@ export const activityTypes = sqliteTable(
         name: text("name").notNull(),
         code: text("code").notNull(),
         billable: integer("billable", { mode: "boolean" }).notNull(),
+        adminOnly: integer("adminOnly", { mode: "boolean" }).notNull().default(false),
         ...timestamps,
     },
     () => []

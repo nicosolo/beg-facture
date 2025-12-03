@@ -39,6 +39,20 @@
             </p>
         </div>
 
+        <div>
+            <label class="flex items-center">
+                <input
+                    v-model="formData.adminOnly"
+                    type="checkbox"
+                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span class="ml-2 text-sm font-medium text-gray-700"> Admin uniquement </span>
+            </label>
+            <p class="text-xs text-gray-500 mt-1">
+                Réservé aux administrateurs (vacances, maladie, etc.)
+            </p>
+        </div>
+
         <div class="flex justify-end gap-2 pt-4">
             <Button type="button" variant="secondary" @click="$emit('cancel')" :disabled="loading">
                 Annuler
@@ -68,7 +82,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-    submit: [data: { name: string; code: string; billable: boolean }]
+    submit: [data: { name: string; code: string; billable: boolean; adminOnly: boolean }]
     cancel: []
 }>()
 
@@ -76,6 +90,7 @@ const formData = ref({
     name: "",
     code: "",
     billable: false,
+    adminOnly: false,
 })
 
 const isFormValid = computed(() => {
@@ -88,6 +103,7 @@ const handleSubmit = () => {
             name: formData.value.name.trim(),
             code: formData.value.code.trim().toUpperCase(),
             billable: formData.value.billable,
+            adminOnly: formData.value.adminOnly,
         })
     }
 }
@@ -101,6 +117,7 @@ watch(
                 name: newActivityType.name || "",
                 code: newActivityType.code || "",
                 billable: newActivityType.billable || false,
+                adminOnly: newActivityType.adminOnly || false,
             }
         } else {
             // Reset form for new activity type
@@ -108,6 +125,7 @@ watch(
                 name: "",
                 code: "",
                 billable: false,
+                adminOnly: false,
             }
         }
     },

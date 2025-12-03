@@ -31,6 +31,7 @@ CREATE TABLE `activity_types` (
 	`name` text NOT NULL,
 	`code` text NOT NULL,
 	`billable` integer NOT NULL,
+	`adminOnly` integer DEFAULT false NOT NULL,
 	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
 );

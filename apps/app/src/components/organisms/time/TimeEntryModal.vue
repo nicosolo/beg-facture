@@ -40,6 +40,7 @@
                         />
                     </div>
                     <DateField
+                        :min="minDate"
                         label="Date"
                         v-model="activity.date"
                         :disabled="loading || isLocked"
@@ -70,16 +71,12 @@
                             >{{ $t("time.columns.activityType") }}
                             <span class="text-red-500">*</span></Label
                         >
-                        <Select
+                        <ActivityTypeSelect
                             v-model="activity.activityTypeId"
-                            :loading="loadingActivityTypes"
-                            :options="[
-                                { label: $t('common.select', 'Select...'), value: '' },
-                                ...activityTypeOptions,
-                            ]"
                             :disabled="loading || isLocked"
                             :required="true"
-                            class="w-full"
+                            :filtered="!isRole('admin')"
+                            class-name="w-full"
                         />
                     </div>
                 </div>
@@ -170,20 +167,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue"
+import { ref, computed, watch } from "vue"
 import { useI18n } from "vue-i18n"
 import Dialog from "@/components/molecules/Dialog.vue"
 import Button from "@/components/atoms/Button.vue"
 import Label from "@/components/atoms/Label.vue"
-import Select from "@/components/atoms/Select.vue"
 import ProjectSelect from "@/components/organisms/project/ProjectSelect.vue"
+import ActivityTypeSelect from "@/components/organisms/activityType/ActivityTypeSelect.vue"
 import {
     useFetchActivity,
     useCreateActivity,
     useUpdateActivity,
     useDeleteActivity,
 } from "@/composables/api/useActivity"
-import { useFetchActivityTypeFiltered } from "@/composables/api/useActivityType"
 import { ApiError } from "@/utils/api-error"
 import type { ActivityCreateInput, ActivityUpdateInput, ActivityResponse } from "@beg/validations"
 import InputNumber from "@/components/atoms/InputNumber.vue"
@@ -251,52 +247,18 @@ const { get: fetchActivity, loading: loadingActivity } = useFetchActivity()
 const { post: createActivity, loading: creatingActivity } = useCreateActivity()
 const { put: updateActivity, loading: updatingActivity } = useUpdateActivity()
 const { delete: deleteActivity, loading: deletingActivity } = useDeleteActivity()
-const {
-    get: fetchActivityTypes,
-    loading: loadingActivityTypes,
-    data: activityTypesData,
-} = useFetchActivityTypeFiltered()
-
-// Options
-const activityTypeOptions = computed(() => {
-    return activityTypesData.value
-        ? activityTypesData.value.map((type) => ({
-              label: `${type.code} - ${type.name}`,
-              value: type.id,
-          }))
-        : []
-})
 
 // Date constraints for non-admin users (60 days in the past, max today)
 const minDate = computed(() => {
     // Admin and super_admin users have no minimum date restriction
-    if (authStore.user?.role === "admin" || authStore.user?.role === "super_admin") {
+    if (isRole("admin")) {
         return undefined
     }
 
     // Non-admin users can only create/edit activities from the last 60 days
     const sixtyDaysAgo = new Date()
     sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
-    return sixtyDaysAgo.toISOString().split("T")[0]
-})
-
-const maxDate = computed(() => {
-    // All users: cannot create activities in the future
-    return new Date().toISOString().split("T")[0]
-})
-
-// Date formatting
-const formattedDate = computed({
-    get: () => {
-        try {
-            return activity.value.date.toISOString().split("T")[0]
-        } catch (e) {
-            return new Date().toISOString().split("T")[0]
-        }
-    },
-    set: (value: string) => {
-        activity.value.date = new Date(value)
-    },
+    return sixtyDaysAgo
 })
 
 // Load activity data if editing
@@ -461,9 +423,6 @@ watch(
     () => props.modelValue,
     async (isOpen) => {
         if (isOpen) {
-            // Load activity types
-            await fetchActivityTypes()
-
             if (props.activityId) {
                 await loadActivityData()
             } else {
@@ -472,9 +431,4 @@ watch(
         }
     }
 )
-
-// Initial load of activity types
-onMounted(() => {
-    fetchActivityTypes()
-})
 </script>

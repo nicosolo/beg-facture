@@ -86,15 +86,11 @@
                     <!-- Activity Type Filter -->
                     <div class="form-group">
                         <Label>{{ $t("time.filters.activityType") }}</Label>
-                        <Select
+                        <ActivityTypeSelect
                             v-model="localFilter.activityTypeId"
-                            :loading="loadingActivityTypes"
-                            :options="[
-                                { label: $t('common.all'), value: null },
-                                ...activityTypeOptions,
-                            ]"
+                            :show-all-option="true"
                             @update:modelValue="handleFilterChange"
-                        ></Select>
+                        />
                     </div>
                 </div>
 
@@ -167,11 +163,11 @@ import { ref, watch, onMounted } from "vue"
 import Label from "@/components/atoms/Label.vue"
 import Select from "@/components/atoms/Select.vue"
 import Button from "@/components/atoms/Button.vue"
+import ActivityTypeSelect from "@/components/organisms/activityType/ActivityTypeSelect.vue"
 import Checkbox from "@/components/atoms/Checkbox.vue"
 import DateRange from "@/components/molecules/DateRange.vue"
 import ProjectSelect from "@/components/organisms/project/ProjectSelect.vue"
 import { useFetchUsers } from "@/composables/api/useUser"
-import { useFetchActivityTypes } from "@/composables/api/useActivityType"
 import type { ActivityFilter } from "@beg/validations"
 import UserSelect from "@/components/organisms/user/UserSelect.vue"
 import { useAuthStore } from "@/stores/auth"
@@ -205,14 +201,8 @@ const localFilter = ref<ActivityFilter>({ ...filter })
 
 // Fetch data for dropdowns
 const { get: fetchUsers, loading: loadingUsers, data: usersData } = useFetchUsers()
-const {
-    get: fetchActivityTypes,
-    loading: loadingActivityTypes,
-    data: activityTypesData,
-} = useFetchActivityTypes()
 
 const userOptions = ref<Array<{ label: string; value: number }>>([])
-const activityTypeOptions = ref<Array<{ label: string; value: number }>>([])
 
 // Watch for data changes and update options
 watch(usersData, (newData) => {
@@ -220,15 +210,6 @@ watch(usersData, (newData) => {
         userOptions.value = newData.map((user: any) => ({
             label: `${user.firstName} ${user.lastName}`,
             value: user.id,
-        }))
-    }
-})
-
-watch(activityTypesData, (newData) => {
-    if (newData) {
-        activityTypeOptions.value = newData.map((activityType) => ({
-            label: activityType.name,
-            value: activityType.id,
         }))
     }
 })
@@ -269,6 +250,6 @@ const resetFilters = () => {
 
 // Load data on mount
 onMounted(async () => {
-    await Promise.all([fetchUsers(), fetchActivityTypes()])
+    await fetchUsers()
 })
 </script>

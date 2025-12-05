@@ -2,7 +2,13 @@
 import { RouterLink, RouterView, useRoute, useRouter } from "vue-router"
 import { useI18n } from "vue-i18n"
 import { ref, computed, watch, onMounted, KeepAlive } from "vue"
-import { Bars3Icon, XMarkIcon, ChevronDownIcon, ChevronRightIcon } from "@heroicons/vue/24/outline"
+import {
+    Bars3Icon,
+    XMarkIcon,
+    ChevronDownIcon,
+    ChevronRightIcon,
+    ArrowLeftIcon,
+} from "@heroicons/vue/24/outline"
 import { useAuthStore } from "./stores/auth"
 import { useAlert } from "./composables/utils/useAlert"
 import { useTauri } from "./composables/useTauri"
@@ -20,6 +26,15 @@ const hasAdminAccess = computed(() => authStore.isRole("admin"))
 
 // Check if the current route is the login page
 const isLoginPage = computed(() => route.name === "login")
+
+// Check if we can go back (has history and not on home page)
+const canGoBack = computed(
+    () => isTauri.value && route.name !== "home" && window.history.length > 1
+)
+
+const goBack = () => {
+    router.back()
+}
 
 const toggleSidebar = () => {
     isSidebarOpen.value = !isSidebarOpen.value
@@ -189,13 +204,23 @@ const isExpanded = (itemName: string): boolean => {
             class="flex items-center p-2 border-b border-gray-200 print:hidden"
         >
             <div class="flex justify-between items-center w-full">
-                <RouterLink to="/">
-                    <div class="flex items-center">
-                        <img alt="BEG logo" class="h-7 w-auto mr-4" src="@/assets/logo.png" />
+                <div class="flex items-center">
+                    <!-- Back button - only in Tauri when not on home -->
+                    <button
+                        v-if="canGoBack"
+                        @click="goBack"
+                        class="inline-flex items-center justify-center p-2 mr-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none"
+                    >
+                        <ArrowLeftIcon class="h-5 w-5" />
+                    </button>
 
-                        <h2 class="text-2xl font-bold">Gestion</h2>
-                    </div>
-                </RouterLink>
+                    <RouterLink to="/">
+                        <div class="flex items-center">
+                            <img alt="BEG logo" class="h-7 w-auto mr-4" src="@/assets/logo.png" />
+                            <h2 class="text-2xl font-bold">Gestion</h2>
+                        </div>
+                    </RouterLink>
+                </div>
 
                 <button
                     class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"

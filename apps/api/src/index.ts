@@ -22,6 +22,7 @@ import { dirname } from "node:path"
 import { existsSync } from "node:fs"
 import { errorHandler } from "@src/tools/error-handler"
 import { runMigrations } from "./db/migrate"
+import { startHourlySnapshots, stopHourlySnapshots } from "@src/tools/snapshot"
 
 // Ensure SQLite database directory exists
 const dbDir = dirname(DB_FILE_PATH)
@@ -56,9 +57,6 @@ const app = new Hono()
 
 export type ApiRoutes = typeof app
 
-// const res = await client.user.$get()
-// console.log((await res.json())[0].firstName)
-
 const server = Bun.serve({
     port: PORT,
     fetch: app.fetch,
@@ -66,9 +64,16 @@ const server = Bun.serve({
 
 console.log(`🚀 API Server running at http://localhost:${PORT}`)
 
+if (process.env.NODE_ENV !== "development") {
+    // Start hourly database snapshots
+    startHourlySnapshots()
+}
 // Graceful shutdown handling
 const shutdown = () => {
     console.log("\n📭 Received shutdown signal, closing server...")
+    if (process.env.NODE_ENV !== "development") {
+        stopHourlySnapshots()
+    }
     server.stop()
     console.log("✅ Server closed successfully")
     process.exit(0)

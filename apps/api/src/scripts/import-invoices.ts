@@ -596,6 +596,7 @@ async function findFabFiles(dir: string): Promise<string[]> {
                 if (entry.isDirectory()) {
                     await walk(fullPath)
                 } else if (entry.isFile() && entry.name.toLowerCase().endsWith(".fab")) {
+                    console.log(`Found .fab file: ${fullPath}`)
                     fabFiles.push(fullPath)
                 }
             }

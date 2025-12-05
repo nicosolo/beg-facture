@@ -24,13 +24,7 @@ export async function updateProjectActivityDates(projectId: number) {
         })
         .from(activities)
         .innerJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
-        .where(
-            and(
-                eq(activities.billed, false),
-                eq(activities.projectId, projectId),
-                eq(activityTypes.billable, true)
-            )
-        )
+        .where(and(eq(activities.billed, false), eq(activities.projectId, projectId)))
 
     const { unbilledDuration } = resultUnbilled[0]
 

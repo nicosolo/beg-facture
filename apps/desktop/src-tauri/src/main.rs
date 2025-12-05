@@ -7,6 +7,10 @@ use std::fs;
 
 #[tauri::command]
 fn open_project_folder(absolute_path: String) -> Result<String, String> {
+    // On Windows, replace all forward slashes with backslashes
+    #[cfg(target_os = "windows")]
+    let absolute_path = absolute_path.replace('/', "\\");
+
     // Use the absolute path directly
     let full_path = PathBuf::from(&absolute_path);
 

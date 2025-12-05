@@ -118,7 +118,10 @@ function parseFabDate(dateStr: string): Date | null {
 function parseSwissNumber(str: string): number {
     if (!str || str.trim() === "") return 0
     // Remove apostrophes and special chars, keep decimal point
-    const cleaned = str.replace(/[']/g, "").replace(/[^\d.-]/g, "")
+    const cleaned = str
+        .replace(/[']/g, "")
+        .replace(/,/g, ".")
+        .replace(/[^\d.-]/g, "")
     const num = parseFloat(cleaned)
     return isNaN(num) ? 0 : num
 }
@@ -157,19 +160,20 @@ function parseMultiline(data: Record<string, string>, prefix: string): string {
     return lines.join("\n")
 }
 
-// Parse rate classes from grdFacture
+// Parse rate classes from grdFacture (starts at row 2, ends when "Total h." is found)
 function parseRateClasses(data: Record<string, string>): RateClassData[] {
     const rateClasses: RateClassData[] = []
-    const classRows = [
-        { row: 2, class: "B" },
-        { row: 3, class: "C" },
-        { row: 4, class: "D" },
-        { row: 5, class: "E" },
-        { row: 6, class: "F" },
-        { row: 7, class: "G" },
-    ]
 
-    for (const { row, class: rateClass } of classRows) {
+    // Scan from row 2 until we hit "Total h."
+    for (let row = 2; row < 50; row++) {
+        const cellValue = data[`grdFacture${row}.0`]?.trim()
+
+        // Stop when we reach "Total h."
+        if (cellValue === "Total h.") break
+
+        // Skip if not a single character (rate class letter)
+        if (!cellValue || cellValue.length !== 1) continue
+
         const baseHours = parseSwissNumber(data[`grdFacture${row}.1`])
         const adjustedHours = parseSwissNumber(data[`grdFacture${row}.2`])
         const hourlyRate = parseSwissNumber(data[`grdFacture${row}.3`])
@@ -178,7 +182,7 @@ function parseRateClasses(data: Record<string, string>): RateClassData[] {
         // Only add if there's any data
         if (baseHours > 0 || adjustedHours > 0 || amount > 0) {
             rateClasses.push({
-                rateClass,
+                rateClass: cellValue,
                 baseHours,
                 adjustedHours,
                 hourlyRate,
@@ -279,7 +283,7 @@ async function getVisaUserId(edtVisa: string): Promise<number | null> {
 // Generate invoice number from filename
 function generateInvoiceNumber(filename: string): string {
     // Remove .fab extension and replace spaces with -
-    return path.basename(filename, ".fab").replace(/\s+/g, "-")
+    return path.basename(filename, ".fab")
 }
 
 // Parse pnlCode to extract projectNumber and optional subProjectName
@@ -359,7 +363,9 @@ async function importInvoiceFromFab(fabPath: string): Promise<boolean> {
         const existingInvoice = await db
             .select({ id: invoices.id })
             .from(invoices)
-            .where(and(eq(invoices.projectId, projectId), eq(invoices.invoiceNumber, invoiceNumber)))
+            .where(
+                and(eq(invoices.projectId, projectId), eq(invoices.invoiceNumber, invoiceNumber))
+            )
             .limit(1)
 
         if (existingInvoice.length > 0) {
@@ -392,20 +398,21 @@ async function importInvoiceFromFab(fabPath: string): Promise<boolean> {
         const expensesTravelBase = parseSwissNumber(d["grdFacture16.1"])
         const expensesTravelAdjusted = parseSwissNumber(d["grdFacture16.2"])
         const expensesTravelRateRaw = parseSwissNumber(d["grdFacture16.3"])
-        const expensesTravelRate = expensesTravelRateRaw > 0 ? expensesTravelRateRaw * 100 : 65 // Default 0.65 = 65
+        const expensesTravelRate = expensesTravelRateRaw > 0 ? expensesTravelRateRaw : 0.65 // Default 0.65 = 65
         const expensesTravelAmount = parseSwissNumber(d["grdFacture16.4"])
 
         const expensesOtherBase = parseSwissNumber(d["grdFacture17.1"])
         const expensesOtherAmount = parseSwissNumber(d["grdFacture17.4"])
-        const expensesTotalExpenses = parseSwissNumber(d["grdFacture18.4"])
 
-        const expensesPackagePercentage = parseSwissNumber(d["grdFacture20.3"]) || null
-        const expensesPackageAmount = parseSwissNumber(d["grdFacture20.4"]) || null
+        const expensesPackagePercentage = parseSwissNumber(d["grdFacture20.3"])
+        const expensesPackageAmount = parseSwissNumber(d["grdFacture20.4"])
         const expensesThirdPartyAmount = parseSwissNumber(d["grdFacture21.4"])
+
+        const expensesTotalExpenses = parseSwissNumber(d["grdFacture22.4"])
 
         const totalHT = parseSwissNumber(d["grdFacture24.4"])
         const vatRateRaw = parseSwissNumber(d["grdFacture25.3"])
-        const vatRate = vatRateRaw > 0 ? vatRateRaw * 100 : 800 // Default 8% = 800
+        const vatRate = vatRateRaw > 0 ? vatRateRaw : 8 // Default 8% = 800
         const vatAmount = parseSwissNumber(d["grdFacture25.4"])
         const totalTTC = parseSwissNumber(d["grdFacture26.4"])
 
@@ -418,7 +425,7 @@ async function importInvoiceFromFab(fabPath: string): Promise<boolean> {
             .values({
                 projectId,
                 invoiceNumber,
-                reference,
+                reference: d["edtObjet"] || "",
                 type: mapInvoiceType(d["edtType"]),
                 billingMode: mapBillingMode(d["edtMode"]),
                 status: mapInvoiceStatus(d["edtVisa"]),
@@ -429,9 +436,9 @@ async function importInvoiceFromFab(fabPath: string): Promise<boolean> {
                 period: d["edtPériode"] || d["edtPeriode"] || "",
                 clientAddress,
                 recipientAddress,
-                description: d["edtObjet"] || "",
+                description: otherServices,
                 note,
-                otherServices,
+                otherServices: "",
                 visaDate,
                 visaByUserId,
                 feesBase,
@@ -451,6 +458,7 @@ async function importInvoiceFromFab(fabPath: string): Promise<boolean> {
                 expensesPackagePercentage,
                 expensesPackageAmount,
                 expensesTotalExpenses,
+                feesMultiplicationFactor: 1,
                 totalHT,
                 vatRate,
                 vatAmount,

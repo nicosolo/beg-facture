@@ -1,6 +1,10 @@
 const intlNumberFormat = new Intl.NumberFormat("de-CH", {
     notation: "standard",
 })
+const intlNumberFormatHours = new Intl.NumberFormat("de-CH", {
+    notation: "standard",
+    minimumFractionDigits: 2,
+})
 export const useFormat = () => {
     const formatCurrency = (amount: number, showCurrency = true) => {
         return `${new Intl.NumberFormat("ch-FR", {
@@ -8,7 +12,7 @@ export const useFormat = () => {
             maximumFractionDigits: 2,
             minimumFractionDigits: 2,
             signDisplay: "never",
-        }).format(amount)}${showCurrency ? ".-" : ""}`
+        }).format(Math.round(amount * 20) / 20)}${showCurrency ? ".-" : ""}`
     }
 
     const formatPercentage = (percentage: number) => {
@@ -26,8 +30,7 @@ export const useFormat = () => {
         if (duration === undefined || duration === null) return "-"
 
         // Round to nearest 0.25 (quarter hour)
-        const roundedHours = Math.round(duration * 4) / 4
-        return formatNumber(roundedHours)
+        return intlNumberFormatHours.format(duration)
     }
 
     const formatDate = (date: Date | null | undefined) => {

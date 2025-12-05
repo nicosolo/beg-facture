@@ -317,10 +317,10 @@
                                         >
                                         <InputNumber
                                             v-if="packageType === 'fixed'"
-                                            :modelValue="invoice.expensesPackageAmount || 0"
+                                            :modelValue="invoice.expensesPackageAmount"
                                             @update:modelValue="updatePackageAmount"
                                             :min="0"
-                                            :step="100"
+                                            :step="1"
                                             :currency="true"
                                             class="w-24"
                                         />
@@ -666,15 +666,10 @@ const hasDiscount = computed(
 const discountPercentage = computed(() => invoice.value.feesDiscountPercentage || 0)
 const discountAmount = computed(() => invoice.value.feesDiscountAmount || 0)
 
-const hasPackage = computed(
-    () =>
-        (invoice.value.expensesPackagePercentage || 0) > 0 ||
-        (invoice.value.expensesPackageAmount || 0) > 0
-)
+const hasPackage = computed(() => invoice.value.expensesPackageAmount !== null)
 
 // Computed properties for template display
 const expensesTravelAmount = computed(() => invoice.value.expensesTravelAmount || 0)
-const expensesTotalExpenses = computed(() => invoice.value.expensesTotalExpenses || 0)
 const totalHT = computed(() => invoice.value.totalHT || 0)
 const vatAmount = computed(() => invoice.value.vatAmount || 0)
 const totalTTC = computed(() => invoice.value.totalTTC || 0)
@@ -719,7 +714,7 @@ watch(
             (invoice.value.expensesTravelAdjusted || 0) * (invoice.value.expensesTravelRate || 0.65)
 
         // Calculate total expenses
-        if ((invoice.value.expensesPackageAmount || 0) > 0) {
+        if (invoice.value.expensesPackageAmount !== null) {
             invoice.value.expensesTotalExpenses = invoice.value.expensesPackageAmount || 0
         } else if ((invoice.value.expensesPackagePercentage || 0) > 0) {
             invoice.value.expensesTotalExpenses =
@@ -852,14 +847,11 @@ const updateDiscountAmount = (value: number) => {
 // Toggle package
 const togglePackage = () => {
     // Check if there's any package currently applied
-    const hasExistingPackage =
-        (invoice.value.expensesPackagePercentage || 0) > 0 ||
-        (invoice.value.expensesPackageAmount || 0) > 0
 
-    if (hasExistingPackage) {
+    if (invoice.value.expensesPackageAmount !== null) {
         // Remove package
-        invoice.value.expensesPackagePercentage = 0
-        invoice.value.expensesPackageAmount = 0
+        invoice.value.expensesPackagePercentage = null
+        invoice.value.expensesPackageAmount = null
     } else {
         // Apply default package based on current type
         if (packageType.value === "percentage") {
@@ -878,16 +870,13 @@ const setPackageType = (type: "percentage" | "fixed") => {
 
     if (type === "percentage") {
         // Convert to percentage if was fixed
-        if (
-            !invoice.value.expensesPackagePercentage ||
-            invoice.value.expensesPackagePercentage === 0
-        ) {
+        if (invoice.value.expensesPackagePercentage !== null) {
             invoice.value.expensesPackagePercentage = 10
             invoice.value.expensesPackageAmount = (invoice.value.feesFinalTotal || 0) * 0.1
         }
     } else {
         // Convert to fixed if was percentage
-        if (!invoice.value.expensesPackageAmount || invoice.value.expensesPackageAmount === 0) {
+        if (invoice.value.expensesPackageAmount !== null) {
             invoice.value.expensesPackageAmount = 500
             invoice.value.expensesPackagePercentage = 0
         }

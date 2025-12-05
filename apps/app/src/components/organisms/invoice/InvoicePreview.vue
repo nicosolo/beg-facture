@@ -29,24 +29,15 @@
                             {{ $t(`invoice.status.${invoice.status || "draft"}`) }}
                         </td>
                     </tr>
-                    <tr v-if="invoice.visaBy">
+                    <tr>
                         <td
                             class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
                         >
-                            Visa par
+                            Visa
                         </td>
                         <td class="border border-gray-300 p-1 text-sm">
-                            {{ invoice.visaBy }}
-                        </td>
-                    </tr>
-                    <tr v-if="invoice.visaDate">
-                        <td
-                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
-                        >
-                            Date de visa
-                        </td>
-                        <td class="border border-gray-300 p-1 text-sm">
-                            {{ formatDate(invoice.visaDate) }}
+                            {{ invoice.visaDate ? formatDate(invoice.visaDate) : "N/A" }} -
+                            {{ invoice.visaBy ? invoice.visaBy : "N/A" }}
                         </td>
                     </tr>
                     <tr>
@@ -222,10 +213,11 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="border border-gray-300 p-1 text-sm" colspan="2">Total h.</td>
+                        <td class="border border-gray-300 p-1 text-sm" colspan="1">Total h.</td>
                         <td class="text-right border border-gray-300 p-1 text-sm">
-                            {{ formatDuration(invoice.feesAdjusted || 0) }}
+                            {{ formatDuration(totalHours) }}
                         </td>
+                        <td class="border border-gray-300 p-1 text-sm"></td>
                         <td class="fac4 text-right border border-gray-300 p-1 text-sm">
                             {{ formatCurrency(invoice.feesTotal || 0) }}
                         </td>
@@ -253,16 +245,9 @@
                             -{{ formatCurrency(invoice.feesDiscountAmount) }}
                         </td>
                     </tr>
-                    <tr
-                        v-if="
-                            invoice.feesMultiplicationFactor &&
-                            invoice.feesMultiplicationFactor !== 1
-                        "
-                    >
-                        <td class="border border-gray-300 p-1 text-sm" colspan="2">Facteur</td>
-                        <td class="text-right border border-gray-300 p-1 text-sm">
-                            x{{ invoice.feesMultiplicationFactor }}
-                        </td>
+                    <tr>
+                        <td class="border border-gray-300 p-1 text-sm" colspan="2">TOTAL</td>
+                        <td class="border border-gray-300 p-1 text-sm"></td>
                         <td class="fac4 text-right border border-gray-300 p-1 text-sm">
                             {{ formatCurrency(invoice.feesFinalTotal || 0) }}
                         </td>
@@ -272,40 +257,16 @@
 
             <table
                 class="fac w-[70%] border border-gray-300 border-collapse"
-                v-if="shouldShowActivitySections"
+                v-if="shouldShowActivitySections && (invoice.expensesPackageAmount || 0) > 0"
             >
                 <caption class="sub text-left font-bold p-1 text-sm">
                     Frais
                 </caption>
                 <tbody>
-                    <tr v-if="invoice.expensesTravelAmount > 0">
-                        <td class="border border-gray-300 p-1 text-sm">Frais de déplacement</td>
-                        <td class="text-right border border-gray-300 p-1 text-sm w-1/4">
-                            {{ invoice.expensesTravelBase }} km
-                        </td>
-                        <td class="text-right border border-gray-300 p-1 text-sm w-1/4">
-                            {{ formatCurrency(invoice.expensesTravelRate) }}/km
-                        </td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-sm w-1/4">
-                            {{ formatCurrency(invoice.expensesTravelAmount) }}
-                        </td>
-                    </tr>
-                    <tr v-if="invoice.expensesOtherAmount > 0">
-                        <td class="border border-gray-300 p-1 text-sm" colspan="3">Autres frais</td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-sm">
-                            {{ formatCurrency(invoice.expensesOtherAmount) }}
-                        </td>
-                    </tr>
-                    <tr v-if="invoice.expensesThirdPartyAmount > 0">
-                        <td class="border border-gray-300 p-1 text-sm" colspan="3">Frais tiers</td>
-                        <td class="fac4 text-right border border-gray-300 p-1 text-sm">
-                            {{ formatCurrency(invoice.expensesThirdPartyAmount) }}
-                        </td>
-                    </tr>
                     <tr
                         v-if="
-                            invoice.expensesPackagePercentage &&
-                            invoice.expensesPackagePercentage > 0
+                            invoice.expensesPackagePercentage !== null &&
+                            invoice.expensesPackagePercentage !== null
                         "
                     >
                         <td class="border border-gray-300 p-1 text-sm" colspan="2">
@@ -318,6 +279,36 @@
                             {{ formatCurrency(invoice.expensesPackageAmount || 0) }}
                         </td>
                     </tr>
+                    <template v-else>
+                        <tr v-if="invoice.expensesTravelAmount > 0">
+                            <td class="border border-gray-300 p-1 text-sm">Frais de déplacement</td>
+                            <td class="text-right border border-gray-300 p-1 text-sm w-1/4">
+                                {{ invoice.expensesTravelBase }} km
+                            </td>
+                            <td class="text-right border border-gray-300 p-1 text-sm w-1/4">
+                                {{ formatCurrency(invoice.expensesTravelRate) }}/km
+                            </td>
+                            <td class="fac4 text-right border border-gray-300 p-1 text-sm w-1/4">
+                                {{ formatCurrency(invoice.expensesTravelAmount) }}
+                            </td>
+                        </tr>
+                        <tr v-if="invoice.expensesOtherAmount > 0">
+                            <td class="border border-gray-300 p-1 text-sm" colspan="3">
+                                Autres frais
+                            </td>
+                            <td class="fac4 text-right border border-gray-300 p-1 text-sm">
+                                {{ formatCurrency(invoice.expensesOtherAmount) }}
+                            </td>
+                        </tr>
+                        <tr v-if="invoice.expensesThirdPartyAmount > 0">
+                            <td class="border border-gray-300 p-1 text-sm" colspan="3">
+                                Frais tiers
+                            </td>
+                            <td class="fac4 text-right border border-gray-300 p-1 text-sm">
+                                {{ formatCurrency(invoice.expensesThirdPartyAmount) }}
+                            </td>
+                        </tr>
+                    </template>
                     <tr>
                         <td class="border border-gray-300 p-1 text-sm" colspan="3">
                             Total des frais
@@ -587,6 +578,10 @@ const shouldShowActivitySections = computed(() => {
         props.invoice.billingMode !== "accordingToOffer" &&
         props.invoice.billingMode !== "accordingToInvoice"
     )
+})
+
+const totalHours = computed(() => {
+    return filteredRates.value.reduce((acc, rate) => acc + rate.adjusted, 0)
 })
 
 const hasAdditionalInfo = computed(() => {

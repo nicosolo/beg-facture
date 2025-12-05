@@ -312,8 +312,8 @@ const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
         expensesOtherBase: response.expensesOtherBase || 0,
         expensesOtherAmount: response.expensesOtherAmount || 0,
         expensesThirdPartyAmount: response.expensesThirdPartyAmount || 0,
-        expensesPackagePercentage: response.expensesPackagePercentage || null,
-        expensesPackageAmount: response.expensesPackageAmount || null,
+        expensesPackagePercentage: response.expensesPackagePercentage,
+        expensesPackageAmount: response.expensesPackageAmount,
         expensesTotalExpenses: response.expensesTotalExpenses || 0,
 
         totalHT: response.totalHT || 0,

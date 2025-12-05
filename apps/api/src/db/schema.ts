@@ -323,13 +323,13 @@ export const invoices = sqliteTable(
         feesTotal: real("feesTotal").notNull().default(0),
         feesOthers: real("feesOthers").notNull().default(0),
         feesFinalTotal: real("feesFinalTotal").notNull().default(0),
-        feesMultiplicationFactor: real("feesMultiplicationFactor").notNull().default(100), // stored as percentage
+        feesMultiplicationFactor: real("feesMultiplicationFactor").notNull().default(1), // stored as percentage
         feesDiscountPercentage: real("feesDiscountPercentage"),
         feesDiscountAmount: real("feesDiscountAmount"),
         // Expense totals
         expensesTravelBase: real("expensesTravelBase").notNull().default(0),
         expensesTravelAdjusted: real("expensesTravelAdjusted").notNull().default(0),
-        expensesTravelRate: real("expensesTravelRate").notNull().default(65), // stored as percentage
+        expensesTravelRate: real("expensesTravelRate").notNull().default(0.65), // stored as percentage
         expensesTravelAmount: real("expensesTravelAmount").notNull().default(0),
         expensesOtherBase: real("expensesOtherBase").notNull().default(0),
         expensesOtherAmount: real("expensesOtherAmount").notNull().default(0),
@@ -339,7 +339,7 @@ export const invoices = sqliteTable(
         expensesTotalExpenses: real("expensesTotalExpenses").notNull().default(0),
         // Final totals
         totalHT: real("totalHT").notNull().default(0),
-        vatRate: real("vatRate").notNull().default(800), // stored as basis points (8.00% = 800)
+        vatRate: real("vatRate").notNull().default(8), // stored as basis points (8.00% = 800)
         vatAmount: real("vatAmount").notNull().default(0),
         totalTTC: real("totalTTC").notNull().default(0),
         // Remarks

@@ -9,7 +9,7 @@
         "tauri": "tauri",
         "dev": "tauri dev",
         "build": "tauri build --config src-tauri/tauri.conf.json",
-        "generate-icons": "tauri icon ../app/src/assets/icon.png",
+        "generate-icons": "tauri icon ../app/src/assets/icon-white.png",
         "build:windows:x86": "tauri build --config src-tauri/tauri.conf.json --runner cargo-xwin --target x86_64-pc-windows-msvc",
         "build:windows:arm64": "tauri build --config src-tauri/tauri.conf.json --runner cargo-xwin --target aarch64-pc-windows-msvc"
     },

@@ -151,7 +151,7 @@ function parseMultiline(data: Record<string, string>, prefix: string): string {
 
     const lines: string[] = []
     for (let i = 0; i < count; i++) {
-        const line = data[`${prefix}${i}`]
+        const line = data[`${prefix}${i}`]?.trim()
         if (line !== undefined) {
             lines.push(line)
         }
@@ -280,6 +280,19 @@ async function getVisaUserId(edtVisa: string): Promise<number | null> {
     return user?.id ?? null
 }
 
+// Get user ID from initials (for edtResponsable)
+async function getUserIdByInitials(initials: string): Promise<number | null> {
+    if (!initials || initials.trim() === "") return null
+
+    const [user] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.initials, initials.toLowerCase().trim()))
+        .limit(1)
+
+    return user?.id ?? null
+}
+
 // Generate invoice number from filename
 function generateInvoiceNumber(filename: string): string {
     // Remove .fab extension and replace spaces with -
@@ -306,8 +319,10 @@ function parseProjectCode(code: string): { projectNumber: string; subProjectName
 // Import a single invoice from a .fab file
 async function importInvoiceFromFab(fabPath: string): Promise<boolean> {
     try {
-        // Read file with latin1 encoding (Windows-1252 compatible)
-        const content = await fs.readFile(fabPath, "latin1")
+        // Read file as binary buffer, then decode with Windows-1252
+        const buffer = await fs.readFile(fabPath)
+        const decoder = new TextDecoder("windows-1252")
+        const content = decoder.decode(buffer)
         const fabData = parseFabFile(content)
 
         // Use pnlCode (project number + optional subProjectName) to find the project
@@ -419,6 +434,9 @@ async function importInvoiceFromFab(fabPath: string): Promise<boolean> {
         // Get visa user ID
         const visaByUserId = await getVisaUserId(d["edtVisa"] || "")
 
+        // Get in charge user ID from edtResponsable (user initials)
+        const inChargeUserId = await getUserIdByInitials(d["edtResponsable"] || "")
+
         // Insert invoice
         const [insertedInvoice] = await db
             .insert(invoices)
@@ -441,6 +459,8 @@ async function importInvoiceFromFab(fabPath: string): Promise<boolean> {
                 otherServices: "",
                 visaDate,
                 visaByUserId,
+                inChargeUserId,
+                legacyInvoicePath: fabPath,
                 feesBase,
                 feesAdjusted,
                 feesTotal,

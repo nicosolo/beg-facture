@@ -44,6 +44,7 @@
                 <InvoiceGeneralInfo
                     v-if="activeTab === 'general'"
                     v-model="invoice"
+                    :invoice-id="invoiceId ? parseInt(invoiceId) : null"
                     @document-file-change="handleDocumentFileChange"
                     @document-entry-removed="handleDocumentEntryRemoved"
                     @invoice-document-change="handleInvoiceDocumentFileChange"
@@ -280,6 +281,7 @@ const convertResponseToInvoice = (response: InvoiceResponse): Invoice => {
         status: response.status || "draft",
         billingMode: response.billingMode,
         visaByUserId: response.visaByUserId,
+        inChargeUserId: response.inChargeUserId,
         description: response.description || "",
         note: response.note || "",
         invoiceDocument: response.invoiceDocument || "",
@@ -345,6 +347,7 @@ const convertInvoiceToInput = (invoice: Invoice): any => {
         type: invoice.type,
         billingMode: invoice.billingMode,
         visaByUserId: invoice.visaByUserId,
+        inChargeUserId: invoice.inChargeUserId,
         status: invoice.status || "draft",
         description: invoice.description,
         note: invoice.note,
@@ -575,6 +578,7 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
                     periodEnd: finalPeriodEnd,
                     projectId: projectId.value,
                     status: "draft",
+                    inChargeUserId: authStore.user?.id ?? null,
                 })
             }
             invoice.value.projectId = projectId.value

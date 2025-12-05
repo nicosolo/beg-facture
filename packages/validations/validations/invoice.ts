@@ -149,6 +149,9 @@ export const InvoiceSchema = z.object({
     visaBy: z.string().nullable().default(null),
     visaDate: dateSchema.nullable().default(null),
 
+    // User in charge
+    inChargeUserId: z.number().nullable().default(null),
+
     // Related arrays (kept as arrays since they're separate tables)
     rates: z.array(RateItemSchema).default([]),
     offers: z.array(OfferSchema).default([]),
@@ -228,6 +231,9 @@ export const invoiceCreateSchema = z.object({
     visaByUserId: z.number().nullable().optional(),
     visaBy: z.string().nullable().optional(),
     visaDate: dateSchema.optional(),
+
+    // User in charge (defaults to current user on creation)
+    inChargeUserId: z.number().nullable().optional(),
 
     // Arrays
     rates: z.array(RateItemSchema).default([]),
@@ -318,6 +324,28 @@ export const invoiceResponseSchema = z
         visaByUserId: z.number().nullable(),
         visaBy: z.string().nullable(),
         visaDate: z.date().nullable(),
+        visaByUser: z
+            .object({
+                id: z.number(),
+                firstName: z.string(),
+                lastName: z.string(),
+                initials: z.string(),
+            })
+            .nullable(),
+
+        // User in charge
+        inChargeUserId: z.number().nullable(),
+        inChargeUser: z
+            .object({
+                id: z.number(),
+                firstName: z.string(),
+                lastName: z.string(),
+                initials: z.string(),
+            })
+            .nullable(),
+
+        // Legacy import (read-only)
+        legacyInvoicePath: z.string().nullable(),
 
         // Arrays (kept as arrays since they're separate tables)
         rates: z.array(RateItemSchema),

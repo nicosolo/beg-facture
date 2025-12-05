@@ -15,17 +15,22 @@ export function useInvoiceDocuments() {
     const { errorAlert } = useAlert()
     const { t } = useI18n()
 
-    const buildFileUrl = (filePath?: string | null) => {
+    const buildFileUrl = (invoiceId: number, filePath?: string | null) => {
         if (!filePath) return null
         const trimmed = filePath.trim()
         if (!trimmed) return null
-        return `/api/file?path=${encodeURIComponent(trimmed)}`
+        return `/api/invoice/${invoiceId}/files?path=${encodeURIComponent(trimmed)}`
     }
 
-    const downloadInvoiceFile = async (filePath?: string | null) => {
+    const downloadInvoiceFile = async (
+        invoiceId: number,
+        filePath?: string | null,
+        mode: "download" | "open" = "open"
+    ) => {
         if (!filePath) return
-        const url = buildFileUrl(filePath)
+        const url = buildFileUrl(invoiceId, filePath)
         if (!url) return
+        const fileName = normalizeFileName(filePath)
         try {
             const response = await fetch(url, {
                 headers: authStore.getAuthHeaders(),
@@ -35,12 +40,17 @@ export function useInvoiceDocuments() {
             }
             const blob = await response.blob()
             const objectUrl = URL.createObjectURL(blob)
-            const link = document.createElement("a")
-            link.href = objectUrl
-            link.target = "_blank"
-            link.rel = "noopener"
-            link.click()
-            URL.revokeObjectURL(objectUrl)
+
+            if (mode === "open") {
+                window.open(objectUrl, "_blank")
+            } else {
+                const link = document.createElement("a")
+                link.href = objectUrl
+                link.download = fileName
+                link.click()
+            }
+
+            setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
         } catch (error) {
             console.error("Failed to download invoice document", error)
             errorAlert(t("common.errorOccurred"))

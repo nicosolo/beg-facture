@@ -317,6 +317,11 @@ export const invoices = sqliteTable(
         visaByUserId: integer("visaByUserId").references(() => users.id, { onDelete: "set null" }),
         visaBy: text("visaBy"),
         visaDate: integer("visaDate", { mode: "timestamp" }),
+        inChargeUserId: integer("inChargeUserId").references(() => users.id, {
+            onDelete: "set null",
+        }),
+        // Legacy import path (read-only, set during import)
+        legacyInvoicePath: text("legacyInvoicePath"),
         // Fee totals
         feesBase: real("feesBase").notNull().default(0),
         feesAdjusted: real("feesAdjusted").notNull().default(0),

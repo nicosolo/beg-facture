@@ -23,7 +23,10 @@
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                             {{ t("invoice.documents.headers.date") }}
                         </th>
-                        <th v-if="showAmount" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th
+                            v-if="showAmount"
+                            class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
+                        >
                             {{ t("invoice.documents.headers.amount") }}
                         </th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
@@ -120,17 +123,22 @@ export interface InvoiceDocumentEntry {
     remark?: string | null
 }
 
-const props = withDefaults(defineProps<{
-    title: string
-    addButtonLabel: string
-    emptyStateLabel: string
-    entryType: "offer" | "adjudication" | "situation" | "document"
-    modelValue: InvoiceDocumentEntry[]
-    accept?: string
-    showAmount?: boolean
-}>(), {
-    showAmount: true,
-})
+const props = withDefaults(
+    defineProps<{
+        title: string
+        addButtonLabel: string
+        emptyStateLabel: string
+        entryType: "offer" | "adjudication" | "situation" | "document"
+        modelValue: InvoiceDocumentEntry[]
+        invoiceId?: number | null
+        accept?: string
+        showAmount?: boolean
+    }>(),
+    {
+        showAmount: true,
+        invoiceId: null,
+    }
+)
 
 const emit = defineEmits<{
     (e: "update:modelValue", value: InvoiceDocumentEntry[]): void
@@ -208,10 +216,14 @@ const isStoredFile = (file?: string | null) => {
 
 const previewUrl = (file?: string | null) => {
     if (!isStoredFile(file)) return null
-    return buildFileUrl(file)
+    if (!props.invoiceId) return null
+    return buildFileUrl(props.invoiceId, file)
 }
 
-const downloadFile = (file?: string | null) => downloadInvoiceFile(file)
+const downloadFile = (file?: string | null) => {
+    if (!props.invoiceId) return
+    downloadInvoiceFile(props.invoiceId, file)
+}
 
 const displayFileName = (file?: string | null) => extractFileName(file)
 

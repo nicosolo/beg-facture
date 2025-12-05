@@ -21,6 +21,18 @@ export const guessMimeType = (fileName: string) => {
             return "application/vnd.ms-excel"
         case "xlsx":
             return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        case "html":
+        case "htm":
+            return "text/html"
+        case "txt":
+            return "text/plain"
+        case "png":
+            return "image/png"
+        case "jpg":
+        case "jpeg":
+            return "image/jpeg"
+        case "gif":
+            return "image/gif"
         default:
             return "application/octet-stream"
     }

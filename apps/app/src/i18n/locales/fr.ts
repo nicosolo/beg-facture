@@ -544,6 +544,8 @@ export default {
         },
         visaByUser: "À viser par",
         selectVisaUser: "Sélectionner un viseur",
+        inChargeUser: "Responsable",
+        selectInChargeUser: "Sélectionner un responsable",
         filters: {
             fromDate: "Date de début",
             toDate: "Date de fin",

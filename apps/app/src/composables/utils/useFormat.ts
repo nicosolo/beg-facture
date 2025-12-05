@@ -38,5 +38,17 @@ export const useFormat = () => {
         return new Date(date).toLocaleDateString("fr-CH")
     }
 
-    return { formatCurrency, formatPercentage, formatDuration, formatDate, formatNumber }
+    const nl2br = (text: string | null | undefined) => {
+        if (!text) return ""
+        // Escape HTML to prevent XSS
+        const escaped = text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;")
+        return escaped.replace(/\n/g, "<br>")
+    }
+
+    return { formatCurrency, formatPercentage, formatDuration, formatDate, formatNumber, nl2br }
 }

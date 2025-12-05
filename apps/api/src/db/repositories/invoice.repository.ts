@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, lte, sql, inArray } from "drizzle-orm"
+import { and, desc, eq, gte, lte, sql, inArray, aliasedTable } from "drizzle-orm"
 import { db } from "../index"
 import {
     invoices,
@@ -11,6 +11,7 @@ import {
     activities,
     clients,
     projectUsers,
+    users,
 } from "../schema"
 import type { InvoiceCreateInput, InvoiceUpdateInput, InvoiceFilter } from "@beg/validations"
 import { projectRepository } from "./project.repository"
@@ -107,15 +108,33 @@ export const invoiceRepository = {
                 break
         }
 
+        // Create aliases for user joins
+        const visaByUser = aliasedTable(users, "visaByUser")
+        const inChargeUser = aliasedTable(users, "inChargeUser")
+
         const data = await db
             .select({
                 invoice: invoices,
                 project: projects,
                 client: clients,
+                visaByUser: {
+                    id: visaByUser.id,
+                    firstName: visaByUser.firstName,
+                    lastName: visaByUser.lastName,
+                    initials: visaByUser.initials,
+                },
+                inChargeUser: {
+                    id: inChargeUser.id,
+                    firstName: inChargeUser.firstName,
+                    lastName: inChargeUser.lastName,
+                    initials: inChargeUser.initials,
+                },
             })
             .from(invoices)
             .leftJoin(projects, eq(invoices.projectId, projects.id))
             .leftJoin(clients, eq(projects.clientId, clients.id))
+            .leftJoin(visaByUser, eq(invoices.visaByUserId, visaByUser.id))
+            .leftJoin(inChargeUser, eq(invoices.inChargeUserId, inChargeUser.id))
             .where(whereClause)
             .orderBy(orderBy)
             .limit(limit)
@@ -164,6 +183,10 @@ export const invoiceRepository = {
                     visaBy: row.invoice.visaBy,
                     visaByUserId: row.invoice.visaByUserId,
                     visaDate: row.invoice.visaDate,
+                    visaByUser: row.visaByUser?.id ? row.visaByUser : null,
+                    inChargeUserId: row.invoice.inChargeUserId,
+                    inChargeUser: row.inChargeUser?.id ? row.inChargeUser : null,
+                    legacyInvoicePath: row.invoice.legacyInvoicePath,
 
                     // Dates - flat
                     issueDate: row.invoice.issueDate,
@@ -267,15 +290,33 @@ export const invoiceRepository = {
     },
 
     async findById(id: number, user: Variables["user"]) {
+        // Create aliases for user joins
+        const visaByUser = aliasedTable(users, "visaByUser")
+        const inChargeUser = aliasedTable(users, "inChargeUser")
+
         const result = await db
             .select({
                 invoice: invoices,
                 project: projects,
                 client: clients,
+                visaByUser: {
+                    id: visaByUser.id,
+                    firstName: visaByUser.firstName,
+                    lastName: visaByUser.lastName,
+                    initials: visaByUser.initials,
+                },
+                inChargeUser: {
+                    id: inChargeUser.id,
+                    firstName: inChargeUser.firstName,
+                    lastName: inChargeUser.lastName,
+                    initials: inChargeUser.initials,
+                },
             })
             .from(invoices)
             .leftJoin(projects, eq(invoices.projectId, projects.id))
             .leftJoin(clients, eq(projects.clientId, clients.id))
+            .leftJoin(visaByUser, eq(invoices.visaByUserId, visaByUser.id))
+            .leftJoin(inChargeUser, eq(invoices.inChargeUserId, inChargeUser.id))
             .where(eq(invoices.id, id))
             .limit(1)
 
@@ -329,6 +370,10 @@ export const invoiceRepository = {
             visaBy: row.invoice.visaBy,
             visaByUserId: row.invoice.visaByUserId,
             visaDate: row.invoice.visaDate,
+            visaByUser: row.visaByUser?.id ? row.visaByUser : null,
+            inChargeUserId: row.invoice.inChargeUserId,
+            inChargeUser: row.inChargeUser?.id ? row.inChargeUser : null,
+            legacyInvoicePath: row.invoice.legacyInvoicePath,
 
             // Dates - flat
             issueDate: row.invoice.issueDate,
@@ -463,9 +508,9 @@ export const invoiceRepository = {
                     description: data.description,
                     note: data.note,
                     invoiceDocument: data.invoiceDocument || null,
-                    visaBy: data.visaBy || null,
                     visaByUserId: data.visaByUserId || null,
                     visaDate: data.visaDate || null,
+                    inChargeUserId: data.inChargeUserId ?? user.id,
                     // Store real values directly - all flat fields
                     feesBase: data.feesBase,
                     feesAdjusted: data.feesAdjusted,
@@ -625,8 +670,8 @@ export const invoiceRepository = {
             if (data.invoiceDocument !== undefined)
                 updateData.invoiceDocument = data.invoiceDocument
             if (data.visaByUserId !== undefined) updateData.visaByUserId = data.visaByUserId
-            if (data.visaBy !== undefined) updateData.visaBy = data.visaBy
             if (data.visaDate !== undefined) updateData.visaDate = data.visaDate
+            if (data.inChargeUserId !== undefined) updateData.inChargeUserId = data.inChargeUserId
 
             // Period dates
             if (data.periodStart !== undefined) updateData.periodStart = data.periodStart
@@ -810,6 +855,7 @@ export const invoiceRepository = {
         await db
             .update(invoices)
             .set({
+                visaByUserId: user.id,
                 visaBy: user.firstName,
                 visaDate: now,
                 updatedAt: now,

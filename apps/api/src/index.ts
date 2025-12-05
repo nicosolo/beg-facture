@@ -10,7 +10,6 @@ import { clientRoutes } from "@src/routes/client"
 import { companyRoutes } from "@src/routes/company"
 import { engineerRoutes } from "@src/routes/engineer"
 import { invoiceRoutes } from "@src/routes/invoice"
-import { fileRoutes } from "@src/routes/file"
 import { locationRoutes } from "@src/routes/location"
 import { workloadRoutes } from "@src/routes/workloads"
 import unbilledRoutes from "@src/routes/unbilled"
@@ -47,7 +46,6 @@ const app = new Hono()
     .route("/client", clientRoutes)
     .route("/company", companyRoutes)
     .route("/engineer", engineerRoutes)
-    .route("/file", fileRoutes)
     .route("/invoice", invoiceRoutes)
     .route("/location", locationRoutes)
     .route("/workloads", workloadRoutes)

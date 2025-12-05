@@ -57,6 +57,10 @@
                     </Badge>
                 </template>
 
+                <template #cell:inChargeUser="{ item }">
+                    {{ item.inChargeUser?.initials || "-" }}
+                </template>
+
                 <template #cell:actions="{ item }">
                     <div class="flex justify-end gap-2">
                         <Button
@@ -193,6 +197,7 @@ const allColumns = [
     { key: "issueDate", label: t("invoice.issueDate"), sortKey: "issueDate" },
     { key: "totalTTC", label: t("invoice.totalTTC"), sortKey: "totalTTC" },
     { key: "status", label: t("invoice.status.title"), sortKey: "status" },
+    { key: "inChargeUser", label: t("invoice.inChargeUser") },
     { key: "actions", label: t("common.actions") },
 ]
 

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b584b814-b02e-49da-ac04-f91e0060e4d8",
+  "id": "374f7b2b-f563-44c8-8e38-86dff0443f86",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activities": {
@@ -1014,6 +1014,20 @@
           "notNull": false,
           "autoincrement": false
         },
+        "inChargeUserId": {
+          "name": "inChargeUserId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "legacyInvoicePath": {
+          "name": "legacyInvoicePath",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "feesBase": {
           "name": "feesBase",
           "type": "real",
@@ -1060,7 +1074,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": 100
+          "default": 1
         },
         "feesDiscountPercentage": {
           "name": "feesDiscountPercentage",
@@ -1098,7 +1112,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": 65
+          "default": 0.65
         },
         "expensesTravelAmount": {
           "name": "expensesTravelAmount",
@@ -1168,7 +1182,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": 800
+          "default": 8
         },
         "vatAmount": {
           "name": "vatAmount",
@@ -1301,6 +1315,19 @@
           "tableTo": "users",
           "columnsFrom": [
             "visaByUserId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "invoices_inChargeUserId_users_id_fk": {
+          "name": "invoices_inChargeUserId_users_id_fk",
+          "tableFrom": "invoices",
+          "tableTo": "users",
+          "columnsFrom": [
+            "inChargeUserId"
           ],
           "columnsTo": [
             "id"

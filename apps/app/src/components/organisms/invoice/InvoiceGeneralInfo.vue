@@ -153,6 +153,19 @@
                 </div>
             </div>
 
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="text-sm font-medium text-gray-700 mb-1" for="inChargeUserId">
+                        {{ $t("invoice.inChargeUser") }}
+                    </label>
+                    <UserSelect
+                        id="inChargeUserId"
+                        v-model="invoice.inChargeUserId"
+                        :placeholder="$t('invoice.selectInChargeUser')"
+                    />
+                </div>
+            </div>
+
             <div class="mb-4">
                 <label class="text-sm font-medium text-gray-700 mb-1" for="invoicePeriod">
                     Période
@@ -166,6 +179,7 @@
                 :add-button-label="$t('invoice.documents.offer.add')"
                 :empty-state-label="$t('invoice.documents.offer.empty')"
                 entry-type="offer"
+                :invoice-id="invoiceId"
                 @file-change="(payload) => handleDocumentFileChange('offer', payload)"
                 @entry-removed="(payload) => handleDocumentEntryRemoved('offer', payload)"
             />
@@ -176,6 +190,7 @@
                 :add-button-label="$t('invoice.documents.adjudication.add')"
                 :empty-state-label="$t('invoice.documents.adjudication.empty')"
                 entry-type="adjudication"
+                :invoice-id="invoiceId"
                 @file-change="(payload) => handleDocumentFileChange('adjudication', payload)"
                 @entry-removed="(payload) => handleDocumentEntryRemoved('adjudication', payload)"
             />
@@ -186,6 +201,7 @@
                 :add-button-label="$t('invoice.documents.situation.add')"
                 :empty-state-label="$t('invoice.documents.situation.empty')"
                 entry-type="situation"
+                :invoice-id="invoiceId"
                 @file-change="(payload) => handleDocumentFileChange('situation', payload)"
                 @entry-removed="(payload) => handleDocumentEntryRemoved('situation', payload)"
             />
@@ -196,6 +212,7 @@
                 :add-button-label="$t('invoice.documents.document.add')"
                 :empty-state-label="$t('invoice.documents.document.empty')"
                 entry-type="document"
+                :invoice-id="invoiceId"
                 :show-amount="false"
                 @file-change="(payload) => handleDocumentFileChange('document', payload)"
                 @entry-removed="(payload) => handleDocumentEntryRemoved('document', payload)"
@@ -218,6 +235,7 @@ import { useInvoiceDocuments } from "@/composables/invoice/useInvoiceDocuments"
 
 const props = defineProps<{
     modelValue: Invoice
+    invoiceId?: number | null
 }>()
 
 const emit = defineEmits<{
@@ -243,6 +261,8 @@ const invoice = computed({
     set: (value) => emit("update:modelValue", value),
 })
 
+const invoiceId = computed(() => props.invoiceId)
+
 const invoiceDocumentPreviewUrl = computed(() => {
     const file = invoice.value.invoiceDocument
     if (!file) return null
@@ -250,7 +270,8 @@ const invoiceDocumentPreviewUrl = computed(() => {
     if (!trimmed) return null
     const hasPath = trimmed.includes("/") || trimmed.includes("\\")
     if (!hasPath) return null
-    return buildFileUrl(file)
+    if (!props.invoiceId) return null
+    return buildFileUrl(props.invoiceId, file)
 })
 
 const invoiceDocumentDisplayName = computed(() => extractFileName(invoice.value.invoiceDocument))
@@ -269,7 +290,10 @@ const handleDocumentEntryRemoved = (
     emit("document-entry-removed", { type, ...payload })
 }
 
-const downloadInvoiceDocument = () => downloadInvoiceFile(invoice.value.invoiceDocument)
+const downloadInvoiceDocument = () => {
+    if (!props.invoiceId) return
+    downloadInvoiceFile(props.invoiceId, invoice.value.invoiceDocument)
+}
 
 const startDate = computed({
     get: () => invoice.value.periodStart?.toISOString().split("T")[0] || "",

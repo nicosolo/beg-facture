@@ -36,8 +36,21 @@
                             Visa
                         </td>
                         <td class="border border-gray-300 p-1 text-sm">
-                            {{ invoice.visaDate ? formatDate(invoice.visaDate) : "N/A" }} -
-                            {{ invoice.visaBy ? invoice.visaBy : "N/A" }}
+                            <template v-if="invoice.visaByUserId || invoice.visaBy">
+                                {{ invoice.visaDate ? formatDate(invoice.visaDate) : "-" }} -
+                                {{ visaByUserName || invoice.visaBy || "-" }}
+                            </template>
+                            <template v-else> Pas de visa </template>
+                        </td>
+                    </tr>
+                    <tr v-if="invoice.inChargeUserId">
+                        <td
+                            class="font-bold pr-4 text-right w-[4cm] border border-gray-300 p-1 text-sm"
+                        >
+                            {{ t("invoice.inChargeUser") }}
+                        </td>
+                        <td class="border border-gray-300 p-1 text-sm">
+                            {{ inChargeUserName }}
                         </td>
                     </tr>
                     <tr>
@@ -78,10 +91,10 @@
                         </td>
                         <td class="border border-gray-300 p-1 text-sm">
                             <button
-                                v-if="buildFileUrl(invoice.invoiceDocument)"
+                                v-if="buildFileUrl(invoice.id, invoice.invoiceDocument)"
                                 type="button"
                                 class="text-blue-600 hover:underline"
-                                @click="downloadInvoiceFile(invoice.invoiceDocument)"
+                                @click="downloadInvoiceFile(invoice.id, invoice.invoiceDocument)"
                             >
                                 {{ extractFileName(invoice.invoiceDocument) }}
                             </button>
@@ -124,9 +137,10 @@
                         >
                             Adresse de facturation
                         </td>
-                        <td class="border border-gray-300 p-1 text-sm">
-                            {{ invoice.clientAddress }}<br /><br />
-                        </td>
+                        <td
+                            class="border border-gray-300 p-1 text-sm"
+                            v-html="nl2br(invoice.clientAddress)"
+                        ></td>
                     </tr>
                     <tr>
                         <td
@@ -134,9 +148,10 @@
                         >
                             Adresse d'envoi
                         </td>
-                        <td class="border border-gray-300 p-1 text-sm">
-                            {{ invoice.recipientAddress }}<br /><br />
-                        </td>
+                        <td
+                            class="border border-gray-300 p-1 text-sm"
+                            v-html="nl2br(invoice.recipientAddress)"
+                        ></td>
                     </tr>
                     <tr>
                         <td
@@ -175,7 +190,10 @@
                         >
                             Prestations
                         </td>
-                        <td class="border border-gray-300 p-1" v-html="formattedDescription"></td>
+                        <td
+                            class="border border-gray-300 p-1"
+                            v-html="nl2br(invoice.description)"
+                        ></td>
                     </tr>
                 </tbody>
             </table>
@@ -440,10 +458,10 @@
                         </td>
                         <td class="doc2 w-[5.7cm] border-none p-1 text-sm">
                             <button
-                                v-if="buildFileUrl(offer.file)"
+                                v-if="buildFileUrl(invoice.id, offer.file)"
                                 type="button"
                                 class="text-blue-600 hover:underline"
-                                @click="downloadInvoiceFile(offer.file)"
+                                @click="downloadInvoiceFile(invoice.id, offer.file)"
                             >
                                 {{ extractFileName(offer.file) }}
                             </button>
@@ -468,10 +486,10 @@
                         </td>
                         <td class="doc2 w-[5.7cm] border-none p-1 text-sm">
                             <button
-                                v-if="buildFileUrl(adjudication.file)"
+                                v-if="buildFileUrl(invoice.id, adjudication.file)"
                                 type="button"
                                 class="text-blue-600 hover:underline"
-                                @click="downloadInvoiceFile(adjudication.file)"
+                                @click="downloadInvoiceFile(invoice.id, adjudication.file)"
                             >
                                 {{ extractFileName(adjudication.file) }}
                             </button>
@@ -496,10 +514,10 @@
                         </td>
                         <td class="doc2 w-[5.7cm] border-none p-1 text-sm">
                             <button
-                                v-if="buildFileUrl(situation.file)"
+                                v-if="buildFileUrl(invoice.id, situation.file)"
                                 type="button"
                                 class="text-blue-600 hover:underline"
-                                @click="downloadInvoiceFile(situation.file)"
+                                @click="downloadInvoiceFile(invoice.id, situation.file)"
                             >
                                 {{ extractFileName(situation.file) }}
                             </button>
@@ -524,10 +542,10 @@
                         </td>
                         <td class="doc2 w-[5.7cm] border-none p-1 text-sm">
                             <button
-                                v-if="buildFileUrl(document.file)"
+                                v-if="buildFileUrl(invoice.id, document.file)"
                                 type="button"
                                 class="text-blue-600 hover:underline"
-                                @click="downloadInvoiceFile(document.file)"
+                                @click="downloadInvoiceFile(invoice.id, document.file)"
                             >
                                 {{ extractFileName(document.file) }}
                             </button>
@@ -537,6 +555,19 @@
                     </tr>
                 </tbody>
             </table>
+            <button
+                v-if="invoice.legacyInvoicePath"
+                type="button"
+                class="text-blue-600 hover:underline"
+                @click="
+                    downloadInvoiceFile(
+                        invoice.id,
+                        invoice.legacyInvoicePath.replace('fab', 'html')
+                    )
+                "
+            >
+                {{ extractFileName(invoice.legacyInvoicePath.replace("fab", "html")) }}
+            </button>
         </div>
     </div>
 </template>
@@ -554,13 +585,20 @@ interface InvoiceProps {
 }
 
 const props = defineProps<InvoiceProps>()
-const { formatCurrency, formatDuration, formatDate } = useFormat()
+const { formatCurrency, formatDuration, formatDate, nl2br } = useFormat()
 const { t } = useI18n()
 const { buildFileUrl, downloadInvoiceFile, extractFileName } = useInvoiceDocuments()
-const formattedDescription = computed(() => {
-    // Replace line breaks with <br> tags for HTML rendering
-    if (!props.invoice.description) return ""
-    return props.invoice.description.replace(/\n/g, "<br>")
+
+const inChargeUserName = computed(() => {
+    const user = props.invoice.inChargeUser
+    if (!user) return ""
+    return `${user.initials} - ${user.firstName} ${user.lastName}`
+})
+
+const visaByUserName = computed(() => {
+    const user = props.invoice.visaByUser
+    if (!user) return ""
+    return user.firstName
 })
 
 const filteredRates = computed(() => {

@@ -143,17 +143,19 @@ CREATE TABLE `invoices` (
 	`visaByUserId` integer,
 	`visaBy` text,
 	`visaDate` integer,
+	`inChargeUserId` integer,
+	`legacyInvoicePath` text,
 	`feesBase` real DEFAULT 0 NOT NULL,
 	`feesAdjusted` real DEFAULT 0 NOT NULL,
 	`feesTotal` real DEFAULT 0 NOT NULL,
 	`feesOthers` real DEFAULT 0 NOT NULL,
 	`feesFinalTotal` real DEFAULT 0 NOT NULL,
-	`feesMultiplicationFactor` real DEFAULT 100 NOT NULL,
+	`feesMultiplicationFactor` real DEFAULT 1 NOT NULL,
 	`feesDiscountPercentage` real,
 	`feesDiscountAmount` real,
 	`expensesTravelBase` real DEFAULT 0 NOT NULL,
 	`expensesTravelAdjusted` real DEFAULT 0 NOT NULL,
-	`expensesTravelRate` real DEFAULT 65 NOT NULL,
+	`expensesTravelRate` real DEFAULT 0.65 NOT NULL,
 	`expensesTravelAmount` real DEFAULT 0 NOT NULL,
 	`expensesOtherBase` real DEFAULT 0 NOT NULL,
 	`expensesOtherAmount` real DEFAULT 0 NOT NULL,
@@ -162,7 +164,7 @@ CREATE TABLE `invoices` (
 	`expensesPackageAmount` real,
 	`expensesTotalExpenses` real DEFAULT 0 NOT NULL,
 	`totalHT` real DEFAULT 0 NOT NULL,
-	`vatRate` real DEFAULT 800 NOT NULL,
+	`vatRate` real DEFAULT 8 NOT NULL,
 	`vatAmount` real DEFAULT 0 NOT NULL,
 	`totalTTC` real DEFAULT 0 NOT NULL,
 	`otherServices` text DEFAULT '',
@@ -173,7 +175,8 @@ CREATE TABLE `invoices` (
 	`updatedAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`createdAt` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	FOREIGN KEY (`projectId`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE set null,
-	FOREIGN KEY (`visaByUserId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null
+	FOREIGN KEY (`visaByUserId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null,
+	FOREIGN KEY (`inChargeUserId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
 CREATE INDEX `invoices_invoice_number_idx` ON `invoices` (`invoiceNumber`);--> statement-breakpoint

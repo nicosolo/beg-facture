@@ -11,7 +11,7 @@ const alerts = ref<Alert[]>([])
 const MAX_ALERTS = 5
 
 export const useAlert = () => {
-    const addAlert = (message: string, type: Alert["type"] = "success", duration = 3000) => {
+    const addAlert = (message: string, type: Alert["type"] = "success", duration = 6000) => {
         const id = Date.now().toString()
         const alert: Alert = {
             id,

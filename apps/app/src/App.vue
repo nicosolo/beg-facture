@@ -214,12 +214,12 @@ const isExpanded = (itemName: string): boolean => {
                         <ArrowLeftIcon class="h-5 w-5" />
                     </button>
 
-                    <RouterLink to="/">
+                    <a href="/">
                         <div class="flex items-center">
-                            <img alt="BEG logo" class="h-7 w-auto mr-4" src="@/assets/logo.png" />
-                            <h2 class="text-2xl font-bold">Gestion</h2>
+                            <img alt="BEG logo" class="h-7 w-auto mr-1" src="@/assets/logo.png" />
+                            <h2 class="text-xl font-bold text-gray-700 pt-2">Gestion</h2>
                         </div>
-                    </RouterLink>
+                    </a>
                 </div>
 
                 <button

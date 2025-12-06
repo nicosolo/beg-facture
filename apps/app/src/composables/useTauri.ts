@@ -1,7 +1,6 @@
 import { computed } from "vue"
 import { invoke } from "@tauri-apps/api/core"
 import { useAlert } from "@/composables/utils/useAlert"
-// Dynamically import Tauri modules only when running in Tauri
 
 // Check if we're in Tauri environment
 const isTauriEnvironment = () => {
@@ -45,9 +44,36 @@ export function useTauri() {
         }
     }
 
+    /**
+     * Open a file with the system's default application
+     * @param filePath - The absolute path to the file
+     * @returns Promise<boolean> - True if successful, false otherwise
+     */
+    const openFile = async (filePath: string): Promise<boolean> => {
+        if (!isTauri.value) {
+            console.warn("Tauri is not available")
+            return false
+        }
+
+        try {
+            console.log("Opening file at:", filePath)
+            const fullPath = await invoke<string>("open_file", {
+                absolutePath: filePath,
+            })
+            console.log("Successfully opened file at:", fullPath)
+            return true
+        } catch (error) {
+            console.error("Failed to open file:", error)
+            const errorMessage = error instanceof Error ? error.message : String(error)
+            errorAlert(`Impossible d'ouvrir le fichier: ${errorMessage}`, 5000)
+            return false
+        }
+    }
+
     return {
         isTauri: computed(() => isTauri.value),
         openFolder,
+        openFile,
     }
 }
 

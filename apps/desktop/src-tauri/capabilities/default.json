@@ -6,6 +6,12 @@
     "permissions": [
         "core:default",
         "dialog:default",
+        "fs:default",
+        "fs:allow-temp-write-recursive",
+        {
+            "identifier": "opener:allow-open-path",
+            "allow": [{ "path": "$TEMP/**" }]
+        },
         "opener:default",
         "shell:allow-open"
     ]

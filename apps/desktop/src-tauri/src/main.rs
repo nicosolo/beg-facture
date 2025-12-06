@@ -50,6 +50,49 @@ fn open_project_folder(absolute_path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
+fn open_file(absolute_path: String) -> Result<String, String> {
+    // On Windows, replace all forward slashes with backslashes
+    #[cfg(target_os = "windows")]
+    let absolute_path = absolute_path.replace('/', "\\");
+
+    let file_path = PathBuf::from(&absolute_path);
+
+    // Check if path exists
+    if !file_path.exists() {
+        return Err(format!("File does not exist: {}", absolute_path));
+    }
+
+    println!("Opening file: {}", absolute_path);
+
+    // Open the file using the system's default application
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("cmd")
+            .args(["/C", "start", "", &absolute_path])
+            .spawn()
+            .map_err(|e| format!("Failed to open file: {}", e))?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&absolute_path)
+            .spawn()
+            .map_err(|e| format!("Failed to open file: {}", e))?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&absolute_path)
+            .spawn()
+            .map_err(|e| format!("Failed to open file: {}", e))?;
+    }
+
+    Ok(absolute_path)
+}
+
+#[tauri::command]
 fn check_path_exists(path: String) -> Result<bool, String> {
     // Check if the path exists
     let path_buf = PathBuf::from(&path);
@@ -147,10 +190,12 @@ fn main() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             open_project_folder,
+            open_file,
             check_path_exists,
             list_directories,
             get_project_base_path

@@ -22,6 +22,7 @@ import MonthlyHoursListView from "../views/monthlyHours/MonthlyHoursListView.vue
 import LoginView from "../views/LoginView.vue"
 import DatabaseImportView from "../views/admin/DatabaseImportView.vue"
 import AppSettingsView from "../views/settings/AppSettingsView.vue"
+import DownloadAppView from "../views/download/DownloadAppView.vue"
 import { useAuthStore } from "../stores/auth"
 
 const router = createRouter({
@@ -190,6 +191,13 @@ const router = createRouter({
             path: "/app-settings",
             name: "app-settings",
             component: AppSettingsView,
+            meta: { requiresAuth: true },
+        },
+        // Download desktop app (web only)
+        {
+            path: "/download",
+            name: "download-app",
+            component: DownloadAppView,
             meta: { requiresAuth: true },
         },
     ],

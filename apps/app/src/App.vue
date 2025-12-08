@@ -8,6 +8,7 @@ import {
     ChevronDownIcon,
     ChevronRightIcon,
     ArrowLeftIcon,
+    ArrowDownTrayIcon,
 } from "@heroicons/vue/24/outline"
 import { useAuthStore } from "./stores/auth"
 import { useAlert } from "./composables/utils/useAlert"
@@ -318,6 +319,17 @@ const isExpanded = (itemName: string): boolean => {
                                 </RouterLink>
                             </template>
                         </nav>
+                    </div>
+                    <!-- Download app link - only visible in web (not Tauri) -->
+                    <div v-if="!isTauri" class="flex-shrink-0 border-t border-gray-200 px-4 py-3">
+                        <RouterLink
+                            :to="{ name: 'download-app' }"
+                            class="flex items-center text-sm text-gray-600 hover:text-gray-900"
+                            @click="toggleSidebar"
+                        >
+                            <ArrowDownTrayIcon class="h-4 w-4 mr-2" />
+                            {{ t("downloadApp.linkText") }}
+                        </RouterLink>
                     </div>
                     <!-- User info section - fixed at bottom -->
                     <div class="flex-shrink-0 border-t border-gray-200 p-4">

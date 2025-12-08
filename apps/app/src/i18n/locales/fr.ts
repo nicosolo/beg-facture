@@ -589,6 +589,14 @@ export default {
             toolsNotInstalled: "Outils MDB non installés",
         },
     },
+    downloadApp: {
+        title: "Application de bureau",
+        description:
+            "Téléchargez l'application de bureau pour accéder directement aux fichiers de mandats et factures.",
+        version: "Version",
+        linkText: "Télécharger l'app",
+        recommended: "Recommandé",
+    },
     appSettings: {
         title: "Paramètres de l'application",
         resetToDefault: "Réinitialiser par défaut",

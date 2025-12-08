@@ -11,7 +11,10 @@
         "build": "tauri build --config src-tauri/tauri.conf.json",
         "generate-icons": "tauri icon ../app/src/assets/icon-white.png",
         "build:windows:x86": "tauri build --config src-tauri/tauri.conf.json --runner cargo-xwin --target x86_64-pc-windows-msvc",
-        "build:windows:arm64": "tauri build --config src-tauri/tauri.conf.json --runner cargo-xwin --target aarch64-pc-windows-msvc"
+        "build:windows:arm64": "tauri build --config src-tauri/tauri.conf.json --runner cargo-xwin --target aarch64-pc-windows-msvc",
+        "build:all": "bun run build:windows:x86 && bun run build:windows:arm64 && bun run copy-builds",
+        "release": "bun run build:all",
+        "copy-builds": "bun run copy-builds.ts"
     },
     "type": "module"
 }

@@ -89,6 +89,12 @@ const navigation = computed(() =>
                     visible: hasAdminAccess.value,
                 },
                 {
+                    name: t("navigation.userGroups"),
+                    to: { name: "user-group-list" },
+                    current: route.name === "user-group-list",
+                    visible: hasAdminAccess.value,
+                },
+                {
                     name: t("navigation.activities"),
                     to: { name: "activity-type-list" },
                     current: route.name === "activity-type-list",

@@ -9,6 +9,7 @@ import {
     type UserResponse,
     userDetailResponseSchema,
     loginResponseSchema,
+    userResponseWithGroupSchema,
 } from "@beg/validations"
 import { userRepository } from "../db/repositories/user.repository"
 import { comparePassword, generateToken } from "../tools/auth"
@@ -19,7 +20,7 @@ import type { Variables } from "@src/types/global"
 import { roleMiddleware } from "@src/tools/role-middleware"
 
 // Define users array response schema
-const usersArrayResponseSchema = z.array(userResponseSchema)
+const usersArrayResponseSchema = z.array(userResponseWithGroupSchema)
 
 // Create the app and apply auth middleware to routes that need it
 export const userRoutes = new Hono<{ Variables: Variables }>()

@@ -1,6 +1,6 @@
 import { and, eq, sql, desc, asc, gte, lte, or } from "drizzle-orm"
 import { db } from "../index"
-import { activities, activityTypes, projects, users, projectUsers } from "../schema"
+import { activities, activityTypes, projects, users, projectUsers, userGroups } from "../schema"
 import type { ActivityFilter } from "@beg/validations"
 import type { Variables } from "@src/types/global"
 import { hasRole } from "@src/tools/role-middleware"
@@ -89,12 +89,14 @@ const createBaseQuery = (user: Variables["user"]) =>
         .select(selectFields(user))
         .from(activities)
         .leftJoin(users, eq(activities.userId, users.id))
+        .leftJoin(userGroups, eq(users.groupId, userGroups.id))
         .leftJoin(projects, eq(activities.projectId, projects.id))
         .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
 
 const buildFilterComponents = (filter: ActivityFilter, user?: Variables["user"]) => {
     const {
         userId,
+        userGroupId,
         projectId,
         fromDate,
         toDate,
@@ -110,6 +112,7 @@ const buildFilterComponents = (filter: ActivityFilter, user?: Variables["user"])
 
     const whereConditions: any[] = []
     if (userId) whereConditions.push(eq(activities.userId, userId))
+    if (userGroupId) whereConditions.push(eq(userGroups.id, userGroupId))
     if (projectId) whereConditions.push(eq(activities.projectId, projectId))
     if (fromDate) whereConditions.push(gte(activities.date, fromDate))
     if (toDate) whereConditions.push(lte(activities.date, toDate))

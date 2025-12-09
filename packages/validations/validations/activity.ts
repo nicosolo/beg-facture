@@ -6,6 +6,7 @@ import { booleanSchema, classSchema, dateSchema, timestampsSchema } from "./base
 const activityBaseFilterSchema = z.object({
     projectId: z.coerce.number().optional(),
     userId: z.coerce.number().optional(),
+    userGroupId: z.coerce.number().optional(),
     fromDate: z.coerce.date().optional(),
     toDate: z.coerce.date().optional(),
     sortBy: z

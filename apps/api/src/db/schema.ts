@@ -27,6 +27,7 @@ export const users = sqliteTable(
         activityRates: text("activityRates", { mode: "json" })
             .$type<ActivityRateUser[]>()
             .default([]),
+        groupId: integer("groupId"),
         ...timestamps,
     },
     (table) => [
@@ -38,6 +39,8 @@ export const users = sqliteTable(
         index("users_role_idx").on(table.role),
         // Composite index for name searches
         index("users_name_idx").on(table.lastName, table.firstName),
+        // Index for group filtering
+        index("users_group_idx").on(table.groupId),
     ]
 )
 
@@ -484,6 +487,17 @@ export const vatRates = sqliteTable(
         // Unique constraint on year
         index("vat_rates_year_unique").on(table.year),
     ]
+)
+
+// User Groups table
+export const userGroups = sqliteTable(
+    "user_groups",
+    {
+        id: integer("id").primaryKey({ autoIncrement: true }),
+        name: text("name").notNull(),
+        ...timestamps,
+    },
+    (table) => [index("user_groups_name_idx").on(table.name)]
 )
 
 // Workloads table

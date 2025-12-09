@@ -37,6 +37,7 @@ export const userUpdateSchema = z.object({
     role: z.enum(["super_admin", "admin", "user"]).optional(),
     archived: z.boolean().optional(),
     activityRates: z.array(activityRateUserSchema).optional(),
+    groupId: z.number().nullable().optional(),
 })
 
 export type LoginInput = z.infer<typeof loginSchema>
@@ -79,9 +80,16 @@ export const userDetailResponseSchema = z
         role: z.enum(["super_admin", "admin", "user"]),
         archived: z.boolean(),
         activityRates: z.array(activityRateUserSchema).nullable(),
+        groupId: z.number().nullable().optional(),
     })
     .merge(nullableTimestampsSchema)
 
+// User response with groupId for list views
+export const userResponseWithGroupSchema = userResponseSchema.extend({
+    groupId: z.number().nullable().optional(),
+})
+
 export type UserResponse = z.infer<typeof userResponseSchema>
+export type UserResponseWithGroup = z.infer<typeof userResponseWithGroupSchema>
 export type UserDetailResponse = z.infer<typeof userDetailResponseSchema>
 export type UserRole = z.infer<typeof userRoleSchema>

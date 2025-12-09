@@ -33,6 +33,16 @@
                         />
                     </div>
 
+                    <!-- User Group Filter -->
+                    <div class="form-group" v-if="isRole('admin')">
+                        <Label>{{ $t("time.filters.userGroup") }}</Label>
+                        <Select
+                            v-model="localFilter.userGroupId"
+                            :options="userGroupOptions"
+                            @update:modelValue="handleFilterChange"
+                        />
+                    </div>
+
                     <!-- Sort controls -->
                     <div class="form-group">
                         <Label>{{ $t("projects.filters.sortBy") }}</Label>
@@ -159,7 +169,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue"
+import { ref, watch, onMounted, computed } from "vue"
+import { useI18n } from "vue-i18n"
 import Label from "@/components/atoms/Label.vue"
 import Select from "@/components/atoms/Select.vue"
 import Button from "@/components/atoms/Button.vue"
@@ -168,6 +179,7 @@ import Checkbox from "@/components/atoms/Checkbox.vue"
 import DateRange from "@/components/molecules/DateRange.vue"
 import ProjectSelect from "@/components/organisms/project/ProjectSelect.vue"
 import { useFetchUsers } from "@/composables/api/useUser"
+import { useFetchUserGroups } from "@/composables/api/useUserGroup"
 import type { ActivityFilter } from "@beg/validations"
 import UserSelect from "@/components/organisms/user/UserSelect.vue"
 import { useAuthStore } from "@/stores/auth"
@@ -192,6 +204,7 @@ const {
     initialFilter,
 } = defineProps<Props>()
 const { isRole } = useAuthStore()
+const { t } = useI18n()
 const emit = defineEmits<{
     "update:filter": [value: ActivityFilter]
 }>()
@@ -200,18 +213,15 @@ const emit = defineEmits<{
 const localFilter = ref<ActivityFilter>({ ...filter })
 
 // Fetch data for dropdowns
-const { get: fetchUsers, loading: loadingUsers, data: usersData } = useFetchUsers()
+const { get: fetchUserGroups, data: userGroupsData } = useFetchUserGroups()
 
-const userOptions = ref<Array<{ label: string; value: number }>>([])
-
-// Watch for data changes and update options
-watch(usersData, (newData) => {
-    if (newData) {
-        userOptions.value = newData.map((user: any) => ({
-            label: `${user.firstName} ${user.lastName}`,
-            value: user.id,
-        }))
-    }
+// User group options for Select
+const userGroupOptions = computed(() => {
+    const groups = userGroupsData.value?.data || []
+    return [
+        { label: t("common.all"), value: null },
+        ...groups.map((g) => ({ label: g.name, value: g.id })),
+    ]
 })
 
 // Watch for prop changes
@@ -233,6 +243,7 @@ const resetFilters = () => {
     const { from, to } = getTodayRange()
     localFilter.value = {
         userId: undefined,
+        userGroupId: undefined,
         projectId: undefined,
         activityTypeId: undefined,
         fromDate: from,
@@ -250,6 +261,6 @@ const resetFilters = () => {
 
 // Load data on mount
 onMounted(async () => {
-    await fetchUsers()
+    await Promise.all([fetchUserGroups()])
 })
 </script>

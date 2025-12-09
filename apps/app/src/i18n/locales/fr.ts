@@ -74,6 +74,7 @@ export default {
         logout: "Déconnexion",
         engineers: "Ingénieurs",
         companies: "Entreprises",
+        userGroups: "Groupes de collaborateur",
     },
     home: {
         title: "Bienvenue dans BEG Gestion",
@@ -203,6 +204,7 @@ export default {
             hasUnbilledTime: "Avec heures non facturées",
             searchByNameAndNumber: "Rechercher par numéro ou nom",
             referentUser: "Responsable",
+            userGroup: "Groupe",
             selectType: "Filtrer par type...",
         },
         options: "Options",
@@ -330,6 +332,7 @@ export default {
         },
         filters: {
             user: "Collaborateur",
+            userGroup: "Groupe",
             project: "Mandat",
             activityType: "Activité",
             fromDate: "Date de début",
@@ -439,6 +442,15 @@ export default {
     collaborator: {
         createSuccess: "Collaborateur {name} créé avec succès",
         updateSuccess: "Collaborateur {name} mis à jour avec succès",
+    },
+    userGroup: {
+        title: "Groupe",
+        selectGroup: "Sélectionner un groupe",
+        noGroup: "Aucun groupe",
+        createSuccess: "Groupe créé avec succès",
+        updateSuccess: "Groupe mis à jour avec succès",
+        deleteSuccess: "Groupe supprimé avec succès",
+        name: "Nom du groupe",
     },
     monthlyHours: {
         title: "Heures mensuelles",

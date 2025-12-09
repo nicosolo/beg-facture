@@ -35,6 +35,7 @@ export const userRepository = {
                 createdAt: users.createdAt,
                 updatedAt: users.updatedAt,
                 activityRates: users.activityRates,
+                groupId: users.groupId,
             })
             .from(users)
             .where(eq(users.id, id))
@@ -45,7 +46,7 @@ export const userRepository = {
         return result
     },
 
-    findAll: async (): Promise<UserResponse[]> => {
+    findAll: async () => {
         return await db
             .select({
                 id: users.id,
@@ -57,6 +58,7 @@ export const userRepository = {
                 archived: users.archived,
                 createdAt: users.createdAt,
                 updatedAt: users.updatedAt,
+                groupId: users.groupId,
             })
             .from(users)
     },
@@ -74,8 +76,26 @@ export const userRepository = {
                 createdAt: users.createdAt,
                 updatedAt: users.updatedAt,
                 activityRates: users.activityRates,
+                groupId: users.groupId,
             })
             .from(users)
+    },
+
+    findByGroupId: async (groupId: number): Promise<UserResponse[]> => {
+        return await db
+            .select({
+                id: users.id,
+                email: users.email,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                initials: users.initials,
+                role: users.role,
+                archived: users.archived,
+                createdAt: users.createdAt,
+                updatedAt: users.updatedAt,
+            })
+            .from(users)
+            .where(eq(users.groupId, groupId))
     },
 
     create: async (userData: UserCreateInput): Promise<UserResponse> => {
@@ -120,6 +140,9 @@ export const userRepository = {
         if (userData.archived !== undefined) updateData.archived = userData.archived
         if (userData.activityRates !== undefined) {
             updateData.activityRates = userData.activityRates || null
+        }
+        if (userData.groupId !== undefined) {
+            updateData.groupId = userData.groupId
         }
 
         // Only hash password if it's provided

@@ -109,6 +109,14 @@
                 </div>
             </div>
 
+            <!-- Group Section -->
+            <div class="mt-8">
+                <h2 class="text-lg font-medium mb-4">{{ $t("userGroup.title") }}</h2>
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <Select v-model="selectedGroupId" :options="groupOptions" />
+                </div>
+            </div>
+
             <!-- Activities Section -->
             <div class="mt-8">
                 <h2 class="text-lg font-medium mb-4">Heures associées</h2>
@@ -212,6 +220,7 @@ import Button from "@/components/atoms/Button.vue"
 import FormLayout from "@/components/templates/FormLayout.vue"
 import { useFetchUser, useCreateUser, useUpdateUser } from "../../composables/api/useUser"
 import { useFetchActivityTypes } from "../../composables/api/useActivityType"
+import { useFetchUserGroups } from "../../composables/api/useUserGroup"
 import UserWorkloadList from "@/components/organisms/workload/UserWorkloadList.vue"
 import type { UserCreateInput, UserUpdateInput, ClassSchema } from "@beg/validations"
 import { useAuthStore } from "@/stores/auth"
@@ -244,6 +253,19 @@ const {
     data: activityTypes,
     loading: loadingActivityTypes,
 } = useFetchActivityTypes()
+const { data: groupsData, get: getGroups } = useFetchUserGroups()
+
+// Group options for Select component
+const groupOptions = computed(() => {
+    const groups = groupsData.value?.data || []
+    return [
+        { label: t("userGroup.noGroup"), value: null },
+        ...groups.map((g) => ({ label: g.name, value: g.id })),
+    ]
+})
+
+// Selected group ID (single)
+const selectedGroupId = ref<number | null>(null)
 
 // Form data
 const collaborator = ref<UserCreateInput | UserUpdateInput>({
@@ -405,8 +427,8 @@ const errorMessage = ref<string | null>(null)
 // Load user data and activity types
 onMounted(async () => {
     document.title = "BEG - Modifier le collaborateur"
-    // Load activity types
-    await getActivityTypes()
+    // Load activity types and groups
+    await Promise.all([getActivityTypes(), getGroups()])
 
     if (collaboratorId.value) {
         await getUser({ params: { id: collaboratorId.value } })
@@ -429,6 +451,11 @@ onMounted(async () => {
                     selectedActivities.value[rate.activityId] = true
                     activityClasses.value[rate.activityId] = rate.class
                 })
+            }
+
+            // Populate selected group
+            if (userData.value.groupId) {
+                selectedGroupId.value = userData.value.groupId
             }
         }
     }
@@ -476,10 +503,11 @@ const saveCollaborator = async () => {
             })
             .filter((rate): rate is ActivityRate => rate !== null)
 
-        // Update collaborator data with activity rates
+        // Update collaborator data with activity rates and group
         const collaboratorData = {
             ...collaborator.value,
             activityRates: activityRates,
+            groupId: selectedGroupId.value,
         }
 
         const fullName = [collaborator.value.firstName, collaborator.value.lastName]

@@ -11,6 +11,7 @@ import TimeListView from "../views/time/TimeListView.vue"
 import TariffListView from "../views/tariff/TariffListView.vue"
 import ProjectEditView from "../views/project/ProjectEditView.vue"
 import ProjectTypeListView from "../views/projectType/ProjectTypeListView.vue"
+import UserGroupListView from "../views/userGroup/UserGroupListView.vue"
 import ProjectPreviewView from "../views/project/ProjectPreviewView.vue"
 import ActivityTypeListView from "../views/activityType/ActivityTypeListView.vue"
 import LocationListView from "../views/location/LocationListView.vue"
@@ -76,6 +77,13 @@ const router = createRouter({
             name: "project-type-list",
             component: ProjectTypeListView,
             meta: { requiresAuth: true },
+        },
+        // User Group routes
+        {
+            path: "/user-group",
+            name: "user-group-list",
+            component: UserGroupListView,
+            meta: { requiresAuth: true, requiresAdmin: true },
         },
         // Invoice routes
         {

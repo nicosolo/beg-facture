@@ -179,14 +179,14 @@ const filterData = reactive<ProjectFilterProps["filter"]>({
     name: filter.name,
     includeArchived: filter.includeArchived,
     includeEnded: filter.includeEnded,
-    includeDraft: filter.includeDraft || false,
+    includeDraft: filter.includeDraft,
     sortBy: filter.sortBy,
     sortOrder: filter.sortOrder,
     fromDate: filter.fromDate,
     toDate: filter.toDate,
-    referentUserId: filter.referentUserId || undefined,
-    projectTypeIds: filter.projectTypeIds || [],
-    hasUnbilledTime: filter.hasUnbilledTime || false,
+    referentUserId: filter.referentUserId,
+    projectTypeIds: filter.projectTypeIds,
+    hasUnbilledTime: filter.hasUnbilledTime,
 })
 
 // Watch for external filter changes

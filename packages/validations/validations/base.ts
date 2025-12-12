@@ -2,7 +2,7 @@ import { z } from "zod"
 
 // Base schemas for entities
 export const dateSchema = z.coerce.date()
-export const nullableDateSchema = dateSchema.nullable()
+export const nullableDateSchema = z.any()
 export const booleanSchema = z.union([
     z.boolean(),
     z.string().transform((val) => val === "true"),

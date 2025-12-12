@@ -92,6 +92,8 @@ export const userRepository = {
                 role: userData.role,
                 archived: userData.archived,
                 activityRates: userData.activityRates || null,
+                createdAt: new Date(),
+                updatedAt: new Date(),
             })
             .returning({
                 id: users.id,
@@ -110,7 +112,7 @@ export const userRepository = {
     },
 
     update: async (id: number, userData: Partial<UserUpdateInput>): Promise<UserResponse> => {
-        const updateData: any = {}
+        const updateData: Partial<typeof users.$inferInsert> = {}
 
         if (userData.email) updateData.email = userData.email
         if (userData.firstName) updateData.firstName = userData.firstName
@@ -120,6 +122,10 @@ export const userRepository = {
         if (userData.archived !== undefined) updateData.archived = userData.archived
         if (userData.activityRates !== undefined) {
             updateData.activityRates = userData.activityRates || null
+        }
+        updateData.updatedAt = new Date()
+        if (!updateData.createdAt) {
+            updateData.createdAt = new Date()
         }
 
         // Only hash password if it's provided

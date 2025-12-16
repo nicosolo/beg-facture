@@ -724,11 +724,18 @@ async function importActivityTypes() {
         const code = codeOverrides[mappedCode] || mappedCode
         const name = nameOverrides[mappedCode] || rawActivityType.Activité
 
+        // Gc, Gr, Ga are non-billable management activities
+        const nonBillableCodes = ["Gc", "Gr", "Ga"]
+        const isBillable =
+            rawActivityType.Activité === "Non facturable" || nonBillableCodes.includes(code)
+                ? false
+                : true
+
         const activityType = {
             id: rawActivityType.IDactivité,
             name,
             code,
-            billable: rawActivityType.Activité === "Non facturable" ? false : true,
+            billable: isBillable,
             createdAt: new Date(),
             updatedAt: new Date(),
         } satisfies typeof activityTypes.$inferInsert
@@ -740,21 +747,21 @@ async function importActivityTypes() {
         {
             name: "Gestion: comptabilité",
             code: "Gc",
-            billable: true,
+            billable: false,
             createdAt: new Date(),
             updatedAt: new Date(),
         } satisfies typeof activityTypes.$inferInsert,
         {
             name: "Gestion: RH",
             code: "Gr",
-            billable: true,
+            billable: false,
             createdAt: new Date(),
             updatedAt: new Date(),
         } satisfies typeof activityTypes.$inferInsert,
         {
             name: "Gestion: archivage",
             code: "Ga",
-            billable: true,
+            billable: false,
             createdAt: new Date(),
             updatedAt: new Date(),
         } satisfies typeof activityTypes.$inferInsert,

@@ -73,35 +73,44 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             const filter = c.req.valid("query")
             const user = c.get("user")
 
-            // Calculate the date 5 years ago
-            const fiveYearsAgo = new Date()
-            fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5)
+            const { minLat, maxLat, minLng, maxLng, limit: requestedLimit } = filter
+            const hasBounds =
+                minLat !== undefined &&
+                maxLat !== undefined &&
+                minLng !== undefined &&
+                maxLng !== undefined
 
-            // Get all projects with applied filters
+            // Default limit is 1000, can be overridden
+            const limit = requestedLimit ?? 1000
+
+            // Get all projects with applied filters, sorted by most recent activity
             const result = await projectRepository.findAll(user, {
                 ...filter,
-                sortBy: "name",
-                sortOrder: "asc",
+                sortBy: "lastActivityDate",
+                sortOrder: "desc",
                 hasUnbilledTime: false,
                 includeArchived: false,
                 includeEnded: false,
                 includeDraft: false,
                 page: 1,
-                limit: 10000,
+                limit: 100000,
             })
 
             // Filter and transform to lightweight map format
-            const mapData = result.data
+            let mapData = result.data
                 .filter((project) => {
                     // Must have coordinates
                     if (!project.latitude || !project.longitude) return false
 
-                    // If has lastActivityDate, check if it's within 5 years
-                    if (project.lastActivityDate) {
-                        return project.lastActivityDate >= fiveYearsAgo
+                    // If bounds provided, filter to viewport
+                    if (hasBounds) {
+                        const lat = project.latitude
+                        const lng = project.longitude
+                        if (lat < minLat || lat > maxLat || lng < minLng || lng > maxLng) {
+                            return false
+                        }
                     }
 
-                    // If no lastActivityDate, include the project (might be new)
                     return true
                 })
                 .map((project) => ({
@@ -114,6 +123,11 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
                     locationName: project.location?.name ?? null,
                     lastActivityDate: project.lastActivityDate,
                 }))
+
+            // Apply limit (show most recent first)
+            if (mapData.length > limit) {
+                mapData = mapData.slice(0, limit)
+            }
 
             return c.render(mapData as ProjectMapArrayResponse, 200)
         }

@@ -12,11 +12,21 @@ import { useRouter } from "vue-router"
 import { buildGoogleMapsUrl, buildGeoAdminUrl } from "@/utils/coordinates"
 import { useGoogleMaps } from "@/composables/useGoogleMaps"
 
+export interface MapBounds {
+    minLat: number
+    maxLat: number
+    minLng: number
+    maxLng: number
+}
+
 interface Props {
     projects: ProjectMapItemResponse[]
 }
 
 const props = defineProps<Props>()
+const emit = defineEmits<{
+    boundsChanged: [bounds: MapBounds]
+}>()
 const mapContainer = ref<HTMLDivElement | null>(null)
 const router = useRouter()
 
@@ -25,9 +35,35 @@ const { loadGoogleMapsScript } = useGoogleMaps()
 let map: google.maps.Map | null = null
 let markerClusterer: MarkerClusterer | null = null
 const markers: google.maps.marker.AdvancedMarkerElement[] = []
+let boundsChangeTimeout: ReturnType<typeof setTimeout> | null = null
+let isInitialLoad = true
+let skipNextBoundsEmit = false
 
 // Switzerland default center
 const SWITZERLAND_CENTER = { lat: 46.8, lng: 8.2 }
+
+// Emit bounds with debounce
+
+const debouncedEmitBounds = () => {
+    if (!map) return
+    if (skipNextBoundsEmit) {
+        skipNextBoundsEmit = false
+        return
+    }
+
+    const bounds = map.getBounds()
+    if (!bounds) return
+
+    const ne = bounds.getNorthEast()
+    const sw = bounds.getSouthWest()
+
+    emit("boundsChanged", {
+        minLat: sw.lat(),
+        maxLat: ne.lat(),
+        minLng: sw.lng(),
+        maxLng: ne.lng(),
+    })
+}
 
 // Unique Map ID for advanced markers (required)
 const MAP_ID = "BEG_PROJECTS_MAP"
@@ -50,6 +86,9 @@ const initMap = async () => {
             fullscreenControl: true,
             mapId: MAP_ID, // Required for AdvancedMarkerElement
         })
+
+        // Listen for bounds changes (pan/zoom) to filter by viewport
+        map.addListener("idle", debouncedEmitBounds)
 
         // Add markers for projects
         createMarkers()
@@ -147,18 +186,24 @@ const createMarkers = async () => {
             markers,
         })
 
-        // Fit bounds to show all markers
-        const bounds = new google.maps.LatLngBounds()
-        props.projects.forEach((project) => {
-            bounds.extend({ lat: project.latitude, lng: project.longitude })
-        })
-        map.fitBounds(bounds)
+        // Only fit bounds on initial load to avoid loop when updating from bounds filter
+        if (isInitialLoad) {
+            isInitialLoad = false
+            skipNextBoundsEmit = true
 
-        // Ensure minimum zoom level
-        const listener = google.maps.event.addListener(map, "idle", () => {
-            if (map!.getZoom()! > 15) map!.setZoom(15)
-            google.maps.event.removeListener(listener)
-        })
+            // Fit bounds to show all markers
+            const bounds = new google.maps.LatLngBounds()
+            props.projects.forEach((project) => {
+                bounds.extend({ lat: project.latitude, lng: project.longitude })
+            })
+            map.fitBounds(bounds)
+
+            // Ensure minimum zoom level
+            const listener = google.maps.event.addListener(map, "idle", () => {
+                if (map!.getZoom()! > 15) map!.setZoom(15)
+                google.maps.event.removeListener(listener)
+            })
+        }
     }
 }
 
@@ -187,6 +232,9 @@ watch(() => props.projects, createMarkers, { deep: true })
 // Cleanup
 onUnmounted(() => {
     window.removeEventListener("navigate-to-project", handleNavigateToProject)
+    if (boundsChangeTimeout) {
+        clearTimeout(boundsChangeTimeout)
+    }
     if (markerClusterer) {
         markerClusterer.clearMarkers()
     }

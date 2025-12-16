@@ -7,6 +7,13 @@ export const projectMapFilterSchema = z.object({
     referentUserId: z.coerce.number().optional(),
     fromDate: z.coerce.date().optional(),
     toDate: z.coerce.date().optional(),
+    // Bounds filtering for viewport
+    minLat: z.coerce.number().optional(),
+    maxLat: z.coerce.number().optional(),
+    minLng: z.coerce.number().optional(),
+    maxLng: z.coerce.number().optional(),
+    // Limit results (default 1000)
+    limit: z.coerce.number().optional(),
 })
 
 export type ProjectMapFilter = z.infer<typeof projectMapFilterSchema>

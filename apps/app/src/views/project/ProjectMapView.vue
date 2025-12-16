@@ -29,31 +29,34 @@
                 >
                     <p class="text-gray-500">{{ $t("projects.map.noProjects") }}</p>
                 </div>
-                <ProjectMap v-else-if="projects" :projects="projects" class="h-full" />
+                <ProjectMap
+                    v-else-if="projects"
+                    :projects="projects"
+                    class="h-full"
+                    @bounds-changed="handleBoundsChanged"
+                />
             </LoadingOverlay>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from "vue"
-import { useI18n } from "vue-i18n"
+import { ref, onMounted } from "vue"
 import { useFetchProjectMap } from "@/composables/api/useProjectMap"
-import ProjectMap from "@/components/organisms/project/ProjectMap.vue"
+import ProjectMap, { type MapBounds } from "@/components/organisms/project/ProjectMap.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import ProjectFilterPanel, {
     type ProjectFilterModel,
 } from "@/components/organisms/project/ProjectFilterPanel.vue"
 import { getYearRange } from "@/composables/utils/useDateRangePresets"
 
-// Initialize i18n
-const { t } = useI18n()
-
 // API client
 const { get: fetchProjectMap, loading, data: projects } = useFetchProjectMap()
 
+// Current map bounds (for viewport filtering)
+const currentBounds = ref<MapBounds | null>(null)
+
 // Initialize filter with default values
-const { from, to } = getYearRange(new Date(), 10)
 const filter = ref<ProjectFilterModel>({
     name: "",
     includeArchived: false,
@@ -61,20 +64,28 @@ const filter = ref<ProjectFilterModel>({
     includeDraft: false,
     sortBy: "name",
     sortOrder: "asc",
-    fromDate: from,
-    toDate: to,
+    fromDate: undefined,
+    toDate: undefined,
     referentUserId: undefined,
     hasUnbilledTime: false,
 })
 
 const loadProjects = async () => {
     await fetchProjectMap({
-        query: filter.value,
+        query: {
+            ...filter.value,
+            ...(currentBounds.value ?? {}),
+        },
     })
 }
 
 const handleFilterChange = (newFilter: ProjectFilterModel) => {
     filter.value = newFilter
+    loadProjects()
+}
+
+const handleBoundsChanged = (bounds: MapBounds) => {
+    currentBounds.value = bounds
     loadProjects()
 }
 

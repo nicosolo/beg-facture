@@ -175,8 +175,8 @@ async function loadProjectTypeMapping(): Promise<{
 // Map French names to DB table structure
 function mapUserData(data: any): typeof users.$inferInsert {
     // Use original ID if available
-    const superAdminUsers = ["fp", "mo"]
-    const adminUsers = ["gg"]
+    const superAdminUsers = ["fp", "mo", "md"]
+    const adminUsers = ["gg", "sc"]
     return {
         id: data.IDcollaborateur || undefined, // Use original ID if available
         email: `${data.Initiales.toLowerCase()}@beg-geol.ch`,

@@ -23,6 +23,7 @@ export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
     .use("/*", authMiddleware)
 
     // Get all activity types (admins see all, users only see non-adminOnly)
+    // Activity types with code "x" are archived and excluded by default
     .get(
         "/",
         responseValidator({
@@ -48,7 +49,7 @@ export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
             if (!userWithActivities) {
                 return c.json({ error: "User not found" }, 404)
             }
-            let activityTypes = await activityTypeRepository.findAll()
+            let activityTypes = await activityTypeRepository.findAll({ excludeArchived: true })
             // Filter by user's activity rates
             activityTypes = activityTypes.filter((activity) =>
                 (userWithActivities?.activityRates || []).some(
@@ -59,10 +60,7 @@ export const activityTypeRoutes = new Hono<{ Variables: Variables }>()
             if (!hasRole(user.role, "admin")) {
                 activityTypes = activityTypes.filter((at) => !at.adminOnly)
             }
-            return c.render(
-                activityTypes.filter((at) => at.code != "x"),
-                200
-            )
+            return c.render(activityTypes, 200)
         }
     )
 

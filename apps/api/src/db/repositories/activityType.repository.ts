@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm"
+import { eq, sql, ne, and } from "drizzle-orm"
 import { db } from "../index"
 import { activityTypes, activities } from "../schema"
 import type {
@@ -7,8 +7,19 @@ import type {
     ActivityTypeUpdateInput,
 } from "@beg/validations"
 
+interface FindAllOptions {
+    excludeArchived?: boolean // Exclude activity types with code "x"
+}
+
 export const activityTypeRepository = {
-    findAll: async (): Promise<ActivityTypeResponse[]> => {
+    findAll: async (options: FindAllOptions = {}): Promise<ActivityTypeResponse[]> => {
+        const { excludeArchived = false } = options
+
+        const conditions = []
+        if (excludeArchived) {
+            conditions.push(ne(activityTypes.code, "x"))
+        }
+
         return await db
             .select({
                 id: activityTypes.id,
@@ -20,6 +31,7 @@ export const activityTypeRepository = {
                 updatedAt: activityTypes.updatedAt,
             })
             .from(activityTypes)
+            .where(conditions.length > 0 ? and(...conditions) : undefined)
     },
 
     findById: async (id: number) => {

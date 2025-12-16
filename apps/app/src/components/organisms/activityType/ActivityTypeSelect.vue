@@ -31,7 +31,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
     showAllOption: false,
-    filtered: false,
+    filtered: true,
 })
 
 const emit = defineEmits<{
@@ -40,11 +40,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const {
-    get: fetchAll,
-    loading: loadingAll,
-    data: allData,
-} = useFetchActivityTypes()
+const { get: fetchAll, loading: loadingAll, data: allData } = useFetchActivityTypes()
 const {
     get: fetchFiltered,
     loading: loadingFiltered,

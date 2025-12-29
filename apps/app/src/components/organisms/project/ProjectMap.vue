@@ -85,6 +85,7 @@ const initMap = async () => {
             streetViewControl: false,
             fullscreenControl: true,
             mapId: MAP_ID, // Required for AdvancedMarkerElement
+            tilt: 0, // Disable 45-degree aerial view
         })
 
         // Listen for bounds changes (pan/zoom) to filter by viewport

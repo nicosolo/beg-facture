@@ -24,7 +24,7 @@
         <div class="flex-1 px-6 pb-6">
             <LoadingOverlay :loading="loading" class="h-full">
                 <div
-                    v-if="!loading && projects && projects.length === 0"
+                    v-if="!loading && projects && projects.length === 0 && !hasInteracted"
                     class="h-full flex items-center justify-center"
                 >
                     <p class="text-gray-500">{{ $t("projects.map.noProjects") }}</p>
@@ -57,6 +57,9 @@ const { get: fetchProjectMap, loading, data: projects } = useFetchProjectMap()
 // Current map bounds (for viewport filtering)
 const currentBounds = ref<MapBounds | null>(null)
 
+// Track if map has been interacted with (to avoid showing "no projects" message when zoomed in)
+const hasInteracted = ref(false)
+
 // Initialize filter with default values
 const filter = ref<ProjectFilterModel>({
     name: "",
@@ -86,6 +89,7 @@ const handleFilterChange = (newFilter: ProjectFilterModel) => {
 }
 
 const handleBoundsChanged = (bounds: MapBounds) => {
+    hasInteracted.value = true
     currentBounds.value = bounds
     loadProjects()
 }

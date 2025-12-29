@@ -42,7 +42,6 @@
                 </template>
             </DropdownMenu>
             <Button
-                v-if="authStore.isRole('admin')"
                 :to="{ name: 'project-new' }"
                 variant="primary"
                 size="md"

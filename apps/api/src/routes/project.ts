@@ -201,8 +201,8 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             const data = c.req.valid("json")
             const user = c.get("user")
             const isAdmin = hasRole(user.role, "admin")
-            if (!isAdmin) {
-                throw throwForbidden("You do not have permission to create projects")
+            if (!isAdmin && !data.projectManagers?.includes(user.id)) {
+                data.projectManagers = [...(data.projectManagers || []), user.id]
             }
             try {
                 const projectId = await projectRepository.create(data)

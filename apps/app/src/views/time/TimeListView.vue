@@ -11,7 +11,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue"
+defineOptions({ name: "TimeListView" })
+
+import { computed, onActivated } from "vue"
 import { useRoute } from "vue-router"
 import TimeEntriesManager from "@/components/organisms/time/TimeEntriesManager.vue"
 import { useAuthStore } from "@/stores/auth"
@@ -36,7 +38,7 @@ const initialFilter = computed(() => ({
     toDate: initialToDate,
 }))
 
-onMounted(() => {
+onActivated(() => {
     document.title = "BEG - Saisie des heures"
 })
 </script>

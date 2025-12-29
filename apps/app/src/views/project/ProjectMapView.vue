@@ -41,14 +41,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue"
+defineOptions({ name: "ProjectMapView" })
+
+import { ref, onMounted, onActivated } from "vue"
 import { useFetchProjectMap } from "@/composables/api/useProjectMap"
 import ProjectMap, { type MapBounds } from "@/components/organisms/project/ProjectMap.vue"
 import LoadingOverlay from "@/components/atoms/LoadingOverlay.vue"
 import ProjectFilterPanel, {
     type ProjectFilterModel,
 } from "@/components/organisms/project/ProjectFilterPanel.vue"
-import { getYearRange } from "@/composables/utils/useDateRangePresets"
 
 // API client
 const { get: fetchProjectMap, loading, data: projects } = useFetchProjectMap()
@@ -89,9 +90,11 @@ const handleBoundsChanged = (bounds: MapBounds) => {
     loadProjects()
 }
 
+onActivated(() => {
+    document.title = "BEG - Projects Map"
+})
 // Initial load
 onMounted(() => {
-    document.title = "BEG - Projects Map"
     loadProjects()
 })
 </script>

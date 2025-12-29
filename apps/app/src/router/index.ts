@@ -44,13 +44,13 @@ const router = createRouter({
             path: "/project",
             name: "project-list",
             component: ProjectListView,
-            meta: { requiresAuth: true },
+            meta: { requiresAuth: true, keepAlive: true },
         },
         {
             path: "/project/map",
             name: "project-map",
             component: ProjectMapView,
-            meta: { requiresAuth: true },
+            meta: { requiresAuth: true, keepAlive: true },
         },
         {
             path: "/project/:id/edit",
@@ -94,7 +94,7 @@ const router = createRouter({
             path: "/invoice",
             name: "invoice-list",
             component: InvoiceListView,
-            meta: { requiresAuth: true },
+            meta: { requiresAuth: true, keepAlive: true },
         },
         {
             path: "/invoice/:id/preview",
@@ -133,7 +133,7 @@ const router = createRouter({
             path: "/time",
             name: "time-list",
             component: TimeListView,
-            meta: { requiresAuth: true },
+            meta: { requiresAuth: true, keepAlive: true },
         },
         // Tariff routes
         {

@@ -7,7 +7,11 @@ const projectBaseFilterSchema = z.object({
     name: z.string().optional(),
     referentUserId: z.coerce.number().optional(),
     projectTypeIds: z
-        .union([z.coerce.string(), z.array(z.coerce.string())])
+        .union([
+            z.coerce.string(),
+            z.coerce.number(),
+            z.array(z.union([z.coerce.string(), z.coerce.number()])),
+        ])
         .optional()
         .transform((val) => {
             if (!val) return undefined
@@ -16,6 +20,7 @@ const projectBaseFilterSchema = z.object({
                 return val.map(Number).filter((n) => n > 0)
             }
             return val
+                .toString()
                 .split(",")
                 .map(Number)
                 .filter((n) => n > 0)

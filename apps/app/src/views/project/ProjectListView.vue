@@ -81,7 +81,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from "vue"
+defineOptions({ name: "ProjectListView" })
+
+import { ref, watch, onMounted, computed, onActivated } from "vue"
 import { useI18n } from "vue-i18n"
 import { useFetchProjectList, useExportProjects } from "@/composables/api/useProject"
 import ProjectFilterPanel, {
@@ -205,7 +207,9 @@ watch(
         deep: true,
     }
 )
-
+onActivated(() => {
+    console.log("onActivated")
+})
 // Initial load
 onMounted(() => {
     document.title = "BEG - Mandats"

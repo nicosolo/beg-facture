@@ -7,6 +7,8 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({ name: "InvoiceListView" })
+
 import { onMounted } from "vue"
 import Button from "@/components/atoms/Button.vue"
 import InvoiceListManager from "@/components/organisms/invoice/InvoiceListManager.vue"

@@ -384,7 +384,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onActivated } from "vue"
+defineOptions({ name: "ProjectPreviewView" })
+
+import { ref, computed, watch, onActivated } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import Button from "@/components/atoms/Button.vue"
 import Badge from "@/components/atoms/Badge.vue"
@@ -476,12 +478,10 @@ watch(
 )
 
 // Load project data on mount
-onMounted(async () => {
-    console.log("onMounted")
-    console.log(isTauri.value)
+onActivated(async () => {
+    console.log("onActivated a ProjectPreviewView")
     if (projectId.value && !isNaN(projectId.value)) {
         if (isTauri.value) {
-            console.log("fetching project folder")
             await fetchProjectFolder({ params: { id: projectId.value } })
         }
         await fetchProject({ params: { id: projectId.value } })

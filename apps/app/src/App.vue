@@ -25,6 +25,15 @@ const router = useRouter()
 const authStore = useAuthStore()
 const hasAdminAccess = computed(() => authStore.isRole("admin"))
 
+// Generate unique keys for components that need per-instance caching
+const componentKey = computed(() => {
+    // Cache ProjectPreviewView per project ID
+    if (route.name === "project-view" && route.params.id) {
+        return `ProjectPreviewView-${route.params.id}`
+    }
+    return undefined
+})
+
 // Check if the current route is the login page
 const isLoginPage = computed(() => route.name === "login")
 
@@ -238,7 +247,17 @@ const isExpanded = (itemName: string): boolean => {
             <main class="flex-1 p-4 w-full">
                 <div class="container mx-auto md:max-w-full md:px-4">
                     <RouterView v-slot="{ Component }">
-                        <component :is="Component" :key="route.fullPath" />
+                        <KeepAlive
+                            :include="[
+                                'ProjectPreviewView',
+                                'ProjectListView',
+                                'ProjectMapView',
+                                'InvoiceListView',
+                                'TimeListView',
+                            ]"
+                        >
+                            <component :is="Component" :key="componentKey" />
+                        </KeepAlive>
                     </RouterView>
                 </div>
             </main>

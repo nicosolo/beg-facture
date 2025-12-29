@@ -135,7 +135,9 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, watch } from "vue"
+defineOptions({ name: "ProjectFilterPanel" })
+
+import { onActivated, onMounted, reactive, watch } from "vue"
 import Label from "../../atoms/Label.vue"
 import Select from "../../atoms/Select.vue"
 import Button from "../../atoms/Button.vue"
@@ -188,7 +190,12 @@ const filterData = reactive<ProjectFilterProps["filter"]>({
     projectTypeIds: filter.projectTypeIds || [],
     hasUnbilledTime: filter.hasUnbilledTime || false,
 })
-
+onMounted(() => {
+    console.log("onMounted a ProjectFilterPanel")
+})
+onActivated(() => {
+    console.log("onActivated a ProjectFilterPanel")
+})
 // Watch for external filter changes
 watch(
     () => filter,

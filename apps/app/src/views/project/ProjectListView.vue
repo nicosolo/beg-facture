@@ -41,11 +41,7 @@
                     </button>
                 </template>
             </DropdownMenu>
-            <Button
-                :to="{ name: 'project-new' }"
-                variant="primary"
-                size="md"
-            >
+            <Button :to="{ name: 'project-new' }" variant="primary" size="md">
                 {{ $t("projects.new") }}
             </Button>
         </div>
@@ -96,9 +92,13 @@ import Button from "@/components/atoms/Button.vue"
 import DropdownMenu from "@/components/atoms/DropdownMenu.vue"
 import type { PageResponse, ProjectFilter, ProjectResponse } from "@beg/validations"
 import { useAuthStore } from "@/stores/auth"
+import { useExcelExport } from "@/composables/utils/useExcelExport"
 
 // Initialize i18n
 const { t } = useI18n()
+
+// Excel export
+const { exportToExcel } = useExcelExport()
 
 // API client
 const { get: fetchProjects, loading, data } = useFetchProjectList()
@@ -228,37 +228,18 @@ const onTimeEntrySaved = () => {
 
 // Export handler
 const handleExport = async (perUser: boolean = false) => {
-    try {
-        const { projectTypeIds, ...rest } = filter.value
-        const arrayBuffer = await exportProjects({
-            query: {
-                ...rest,
-                projectTypeIds: projectTypeIds?.length ? projectTypeIds.join(",") : undefined,
-                perUser,
-            },
-        })
+    const { projectTypeIds, ...rest } = filter.value
+    const arrayBuffer = await exportProjects({
+        query: {
+            ...rest,
+            projectTypeIds: projectTypeIds?.length ? projectTypeIds.join(",") : undefined,
+            perUser,
+        },
+    })
 
-        if (!arrayBuffer) {
-            return
-        }
+    const today = new Date().toISOString().split("T")[0]
+    const filename = `mandats-${today}.xlsx`
 
-        const blob = new Blob([arrayBuffer], {
-            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        })
-
-        const today = new Date().toISOString().split("T")[0]
-        const filename = `mandats-${today}.xlsx`
-
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = filename
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
-    } catch (error) {
-        console.error("Failed to export projects:", error)
-    }
+    await exportToExcel(arrayBuffer, filename)
 }
 </script>

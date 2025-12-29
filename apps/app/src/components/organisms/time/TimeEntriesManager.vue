@@ -123,6 +123,7 @@ import TimeEntryModal from "@/components/organisms/time/TimeEntryModal.vue"
 import Button from "@/components/atoms/Button.vue"
 import DropdownMenu from "@/components/atoms/DropdownMenu.vue"
 import type { ActivityFilter, ActivityResponse, ActivityListResponse } from "@beg/validations"
+import { useExcelExport } from "@/composables/utils/useExcelExport"
 
 interface Props {
     emptyMessage?: string
@@ -147,6 +148,9 @@ const props = withDefaults(defineProps<Props>(), {
 const { get: fetchActivities, loading, data } = useFetchActivityList()
 const { get: exportActivities, loading: exportLoading } = useExportActivities()
 
+// Excel export
+const { exportToExcel } = useExcelExport()
+
 // State
 const activities = ref<ActivityResponse[]>([])
 const totalItems = ref(0)
@@ -165,7 +169,7 @@ const filter = ref<ActivityFilter>({
     activityTypeId: undefined,
     includeBilled: false,
     includeUnbilled: false,
-    includeDisbursement: false,
+    includeDisbursed: false,
     sortBy: "date",
     sortOrder: "desc",
     ...props.initialFilter,
@@ -268,34 +272,14 @@ const onTimeEntrySaved = () => {
 
 // Export handler
 const handleExport = async (perUser: boolean = false) => {
-    try {
-        const arrayBuffer = await exportActivities({
-            query: { ...filter.value, perUser },
-        })
+    const arrayBuffer = await exportActivities({
+        query: { ...filter.value, perUser },
+    })
 
-        if (!arrayBuffer) {
-            return
-        }
+    const today = new Date().toISOString().split("T")[0]
+    const filename = `heures-${today}.xlsx`
 
-        const blob = new Blob([arrayBuffer], {
-            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        })
-
-        const today = new Date().toISOString().split("T")[0]
-        const filename = `heures-${today}.xlsx`
-
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = filename
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
-    } catch (error) {
-        console.error("Failed to export activities:", error)
-        // You might want to show an error message to the user here
-    }
+    await exportToExcel(arrayBuffer, filename)
 }
 
 // Expose methods that parent components might need

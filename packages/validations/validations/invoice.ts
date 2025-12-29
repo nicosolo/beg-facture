@@ -22,7 +22,7 @@ export const BillingModeEnum = z.enum([
 export type BillingMode = z.infer<typeof BillingModeEnum>
 
 // Invoice status enum - added "controle"
-export const InvoiceStatusEnum = z.enum(["draft", "controle", "sent"])
+export const InvoiceStatusEnum = z.enum(["draft", "controle", "vise", "sent"])
 export type InvoiceStatus = z.infer<typeof InvoiceStatusEnum>
 
 // ============================================================================

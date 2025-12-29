@@ -562,11 +562,11 @@
                 @click="
                     downloadInvoiceFile(
                         invoice.id,
-                        invoice.legacyInvoicePath.replace('fab', 'html')
+                        invoice.legacyInvoicePath.replace(/\.fab$/i, '.html')
                     )
                 "
             >
-                {{ extractFileName(invoice.legacyInvoicePath.replace("fab", "html")) }}
+                {{ extractFileName(invoice.legacyInvoicePath.replace(/\.fab$/i, ".html")) }}
             </button>
         </div>
     </div>

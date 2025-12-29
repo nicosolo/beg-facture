@@ -273,6 +273,7 @@ const getStatusVariant = (status: string): "success" | "error" | "warning" | "in
         sent: "info",
         draft: undefined,
         controle: "warning",
+        vise: "success",
     } as Record<string, "success" | "error" | "warning" | "info" | undefined>
 
     return variants[status] || undefined

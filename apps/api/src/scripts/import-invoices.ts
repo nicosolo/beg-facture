@@ -261,9 +261,13 @@ function mapBillingMode(edtMode: string): BillingMode {
     }
 }
 
-// Map edtVisa to InvoiceStatus (sent if visa user is set)
-function mapInvoiceStatus(edtVisa: string): InvoiceStatus {
-    return VISA_USER_INITIALS[edtVisa] ? "sent" : "draft"
+// Map edtVisa and edtBon to InvoiceStatus
+// - vise: if edtBon=1 (approved) AND visa user is set
+// - draft: otherwise
+function mapInvoiceStatus(edtVisa: string, edtBon: string): InvoiceStatus {
+    const isApproved = edtBon === "1"
+    const hasVisaUser = !!VISA_USER_INITIALS[edtVisa]
+    return isApproved && hasVisaUser ? "sent" : "controle"
 }
 
 // Get visa user ID from legacy edtVisa index
@@ -446,7 +450,7 @@ async function importInvoiceFromFab(fabPath: string): Promise<boolean> {
                 reference: d["edtObjet"] || "",
                 type: mapInvoiceType(d["edtType"]),
                 billingMode: mapBillingMode(d["edtMode"]),
-                status: mapInvoiceStatus(d["edtVisa"]),
+                status: mapInvoiceStatus(d["edtVisa"] || "", d["edtBon"] || "0"),
                 issueDate,
                 dueDate: null,
                 periodStart,

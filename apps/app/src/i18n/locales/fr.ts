@@ -115,7 +115,8 @@ export default {
         },
         map: {
             title: "Carte des mandats",
-            projectCount: "{count} mandat(s) affiché(s) - zoomez ou déplacez la carte pour en voir plus",
+            projectCount:
+                "{count} mandat(s) affiché(s) - zoomez ou déplacez la carte pour en voir plus",
             noProjects: "Aucun mandat avec coordonnées à afficher",
             filterInfo: "Limité à 1000 mandats les plus récents",
         },
@@ -482,8 +483,9 @@ export default {
         },
         status: {
             title: "Statut",
-            draft: "Brouillon",
+            draft: "Préparation",
             controle: "Contrôle",
+            vise: "Visée",
             sent: "Envoyée",
         },
         billingMode: {

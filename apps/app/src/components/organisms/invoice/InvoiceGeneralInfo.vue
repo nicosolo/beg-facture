@@ -135,6 +135,7 @@
                         :options="[
                             { value: 'draft', label: $t('invoice.status.draft') },
                             { value: 'controle', label: $t('invoice.status.controle') },
+                            { value: 'vise', label: $t('invoice.status.vise') },
                             { value: 'sent', label: $t('invoice.status.sent') },
                         ]"
                     />

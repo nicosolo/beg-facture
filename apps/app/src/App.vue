@@ -206,6 +206,12 @@ const isExpanded = (itemName: string): boolean => {
 }
 </script>
 
+<style>
+html {
+    scrollbar-gutter: stable;
+}
+</style>
+
 <template>
     <div class="flex flex-col min-h-screen overflow-x-hidden">
         <!-- Header for all viewports with toggle button - hidden on login page -->
@@ -213,7 +219,7 @@ const isExpanded = (itemName: string): boolean => {
             v-if="!isLoginPage"
             class="flex items-center p-2 border-b border-gray-200 print:hidden"
         >
-            <div class="flex justify-between items-center w-full">
+            <div class="flex justify-between items-center w-full gap-2">
                 <div class="flex items-center">
                     <!-- Back button - only in Tauri when not on home -->
                     <button
@@ -231,6 +237,54 @@ const isExpanded = (itemName: string): boolean => {
                         </div>
                     </a>
                 </div>
+
+                <!-- Main navigation links -->
+                <nav class="hidden md:flex items-center gap-1 ml-auto">
+                    <RouterLink
+                        :to="{ name: 'time-list' }"
+                        :class="[
+                            route.name === 'time-list'
+                                ? 'bg-gray-900 text-white'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                            'px-3 py-1.5 text-sm font-medium rounded-md',
+                        ]"
+                    >
+                        {{ t("navigation.time") }}
+                    </RouterLink>
+                    <RouterLink
+                        :to="{ name: 'project-list' }"
+                        :class="[
+                            route.name === 'project-list'
+                                ? 'bg-gray-900 text-white'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                            'px-3 py-1.5 text-sm font-medium rounded-md',
+                        ]"
+                    >
+                        {{ t("navigation.projects") }}
+                    </RouterLink>
+                    <RouterLink
+                        :to="{ name: 'project-map' }"
+                        :class="[
+                            route.name === 'project-map'
+                                ? 'bg-gray-900 text-white'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                            'px-3 py-1.5 text-sm font-medium rounded-md',
+                        ]"
+                    >
+                        {{ t("projects.map.title") }}
+                    </RouterLink>
+                    <RouterLink
+                        :to="{ name: 'invoice-list' }"
+                        :class="[
+                            route.name === 'invoice-list'
+                                ? 'bg-gray-900 text-white'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                            'px-3 py-1.5 text-sm font-medium rounded-md',
+                        ]"
+                    >
+                        {{ t("navigation.invoices") }}
+                    </RouterLink>
+                </nav>
 
                 <button
                     class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"

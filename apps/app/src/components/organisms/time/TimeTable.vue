@@ -243,11 +243,17 @@ const defaultColumns: Column[] = [
     },
     { key: "expenses", label: t("time.columns.expenses"), sortKey: "expenses", width: "5rem" },
     { key: "description", label: t("time.columns.description"), tooltip: true, fullWidth: true },
-    { key: "billed", label: t("time.columns.billed"), width: "4rem" },
+    { key: "billed", label: t("time.columns.billed"), size: "checkbox" as const },
     ...(isRole("admin")
-        ? [{ key: "disbursement", label: t("time.columns.disbursement"), width: "4rem" }]
+        ? [
+              {
+                  key: "disbursement",
+                  label: t("time.columns.disbursement"),
+                  size: "checkbox" as const,
+              },
+          ]
         : []),
-    { key: "actions", label: t("common.actions"), actions: true, width: "5rem" },
+    { key: "actions", label: t("common.actions"), actions: true, size: "xs" as const },
 ]
 
 const columns = computed(() => {

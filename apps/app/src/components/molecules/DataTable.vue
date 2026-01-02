@@ -5,10 +5,7 @@
         </div>
         <div v-else>
             <!-- Header row (visible only on desktop) -->
-            <div
-                class="hidden md:grid bg-gray-50 border-b border-gray-200"
-                :style="{ gridTemplateColumns }"
-            >
+            <div class="hidden md:grid border-b border-gray-200" :style="{ gridTemplateColumns }">
                 <div
                     v-for="column in columns"
                     :key="column.key"
@@ -37,7 +34,7 @@
                     :data-row-link="rowLink && rowLink(item) ? true : undefined"
                     :class="[
                         'block cursor-pointer transition-colors',
-                        'border-b-2 border-gray-300 md:border-b-0 last:border-b-0',
+                        'border-b-1 border-gray-200 last:border-b-0',
                         selectedRows && selectedRows.has(getItemKey(item, index))
                             ? 'bg-blue-100 hover:bg-blue-200'
                             : 'hover:bg-gray-100',
@@ -51,7 +48,7 @@
                         <div
                             v-for="column in columns"
                             :key="column.key"
-                            class="border-b border-gray-200 last:border-b-0"
+                            class="border-b border-gray-100/50 last:border-b-0"
                         >
                             <div class="flex">
                                 <div
@@ -159,6 +156,31 @@ export interface Column {
         | "w-2/6"
         | "w-2/12"
         | string
+    minWidth?: string // e.g., "100px", "8rem"
+    maxWidth?: string // e.g., "300px", "20rem"
+    size?:
+        | "2xs"
+        | "xs"
+        | "sm"
+        | "md"
+        | "lg"
+        | "xl"
+        | "2xl"
+        | "3xl"
+        | "flex-sm"
+        | "flex"
+        | "flex-lg"
+        | "auto"
+        | "min"
+        | "icon"
+        | "action"
+        | "id"
+        | "date"
+        | "status"
+        | "number"
+        | "amount"
+        | "name"
+        | "email"
     actions?: boolean
     fullWidth?: boolean
     sortKey?: string
@@ -229,25 +251,73 @@ watch(
 const gridTemplateColumns = computed(() => {
     return columns
         .map((col) => {
-            if (!col.width) return "1fr"
+            // Priority 1: Use size presets if specified
+            if (col.size) {
+                const sizeMap: Record<string, string> = {
+                    // Absolute sizes (progressively larger)
+                    "2xs": "minmax(50px, 70px)", // Icons, checkboxes
+                    xs: "minmax(70px, 100px)", // Short IDs, codes
+                    sm: "minmax(100px, 150px)", // Dates, small badges
+                    md: "minmax(150px, 220px)", // Names, medium text
+                    lg: "minmax(200px, 300px)", // Emails, longer text
+                    xl: "minmax(250px, 400px)", // Descriptions
+                    "2xl": "minmax(300px, 500px)", // Long descriptions
+                    "3xl": "minmax(400px, 1fr)", // Very long content
 
-            // Convert Tailwind width classes to CSS values
-            const widthMap: Record<string, string> = {
-                "w-1/2": "50%",
-                "w-2/3": "66.66%",
-                "w-2/4": "50%",
-                "w-1/3": "33.33%",
-                "w-1/4": "25%",
-                "w-1/5": "20%",
-                "w-1/6": "16.66%",
-                "w-1/12": "8.33%",
-                "w-2/5": "40%",
-                "w-2/6": "33.33%",
-                "w-2/12": "16.66%",
-                "flex-1": "1fr",
+                    // Flexible sizes (grow/shrink with available space)
+                    "flex-sm": "minmax(120px, 0.8fr)", // Smaller flex
+                    flex: "minmax(200px, 1fr)", // Standard flex
+                    "flex-lg": "minmax(200px, 1.5fr)", // Larger flex
+
+                    // Content-based
+                    auto: "auto", // Fits content exactly
+                    min: "min-content", // Minimum content width
+
+                    // Semantic/task-specific sizes
+                    icon: "minmax(40px, 50px)", // Icon columns
+                    action: "minmax(150px, 180px)", // Action buttons
+                    amount: "minmax(80px, 120px)", // Action buttons
+                    id: "minmax(60px, 90px)", // ID columns
+                    date: "minmax(80px, 110px)", // Date columns
+                    status: "minmax(80px, 130px)", // Status badges
+                    number: "minmax(70px, 120px)", // Numeric values
+                    name: "minmax(150px, 250px)", // Name columns
+                    email: "minmax(180px, 280px)", // Email columns
+                    checkbox: "minmax(30px, 40px)", // Checkbox columns
+                }
+                return sizeMap[col.size]
             }
 
-            return widthMap[col.width] || col.width
+            // Priority 2: Use minWidth/maxWidth if specified
+            if (col.minWidth || col.maxWidth) {
+                const min = col.minWidth || "0"
+                const max = col.maxWidth || "1fr"
+                return `minmax(${min}, ${max})`
+            }
+
+            // Priority 3: Convert old Tailwind classes to modern equivalents
+            if (col.width) {
+                const widthMap: Record<string, string> = {
+                    "w-1/2": "minmax(200px, 50%)",
+                    "w-2/3": "minmax(250px, 66.66%)",
+                    "w-2/4": "minmax(200px, 50%)",
+                    "w-1/3": "minmax(150px, 33.33%)",
+                    "w-1/4": "minmax(120px, 25%)",
+                    "w-1/5": "minmax(100px, 20%)",
+                    "w-1/6": "minmax(100px, 16.66%)",
+                    "w-1/12": "minmax(80px, 8.33%)",
+                    "w-2/5": "minmax(150px, 40%)",
+                    "w-2/6": "minmax(150px, 33.33%)",
+                    "w-2/12": "minmax(100px, 16.66%)",
+                    "w-24": "minmax(96px, 96px)",
+                    "w-30": "minmax(120px, 120px)",
+                    "flex-1": "1fr",
+                }
+                return widthMap[col.width] || col.width
+            }
+
+            // Default: flexible column
+            return "minmax(100px, 1fr)"
         })
         .join(" ")
 })

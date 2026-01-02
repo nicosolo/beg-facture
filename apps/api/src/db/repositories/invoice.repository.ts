@@ -840,6 +840,11 @@ export const invoiceRepository = {
             return false
         }
 
+        // Prevent deletion of sent invoices
+        if (existing.status === "sent") {
+            throw new Error("Cannot delete sent invoices")
+        }
+
         await db.delete(invoices).where(eq(invoices.id, id))
         return true
     },

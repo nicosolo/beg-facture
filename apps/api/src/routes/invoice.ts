@@ -523,9 +523,16 @@ export const invoiceRoutes = new Hono<{ Variables: Variables }>()
     .delete("/:id", zValidator("param", idParamSchema), async (c) => {
         const { id } = c.req.valid("param")
         const user = c.get("user")
-        const deleted = await invoiceRepository.delete(id, user)
-        if (!deleted) {
-            throwNotFound("Invoice")
+        try {
+            const deleted = await invoiceRepository.delete(id, user)
+            if (!deleted) {
+                throwNotFound("Invoice")
+            }
+            return c.json({ message: "Invoice deleted successfully" }, 200)
+        } catch (error) {
+            if (error instanceof Error && error.message === "Cannot delete sent invoices") {
+                return c.json({ error: "Cannot delete sent invoices" }, 400)
+            }
+            throw error
         }
-        return c.json({ message: "Invoice deleted successfully" }, 200)
     })

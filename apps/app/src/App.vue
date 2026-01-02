@@ -245,7 +245,7 @@ const isExpanded = (itemName: string): boolean => {
         <div class="flex flex-1 relative overflow-hidden">
             <!-- Main content - no margin adjustment, sidebar will overlay -->
             <main class="flex-1 p-4 w-full">
-                <div class="container mx-auto md:max-w-full md:px-4">
+                <div class="container mx-auto md:max-w-full">
                     <RouterView v-slot="{ Component }">
                         <KeepAlive
                             :include="[

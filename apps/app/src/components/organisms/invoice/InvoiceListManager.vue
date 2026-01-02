@@ -38,9 +38,11 @@
                     {{ item.project?.client?.name }}
                 </template>
                 <template #cell:project="{ item }">
-                    {{ item.project?.projectNumber
-                    }}{{ item.project?.subProjectName ? ` ${item.project.subProjectName}` : "" }} -
-                    {{ item.project?.name }}
+                    {{ item.project?.projectNumber || "-" }}
+                </template>
+
+                <template #cell:description="{ item }">
+                    {{ item.description || "-" }}
                 </template>
 
                 <template #cell:issueDate="{ item }">
@@ -96,7 +98,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue"
+import { ref, reactive, computed, onMounted, onActivated } from "vue"
 import { useI18n } from "vue-i18n"
 import Button from "@/components/atoms/Button.vue"
 import Badge from "@/components/atoms/Badge.vue"
@@ -111,6 +113,7 @@ import InvoiceFilterPanel, {
 import { useFetchInvoiceList } from "@/composables/api/useInvoice"
 import { useAlert } from "@/composables/utils/useAlert"
 import type { InvoiceFilter } from "@beg/validations"
+import { useFormat } from "@/composables/utils/useFormat"
 
 interface Props {
     emptyMessage?: string
@@ -120,7 +123,7 @@ interface Props {
     hideHeader?: boolean
     showDelete?: boolean
 }
-
+const { formatDate, formatCurrency } = useFormat()
 const props = withDefaults(defineProps<Props>(), {
     emptyMessage: "Aucune facture trouvée",
     showProjectFilter: true,
@@ -191,14 +194,25 @@ const onFilterChange = (newFilters: InvoiceFilterModel) => {
 
 // Define all possible columns with sortKey for sortable columns
 const allColumns = [
-    { key: "invoiceNumber", label: t("invoice.invoiceNumber"), width: "w-1/6", sortKey: "invoiceNumber" },
-    { key: "client", label: t("projects.client"), width: "w-1/6" },
-    { key: "project", label: t("projects.title"), width: "w-1/6" },
-    { key: "issueDate", label: t("invoice.issueDate"), sortKey: "issueDate" },
-    { key: "totalTTC", label: t("invoice.totalTTC"), sortKey: "totalTTC" },
-    { key: "status", label: t("invoice.status.title"), sortKey: "status" },
-    { key: "inChargeUser", label: t("invoice.inChargeUser") },
-    { key: "actions", label: t("common.actions") },
+    {
+        key: "invoiceNumber",
+        label: t("invoice.invoiceNumber"),
+        size: "lg" as const,
+        sortKey: "invoiceNumber",
+    },
+    { key: "client", label: t("projects.client"), size: "name" as const },
+    { key: "project", label: "N° Mandat", size: "2xs" as const },
+    { key: "reference", label: "Objet", size: "flex" as const, tooltip: true },
+    {
+        key: "issueDate",
+        label: t("invoice.issueDate"),
+        size: "date" as const,
+        sortKey: "issueDate",
+    },
+    { key: "totalTTC", label: t("invoice.totalTTC"), size: "amount" as const, sortKey: "totalTTC" },
+    { key: "status", label: t("invoice.status.title"), size: "status" as const, sortKey: "status" },
+    { key: "inChargeUser", label: t("invoice.inChargeUser"), size: "2xs" as const },
+    { key: "actions", label: t("common.actions"), size: "action" as const },
 ]
 
 // Compute visible columns based on hideColumns prop
@@ -216,7 +230,7 @@ const totalPages = computed(
 
 // Pagination state
 const currentPage = ref(1)
-const itemsPerPage = ref(10)
+const itemsPerPage = ref(50)
 
 // Load invoices
 const loadInvoices = async (page?: number) => {
@@ -253,20 +267,9 @@ const loadInvoices = async (page?: number) => {
 }
 
 // Load initial data
-onMounted(() => {
+onActivated(() => {
     loadInvoices()
 })
-
-// Formatting functions
-const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat("fr-CH", { style: "currency", currency: "CHF" }).format(value)
-}
-
-const formatDate = (value: string | Date | null): string => {
-    if (!value) return "-"
-    const date = typeof value === "string" ? new Date(value) : value
-    return new Intl.DateTimeFormat("fr-CH").format(date)
-}
 
 const getStatusVariant = (status: string): "success" | "error" | "warning" | "info" | undefined => {
     const variants = {

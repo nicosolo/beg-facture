@@ -60,7 +60,7 @@
                     variant="danger"
                     type="button"
                     @click="handleDelete"
-                    :disabled="loading || deleteLoading"
+                    :disabled="loading || deleteLoading || !canDelete"
                 >
                     {{ $t("common.delete") }}
                 </Button>
@@ -183,6 +183,8 @@ const hasPendingUploads = computed(
         pendingDocumentFiles.value.some(Boolean) ||
         Boolean(pendingInvoiceDocumentFile.value)
 )
+
+const canDelete = computed(() => invoice.value?.status !== "sent")
 
 const handleDocumentFileChange = ({
     type,

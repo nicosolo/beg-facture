@@ -662,7 +662,15 @@ export const invoiceRepository = {
             if (data.reference !== undefined) updateData.reference = data.reference
             if (data.type !== undefined) updateData.type = data.type
             if (data.billingMode !== undefined) updateData.billingMode = data.billingMode
-            if (data.status !== undefined) updateData.status = data.status
+            if (data.status !== undefined) {
+                updateData.status = data.status
+                // Clear visa when status changes to draft or controle
+                if (data.status === "draft" || data.status === "controle") {
+                    updateData.visaByUserId = null
+                    updateData.visaBy = null
+                    updateData.visaDate = null
+                }
+            }
             if (data.issueDate !== undefined) updateData.issueDate = data.issueDate
             if (data.dueDate !== undefined) updateData.dueDate = data.dueDate
             if (data.description !== undefined) updateData.description = data.description
@@ -863,6 +871,7 @@ export const invoiceRepository = {
                 visaByUserId: user.id,
                 visaBy: user.firstName,
                 visaDate: now,
+                status: "vise",
                 updatedAt: now,
             })
             .where(eq(invoices.id, id))
@@ -871,6 +880,7 @@ export const invoiceRepository = {
             ...invoice,
             visaBy: user.firstName,
             visaDate: now,
+            status: "vise",
             updatedAt: now,
         }
     },

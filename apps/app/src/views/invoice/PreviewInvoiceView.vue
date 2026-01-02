@@ -102,7 +102,11 @@ const { post: postVisa, loading: visaLoading } = useVisaInvoice()
 // Invoice data
 const invoice = ref<InvoiceResponse | null>(null)
 
-const canVisa = computed(() => authStore.isRole("super_admin"))
+const canVisa = computed(() => {
+    const isSuperAdmin = authStore.isRole("super_admin")
+    const notVisaYet = invoice.value?.visaDate === null || invoice.value?.visaDate === undefined
+    return isSuperAdmin && notVisaYet
+})
 const showVisaConfirm = ref(false)
 
 const openVisaDialog = () => {

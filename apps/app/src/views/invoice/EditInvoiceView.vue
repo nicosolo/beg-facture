@@ -64,6 +64,15 @@
                 >
                     {{ $t("common.delete") }}
                 </Button>
+                <Button
+                    v-if="!isNewInvoice"
+                    variant="secondary"
+                    type="button"
+                    @click="handleDuplicate"
+                    :disabled="loading"
+                >
+                    Dupliquer
+                </Button>
                 <Button variant="secondary" type="button" @click="handleCancel" :disabled="loading">
                     Annuler
                 </Button>
@@ -528,6 +537,26 @@ const handleSave = async () => {
 // Cancel and go back
 const handleCancel = () => {
     router.push({ name: "invoice-list" })
+}
+
+// Duplicate invoice (billing data and documents only, no activities)
+const handleDuplicate = () => {
+    if (!invoice.value) return
+
+    const duplicated = createEmptyInvoice({
+        ...invoice.value,
+        visaBy: undefined,
+        visaDate: undefined,
+        activityIds: [],
+        invoiceNumber: undefined,
+        dueDate: undefined,
+        issueDate: new Date(),
+        rates: [],
+        id: undefined,
+    })
+
+    invoice.value = duplicated
+    router.push({ name: "invoice-new", query: { projectId: invoice.value.projectId?.toString() } })
 }
 
 // Delete invoice

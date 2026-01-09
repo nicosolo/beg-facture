@@ -1,16 +1,18 @@
 <template>
     <component
-        :is="props.to ? 'router-link' : 'button'"
-        :type="props.to ? undefined : props.type"
+        :is="props.href ? 'a' : props.to ? 'router-link' : 'button'"
+        :type="props.to || props.href ? undefined : props.type"
         :to="props.to"
+        :href="props.href"
         :class="[
-            'rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center flex items-center justify-center',
+            'rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none text-center flex items-center justify-center',
+            props.href ? 'inline-flex' : 'block',
             variantClasses,
             sizeClasses,
             props.disabled ? 'cursor-not-allowed opacity-60' : '',
             props.className,
         ]"
-        :disabled="props.to ? undefined : props.disabled || props.loading"
+        :disabled="props.to || props.href ? undefined : props.disabled || props.loading"
         @click="$emit('click', $event)"
     >
         <LoadingSpinner v-if="props.loading" size="sm" color="white" class="mr-2" />
@@ -38,6 +40,7 @@ interface Props {
     disabled?: boolean
     className?: string
     to?: RouteLocationRaw
+    href?: string
     loading?: boolean
 }
 

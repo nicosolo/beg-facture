@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="mb-4 print:hidden">
-            <Button variant="primary" @click="shareInvoice">Partager par email</Button>
+            <Button variant="primary" :href="mailtoLink">Partager par email</Button>
         </div>
         <div class="invoice-preview print:p-0 p-6 text-sm" style="width: 17cm">
             <table class="line w-full border border-gray-300 border-collapse">
@@ -573,7 +573,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, computed } from "vue"
+import { computed } from "vue"
 import { type InvoiceResponse } from "@beg/validations"
 import { useFormat } from "@/composables/utils/useFormat"
 import { useI18n } from "vue-i18n"
@@ -632,7 +632,7 @@ const hasAdditionalInfo = computed(() => {
     )
 })
 
-const shareInvoice = () => {
+const mailtoLink = computed(() => {
     const currentUrl = window.location.href
     const subject = encodeURIComponent(
         `Facture ${props.invoice.invoiceNumber || props.invoice.reference || ""}`
@@ -640,8 +640,8 @@ const shareInvoice = () => {
     const body = encodeURIComponent(
         `Bonjour,\n\nVeuillez trouver ci-joint le lien vers la facture:\n\n${currentUrl}\n\nCordialement`
     )
-    window.location.href = `mailto:?subject=${subject}&body=${body}`
-}
+    return `mailto:?subject=${subject}&body=${body}`
+})
 </script>
 
 <style scoped>

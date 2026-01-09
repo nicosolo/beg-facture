@@ -37,6 +37,7 @@
                         {{ $t("invoice.new") }}
                     </Button>
                     <Button
+                        v-if="canViewActivitiesAndInvoices"
                         class="w-full sm:w-auto"
                         variant="secondary"
                         @click="showTimeEntryModal = true"
@@ -70,6 +71,7 @@
                     {{ $t("projects.tabs.overview") }}
                 </button>
                 <button
+                    v-if="canViewActivitiesAndInvoices"
                     @click="activeTab = 'activities'"
                     :class="[
                         'py-4 px-6 font-medium text-sm cursor-pointer shrink-0',
@@ -340,7 +342,7 @@
                 </div>
 
                 <!-- Activities Tab -->
-                <div v-show="activeTab === 'activities'">
+                <div v-if="canViewActivitiesAndInvoices" v-show="activeTab === 'activities'">
                     <TimeEntriesManager
                         :show-project-filter="false"
                         :show-user-filter="
@@ -363,7 +365,7 @@
                 </div>
 
                 <!-- Invoices Tab -->
-                <div v-show="activeTab === 'invoices'">
+                <div v-if="canEditProject" v-show="activeTab === 'invoices'">
                     <InvoiceListManager
                         :initial-filter="{ projectId: projectId }"
                         :hide-columns="['project']"
@@ -435,6 +437,22 @@ const availableUsers = computed(() => {
         ...(projectData.value?.projectMembers?.map((pm) => pm.id) || []),
     ]
 })
+// Check if current user is assigned to this project (manager or member)
+const isAssignedToProject = computed(() => {
+    if (!projectData.value || !authStore.user) return false
+
+    const isManager = projectData.value.projectManagers?.some((pm) => pm.id === authStore.user?.id)
+    const isMember = projectData.value.projectMembers?.some((pm) => pm.id === authStore.user?.id)
+
+    return isManager || isMember
+})
+
+// Check if current user can view Hours and Invoices (admin or assigned)
+const canViewActivitiesAndInvoices = computed(() => {
+    if (authStore.isRole("admin")) return true
+    return isAssignedToProject.value
+})
+
 // Check if current user can edit this project
 const canEditProject = computed(() => {
     // Admins can always edit

@@ -45,8 +45,8 @@ app.get(
         const periodStart = query.periodStart ? new Date(query.periodStart) : null
         const periodEnd = query.periodEnd ? new Date(query.periodEnd) : null
 
-        // Get project to verify access and get start date
-        const project = await projectRepository.findById(projectId, user)
+        // Get project to get start date
+        const project = await projectRepository.findById(projectId)
         if (!project) {
             return c.json({ error: "Project not found" }, 404)
         }

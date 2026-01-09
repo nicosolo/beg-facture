@@ -282,7 +282,7 @@ const handleInvoiceUploads = async (
         throwValidationError("Project ID is required to upload invoice documents")
     }
 
-    const project = await projectRepository.findById(projectId, user)
+    const project = await projectRepository.findById(projectId)
     if (!project) {
         throwNoProjectFolderError("Project not found for invoice", [
             { field: "projectId", message: "Project could not be found" },

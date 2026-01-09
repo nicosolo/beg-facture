@@ -107,10 +107,10 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 }
             }
 
-            // Check if user has access to the project
-            const project = await projectRepository.findById(activityData.projectId ?? 0, user)
+            // Check if project exists
+            const project = await projectRepository.findById(activityData.projectId ?? 0)
             if (!project) {
-                return c.json({ error: "Project not found or access denied" }, 404)
+                return c.json({ error: "Project not found" }, 404)
             }
             const activityType = await activityTypeRepository.findById(activityData.activityTypeId)
             if (!activityType) {
@@ -215,8 +215,7 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 existingActivity.activityType?.id !== activityData.activityTypeId
             ) {
                 const project = await projectRepository.findById(
-                    activityData.projectId || existingActivity.project?.id || 0,
-                    user
+                    activityData.projectId || existingActivity.project?.id || 0
                 )
                 if (!project) {
                     throwNotFound("Project")

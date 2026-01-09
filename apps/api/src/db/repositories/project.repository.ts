@@ -19,8 +19,6 @@ import {
     type ProjectUpdateInput,
     ErrorCode,
 } from "@beg/validations"
-import type { Variables } from "@src/types/global"
-import { hasRole } from "@src/tools/role-middleware"
 
 export const projectRepository = {
     // Check if a user is a manager of a specific project
@@ -40,10 +38,7 @@ export const projectRepository = {
         return result.length > 0
     },
 
-    findAll: async (
-        user: Variables["user"],
-        filters?: ProjectFilter
-    ): Promise<ProjectListResponse> => {
+    findAll: async (filters?: ProjectFilter): Promise<ProjectListResponse> => {
         const {
             page = 1,
             limit = 10,
@@ -256,29 +251,11 @@ export const projectRepository = {
             .leftJoin(engineers, eq(projects.engineerId, engineers.id))
             .leftJoin(companies, eq(projects.companyId, companies.id))
 
-        // Add project manager filter and/or access control
+        // Add project manager filter (access control removed: all users can see all projects)
         const hasManagerFilter = referentUserId !== undefined && referentUserId
-        const needsAccessControl = !hasRole(user.role, "admin")
 
-        if (hasManagerFilter && needsAccessControl) {
-            // Non-admin with manager filter: show projects managed by referentUserId that user has access to
-            // Use join with EXISTS subquery to check both conditions
-            baseQuery = baseQuery.innerJoin(
-                projectUsers,
-                and(
-                    eq(projects.id, projectUsers.projectId),
-                    eq(projectUsers.userId, user.id),
-                    // Project must be managed by referentUserId
-                    sql`EXISTS (
-                        SELECT 1 FROM ${projectUsers} pu2
-                        WHERE pu2.projectId = ${projects.id}
-                        AND pu2.userId = ${referentUserId}
-                        AND pu2.role = 'manager'
-                    )`
-                )
-            )
-        } else if (hasManagerFilter) {
-            // Admin with manager filter: show all projects managed by referentUserId
+        if (hasManagerFilter) {
+            // Filter by manager: show projects managed by referentUserId
             baseQuery = baseQuery.innerJoin(
                 projectUsers,
                 and(
@@ -286,12 +263,6 @@ export const projectRepository = {
                     eq(projectUsers.userId, referentUserId),
                     eq(projectUsers.role, "manager")
                 )
-            )
-        } else if (needsAccessControl) {
-            // Non-admin without manager filter: show all projects user has access to
-            baseQuery = baseQuery.innerJoin(
-                projectUsers,
-                and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
             )
         }
 
@@ -400,26 +371,10 @@ export const projectRepository = {
         let countQuery = db
             .select({ count: sql<number>`count(DISTINCT ${projects.id})` })
             .from(projects)
+            .$dynamic()
 
-        // Apply same filters as main query
-        if (hasManagerFilter && needsAccessControl) {
-            // Non-admin with manager filter: count projects managed by referentUserId that user has access to
-            countQuery = countQuery.innerJoin(
-                projectUsers,
-                and(
-                    eq(projects.id, projectUsers.projectId),
-                    eq(projectUsers.userId, user.id),
-                    // Project must be managed by referentUserId
-                    sql`EXISTS (
-                        SELECT 1 FROM ${projectUsers} pu2
-                        WHERE pu2.projectId = ${projects.id}
-                        AND pu2.userId = ${referentUserId}
-                        AND pu2.role = 'manager'
-                    )`
-                )
-            )
-        } else if (hasManagerFilter) {
-            // Admin with manager filter
+        // Apply same manager filter as main query
+        if (hasManagerFilter) {
             countQuery = countQuery.innerJoin(
                 projectUsers,
                 and(
@@ -427,12 +382,6 @@ export const projectRepository = {
                     eq(projectUsers.userId, referentUserId),
                     eq(projectUsers.role, "manager")
                 )
-            )
-        } else if (needsAccessControl) {
-            // Non-admin without manager filter
-            countQuery = countQuery.innerJoin(
-                projectUsers,
-                and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
             )
         }
 
@@ -451,7 +400,7 @@ export const projectRepository = {
         }
     },
 
-    findById: async (id: number, user: Variables["user"]): Promise<ProjectResponse | null> => {
+    findById: async (id: number): Promise<ProjectResponse | null> => {
         let query = db
             .select({
                 id: projects.id,
@@ -500,13 +449,7 @@ export const projectRepository = {
             .leftJoin(engineers, eq(projects.engineerId, engineers.id))
             .leftJoin(companies, eq(projects.companyId, companies.id))
 
-        // Access control: non-admin users can only see projects they're associated with
-        if (!hasRole(user.role, "admin")) {
-            query = query.innerJoin(
-                projectUsers,
-                and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
-            )
-        }
+        // Access control removed: all users can see all projects
 
         const results = await query.where(eq(projects.id, id)).execute()
         if (!results[0]) return null

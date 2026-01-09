@@ -33,17 +33,15 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
         }),
         async (c) => {
             const filter = c.req.valid("query")
-            const user = c.get("user")
-            const result = await projectRepository.findAll(user, filter)
+            const result = await projectRepository.findAll(filter)
             return c.render(result as ProjectListResponse, 200)
         }
     )
     .get("/export", zValidator("query", projectExportFilterSchema), async (c) => {
         const filter = c.req.valid("query")
-        const user = c.get("user")
 
         // Use findAll without pagination to get all matching projects
-        const result = await projectRepository.findAll(user, { ...filter, limit: 10000 })
+        const result = await projectRepository.findAll({ ...filter, limit: 10000 })
 
         const buffer = await buildProjectsWorkbook(result.data, {
             perUser: filter.perUser ?? false,
@@ -71,7 +69,6 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
         }),
         async (c) => {
             const filter = c.req.valid("query")
-            const user = c.get("user")
 
             const { minLat, maxLat, minLng, maxLng, limit: requestedLimit } = filter
             const hasBounds =
@@ -84,7 +81,7 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             const limit = requestedLimit ?? 1000
 
             // Get all projects with applied filters, sorted by most recent activity
-            const result = await projectRepository.findAll(user, {
+            const result = await projectRepository.findAll({
                 ...filter,
                 sortBy: "lastActivityDate",
                 sortOrder: "desc",
@@ -143,9 +140,7 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
                 throw throwNotFound("Project not found")
             }
 
-            const user = c.get("user")
-
-            const project = await projectRepository.findById(id, user)
+            const project = await projectRepository.findById(id)
             if (!project) {
                 throw throwNotFound("Project not found")
             }
@@ -159,10 +154,8 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             return c.json({ error: "Invalid project ID" }, 400)
         }
 
-        const user = c.get("user")
-
         // First get the project to obtain its project number
-        const project = await projectRepository.findById(id, user)
+        const project = await projectRepository.findById(id)
         if (!project || !project.projectNumber) {
             return c.json({ error: "Project not found" }, 404)
         }
@@ -209,7 +202,7 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
                 if (!projectId) {
                     throw throwInternalError("Failed to create project")
                 }
-                const project = await projectRepository.findById(projectId, user)
+                const project = await projectRepository.findById(projectId)
                 if (!project) {
                     throw throwNotFound("Project not found")
                 }
@@ -251,7 +244,7 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
             if (!projectId) {
                 throw throwInternalError("Failed to update project")
             }
-            const project = await projectRepository.findById(projectId, user)
+            const project = await projectRepository.findById(projectId)
             if (!project) {
                 throw throwNotFound("Project not found")
             }

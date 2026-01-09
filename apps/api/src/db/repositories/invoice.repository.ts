@@ -478,7 +478,7 @@ export const invoiceRepository = {
         }
 
         // Verify project exists
-        const project = await projectRepository.findById(data.projectId, user)
+        const project = await projectRepository.findById(data.projectId)
         if (!project) {
             throw new Error("Project not found")
         }

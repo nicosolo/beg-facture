@@ -31,7 +31,7 @@
                 </a>
 
                 <!-- Windows ARM -->
-                <a
+                <!-- <a
                     :href="downloads.windowsArm"
                     :class="[
                         'flex flex-col items-center p-6 border rounded-lg transition-colors',
@@ -49,7 +49,7 @@
                     >
                         {{ $t("downloadApp.recommended") }}
                     </span>
-                </a>
+                </a> -->
             </div>
 
             <div class="mt-6 text-sm text-gray-500">

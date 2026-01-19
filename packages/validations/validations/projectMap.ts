@@ -1,12 +1,34 @@
 import { z } from "zod"
 import { booleanSchema, dateSchema } from "./base"
 
-// Filter schema for project map (same as projectBaseFilterSchema but separate)
+// Filter schema for project map (includes all project filters plus map bounds)
 export const projectMapFilterSchema = z.object({
     name: z.string().optional(),
     referentUserId: z.coerce.number().optional(),
+    projectTypeIds: z
+        .union([
+            z.coerce.string(),
+            z.coerce.number(),
+            z.array(z.union([z.coerce.string(), z.coerce.number()])),
+        ])
+        .optional()
+        .transform((val) => {
+            if (!val) return undefined
+            if (Array.isArray(val)) {
+                return val.map(Number).filter((n) => n > 0)
+            }
+            return val
+                .toString()
+                .split(",")
+                .map(Number)
+                .filter((n) => n > 0)
+        }),
     fromDate: z.coerce.date().optional(),
     toDate: z.coerce.date().optional(),
+    hasUnbilledTime: booleanSchema.optional().default(false),
+    includeArchived: booleanSchema.optional().default(false),
+    includeEnded: booleanSchema.optional().default(false),
+    includeDraft: booleanSchema.optional().default(false),
     // Bounds filtering for viewport
     minLat: z.coerce.number().optional(),
     maxLat: z.coerce.number().optional(),

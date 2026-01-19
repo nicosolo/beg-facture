@@ -71,13 +71,16 @@ const filter = ref<ProjectFilterModel>({
     fromDate: undefined,
     toDate: undefined,
     referentUserId: undefined,
+    projectTypeIds: [],
     hasUnbilledTime: false,
 })
 
 const loadProjects = async () => {
+    const { projectTypeIds, ...rest } = filter.value
     await fetchProjectMap({
         query: {
-            ...filter.value,
+            ...rest,
+            projectTypeIds: projectTypeIds?.length ? projectTypeIds : undefined,
             ...(currentBounds.value ?? {}),
         },
     })

@@ -145,9 +145,9 @@ const { projects, sort } = defineProps<Props>()
 const columns = ref([
     {
         key: "name",
-        label: t("projects.name"),
+        label: t("projects.titleSingular"),
         sortable: true,
-        sortKey: "name",
+        sortKey: "projectNumber",
     },
 
     {

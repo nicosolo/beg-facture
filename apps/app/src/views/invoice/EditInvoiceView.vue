@@ -5,6 +5,7 @@
             :subtitle="invoice?.reference"
             :loading="fetchProjectLoading || fetchUnbilledLoading"
             :error-message="errorMessage"
+            :has-unsaved-changes="hasUnsavedChanges"
         >
             <!-- Tabs Navigation -->
             <div class="-mx-6 -mt-6 mb-6">
@@ -103,12 +104,7 @@ import Button from "@/components/atoms/Button.vue"
 import ConfirmDialog from "@/components/molecules/ConfirmDialog.vue"
 import InvoiceGeneralInfo from "@/components/organisms/invoice/InvoiceGeneralInfo.vue"
 import InvoiceDetails from "@/components/organisms/invoice/InvoiceDetails.vue"
-import {
-    createEmptyInvoice,
-    type ActivityResponse,
-    type Invoice,
-    type InvoiceResponse,
-} from "@beg/validations"
+import { createEmptyInvoice, type Invoice, type InvoiceResponse } from "@beg/validations"
 import { useFetchInvoice, useDeleteInvoice } from "@/composables/api/useInvoice"
 import { useFetchProject } from "@/composables/api/useProject"
 import { useFetchUnbilledActivities } from "@/composables/api/useUnbilled"
@@ -117,6 +113,7 @@ import { useI18n } from "vue-i18n"
 import { useAlert } from "@/composables/utils/useAlert"
 import { useAuthStore } from "@/stores/auth"
 import { parseApiError, ApiError } from "@/utils/api-error"
+import { useUnsavedChanges } from "@/composables/utils/useUnsavedChanges"
 
 const route = useRoute()
 const router = useRouter()
@@ -194,6 +191,20 @@ const hasPendingUploads = computed(
 )
 
 const canDelete = computed(() => invoice.value?.status !== "sent")
+
+// Unsaved changes tracking
+const { isDirty, hasUnsavedChanges, markClean } = useUnsavedChanges({ hasChanges: hasPendingUploads })
+
+// Mark form as dirty when invoice changes (except during API updates)
+watch(
+    () => invoice.value,
+    () => {
+        if (!isUpdatingFromApi.value && invoice.value) {
+            isDirty.value = true
+        }
+    },
+    { deep: true }
+)
 
 const handleDocumentFileChange = ({
     type,
@@ -517,6 +528,7 @@ const handleSave = async () => {
         pendingSituationFiles.value = pendingSituationFiles.value.map(() => null)
         pendingDocumentFiles.value = pendingDocumentFiles.value.map(() => null)
         pendingInvoiceDocumentFile.value = null
+        markClean()
 
         successAlert(t("invoice.save.success"), 4000)
         router.push({ name: "invoice-preview", params: { id: data.id } })

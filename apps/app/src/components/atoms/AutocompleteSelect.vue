@@ -29,9 +29,31 @@
             v-if="showDropdown"
             class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg min-h-30 max-h-60 overflow-auto"
         >
+            <!-- Min search length hint (async mode only) -->
+            <div
+                v-if="
+                    mode === 'async' &&
+                    minSearchLength &&
+                    searchTerm.length > 0 &&
+                    searchTerm.length < minSearchLength
+                "
+                class="px-3 py-2 text-gray-500"
+            >
+                {{ $t("common.typeMinChars", { count: minSearchLength }) }}
+            </div>
+
+            <!-- Loading state in dropdown (including debounce period) -->
+            <div
+                v-else-if="(loading || isPendingSearch) && filteredItems.length === 0"
+                class="px-3 py-2 text-gray-500 flex items-center gap-2"
+            >
+                <LoadingSpinner size="sm" color="gray" />
+                {{ $t("common.loading") }}
+            </div>
+
             <!-- No results (only for async mode, static mode always shows full list when no match) -->
             <div
-                v-if="filteredItems.length === 0 && searchTerm.length > 0"
+                v-else-if="filteredItems.length === 0 && searchTerm.length > 0"
                 class="px-3 py-2 text-gray-500"
             >
                 {{ $t("common.noResults") }}
@@ -73,6 +95,7 @@ interface AutocompleteSelectProps {
     items?: any[]
     loading?: boolean
     fetchFunction?: (searchText: string) => Promise<void>
+    minSearchLength?: number
     // For static mode
     options?: any[]
     searchFields?: string[]
@@ -105,6 +128,7 @@ const selectedItemDisplay = ref("")
 const focusedIndex = ref(0)
 const inputRef = ref<HTMLInputElement>()
 const debouncedSearchTerm = ref("")
+const isPendingSearch = ref(false)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 // Get item value
@@ -183,10 +207,14 @@ const handleInput = async (e: Event) => {
         debouncedSearchTerm.value = searchTerm.value
     } else {
         // For async mode, debounce the search
+        const meetsMinLength =
+            !props.minSearchLength || searchTerm.value.length >= props.minSearchLength
+        isPendingSearch.value = meetsMinLength
         debounceTimer = setTimeout(async () => {
             debouncedSearchTerm.value = searchTerm.value
             if (props.fetchFunction) {
                 await props.fetchFunction(searchTerm.value)
+                isPendingSearch.value = false
                 // Check if we should auto-select after fetch
                 await nextTick()
                 if (
@@ -197,6 +225,8 @@ const handleInput = async (e: Event) => {
                 ) {
                     selectItem(filteredItems.value[0])
                 }
+            } else {
+                isPendingSearch.value = false
             }
         }, 300)
     }

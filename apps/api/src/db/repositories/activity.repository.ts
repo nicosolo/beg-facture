@@ -84,13 +84,21 @@ const selectFields = (user: Variables["user"]) => ({
     },
 })
 
-const createBaseQuery = (user: Variables["user"]) =>
-    db
+const createBaseQuery = (user: Variables["user"]) => {
+    const baseQuery = db
         .select(selectFields(user))
         .from(activities)
         .leftJoin(users, eq(activities.userId, users.id))
         .leftJoin(projects, eq(activities.projectId, projects.id))
         .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
+    if (!hasRole(user.role, "admin")) {
+        baseQuery.innerJoin(
+            projectUsers,
+            and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
+        )
+    }
+    return baseQuery
+}
 
 const buildFilterComponents = (filter: ActivityFilter, user?: Variables["user"]) => {
     const {
@@ -182,13 +190,6 @@ export const activityRepository = {
         // Query with conditions
         const baseQuery = createBaseQuery(user)
 
-        // Disable access control for now
-        // if (user.role !== "admin") {
-        //     baseQuery.innerJoin(
-        //         projectUsers,
-        //         and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
-        //     )
-        // }
         const dataQuery =
             whereConditions.length > 0
                 ? baseQuery
@@ -207,12 +208,12 @@ export const activityRepository = {
             .leftJoin(projects, eq(activities.projectId, projects.id))
             .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
         // Disable access control for now
-        // if (user.role !== "admin") {
-        //     countQuery.innerJoin(
-        //         projectUsers,
-        //         and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
-        //     )
-        // }
+        if (!hasRole(user.role, "admin")) {
+            countQuery.innerJoin(
+                projectUsers,
+                and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
+            )
+        }
 
         const [{ count }] = await (whereConditions.length > 0
             ? countQuery.where(and(...whereConditions))
@@ -230,7 +231,7 @@ export const activityRepository = {
             .leftJoin(projects, eq(activities.projectId, projects.id))
             .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
         // Disable access control for now
-        if (user.role !== "admin") {
+        if (!hasRole(user.role, "admin")) {
             totalsQuery.innerJoin(
                 projectUsers,
                 and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))

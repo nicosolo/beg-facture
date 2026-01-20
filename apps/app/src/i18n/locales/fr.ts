@@ -309,6 +309,7 @@ export default {
     time: {
         title: "Journal des heures",
         new: "Ajouter des heures",
+        saveAndNew: "Enregistrer et nouveau",
         export: {
             button: "Exporter vers Excel",
             exporting: "Export en cours...",

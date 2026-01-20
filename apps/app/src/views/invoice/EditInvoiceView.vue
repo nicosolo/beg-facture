@@ -96,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue"
+import { ref, computed, onMounted, onUnmounted, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import FormLayout from "@/components/templates/FormLayout.vue"
 import Button from "@/components/atoms/Button.vue"
@@ -194,6 +194,32 @@ const hasPendingUploads = computed(
 )
 
 const canDelete = computed(() => invoice.value?.status !== "sent")
+
+// Track if form has been modified
+const isDirty = ref(false)
+
+// Check if there are unsaved changes
+const hasUnsavedChanges = computed(() => isDirty.value || hasPendingUploads.value)
+
+// Beforeunload handler to warn about unsaved changes
+const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    if (hasUnsavedChanges.value) {
+        e.preventDefault()
+        e.returnValue = ""
+        return ""
+    }
+}
+
+// Mark form as dirty when invoice changes (except during API updates)
+watch(
+    () => invoice.value,
+    () => {
+        if (!isUpdatingFromApi.value && invoice.value) {
+            isDirty.value = true
+        }
+    },
+    { deep: true }
+)
 
 const handleDocumentFileChange = ({
     type,
@@ -517,6 +543,7 @@ const handleSave = async () => {
         pendingSituationFiles.value = pendingSituationFiles.value.map(() => null)
         pendingDocumentFiles.value = pendingDocumentFiles.value.map(() => null)
         pendingInvoiceDocumentFile.value = null
+        isDirty.value = false
 
         successAlert(t("invoice.save.success"), 4000)
         router.push({ name: "invoice-preview", params: { id: data.id } })
@@ -692,6 +719,9 @@ onMounted(async () => {
     // Set page title
     document.title = isNewInvoice.value ? "BEG - Créer une facture" : "BEG - Modifier la facture"
 
+    // Add beforeunload listener for unsaved changes warning
+    window.addEventListener("beforeunload", handleBeforeUnload)
+
     // If it's a new invoice with a projectId, fetch unbilled activities
     if (isNewInvoice.value && projectId.value) {
         await loadUnbilledActivities()
@@ -699,6 +729,10 @@ onMounted(async () => {
         // For existing invoices, load the invoice and rates data
         await Promise.all([loadInvoice()])
     }
+})
+
+onUnmounted(() => {
+    window.removeEventListener("beforeunload", handleBeforeUnload)
 })
 
 // Reload when route changes

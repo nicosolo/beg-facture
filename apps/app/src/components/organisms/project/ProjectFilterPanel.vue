@@ -74,6 +74,7 @@
                                         label: $t('projects.lastActivity'),
                                         value: 'lastActivityDate',
                                     },
+                                    { label: $t('projects.createdAt'), value: 'createdAt' },
                                     { label: $t('projects.projectNumber'), value: 'projectNumber' },
                                     { label: $t('projects.name'), value: 'name' },
                                 ]"

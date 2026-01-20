@@ -10,9 +10,17 @@
 
         <!-- Header -->
         <div class="py-2 border-b border-gray-200 mb-4">
-            <h1 class="text-xl font-semibold text-gray-900">
-                {{ title }}
-            </h1>
+            <div class="flex items-center gap-2">
+                <h1 class="text-xl font-semibold text-gray-900">
+                    {{ title }}
+                </h1>
+                <span
+                    v-if="hasUnsavedChanges"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800"
+                >
+                    {{ $t("common.unsavedChanges") }}
+                </span>
+            </div>
             <p v-if="subtitle" class="mt-1 text-sm text-gray-600">
                 {{ subtitle }}
             </p>
@@ -70,9 +78,11 @@ interface FormLayoutProps {
     subtitle?: string
     loading?: boolean
     errorMessage?: string | null
+    hasUnsavedChanges?: boolean
 }
 
 withDefaults(defineProps<FormLayoutProps>(), {
     loading: false,
+    hasUnsavedChanges: false,
 })
 </script>

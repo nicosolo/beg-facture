@@ -5,6 +5,7 @@
             :subtitle="invoice?.reference"
             :loading="fetchProjectLoading || fetchUnbilledLoading"
             :error-message="errorMessage"
+            :has-unsaved-changes="hasUnsavedChanges"
         >
             <!-- Tabs Navigation -->
             <div class="-mx-6 -mt-6 mb-6">
@@ -96,19 +97,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from "vue"
+import { ref, computed, onMounted, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import FormLayout from "@/components/templates/FormLayout.vue"
 import Button from "@/components/atoms/Button.vue"
 import ConfirmDialog from "@/components/molecules/ConfirmDialog.vue"
 import InvoiceGeneralInfo from "@/components/organisms/invoice/InvoiceGeneralInfo.vue"
 import InvoiceDetails from "@/components/organisms/invoice/InvoiceDetails.vue"
-import {
-    createEmptyInvoice,
-    type ActivityResponse,
-    type Invoice,
-    type InvoiceResponse,
-} from "@beg/validations"
+import { createEmptyInvoice, type Invoice, type InvoiceResponse } from "@beg/validations"
 import { useFetchInvoice, useDeleteInvoice } from "@/composables/api/useInvoice"
 import { useFetchProject } from "@/composables/api/useProject"
 import { useFetchUnbilledActivities } from "@/composables/api/useUnbilled"
@@ -117,6 +113,7 @@ import { useI18n } from "vue-i18n"
 import { useAlert } from "@/composables/utils/useAlert"
 import { useAuthStore } from "@/stores/auth"
 import { parseApiError, ApiError } from "@/utils/api-error"
+import { useUnsavedChanges } from "@/composables/utils/useUnsavedChanges"
 
 const route = useRoute()
 const router = useRouter()
@@ -195,20 +192,8 @@ const hasPendingUploads = computed(
 
 const canDelete = computed(() => invoice.value?.status !== "sent")
 
-// Track if form has been modified
-const isDirty = ref(false)
-
-// Check if there are unsaved changes
-const hasUnsavedChanges = computed(() => isDirty.value || hasPendingUploads.value)
-
-// Beforeunload handler to warn about unsaved changes
-const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-    if (hasUnsavedChanges.value) {
-        e.preventDefault()
-        e.returnValue = ""
-        return ""
-    }
-}
+// Unsaved changes tracking
+const { isDirty, hasUnsavedChanges, markClean } = useUnsavedChanges({ hasChanges: hasPendingUploads })
 
 // Mark form as dirty when invoice changes (except during API updates)
 watch(
@@ -543,7 +528,7 @@ const handleSave = async () => {
         pendingSituationFiles.value = pendingSituationFiles.value.map(() => null)
         pendingDocumentFiles.value = pendingDocumentFiles.value.map(() => null)
         pendingInvoiceDocumentFile.value = null
-        isDirty.value = false
+        markClean()
 
         successAlert(t("invoice.save.success"), 4000)
         router.push({ name: "invoice-preview", params: { id: data.id } })
@@ -719,9 +704,6 @@ onMounted(async () => {
     // Set page title
     document.title = isNewInvoice.value ? "BEG - Créer une facture" : "BEG - Modifier la facture"
 
-    // Add beforeunload listener for unsaved changes warning
-    window.addEventListener("beforeunload", handleBeforeUnload)
-
     // If it's a new invoice with a projectId, fetch unbilled activities
     if (isNewInvoice.value && projectId.value) {
         await loadUnbilledActivities()
@@ -729,10 +711,6 @@ onMounted(async () => {
         // For existing invoices, load the invoice and rates data
         await Promise.all([loadInvoice()])
     }
-})
-
-onUnmounted(() => {
-    window.removeEventListener("beforeunload", handleBeforeUnload)
 })
 
 // Reload when route changes

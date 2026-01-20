@@ -49,6 +49,7 @@ export default {
         },
         errorLoading: "Erreur lors du chargement des données",
         errorSaving: "Erreur lors de l'enregistrement",
+        unsavedChanges: "Non enregistré",
         selectUser: "Sélectionner un collaborateur",
         archived: "Archivé",
         deleteSuccess: "{name} supprimé avec succès",

@@ -127,6 +127,7 @@ export default {
         mandatHelp: 'Laissez vide pour créer un mandat "Nº à attribuer"',
         draft: "Nº à attribuer",
         date: "Date",
+        createdAt: "Date de création",
         designation: "Désignation",
         locality: "Localité",
         client: "Client",

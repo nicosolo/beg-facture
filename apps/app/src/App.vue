@@ -15,6 +15,9 @@ import { useAlert } from "./composables/utils/useAlert"
 import { useTauri } from "./composables/useTauri"
 import Snackbar from "./components/atoms/Snackbar.vue"
 import Button from "./components/atoms/Button.vue"
+import desktopVersion from "@/config/desktop-version.json"
+
+const version = desktopVersion.version
 
 const { t } = useI18n()
 const isSidebarOpen = ref(false)
@@ -424,6 +427,9 @@ html {
                                 <Button @click="handleLogout" variant="ghost-danger" class="mt-2">
                                     {{ t("navigation.logout") }}
                                 </Button>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    {{ t("downloadApp.version") }}: {{ version }}
+                                </p>
                             </div>
                         </div>
                     </div>

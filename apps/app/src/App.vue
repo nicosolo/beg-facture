@@ -296,10 +296,10 @@ html {
             </div>
         </header>
 
-        <div class="flex flex-1 relative pt-12">
+        <div class="flex flex-1 relative pt-12 min-h-0">
             <!-- Main content - no margin adjustment, sidebar will overlay -->
-            <main class="flex-1 p-4 w-full">
-                <div class="container mx-auto md:max-w-full">
+            <main class="flex-1 p-4 w-full min-h-0 flex flex-col">
+                <div class="container mx-auto md:max-w-full flex-1 min-h-0">
                     <RouterView v-slot="{ Component }">
                         <KeepAlive
                             :include="[

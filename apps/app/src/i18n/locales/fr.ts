@@ -104,6 +104,7 @@ export default {
     projects: {
         title: "Mandats",
         list: "Mandats",
+        titleSingular: "Mandat",
         create: "Créer un mandat",
         new: "Nouveau mandat",
         edit: "Modifier le mandat",
@@ -180,10 +181,11 @@ export default {
         remarkPlaceholder: "Ajoutez des notes ou commentaires sur le mandat",
         endDate: "Date de fin",
         budget: "Budget",
-        totalDuration: "Heures totale",
+        totalDuration: "Heures totales",
         unBilledDuration: "Heures non facturées",
         firstActivity: "Première activité",
         lastActivity: "Dernière activité",
+        createdAt: "Créé le",
         actions: "Actions",
         noProjectsFound: "Aucun mandat trouvé correspondant à vos critères.",
         typeToSearch: "Tapez au moins 2 caractères pour rechercher",
@@ -251,7 +253,7 @@ export default {
     },
     timeEntries: {
         title: "Heures",
-        empty: "Aucune heures trouvée",
+        empty: "Aucune heure trouvée",
     },
     errors: {
         // General errors

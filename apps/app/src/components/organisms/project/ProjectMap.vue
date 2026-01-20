@@ -123,6 +123,14 @@ const createMarkers = async () => {
 
     // Create markers for each project using AdvancedMarkerElement
     for (const project of props.projects) {
+        // Create custom marker content with project number label
+        const markerContent = document.createElement("div")
+        markerContent.className = "project-marker"
+        markerContent.innerHTML = `
+            <div class="marker-pin"></div>
+            <div class="marker-label">${project.projectNumber}</div>
+        `
+
         const marker = new google.maps.marker.AdvancedMarkerElement({
             map,
             position: {
@@ -130,6 +138,7 @@ const createMarkers = async () => {
                 lng: project.longitude,
             },
             title: `${project.projectNumber} - ${project.name}`,
+            content: markerContent,
         })
 
         // Generate map URLs
@@ -277,3 +286,38 @@ onUnmounted(() => {
     }
 })
 </script>
+
+<style>
+/* Custom marker styles */
+.project-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.marker-pin {
+    width: 24px;
+    height: 24px;
+    background-color: #ef4444;
+    border: 2px solid #fff;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.marker-label {
+    background-color: rgba(255, 255, 255, 0.95);
+    color: #1f2937;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    margin-top: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+</style>

@@ -10,12 +10,13 @@
         :disabled="disabled"
         :required="required"
         :class-name="className"
+        :min-search-length="1"
         @update:model-value="$emit('update:modelValue', $event)"
     />
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue"
+import { ref, watch } from "vue"
 import { useI18n } from "vue-i18n"
 import { useFetchProjectList, useFetchProject } from "@/composables/api/useProject"
 import AutocompleteSelect from "@/components/atoms/AutocompleteSelect.vue"
@@ -89,20 +90,21 @@ watch(
     }
 )
 
-// Fetch function that receives search text
+// Fetch function that receives search text (minimum 2 characters required)
 const fetchProjects = async (searchText: string) => {
+    if (searchText.length < 1) {
+        projects.value = []
+        return
+    }
     await get({
         query: {
             name: searchText,
             includeArchived: props.includeArchived,
             includeEnded: props.includeEnded,
             limit: 50, // Reasonable limit for dropdown
+            includeDraft: false,
+            sortBy: "projectNumber",
         },
     })
 }
-
-onMounted(() => {
-    // Load initial data
-    fetchProjects("")
-})
 </script>

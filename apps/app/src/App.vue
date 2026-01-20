@@ -15,6 +15,9 @@ import { useAlert } from "./composables/utils/useAlert"
 import { useTauri } from "./composables/useTauri"
 import Snackbar from "./components/atoms/Snackbar.vue"
 import Button from "./components/atoms/Button.vue"
+import desktopVersion from "@/config/desktop-version.json"
+
+const version = desktopVersion.version
 
 const { t } = useI18n()
 const isSidebarOpen = ref(false)
@@ -217,7 +220,7 @@ html {
         <!-- Header for all viewports with toggle button - hidden on login page -->
         <header
             v-if="!isLoginPage"
-            class="flex items-center p-2 border-b border-gray-200 print:hidden"
+            class="fixed top-0 left-0 right-0 flex items-center p-2 border-b border-gray-200 bg-white z-10 print:hidden"
         >
             <div class="flex justify-between items-center w-full gap-2">
                 <div class="flex items-center">
@@ -296,10 +299,10 @@ html {
             </div>
         </header>
 
-        <div class="flex flex-1 relative overflow-hidden">
+        <div class="flex flex-1 relative pt-12 min-h-0">
             <!-- Main content - no margin adjustment, sidebar will overlay -->
-            <main class="flex-1 p-4 w-full">
-                <div class="container mx-auto md:max-w-full">
+            <main class="flex-1 p-4 w-full min-h-0 flex flex-col">
+                <div class="container mx-auto md:max-w-full flex-1 min-h-0">
                     <RouterView v-slot="{ Component }">
                         <KeepAlive
                             :include="[
@@ -424,6 +427,9 @@ html {
                                 <Button @click="handleLogout" variant="ghost-danger" class="mt-2">
                                     {{ t("navigation.logout") }}
                                 </Button>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    {{ t("downloadApp.version") }}: {{ version }}
+                                </p>
                             </div>
                         </div>
                     </div>

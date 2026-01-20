@@ -58,6 +58,12 @@
             </div>
         </template>
 
+        <template #cell:createdAt="{ item }">
+            <div class="text-sm text-gray-900">
+                {{ formatDate(item.createdAt) }}
+            </div>
+        </template>
+
         <template #cell:actions="{ item }">
             <div class="flex flex-row sm:flex-col md:flex-row gap-2">
                 <Button
@@ -127,7 +133,11 @@ const emit = defineEmits<{
 const getRowClass = (item: ProjectResponse) => {
     if (item.lastActivityDate) {
         const lastActivityDate = new Date(item.lastActivityDate)
-        if (lastActivityDate.getTime() < Date.now() - 7 * 24 * 60 * 60 * 1000) {
+        if (
+            lastActivityDate.getTime() < Date.now() - 14 * 24 * 60 * 60 * 1000 &&
+            item.unBilledDuration &&
+            item.unBilledDuration > 0
+        ) {
             return "bg-red-100"
         } // 1 week ago
     }
@@ -178,6 +188,13 @@ const columns = ref([
         label: t("projects.lastActivity"),
         sortKey: "lastActivityDate",
         width: "10rem",
+    },
+    {
+        key: "createdAt",
+        label: t("projects.createdAt"),
+        nowrap: true,
+        width: "10rem",
+        sortKey: "createdAt",
     },
 
     {

@@ -104,6 +104,7 @@ export default {
     projects: {
         title: "Mandats",
         list: "Mandats",
+        titleSingular: "Mandat",
         create: "Créer un mandat",
         new: "Nouveau mandat",
         edit: "Modifier le mandat",
@@ -184,6 +185,7 @@ export default {
         unBilledDuration: "Heures non facturées",
         firstActivity: "Première activité",
         lastActivity: "Dernière activité",
+        createdAt: "Créé le",
         actions: "Actions",
         noProjectsFound: "Aucun mandat trouvé correspondant à vos critères.",
         typeToSearch: "Tapez au moins 2 caractères pour rechercher",

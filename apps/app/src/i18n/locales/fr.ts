@@ -26,6 +26,7 @@ export default {
         all: "Tous",
         resetFilters: "Réinitialiser les filtres",
         noResults: "Aucun résultat trouvé",
+        typeMinChars: "Tapez au moins {count} caractères",
         hours: "heures",
         minutes: "min",
         itemsSelected: "{count} élément(s) sélectionné(s)",

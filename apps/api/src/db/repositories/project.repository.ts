@@ -64,6 +64,10 @@ export const projectRepository = {
             whereConditions.push(
                 sql`${projects.projectNumber} IS NULL OR ${projects.projectNumber} = ''`
             )
+        } else {
+            whereConditions.push(
+                sql`${projects.projectNumber} IS NOT NULL AND ${projects.projectNumber} != ''`
+            )
         }
 
         // Name filter (case-insensitive search)

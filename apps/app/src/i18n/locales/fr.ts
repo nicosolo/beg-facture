@@ -26,6 +26,7 @@ export default {
         all: "Tous",
         resetFilters: "Réinitialiser les filtres",
         noResults: "Aucun résultat trouvé",
+        typeMinChars: "Tapez au moins {count} caractères",
         hours: "heures",
         minutes: "min",
         itemsSelected: "{count} élément(s) sélectionné(s)",
@@ -179,7 +180,7 @@ export default {
         remarkPlaceholder: "Ajoutez des notes ou commentaires sur le mandat",
         endDate: "Date de fin",
         budget: "Budget",
-        totalDuration: "Heures totale",
+        totalDuration: "Heures totales",
         unBilledDuration: "Heures non facturées",
         firstActivity: "Première activité",
         lastActivity: "Dernière activité",
@@ -250,7 +251,7 @@ export default {
     },
     timeEntries: {
         title: "Heures",
-        empty: "Aucune heures trouvée",
+        empty: "Aucune heure trouvée",
     },
     errors: {
         // General errors

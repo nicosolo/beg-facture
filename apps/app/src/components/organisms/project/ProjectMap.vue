@@ -38,6 +38,9 @@ const markers: google.maps.marker.AdvancedMarkerElement[] = []
 let boundsChangeTimeout: ReturnType<typeof setTimeout> | null = null
 let isInitialLoad = true
 let skipNextBoundsEmit = false
+let currentInfoWindow: google.maps.InfoWindow | null = null
+let openProjectId: number | null = null
+const markerInfoWindows = new Map<number, { marker: google.maps.marker.AdvancedMarkerElement; infoWindow: google.maps.InfoWindow }>()
 
 // Switzerland default center
 const SWITZERLAND_CENTER = { lat: 46.8, lng: 8.2 }
@@ -106,9 +109,16 @@ const createMarkers = async () => {
         marker.map = null
     })
     markers.length = 0
+    markerInfoWindows.clear()
 
     if (markerClusterer) {
         markerClusterer.clearMarkers()
+    }
+
+    // Close current info window before recreating
+    if (currentInfoWindow) {
+        currentInfoWindow.close()
+        currentInfoWindow = null
     }
 
     // Create markers for each project using AdvancedMarkerElement
@@ -173,11 +183,37 @@ const createMarkers = async () => {
             content: infoWindowContent,
         })
 
+        // Track info window close
+        infoWindow.addListener("closeclick", () => {
+            currentInfoWindow = null
+            openProjectId = null
+        })
+
         marker.addListener("click", () => {
+            // Close any existing info window
+            if (currentInfoWindow) {
+                currentInfoWindow.close()
+            }
+            currentInfoWindow = infoWindow
+            openProjectId = project.id
             infoWindow.open(map!, marker)
         })
 
+        // Store for potential reopening after reload
+        markerInfoWindows.set(project.id, { marker, infoWindow })
         markers.push(marker)
+    }
+
+    // Reopen info window if one was open before reload
+    if (openProjectId !== null) {
+        const entry = markerInfoWindows.get(openProjectId)
+        if (entry) {
+            currentInfoWindow = entry.infoWindow
+            entry.infoWindow.open(map!, entry.marker)
+        } else {
+            // Project no longer in view, clear the tracking
+            openProjectId = null
+        }
     }
 
     // Add marker clustering with consistent indigo color

@@ -165,6 +165,8 @@ export const projectRepository = {
                 case "lastActivityDate":
                     // Sort by project updated date as approximation for last activity
                     return projects.lastActivityDate
+                case "createdAt":
+                    return projects.createdAt
                 default:
                     return projects.name
             }

@@ -148,15 +148,14 @@
                 </div>
                 <div class="flex gap-2">
                     <Button @click="closeModal" :disabled="saving" variant="secondary">
-                        {{ $t("common.cancel") }}
+                        {{ $t("common.close") }}
                     </Button>
                     <Button
-                        type="submit"
-                        form="timeEntryForm"
+                        type="button"
                         :loading="saving"
                         :disabled="isLocked"
                         variant="primary"
-                        @click="submitForm"
+                        @click="submitFormAndContinue"
                     >
                         {{ $t("common.save") }}
                     </Button>
@@ -290,25 +289,23 @@ const loadActivityData = async () => {
 }
 
 // Handle form submission
-const handleSubmit = async () => {
-    await saveActivity()
+const handleSubmit = async (keepOpen: boolean = false) => {
+    await saveActivity(keepOpen)
 }
 
-// Submit form programmatically
-const submitForm = () => {
+// Submit and keep modal open for another entry
+const submitFormAndContinue = () => {
     if (formRef.value) {
-        // Check if form is valid
         if (formRef.value.checkValidity()) {
-            handleSubmit()
+            handleSubmit(true)
         } else {
-            // Trigger browser validation UI
             formRef.value.reportValidity()
         }
     }
 }
 
 // Save activity
-const saveActivity = async () => {
+const saveActivity = async (keepOpen: boolean = false) => {
     errorMessage.value = null
 
     if (isLocked.value) {
@@ -354,7 +351,16 @@ const saveActivity = async () => {
             successAlert(
                 isNewEntry.value ? t("time.alerts.entryCreated") : t("time.alerts.entryUpdated")
             )
-            closeModal()
+            if (keepOpen && isNewEntry.value) {
+                // Reset form for another entry, keeping project and date
+                const currentProjectId = activity.value.projectId
+                const currentDate = activity.value.date
+                resetForm()
+                activity.value.projectId = currentProjectId
+                activity.value.date = currentDate
+            } else {
+                closeModal()
+            }
         }
     } catch (error) {
         if (error instanceof ApiError) {

@@ -564,6 +564,8 @@ export default {
         week: "Semaine",
         month: "Mois",
         year: "Année",
+        previousDay: "Jour précédent",
+        nextDay: "Jour suivant",
         previousWeek: "Semaine précédente",
         previousMonth: "Mois précédent",
         previousYear: "Année précédente",

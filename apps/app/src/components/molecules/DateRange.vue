@@ -18,9 +18,33 @@
             >
                 {{ $t("dateRange.allTime") }}
             </Button>
-            <Button @click="setToday" :variant="presetVariant('today')" class="text-xs sm:text-sm">
-                <span>{{ $t("dateRange.today") }}</span>
-            </Button>
+            <!-- Day navigation -->
+            <div
+                class="flex items-center gap-0 sm:gap-1 rounded-lg border border-gray-300 bg-gray-200"
+            >
+                <Button
+                    @click="navigateDay(-1)"
+                    :title="$t('dateRange.previousDay')"
+                    class="text-xs sm:text-sm px-1 sm:px-2"
+                >
+                    ‹
+                </Button>
+                <Button
+                    @click="setToday"
+                    :variant="presetVariant('today')"
+                    :title="$t('dateRange.today')"
+                    class="text-xs sm:text-sm px-1 sm:px-2 min-w-[50px] hover:bg-gray-100"
+                >
+                    {{ $t("dateRange.today") }}
+                </Button>
+                <Button
+                    @click="navigateDay(1)"
+                    :title="$t('dateRange.nextDay')"
+                    class="text-xs sm:text-sm px-1 sm:px-2"
+                >
+                    ›
+                </Button>
+            </div>
 
             <!-- Week navigation -->
             <div
@@ -121,6 +145,7 @@ import {
     getYearRange,
     normaliseFromDate,
     normaliseToDate,
+    shiftDayRange,
     shiftMonthRange,
     shiftWeekRange,
     shiftYearRange,
@@ -256,6 +281,12 @@ function setAllTime() {
 // Preset functions
 function setToday() {
     const { from, to } = getTodayRange()
+    applyRange(from, to)
+}
+
+// Navigate days forward or backward
+function navigateDay(direction: number) {
+    const { from, to } = shiftDayRange(localFromDate.value, direction)
     applyRange(from, to)
 }
 

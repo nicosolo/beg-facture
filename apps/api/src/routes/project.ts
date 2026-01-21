@@ -85,10 +85,6 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
                 ...filter,
                 sortBy: "lastActivityDate",
                 sortOrder: "desc",
-                hasUnbilledTime: false,
-                includeArchived: false,
-                includeEnded: false,
-                includeDraft: false,
                 page: 1,
                 limit: 100000,
             })

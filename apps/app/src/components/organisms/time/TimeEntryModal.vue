@@ -148,25 +148,14 @@
                 </div>
                 <div class="flex gap-2">
                     <Button @click="closeModal" :disabled="saving" variant="secondary">
-                        {{ $t("common.cancel") }}
+                        {{ $t("common.close") }}
                     </Button>
                     <Button
-                        v-if="isNewEntry"
                         type="button"
                         :loading="saving"
                         :disabled="isLocked"
-                        variant="secondary"
-                        @click="submitFormAndContinue"
-                    >
-                        {{ $t("time.saveAndNew") }}
-                    </Button>
-                    <Button
-                        type="submit"
-                        form="timeEntryForm"
-                        :loading="saving"
-                        :disabled="isLocked"
                         variant="primary"
-                        @click="submitForm"
+                        @click="submitFormAndContinue"
                     >
                         {{ $t("common.save") }}
                     </Button>
@@ -302,19 +291,6 @@ const loadActivityData = async () => {
 // Handle form submission
 const handleSubmit = async (keepOpen: boolean = false) => {
     await saveActivity(keepOpen)
-}
-
-// Submit form programmatically
-const submitForm = () => {
-    if (formRef.value) {
-        // Check if form is valid
-        if (formRef.value.checkValidity()) {
-            handleSubmit(false)
-        } else {
-            // Trigger browser validation UI
-            formRef.value.reportValidity()
-        }
-    }
 }
 
 // Submit and keep modal open for another entry

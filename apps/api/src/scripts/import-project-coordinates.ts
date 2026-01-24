@@ -97,12 +97,6 @@ async function updateProjectCoordinates(row: CsvRow) {
 
     const matchConditions = [eq(projects.projectNumber, row.projectNumber)]
 
-    if (row.subProjectName) {
-        matchConditions.push(eq(projects.subProjectName, row.subProjectName))
-    } else {
-        matchConditions.push(sql`${projects.subProjectName} IS NULL`)
-    }
-
     const project = await db
         .select({ id: projects.id })
         .from(projects)

@@ -1,7 +1,8 @@
 <template>
     <div class="flex flex-col gap-2">
-        <div class="relative inline-flex">
+        <div class="relative inline-flex" @click.stop="handleClick">
             <input
+                v-if="!isTauri"
                 ref="fileInput"
                 type="file"
                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -35,6 +36,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
+import { useTauri } from "@/composables/useTauri"
 
 const props = defineProps<{
     fileName?: string | null
@@ -45,12 +47,16 @@ const props = defineProps<{
     removeLabel?: string
     disabled?: boolean
     required?: boolean
+    defaultPath?: string
 }>()
 
 const emit = defineEmits<{
     (e: "select", file: File | null): void
+    (e: "select-path", path: string): void
     (e: "clear"): void
 }>()
+
+const { isTauri } = useTauri()
 
 const fileInput = ref<HTMLInputElement | null>(null)
 
@@ -68,6 +74,28 @@ const onFileChange = (event: Event) => {
     emit("select", file)
     if (fileInput.value) {
         fileInput.value.value = ""
+    }
+}
+
+const handleClick = async () => {
+    if (props.disabled) return
+    if (!isTauri.value) return
+    console.log("handleClick")
+    const { open } = await import("@tauri-apps/plugin-dialog")
+    const selected = await open({
+        multiple: false,
+        defaultPath: props.defaultPath || undefined,
+        filters: props.accept
+            ? [
+                  {
+                      name: "Files",
+                      extensions: props.accept.split(",").map((e) => e.trim().replace(/^\./, "")),
+                  },
+              ]
+            : undefined,
+    })
+    if (selected) {
+        emit("select-path", selected as string)
     }
 }
 

@@ -39,13 +39,13 @@
                     </nav>
                 </div>
             </div>
-
             <!-- Tab Content -->
             <div class="tab-content" v-if="invoice">
                 <InvoiceGeneralInfo
                     v-if="activeTab === 'general'"
                     v-model="invoice"
                     :invoice-id="invoiceId ? parseInt(invoiceId) : null"
+                    :default-path="projectFolderPath"
                     @document-file-change="handleDocumentFileChange"
                     @document-entry-removed="handleDocumentEntryRemoved"
                     @invoice-document-change="handleInvoiceDocumentFileChange"
@@ -106,7 +106,7 @@ import InvoiceGeneralInfo from "@/components/organisms/invoice/InvoiceGeneralInf
 import InvoiceDetails from "@/components/organisms/invoice/InvoiceDetails.vue"
 import { createEmptyInvoice, type Invoice, type InvoiceResponse } from "@beg/validations"
 import { useFetchInvoice, useDeleteInvoice } from "@/composables/api/useInvoice"
-import { useFetchProject } from "@/composables/api/useProject"
+import { useFetchProject, useProjectFolder } from "@/composables/api/useProject"
 import { useFetchUnbilledActivities } from "@/composables/api/useUnbilled"
 import { useFormat } from "@/composables/utils/useFormat"
 import { useI18n } from "vue-i18n"
@@ -114,6 +114,7 @@ import { useAlert } from "@/composables/utils/useAlert"
 import { useAuthStore } from "@/stores/auth"
 import { parseApiError, ApiError } from "@/utils/api-error"
 import { useUnsavedChanges } from "@/composables/utils/useUnsavedChanges"
+import { useAppSettingsStore } from "@/stores/appSettings"
 
 const route = useRoute()
 const router = useRouter()
@@ -132,7 +133,14 @@ const { delete: deleteInvoice, loading: deleteLoading } = useDeleteInvoice()
 const { get: fetchProject, loading: fetchProjectLoading, data: projectResponse } = useFetchProject()
 
 const { get: fetchUnbilledActivities, loading: fetchUnbilledLoading } = useFetchUnbilledActivities()
+const { get: fetchProjectFolder, data: projectFolder } = useProjectFolder()
+const appSettingsStore = useAppSettingsStore()
 const authStore = useAuthStore()
+const projectFolderPath = computed(() =>
+    projectFolder.value?.folder?.fullPath
+        ? appSettingsStore.getAbsolutePath(projectFolder.value?.folder?.fullPath)
+        : undefined
+)
 
 const pendingOfferFiles = ref<(File | null)[]>([])
 const pendingAdjudicationFiles = ref<(File | null)[]>([])
@@ -193,7 +201,9 @@ const hasPendingUploads = computed(
 const canDelete = computed(() => invoice.value?.status !== "sent")
 
 // Unsaved changes tracking
-const { isDirty, hasUnsavedChanges, markClean } = useUnsavedChanges({ hasChanges: hasPendingUploads })
+const { isDirty, hasUnsavedChanges, markClean } = useUnsavedChanges({
+    hasChanges: hasPendingUploads,
+})
 
 // Mark form as dirty when invoice changes (except during API updates)
 watch(
@@ -439,6 +449,7 @@ const loadInvoice = async () => {
                 invoice.value = convertResponseToInvoice(data)
                 pendingInvoiceDocumentFile.value = null
             }
+            fetchProjectFolder({ params: { id: data.projectId } })
         } catch (err: any) {
             console.error("Failed to load invoice:", err)
             // Error will be displayed in the FormLayout
@@ -724,6 +735,7 @@ watch(
     () => projectId,
     async () => {
         if (projectId.value) {
+            fetchProjectFolder({ params: { id: projectId.value } })
             const project = await fetchProject({ params: { id: projectId.value } })
 
             // Build client address from project location

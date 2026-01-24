@@ -149,8 +149,8 @@ async function loadProjectTypeMapping(): Promise<{
             for (let col = 1; col <= 3; col++) {
                 const newType = columns[col]?.trim()
                 if (newType && newType !== "") {
-                    newTypes.push(newType)
-                    allNewTypes.add(newType)
+                    newTypes.push(newType.trim())
+                    allNewTypes.add(newType.trim())
                 }
             }
 

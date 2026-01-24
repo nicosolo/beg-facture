@@ -13,7 +13,11 @@
             </button>
         </div>
 
-        <div class="border border-gray-300 rounded">
+        <DragDropZone
+            highlight-class="border-blue-500 border-2 bg-blue-50 rounded"
+            normal-class="border border-gray-300 rounded"
+            @drop="handleFileDrop"
+        >
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
@@ -50,10 +54,12 @@
                                 :file-name="entry.file"
                                 :display-name="displayFileName(entry.file)"
                                 :accept="accept"
+                                :default-path="props.defaultPath"
                                 :upload-label="t('invoice.documents.actions.upload')"
                                 :replace-label="t('invoice.documents.actions.replace')"
                                 :remove-label="t('common.remove')"
                                 @select="(file) => handleFileSelected(index, file)"
+                                @select-path="(path) => handlePathSelected(index, path)"
                                 @clear="() => clearFile(index)"
                             >
                                 <template #preview>
@@ -104,7 +110,7 @@
                     </tr>
                 </tbody>
             </table>
-        </div>
+        </DragDropZone>
     </div>
 </template>
 
@@ -113,8 +119,10 @@ import { computed } from "vue"
 import { useI18n } from "vue-i18n"
 import Input from "@/components/atoms/Input.vue"
 import DocumentUploadField from "@/components/molecules/DocumentUploadField.vue"
+import DragDropZone from "@/components/molecules/DragDropZone.vue"
 import { useInvoiceDocuments } from "@/composables/invoice/useInvoiceDocuments"
 import Button from "@/components/atoms/Button.vue"
+import { resolveFilePath, type ResolvedFile } from "@/composables/useFileResolver"
 
 export interface InvoiceDocumentEntry {
     file: string
@@ -133,6 +141,7 @@ const props = withDefaults(
         invoiceId?: number | null
         accept?: string
         showAmount?: boolean
+        defaultPath?: string
     }>(),
     {
         showAmount: true,
@@ -148,6 +157,19 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { buildFileUrl, downloadInvoiceFile, extractFileName } = useInvoiceDocuments()
+
+const handleFileDrop = (files: ResolvedFile[]) => {
+    for (const result of files) {
+        const newIndex = entries.value.length
+        entries.value = [
+            ...entries.value,
+            { file: result.relativePath, date: "", amount: null, remark: "" },
+        ]
+        if ("file" in result) {
+            emit("file-change", { index: newIndex, file: result.file })
+        }
+    }
+}
 
 const entries = computed({
     get: () => props.modelValue || [],
@@ -203,8 +225,28 @@ const clearFile = (index: number) => {
 }
 
 const handleFileSelected = (index: number, file: File | null) => {
-    updateEntry(index, "file", file ? file.name : "")
+    if (!file) {
+        updateEntry(index, "file", "")
+        emit("file-change", { index, file: null })
+        return
+    }
+
+    // Browser File objects don't expose full path for security reasons
+    // Tauri paths only come through drag and drop or native file dialog
+    updateEntry(index, "file", file.name)
     emit("file-change", { index, file })
+}
+
+const handlePathSelected = async (index: number, filePath: string) => {
+    try {
+        const result = await resolveFilePath(filePath)
+        updateEntry(index, "file", result.relativePath)
+        if ("file" in result) {
+            emit("file-change", { index, file: result.file })
+        }
+    } catch (error) {
+        console.error("Failed to read file:", filePath, error)
+    }
 }
 
 const isStoredFile = (file?: string | null) => {
@@ -244,4 +286,6 @@ const formatAmount = (value: InvoiceDocumentEntry["amount"]) => {
     if (value === null || value === undefined) return ""
     return String(value)
 }
+
+
 </script>

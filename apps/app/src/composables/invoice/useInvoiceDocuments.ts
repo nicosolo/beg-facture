@@ -36,6 +36,7 @@ export function useInvoiceDocuments() {
         // In Tauri, open file directly from host machine path
         if (isTauri.value) {
             const absolutePath = appSettingsStore.getAbsolutePath(filePath.replace("/mandats", ""))
+            console.log("absolutePath", absolutePath)
             await openFile(absolutePath)
             return
         }

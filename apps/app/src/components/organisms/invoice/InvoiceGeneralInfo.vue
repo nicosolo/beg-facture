@@ -88,7 +88,14 @@
                             { value: 'fixedPrice', label: $t('invoice.billingMode.fixedPrice') },
                         ]"
                     />
-                    <div v-if="invoice.billingMode === 'accordingToInvoice'" class="mt-4">
+                    <DragDropZone
+                        v-if="invoice.billingMode === 'accordingToInvoice'"
+                        class="mt-4 p-2"
+                        :multiple="false"
+                        highlight-class="border-blue-500 border-2 bg-blue-50 rounded"
+                        normal-class="border border-gray-300 border-dashed rounded"
+                        @drop="handleInvoiceDocDrop"
+                    >
                         <label class="text-sm font-medium text-gray-700 mb-1">
                             {{ $t("invoice.document.label") }}
                         </label>
@@ -100,10 +107,12 @@
                             :file-name="invoice.invoiceDocument"
                             :display-name="invoiceDocumentDisplayName"
                             accept=".pdf,.doc,.docx,.xls,.xlsx"
+                            :default-path="props.defaultPath"
                             :upload-label="$t('invoice.documents.actions.upload')"
                             :replace-label="$t('invoice.documents.actions.replace')"
                             :remove-label="$t('invoice.document.clear')"
                             @select="handleInvoiceDocumentSelected"
+                            @select-path="handleInvoiceDocumentPathSelected"
                             @clear="clearInvoiceDocument"
                         >
                             <template #preview>
@@ -120,7 +129,7 @@
                         <p class="mt-1 text-xs text-gray-500">
                             {{ $t("invoice.document.helper") }}
                         </p>
-                    </div>
+                    </DragDropZone>
                 </div>
             </div>
 
@@ -181,6 +190,7 @@
                 :empty-state-label="$t('invoice.documents.offer.empty')"
                 entry-type="offer"
                 :invoice-id="invoiceId"
+                :default-path="props.defaultPath"
                 @file-change="(payload) => handleDocumentFileChange('offer', payload)"
                 @entry-removed="(payload) => handleDocumentEntryRemoved('offer', payload)"
             />
@@ -192,6 +202,7 @@
                 :empty-state-label="$t('invoice.documents.adjudication.empty')"
                 entry-type="adjudication"
                 :invoice-id="invoiceId"
+                :default-path="props.defaultPath"
                 @file-change="(payload) => handleDocumentFileChange('adjudication', payload)"
                 @entry-removed="(payload) => handleDocumentEntryRemoved('adjudication', payload)"
             />
@@ -203,6 +214,7 @@
                 :empty-state-label="$t('invoice.documents.situation.empty')"
                 entry-type="situation"
                 :invoice-id="invoiceId"
+                :default-path="props.defaultPath"
                 @file-change="(payload) => handleDocumentFileChange('situation', payload)"
                 @entry-removed="(payload) => handleDocumentEntryRemoved('situation', payload)"
             />
@@ -214,6 +226,7 @@
                 :empty-state-label="$t('invoice.documents.document.empty')"
                 entry-type="document"
                 :invoice-id="invoiceId"
+                :default-path="props.defaultPath"
                 :show-amount="false"
                 @file-change="(payload) => handleDocumentFileChange('document', payload)"
                 @entry-removed="(payload) => handleDocumentEntryRemoved('document', payload)"
@@ -231,12 +244,15 @@ import Select from "@/components/atoms/Select.vue"
 import Textarea from "@/components/atoms/Textarea.vue"
 import InvoiceDocumentEntries from "./InvoiceDocumentEntries.vue"
 import DocumentUploadField from "@/components/molecules/DocumentUploadField.vue"
+import DragDropZone from "@/components/molecules/DragDropZone.vue"
 import UserSelect from "@/components/organisms/user/UserSelect.vue"
 import { useInvoiceDocuments } from "@/composables/invoice/useInvoiceDocuments"
+import { resolveFilePath, type ResolvedFile } from "@/composables/useFileResolver"
 
 const props = defineProps<{
     modelValue: Invoice
     invoiceId?: number | null
+    defaultPath?: string
 }>()
 
 const emit = defineEmits<{
@@ -256,6 +272,17 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { buildFileUrl, downloadInvoiceFile, extractFileName } = useInvoiceDocuments()
+
+const handleInvoiceDocDrop = (files: ResolvedFile[]) => {
+    if (files.length === 0) return
+    const result = files[0]
+    if ("file" in result) {
+        invoice.value = { ...invoice.value, invoiceDocument: result.file.name }
+        emit("invoice-document-change", result.file)
+    } else {
+        invoice.value = { ...invoice.value, invoiceDocument: result.relativePath }
+    }
+}
 
 const invoice = computed({
     get: () => props.modelValue,
@@ -321,6 +348,20 @@ const handleInvoiceDocumentSelected = (file: File | null) => {
         invoiceDocument: file.name,
     }
     emit("invoice-document-change", file)
+}
+
+const handleInvoiceDocumentPathSelected = async (filePath: string) => {
+    try {
+        const result = await resolveFilePath(filePath)
+        if ("file" in result) {
+            invoice.value = { ...invoice.value, invoiceDocument: result.file.name }
+            emit("invoice-document-change", result.file)
+        } else {
+            invoice.value = { ...invoice.value, invoiceDocument: result.relativePath }
+        }
+    } catch (error) {
+        console.error("Failed to read file:", filePath, error)
+    }
 }
 
 const clearInvoiceDocument = () => {

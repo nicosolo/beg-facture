@@ -1,83 +1,105 @@
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import { invoke } from "@tauri-apps/api/core"
 import { useAlert } from "@/composables/utils/useAlert"
 
-// Check if we're in Tauri environment
 const isTauriEnvironment = () => {
     return typeof window !== "undefined" && window.__TAURI_INTERNALS__ !== undefined
 }
 
+// Module-level shared state for Tauri drag-drop
+const isDragging = ref(false)
+const dragPosition = ref<{ x: number; y: number } | null>(null)
+const pendingDrop = ref<{ paths: string[]; position: { x: number; y: number } } | null>(null)
+let dragDropListenerActive = false
+
+const ensureDragDropListener = async () => {
+    if (dragDropListenerActive || !isTauriEnvironment()) return
+    dragDropListenerActive = true
+
+    try {
+        const { getCurrentWebview } = await import("@tauri-apps/api/webview")
+        const webview = getCurrentWebview()
+
+        await webview.onDragDropEvent((event) => {
+            const payload = event.payload as {
+                type: string
+                paths?: string[]
+                position?: { x: number; y: number }
+            }
+
+            const pos = payload.position ?? { x: 0, y: 0 }
+
+            if (payload.type === "over" || payload.type === "enter") {
+                isDragging.value = true
+                dragPosition.value = pos
+            } else if (payload.type === "leave") {
+                isDragging.value = false
+                dragPosition.value = null
+            } else if (payload.type === "drop") {
+                isDragging.value = false
+                dragPosition.value = null
+                if (payload.paths && payload.paths.length > 0) {
+                    pendingDrop.value = { paths: payload.paths, position: pos }
+                }
+            }
+        })
+    } catch (error) {
+        console.error("Failed to setup Tauri drag-drop:", error)
+        dragDropListenerActive = false
+    }
+}
+
 export function useTauri() {
-    // Check if we're running in Tauri
     const isTauri = computed(() => isTauriEnvironment())
     const { errorAlert } = useAlert()
 
-    /**
-     * Open a folder in the system's file explorer
-     * @param folderPath - The absolute path to the folder
-     * @returns Promise<boolean> - True if successful, false otherwise
-     */
     const openFolder = async (folderPath: string): Promise<boolean> => {
-        if (!isTauri.value) {
-            console.warn("Tauri is not available")
-            return false
-        }
-
+        if (!isTauri.value) return false
         try {
-            // Import invoke dynamically
-
-            console.log("Opening folder at:", folderPath)
-            // Use the custom command with absolute path
-            const fullPath = await invoke<string>("open_project_folder", {
+            await invoke<string>("open_project_folder", {
                 absolutePath: folderPath,
             })
-            console.log("Successfully opened folder at:", fullPath)
             return true
         } catch (error) {
-            console.error("Failed to open folder:", error)
-
-            // Show error alert to user
             const errorMessage = error instanceof Error ? error.message : String(error)
             errorAlert(`Impossible d'ouvrir le dossier: ${errorMessage}`, 5000)
-
             return false
         }
     }
 
-    /**
-     * Open a file with the system's default application
-     * @param filePath - The absolute path to the file
-     * @returns Promise<boolean> - True if successful, false otherwise
-     */
     const openFile = async (filePath: string): Promise<boolean> => {
-        if (!isTauri.value) {
-            console.warn("Tauri is not available")
-            return false
-        }
-
+        if (!isTauri.value) return false
         try {
-            console.log("Opening file at:", filePath)
-            const fullPath = await invoke<string>("open_file", {
+            await invoke<string>("open_file", {
                 absolutePath: filePath,
             })
-            console.log("Successfully opened file at:", fullPath)
             return true
         } catch (error) {
-            console.error("Failed to open file:", error)
             const errorMessage = error instanceof Error ? error.message : String(error)
             errorAlert(`Impossible d'ouvrir le fichier: ${errorMessage}`, 5000)
             return false
         }
     }
 
+    const consumePendingDrop = (): string[] | null => {
+        if (!pendingDrop.value) return null
+        const paths = pendingDrop.value.paths
+        pendingDrop.value = null
+        return paths
+    }
+
     return {
-        isTauri: computed(() => isTauri.value),
+        isTauri,
+        isDragging,
+        dragPosition,
+        pendingDrop,
         openFolder,
         openFile,
+        ensureDragDropListener,
+        consumePendingDrop,
     }
 }
 
-// Add type declaration for window (Tauri global)
 declare global {
     interface Window {
         __TAURI_INTERNALS__?: object

@@ -24,6 +24,7 @@ import {
 import type { Variables } from "@src/types/global"
 import { roleMiddleware } from "@src/tools/role-middleware"
 import { findProjectInvoiceFolder } from "@src/tools/project-folder-finder"
+import { PROJECT_BASE_DIR } from "@src/config"
 import { z, ZodError } from "zod"
 import path from "node:path"
 import { mkdir, stat } from "node:fs/promises"
@@ -176,6 +177,22 @@ const writeUploadedFile = async (file: File, destinationPath: string) => {
     await pipeline(readable, writable)
 }
 
+// Check if a relative file path exists under PROJECT_BASE_DIR
+const fileExistsInMandats = async (filePath: string | undefined | null): Promise<boolean> => {
+    if (!filePath) return false
+    if (path.isAbsolute(filePath)) return false
+    if (!filePath.includes("/")) return false
+    const fullPath = path.resolve(PROJECT_BASE_DIR, filePath)
+    // Security: ensure resolved path is within PROJECT_BASE_DIR
+    if (!fullPath.startsWith(path.resolve(PROJECT_BASE_DIR))) return false
+    try {
+        const stats = await stat(fullPath)
+        return stats.isFile()
+    } catch {
+        return false
+    }
+}
+
 const persistUploadedFiles = async (
     invoiceData: InvoiceCreateInput | InvoiceUpdateInput,
     files: UploadedInvoiceFiles,
@@ -188,10 +205,13 @@ const persistUploadedFiles = async (
     await mkdir(destinationFolder, { recursive: true })
 
     if (files.invoiceDocument) {
-        const safeName = sanitizeFileName(files.invoiceDocument.name)
-        const destinationPath = path.join(destinationFolder, safeName)
-        await writeUploadedFile(files.invoiceDocument, destinationPath)
-        ;(invoiceData as any).invoiceDocument = destinationPath.replace(/\\/g, "/")
+        const existingPath = (invoiceData as any).invoiceDocument
+        if (!(await fileExistsInMandats(existingPath))) {
+            const safeName = sanitizeFileName(files.invoiceDocument.name)
+            const destinationPath = path.join(destinationFolder, safeName)
+            await writeUploadedFile(files.invoiceDocument, destinationPath)
+            ;(invoiceData as any).invoiceDocument = destinationPath.replace(/\\/g, "/")
+        }
     }
 
     if (files.offers) {
@@ -199,11 +219,14 @@ const persistUploadedFiles = async (
         for (const [indexKey, file] of Object.entries(files.offers)) {
             const index = Number(indexKey)
             if (!file) continue
+            const existing = offers[index] ? { ...offers[index] } : ({} as any)
+            if (await fileExistsInMandats(existing.file)) {
+                offers[index] = existing
+                continue
+            }
             const safeName = sanitizeFileName(file.name)
             const destinationPath = path.join(destinationFolder, safeName)
             await writeUploadedFile(file, destinationPath)
-
-            const existing = offers[index] ? { ...offers[index] } : ({} as any)
             existing.file = destinationPath.replace(/\\/g, "/")
             offers[index] = existing
         }
@@ -218,11 +241,14 @@ const persistUploadedFiles = async (
         for (const [indexKey, file] of Object.entries(files.adjudications)) {
             const index = Number(indexKey)
             if (!file) continue
+            const existing = adjudications[index] ? { ...adjudications[index] } : ({} as any)
+            if (await fileExistsInMandats(existing.file)) {
+                adjudications[index] = existing
+                continue
+            }
             const safeName = sanitizeFileName(file.name)
             const destinationPath = path.join(destinationFolder, safeName)
             await writeUploadedFile(file, destinationPath)
-
-            const existing = adjudications[index] ? { ...adjudications[index] } : ({} as any)
             existing.file = destinationPath.replace(/\\/g, "/")
             adjudications[index] = existing
         }
@@ -236,11 +262,14 @@ const persistUploadedFiles = async (
         for (const [indexKey, file] of Object.entries(files.situations)) {
             const index = Number(indexKey)
             if (!file) continue
+            const existing = situations[index] ? { ...situations[index] } : ({} as any)
+            if (await fileExistsInMandats(existing.file)) {
+                situations[index] = existing
+                continue
+            }
             const safeName = sanitizeFileName(file.name)
             const destinationPath = path.join(destinationFolder, safeName)
             await writeUploadedFile(file, destinationPath)
-
-            const existing = situations[index] ? { ...situations[index] } : ({} as any)
             existing.file = destinationPath.replace(/\\/g, "/")
             situations[index] = existing
         }
@@ -254,11 +283,14 @@ const persistUploadedFiles = async (
         for (const [indexKey, file] of Object.entries(files.documents)) {
             const index = Number(indexKey)
             if (!file) continue
+            const existing = documents[index] ? { ...documents[index] } : ({} as any)
+            if (await fileExistsInMandats(existing.file)) {
+                documents[index] = existing
+                continue
+            }
             const safeName = sanitizeFileName(file.name)
             const destinationPath = path.join(destinationFolder, safeName)
             await writeUploadedFile(file, destinationPath)
-
-            const existing = documents[index] ? { ...documents[index] } : ({} as any)
             existing.file = destinationPath.replace(/\\/g, "/")
             documents[index] = existing
         }

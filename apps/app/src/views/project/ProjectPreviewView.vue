@@ -14,6 +14,15 @@
                                 projectData?.subProjectName ? ` ${projectData.subProjectName}` : ""
                             }}
                         </strong>
+                        <Badge v-if="projectData?.archived" variant="error" size="md">
+                            {{ $t("projects.markAsArchived") }}
+                        </Badge>
+                        <Badge v-else-if="projectData?.ended" variant="warning" size="md">
+                            {{ $t("projects.markAsEnded") }}
+                        </Badge>
+                        <Badge v-else-if="projectData?.isDraft" variant="amber" size="md">
+                            {{ $t("projects.draft") }}
+                        </Badge>
                     </div>
                     <span class="text-lg text-gray-900 leading-tight">
                         {{ projectData?.name || "-" }}

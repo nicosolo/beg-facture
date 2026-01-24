@@ -131,6 +131,7 @@ export const projectResponseSchema = z
         firstActivityDate: z.coerce.date().nullable(),
         lastActivityDate: z.coerce.date().nullable(),
         ended: z.boolean().nullable(),
+        archived: z.boolean().nullable(),
         isDraft: z.boolean(),
     })
     .merge(nullableTimestampsSchema)

@@ -193,14 +193,45 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 throwNotFound("Activity")
             }
 
-            // Check 60-day lock for non-admin users
+            // Billed activities cannot be edited by non-managers
+            if (
+                existingActivity.billed &&
+                !hasRole(user.role, "admin") &&
+                !hasRole(user.role, "super_admin")
+            ) {
+                const isManager = await projectRepository.isProjectManager(
+                    existingActivity.project?.id ?? 0,
+                    user.id
+                )
+                if (!isManager) {
+                    throwValidationError("Access denied", [
+                        {
+                            field: "billed",
+                            message: "Billed activities cannot be modified",
+                        },
+                    ])
+                }
+            }
+
+            // Check 60-day lock for non-admin users - only projectId can be changed
             if (!hasRole(user.role, "admin") && !hasRole(user.role, "super_admin")) {
                 const activityDate = new Date(existingActivity.date)
                 const daysDifference = Math.floor(
                     (Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24)
                 )
                 if (daysDifference > 60) {
-                    throwActivityLocked("Cannot modify activities older than 60 days")
+                    // Only allow projectId changes on locked activities
+                    const changedKeys = Object.keys(activityData).filter(
+                        (key) =>
+                            key !== "projectId" &&
+                            key !== "billed" &&
+                            (activityData as any)[key] !== undefined
+                    )
+                    if (changedKeys.length > 0) {
+                        throwActivityLocked(
+                            "Only project can be changed on activities older than 60 days"
+                        )
+                    }
                 }
             }
 
@@ -325,25 +356,6 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 ])
             }
 
-            // Check 60-day lock for non-admin users
-            if (!hasRole(user.role, "admin") && !hasRole(user.role, "super_admin")) {
-                const lockedActivities = activities.filter((activity) => {
-                    if (!activity) return false
-                    const activityDate = new Date(activity.date)
-                    const daysDifference = Math.floor(
-                        (Date.now() - activityDate.getTime()) / (1000 * 60 * 60 * 24)
-                    )
-                    return daysDifference > 60
-                })
-
-                if (lockedActivities.length > 0) {
-                    const lockedIds = lockedActivities.map((a) => a!.id).join(", ")
-                    throwActivityLocked(
-                        `Cannot modify activities older than 60 days. Locked activities: ${lockedIds}`
-                    )
-                }
-            }
-
             // Check billed toggle permission for non-admin users
             if (
                 updates.billed !== undefined &&
@@ -351,11 +363,7 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                 !hasRole(user.role, "super_admin")
             ) {
                 const projectIds = [
-                    ...new Set(
-                        activities
-                            .filter((a) => a?.project?.id)
-                            .map((a) => a!.project!.id)
-                    ),
+                    ...new Set(activities.filter((a) => a?.project?.id).map((a) => a!.project!.id)),
                 ]
                 for (const projectId of projectIds) {
                     const isManager = await projectRepository.isProjectManager(projectId, user.id)
@@ -363,8 +371,7 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                         throwValidationError("Access denied", [
                             {
                                 field: "billed",
-                                message:
-                                    "Only project managers can modify billed status",
+                                message: "Only project managers can modify billed status",
                             },
                         ])
                     }
@@ -393,6 +400,26 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
         const existingActivity = await activityRepository.findById(id, user)
         if (!existingActivity) {
             throwNotFound("Activity")
+        }
+
+        // Billed activities cannot be deleted by non-managers
+        if (
+            existingActivity.billed &&
+            !hasRole(user.role, "admin") &&
+            !hasRole(user.role, "super_admin")
+        ) {
+            const isManager = await projectRepository.isProjectManager(
+                existingActivity.project?.id ?? 0,
+                user.id
+            )
+            if (!isManager) {
+                throwValidationError("Access denied", [
+                    {
+                        field: "billed",
+                        message: "Billed activities cannot be deleted",
+                    },
+                ])
+            }
         }
 
         // Check 60-day lock for non-admin users

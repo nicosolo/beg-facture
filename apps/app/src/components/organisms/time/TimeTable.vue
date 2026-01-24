@@ -114,8 +114,8 @@
                     :checked="item.billed"
                     @change="updateBilledStatus(item.id, !item.billed)"
                     @click.stop
-                    :disabled="isActivityLocked(item) || !canToggleBilled(item)"
-                    :title="isActivityLocked(item) ? $t('time.locked') : !canToggleBilled(item) ? $t('time.billedRestricted') : ''"
+                    :disabled="!canToggleBilled(item)"
+                    :title="!canToggleBilled(item) ? $t('time.billedRestricted') : ''"
                     class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
             </template>
@@ -139,8 +139,8 @@
                             variant="ghost-primary"
                             size="sm"
                             @click="$emit('edit', item.id)"
-                            :disabled="isActivityLocked(item)"
-                            :title="isActivityLocked(item) ? $t('time.locked') : ''"
+                            :disabled="isBilledLocked(item)"
+                            :title="isBilledLocked(item) ? $t('time.billedLocked') : ''"
                         >
                             {{ $t("common.edit") }}
                         </Button>
@@ -194,7 +194,7 @@ const { isRole } = useAuthStore()
 const { formatDuration, formatDate, formatNumber, formatCurrency } = useFormat()
 const { t } = useI18n()
 const { successAlert, errorAlert } = useAlert()
-const { isActivityLocked, canToggleBilled } = useActivityLock()
+const { isActivityLocked, canToggleBilled, isBilledLocked } = useActivityLock()
 
 interface Props {
     activities: ActivityResponse[]
@@ -305,10 +305,10 @@ const updateSelectedRows = async (field: "billed" | "disbursement", value: boole
     // Filter out locked activities and (for billed) activities without permission
     const selectedActivities = props.activities.filter((activity) => ids.includes(activity.id))
     const lockedActivities = selectedActivities.filter(
-        (activity) => isActivityLocked(activity) || (field === "billed" && !canToggleBilled(activity))
+        (activity) => field === "billed" && !canToggleBilled(activity)
     )
     const editableIds = selectedActivities
-        .filter((activity) => !isActivityLocked(activity) && (field !== "billed" || canToggleBilled(activity)))
+        .filter((activity) => field !== "billed" || canToggleBilled(activity))
         .map((activity) => activity.id)
 
     // If there are locked activities, warn the user

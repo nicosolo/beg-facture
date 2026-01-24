@@ -372,13 +372,16 @@ export default {
             bulkUpdateFailed: "Erreur lors de la mise à jour en masse",
             activityLocked: "Cette activité est verrouillée et ne peut pas être modifiée",
             activityLockedMessage:
-                "Cette activité date de plus de 60 jours et ne peut pas être modifiée. Seuls les administrateurs peuvent modifier les activités de plus de 60 jours.",
+                "Cette activité date de plus de 60 jours. Seul le projet peut être modifié.",
+            billedLockedMessage:
+                "Cette activité est facturée et ne peut pas être modifiée.",
             lockedActivitiesSkipped: "{count} activité(s) verrouillée(s) ignorée(s) sur {total}",
             confirmDelete: "Êtes-vous sûr de vouloir supprimer cette saisie d'heures ?",
             entryDeleted: "Saisie d'heures supprimée",
             deleteError: "Erreur lors de la suppression",
         },
         locked: "Verrouillé (+ de 60 jours)",
+        billedLocked: "Activité facturée, non modifiable",
         billedRestricted: "Seuls les responsables peuvent modifier le statut facturé",
     },
     location: {

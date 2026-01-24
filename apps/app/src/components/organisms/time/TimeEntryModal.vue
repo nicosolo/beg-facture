@@ -8,7 +8,13 @@
             <div class="space-y-4">
                 <!-- Locked activity warning -->
                 <div
-                    v-if="isLocked"
+                    v-if="isBilledFullyLocked"
+                    class="p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded"
+                >
+                    {{ $t("time.alerts.billedLockedMessage") }}
+                </div>
+                <div
+                    v-else-if="isLocked"
                     class="p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded"
                 >
                     {{ $t("time.alerts.activityLockedMessage") }}
@@ -33,9 +39,9 @@
                             required
                         />
                         <ProjectSelect
-                            v-else-if="activity.projectId"
+                            v-else
                             v-model="activity.projectId"
-                            :disabled="true"
+                            :disabled="loading || !isLocked || isBilledFullyLocked"
                             required
                         />
                     </div>
@@ -139,7 +145,7 @@
                     <Button
                         v-if="!isNewEntry"
                         @click="handleDelete"
-                        :disabled="saving || isLocked"
+                        :disabled="saving || isLocked || isBilledFullyLocked"
                         variant="danger"
                     >
                         {{ $t("common.delete") }}
@@ -152,7 +158,7 @@
                     <Button
                         type="button"
                         :loading="saving"
-                        :disabled="isLocked"
+                        :disabled="isBilledFullyLocked"
                         variant="primary"
                         @click="submitFormAndContinue"
                     >
@@ -204,7 +210,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { isRole, user } = useAuthStore()
 const { successAlert, errorAlert } = useAlert()
-const { canEditActivity } = useActivityLock()
+const { canEditActivity, isBilledLocked } = useActivityLock()
 
 // Computed properties
 const isNewEntry = computed(() => !props.activityId)
@@ -216,9 +222,17 @@ const saving = computed(
 
 const loading = computed(() => loadingActivity.value || saving.value)
 
+// Store loaded activity response for permission checks
+const loadedActivity = ref<ActivityResponse | null>(null)
+
 const isLocked = computed(() => {
     if (isNewEntry.value) return false
     return !canEditActivity(activity.value)
+})
+
+const isBilledFullyLocked = computed(() => {
+    if (isNewEntry.value || !loadedActivity.value) return false
+    return isBilledLocked(loadedActivity.value)
 })
 
 // State
@@ -269,6 +283,7 @@ const loadActivityData = async () => {
         })
 
         if (response) {
+            loadedActivity.value = response
             activity.value = {
                 projectId: response.project?.id || 0,
                 activityTypeId: response.activityType?.id || 0,
@@ -307,11 +322,6 @@ const submitFormAndContinue = () => {
 const saveActivity = async (keepOpen: boolean = false) => {
     errorMessage.value = null
 
-    if (isLocked.value) {
-        errorAlert(t("time.alerts.activityLocked"))
-        return
-    }
-
     try {
         let response: ActivityResponse | null = null
 
@@ -329,15 +339,18 @@ const saveActivity = async (keepOpen: boolean = false) => {
                 body: activityData,
             })
         } else if (props.activityId) {
-            const updateData: ActivityUpdateInput = {
-                activityTypeId: activityData.activityTypeId,
-                date: activityData.date,
-                duration: activityData.duration,
-                kilometers: activityData.kilometers,
-                expenses: activityData.expenses,
-                description: activityData.description,
-                billed: activityData.billed,
-            }
+            // When locked, only send projectId change
+            const updateData: ActivityUpdateInput = isLocked.value
+                ? { projectId: activityData.projectId }
+                : {
+                      activityTypeId: activityData.activityTypeId,
+                      date: activityData.date,
+                      duration: activityData.duration,
+                      kilometers: activityData.kilometers,
+                      expenses: activityData.expenses,
+                      description: activityData.description,
+                      billed: activityData.billed,
+                  }
 
             response = await updateActivity({
                 params: { id: props.activityId },
@@ -410,6 +423,7 @@ const closeModal = () => {
 // Reset form when modal opens
 const resetForm = () => {
     errorMessage.value = null
+    loadedActivity.value = null
     activity.value = {
         projectId: props.projectId || props.defaultProjectId || 0,
         activityTypeId: "" as any, // Start with empty string for validation

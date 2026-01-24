@@ -32,10 +32,16 @@ export function useActivityLock() {
         return activity.userProjectRole === "manager"
     }
 
+    const isBilledLocked = (activity: ActivityResponse): boolean => {
+        if (!activity.billed) return false
+        return !canToggleBilled(activity)
+    }
+
     return {
         isActivityLocked,
         canEditActivity,
         canDeleteActivity,
         canToggleBilled,
+        isBilledLocked,
     }
 }

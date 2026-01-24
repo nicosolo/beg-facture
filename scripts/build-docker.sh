@@ -21,7 +21,7 @@ fi
 
 # Build images using buildx bake
 echo "Building with docker buildx bake..."
-docker buildx bake --file compose.build.yml --file docker-bake.json
+docker buildx bake --file compose.build.yml --file docker-bake.json --no-cache
 
 # Export images to tar files
 echo ""

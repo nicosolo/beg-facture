@@ -199,7 +199,7 @@
             </table>
 
             <table
-                class="fac w-[70%] border border-gray-300 border-collapse"
+                class="fac w-[70%] mx-auto border border-gray-300 border-collapse"
                 v-if="shouldShowActivitySections"
             >
                 <caption class="sub text-left font-bold p-1 text-sm">
@@ -274,7 +274,7 @@
             </table>
 
             <table
-                class="fac w-[70%] border border-gray-300 border-collapse"
+                class="fac w-[70%] mx-auto border border-gray-300 border-collapse"
                 v-if="shouldShowActivitySections && (invoice.expensesPackageAmount || 0) > 0"
             >
                 <caption class="sub text-left font-bold p-1 text-sm">
@@ -339,7 +339,7 @@
             </table>
 
             <table
-                class="fac w-[70%] border border-gray-300 border-collapse"
+                class="fac w-[70%] mx-auto border border-gray-300 border-collapse"
                 v-if="shouldShowActivitySections"
             >
                 <caption class="sub text-left font-bold p-1 text-sm">
@@ -378,7 +378,7 @@
 
             <!-- Additional services and remarks -->
             <table
-                class="fac w-[70%] border border-gray-300 border-collapse"
+                class="fac w-[70%] mx-auto border border-gray-300 border-collapse"
                 v-if="hasAdditionalInfo"
             >
                 <caption class="sub text-left font-bold p-1 text-sm">
@@ -660,5 +660,33 @@ const mailtoLink = computed(() => {
     font-weight: bold;
     text-align: left;
     padding: 4px;
+}
+
+@media print {
+    .invoice-preview {
+        font-size: 10px;
+        margin: 0 auto;
+    }
+
+    .invoice-preview table {
+        font-size: 10px;
+    }
+
+    .invoice-preview td,
+    .invoice-preview th {
+        padding: 2px 4px;
+        font-size: 10px;
+    }
+
+    .main {
+        font-size: 12px;
+        margin-top: 12px;
+        padding: 2px 4px;
+    }
+
+    .sub {
+        font-size: 11px;
+        padding: 2px 4px;
+    }
 }
 </style>

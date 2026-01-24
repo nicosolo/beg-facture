@@ -801,7 +801,7 @@ const toggleDiscount = () => {
         // Apply default discount based on current type
         if (discountType.value === "percentage") {
             invoice.value.feesDiscountPercentage = 4
-            invoice.value.feesDiscountAmount = (invoice.value.feesFinalTotal || 0) * 0.1
+            invoice.value.feesDiscountAmount = (invoice.value.feesFinalTotal || 0) * 0.04
         } else {
             invoice.value.feesDiscountAmount = 100
             invoice.value.feesDiscountPercentage = 0
@@ -817,7 +817,7 @@ const setDiscountType = (type: "percentage" | "fixed") => {
         // Convert to percentage if was fixed
         if (!invoice.value.feesDiscountPercentage || invoice.value.feesDiscountPercentage === 0) {
             invoice.value.feesDiscountPercentage = 4
-            invoice.value.feesDiscountAmount = (invoice.value.feesFinalTotal || 0) * 0.1
+            invoice.value.feesDiscountAmount = (invoice.value.feesFinalTotal || 0) * 0.04
         }
     } else {
         // Convert to fixed if was percentage

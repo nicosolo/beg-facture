@@ -532,6 +532,7 @@ const handleSave = async () => {
         }
 
         const data = (await response.json()) as InvoiceResponse
+        isUpdatingFromApi.value = true
         invoice.value = convertResponseToInvoice(data)
 
         pendingOfferFiles.value = pendingOfferFiles.value.map(() => null)

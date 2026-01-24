@@ -19,7 +19,7 @@ import Button from "./components/atoms/Button.vue"
 const { t } = useI18n()
 const isSidebarOpen = ref(false)
 const { alerts, removeAlert } = useAlert()
-const { isTauri } = useTauri()
+const { isTauri, appVersion, fetchAppVersion } = useTauri()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
@@ -195,6 +195,7 @@ watch(
 // Initialize on mount (for page reload)
 onMounted(() => {
     initializeExpandedItems()
+    fetchAppVersion()
 })
 
 const toggleNestedMenu = (itemName: string) => {
@@ -426,6 +427,9 @@ html {
                                 </Button>
                             </div>
                         </div>
+                        <p v-if="appVersion" class="mt-2 text-xs text-gray-400">
+                            v{{ appVersion }}
+                        </p>
                     </div>
                 </div>
             </aside>

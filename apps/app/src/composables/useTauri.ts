@@ -2,6 +2,8 @@ import { computed, ref } from "vue"
 import { invoke } from "@tauri-apps/api/core"
 import { useAlert } from "@/composables/utils/useAlert"
 
+const appVersion = ref<string | null>(null)
+
 const isTauriEnvironment = () => {
     return typeof window !== "undefined" && window.__TAURI_INTERNALS__ !== undefined
 }
@@ -88,15 +90,27 @@ export function useTauri() {
         return paths
     }
 
+    const fetchAppVersion = async () => {
+        if (!isTauri.value || appVersion.value) return
+        try {
+            const { getVersion } = await import("@tauri-apps/api/app")
+            appVersion.value = await getVersion()
+        } catch {
+            appVersion.value = null
+        }
+    }
+
     return {
         isTauri,
         isDragging,
         dragPosition,
         pendingDrop,
+        appVersion,
         openFolder,
         openFile,
         ensureDragDropListener,
         consumePendingDrop,
+        fetchAppVersion,
     }
 }
 

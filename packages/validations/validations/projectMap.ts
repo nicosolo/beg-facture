@@ -45,6 +45,7 @@ export type ProjectMapFilterInput = z.input<typeof projectMapFilterSchema>
 export const projectMapItemResponseSchema = z.object({
     id: z.number(),
     projectNumber: z.string(),
+    subProjectName: z.string().nullable(),
     name: z.string(),
     latitude: z.number(),
     longitude: z.number(),

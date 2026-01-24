@@ -24,32 +24,20 @@ const mapContainer = ref<HTMLDivElement | null>(null)
 let map: google.maps.Map | null = null
 let marker: google.maps.marker.AdvancedMarkerElement | null = null
 
-// Google Maps API key from environment variables
-const MAP_ID = "BEG_PROJECT_DISPLAY_MAP"
-
-const { loadGoogleMapsScript } = useGoogleMaps()
+const { createMap } = useGoogleMaps()
 
 const initMap = async () => {
     if (!mapContainer.value) return
     if (props.latitude === null || props.longitude === null) return
 
     try {
-        await loadGoogleMapsScript()
-
         const center = { lat: props.latitude, lng: props.longitude }
 
-        map = new google.maps.Map(mapContainer.value, {
+        map = await createMap(mapContainer.value, {
             center,
             zoom: props.zoom,
-            mapTypeId: google.maps.MapTypeId.HYBRID,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false,
-            zoomControl: true,
-            mapId: MAP_ID,
         })
 
-        // Add marker
         marker = new google.maps.marker.AdvancedMarkerElement({
             map,
             position: center,

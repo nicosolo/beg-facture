@@ -111,7 +111,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onActivated, watch, computed } from "vue"
 import { convertLv95ToWgs84, convertWgs84ToLv95 } from "@/utils/coordinates"
-import { useGoogleMaps } from "@/composables/useGoogleMaps"
+import { useGoogleMaps, SWITZERLAND_CENTER } from "@/composables/useGoogleMaps"
 
 interface Props {
     latitude?: number | null
@@ -126,7 +126,7 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const { loadGoogleMapsScript } = useGoogleMaps()
+const { createMap } = useGoogleMaps()
 
 const mapContainer = ref<HTMLDivElement | null>(null)
 const inputMode = ref<"wgs84" | "swiss">("wgs84")
@@ -140,30 +140,19 @@ const swissNorthing = ref<number | null>(null)
 let map: google.maps.Map | null = null
 let marker: google.maps.marker.AdvancedMarkerElement | null = null
 
-// Google Maps API key from environment variables
-const MAP_ID = "BEG_LOCATION_PICKER_MAP"
-const SWITZERLAND_CENTER = { lat: 46.8, lng: 8.2 }
-
 const hasCoordinates = computed(() => localLatitude.value !== null && localLongitude.value !== null)
 
 const initMap = async () => {
     if (!mapContainer.value) return
 
     try {
-        await loadGoogleMapsScript()
-
         const initialCenter = hasCoordinates.value
             ? { lat: localLatitude.value!, lng: localLongitude.value! }
             : SWITZERLAND_CENTER
 
-        map = new google.maps.Map(mapContainer.value, {
+        map = await createMap(mapContainer.value, {
             center: initialCenter,
             zoom: hasCoordinates.value ? 14 : 8,
-            mapTypeId: google.maps.MapTypeId.HYBRID,
-            mapTypeControl: true,
-            streetViewControl: false,
-            fullscreenControl: true,
-            mapId: MAP_ID,
         })
 
         // Add initial marker if coordinates exist

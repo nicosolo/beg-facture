@@ -109,6 +109,7 @@ export const projectRoutes = new Hono<{ Variables: Variables }>()
                 .map((project) => ({
                     id: project.id,
                     projectNumber: project.projectNumber,
+                    subProjectName: project.subProjectName ?? null,
                     name: project.name,
                     latitude: project.latitude!,
                     longitude: project.longitude!,

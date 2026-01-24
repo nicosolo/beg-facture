@@ -54,32 +54,6 @@ async function updateProjectCoordinates(row: CsvRow) {
     let latitude = null
     let longitude = null
 
-    if ((easting === null || northing === null) && row.subProjectName) {
-        const parentProject = await db
-            .select({ latitude: projects.latitude, longitude: projects.longitude })
-            .from(projects)
-            .where(
-                and(
-                    eq(projects.projectNumber, row.projectNumber),
-                    sql`${projects.subProjectName} IS NULL`
-                )
-            )
-            .limit(1)
-            .execute()
-
-        if (
-            parentProject.length > 0 &&
-            parentProject[0].latitude !== null &&
-            parentProject[0].longitude !== null
-        ) {
-            latitude = parentProject[0].latitude
-            longitude = parentProject[0].longitude
-            console.log(
-                `Inherited parent coordinates for ${row.projectNumber}/${row.subProjectName}: lat=${latitude}, lng=${longitude}`
-            )
-        }
-    }
-
     if (latitude === null && longitude === null && easting !== null && northing !== null) {
         const converted = convertLv95ToWgs84(easting!, northing!)
         if (converted && converted.latitude !== null && converted.longitude !== null) {
@@ -88,7 +62,7 @@ async function updateProjectCoordinates(row: CsvRow) {
         }
     }
 
-    if (easting === null || northing === null) {
+    if (latitude === null || latitude === null) {
         console.warn(
             `Skipping project ${row.projectNumber}${row.subProjectName ? `/${row.subProjectName}` : ""} (missing coordinates)`
         )
@@ -97,32 +71,33 @@ async function updateProjectCoordinates(row: CsvRow) {
 
     const matchConditions = [eq(projects.projectNumber, row.projectNumber)]
 
-    const project = await db
+    const projectList = await db
         .select({ id: projects.id })
         .from(projects)
         .where(and(...matchConditions))
-        .limit(1)
         .execute()
 
-    if (project.length === 0) {
+    if (projectList.length === 0) {
         console.warn(
             `Project not found: ${row.projectNumber}${row.subProjectName ? `/${row.subProjectName}` : ""}`
         )
         return
     }
 
-    await db
-        .update(projects)
-        .set({
-            latitude: latitude,
-            longitude: longitude,
-            updatedAt: new Date(),
-        })
-        .where(eq(projects.id, project[0].id))
+    for (const project of projectList) {
+        await db
+            .update(projects)
+            .set({
+                latitude: latitude,
+                longitude: longitude,
+            })
+            .where(eq(projects.id, project.id))
+            .execute()
 
-    console.log(
-        `Updated project ${row.projectNumber}${row.subProjectName ? `/${row.subProjectName}` : ""} with lat=${latitude}, lng=${longitude}`
-    )
+        console.log(
+            `Updated project ${row.projectNumber}${row.subProjectName ? `/${row.subProjectName}` : ""} with lat=${latitude}, lng=${longitude}`
+        )
+    }
 }
 
 export async function importProjectCoordinatesFromCsv(csvInput: string) {

@@ -10,7 +10,7 @@ import { MarkerClusterer } from "@googlemaps/markerclusterer"
 import type { ProjectMapItemResponse } from "@beg/validations"
 import { useRouter } from "vue-router"
 import { buildGoogleMapsUrl, buildGeoAdminUrl } from "@/utils/coordinates"
-import { useGoogleMaps } from "@/composables/useGoogleMaps"
+import { useGoogleMaps, SWITZERLAND_CENTER } from "@/composables/useGoogleMaps"
 
 export interface MapBounds {
     minLat: number
@@ -30,7 +30,7 @@ const emit = defineEmits<{
 const mapContainer = ref<HTMLDivElement | null>(null)
 const router = useRouter()
 
-const { loadGoogleMapsScript } = useGoogleMaps()
+const { createMap } = useGoogleMaps()
 
 let map: google.maps.Map | null = null
 let markerClusterer: MarkerClusterer | null = null
@@ -40,10 +40,10 @@ let isInitialLoad = true
 let skipNextBoundsEmit = false
 let currentInfoWindow: google.maps.InfoWindow | null = null
 let openProjectId: number | null = null
-const markerInfoWindows = new Map<number, { marker: google.maps.marker.AdvancedMarkerElement; infoWindow: google.maps.InfoWindow }>()
-
-// Switzerland default center
-const SWITZERLAND_CENTER = { lat: 46.8, lng: 8.2 }
+const markerInfoWindows = new Map<
+    number,
+    { marker: google.maps.marker.AdvancedMarkerElement; infoWindow: google.maps.InfoWindow }
+>()
 
 // Emit bounds with debounce
 
@@ -68,33 +68,16 @@ const debouncedEmitBounds = () => {
     })
 }
 
-// Unique Map ID for advanced markers (required)
-const MAP_ID = "BEG_PROJECTS_MAP"
-
 const initMap = async () => {
     if (!mapContainer.value) return
 
     try {
-        // Load Google Maps script
-        await loadGoogleMapsScript()
-
-        // Create the map with mapId required for AdvancedMarkerElement
-        // Using HYBRID instead of SATELLITE to show labels on satellite imagery
-        map = new google.maps.Map(mapContainer.value, {
+        map = await createMap(mapContainer.value, {
             center: SWITZERLAND_CENTER,
             zoom: 8,
-            mapTypeId: google.maps.MapTypeId.HYBRID, // Satellite view with place names/labels
-            mapTypeControl: true,
-            streetViewControl: false,
-            fullscreenControl: true,
-            mapId: MAP_ID, // Required for AdvancedMarkerElement
-            tilt: 0, // Disable 45-degree aerial view
         })
 
-        // Listen for bounds changes (pan/zoom) to filter by viewport
         map.addListener("idle", debouncedEmitBounds)
-
-        // Add markers for projects
         createMarkers()
     } catch (error) {
         console.error("Error loading Google Maps:", error)
@@ -121,67 +104,93 @@ const createMarkers = async () => {
         currentInfoWindow = null
     }
 
-    // Create markers for each project using AdvancedMarkerElement
+    // Group projects by coordinates
+    const positionGroups = new Map<string, typeof props.projects>()
     for (const project of props.projects) {
-        // Create custom marker content with project number label
+        const key = `${project.latitude},${project.longitude}`
+        if (!positionGroups.has(key)) {
+            positionGroups.set(key, [])
+        }
+        positionGroups.get(key)!.push(project)
+    }
+
+    // Button styles matching standard buttons
+    const buttonClass =
+        "rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1.5"
+
+    const getProjectLabel = (project: (typeof props.projects)[0]) =>
+        project.subProjectName
+            ? `${project.projectNumber} ${project.subProjectName}`
+            : project.projectNumber
+
+    for (const [, group] of positionGroups) {
+        const firstProject = group[0]
         const markerContent = document.createElement("div")
         markerContent.className = "project-marker"
-        markerContent.innerHTML = `
-            <div class="marker-pin"></div>
-            <div class="marker-label">${project.projectNumber}</div>
-        `
+
+        if (group.length === 1) {
+            const label = getProjectLabel(firstProject)
+            markerContent.innerHTML = `
+                <div class="marker-pin"></div>
+                <div class="marker-label">${label}</div>
+            `
+        } else {
+            markerContent.innerHTML = `
+                <div class="marker-pin"></div>
+                <div class="marker-label">${getProjectLabel(firstProject)} <span class="marker-count">+${group.length - 1}</span></div>
+            `
+        }
 
         const marker = new google.maps.marker.AdvancedMarkerElement({
             map,
             position: {
-                lat: project.latitude,
-                lng: project.longitude,
+                lat: firstProject.latitude,
+                lng: firstProject.longitude,
             },
-            title: `${project.projectNumber} - ${project.name}`,
+            title: group.map((p) => `${getProjectLabel(p)} - ${p.name}`).join(", "),
             content: markerContent,
         })
 
-        // Generate map URLs
-        const googleMapsUrl = buildGoogleMapsUrl(project.longitude, project.latitude)
-        const geoAdminUrl = buildGeoAdminUrl(project.longitude, project.latitude)
+        // Generate map URLs (same location for all in group)
+        const googleMapsUrl = buildGoogleMapsUrl(firstProject.longitude, firstProject.latitude)
+        const geoAdminUrl = buildGeoAdminUrl(firstProject.longitude, firstProject.latitude)
 
-        // Button styles matching standard buttons
-        const buttonClass =
-            "rounded-md font-medium focus:outline-none focus:ring-2 cursor-pointer leading-none block text-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1.5"
-
-        // Create info window content
-        const infoWindowContent = `
-            <div class="p-3 max-w-xs">
-                <h3 class="font-bold text-base mb-3">${project.projectNumber} - ${project.name}</h3>
-                <div class="flex flex-col gap-2">
+        // Build info window content with all projects in group
+        const projectEntries = group
+            .map((project) => {
+                const label = getProjectLabel(project)
+                return `
+                <div class="flex items-center justify-between gap-3 py-1">
+                    <span class="font-medium text-sm">${label} - ${project.name}</span>
                     <button
                         onclick="window.dispatchEvent(new CustomEvent('navigate-to-project', { detail: ${project.id} }))"
-                        class="${buttonClass}"
+                        class="shrink-0 rounded-md font-medium focus:outline-none cursor-pointer text-indigo-600 hover:text-indigo-800 text-sm px-1"
                     >
-                        Voir le mandat
+                        Voir
                     </button>
+                </div>
+            `
+            })
+            .join("")
+
+        const infoWindowContent = `
+            <div class="p-3 max-w-sm">
+                <div class="space-y-1 mb-3 ${group.length > 1 ? "max-h-48 overflow-y-auto" : ""}">
+                    ${projectEntries}
+                </div>
+                <div class="flex flex-col gap-2 border-t pt-2">
                     ${
                         googleMapsUrl
-                            ? `<a
-                        href="${googleMapsUrl}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="${buttonClass}"
-                    >
-                        Ouvrir dans Google Maps
-                    </a>`
+                            ? `<a href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer" class="${buttonClass}">
+                                Ouvrir dans Google Maps
+                            </a>`
                             : ""
                     }
                     ${
                         geoAdminUrl
-                            ? `<a
-                        href="${geoAdminUrl}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="${buttonClass}"
-                    >
-                        Ouvrir dans Geo Admin
-                    </a>`
+                            ? `<a href="${geoAdminUrl}" target="_blank" rel="noopener noreferrer" class="${buttonClass}">
+                                Ouvrir dans Geo Admin
+                            </a>`
                             : ""
                     }
                 </div>
@@ -192,24 +201,24 @@ const createMarkers = async () => {
             content: infoWindowContent,
         })
 
-        // Track info window close
         infoWindow.addListener("closeclick", () => {
             currentInfoWindow = null
             openProjectId = null
         })
 
         marker.addListener("click", () => {
-            // Close any existing info window
             if (currentInfoWindow) {
                 currentInfoWindow.close()
             }
             currentInfoWindow = infoWindow
-            openProjectId = project.id
+            openProjectId = firstProject.id
             infoWindow.open(map!, marker)
         })
 
-        // Store for potential reopening after reload
-        markerInfoWindows.set(project.id, { marker, infoWindow })
+        // Store for potential reopening after reload (all projects in group point to same marker)
+        for (const p of group) {
+            markerInfoWindows.set(p.id, { marker, infoWindow })
+        }
         markers.push(marker)
     }
 
@@ -316,8 +325,13 @@ onUnmounted(() => {
     white-space: nowrap;
     margin-top: 4px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    max-width: 80px;
+    max-width: 100px;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.marker-count {
+    color: #4f46e5;
+    font-weight: 700;
 }
 </style>

@@ -25,9 +25,17 @@ export function useActivityLock() {
         return !isActivityLocked(activity)
     }
 
+    const canToggleBilled = (activity: ActivityResponse): boolean => {
+        if (authStore.user?.role === "admin" || authStore.user?.role === "super_admin") {
+            return true
+        }
+        return activity.userProjectRole === "manager"
+    }
+
     return {
         isActivityLocked,
         canEditActivity,
         canDeleteActivity,
+        canToggleBilled,
     }
 }

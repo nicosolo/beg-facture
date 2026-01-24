@@ -190,11 +190,6 @@ export const projectTypeUpdateSchema = z.object({
 // Array response for getting all project types
 export const projectTypesArraySchema = z.array(projectTypeSchema)
 
-// Project create schema
-export const projectFolderRoutes = z.object({
-    projectNumber: z.string().min(1),
-})
-
 export type ProjectTypeSchema = z.infer<typeof projectTypeSchema>
 export type ProjectTypeCreateInput = z.infer<typeof projectTypeCreateSchema>
 export type ProjectTypeUpdateInput = z.infer<typeof projectTypeUpdateSchema>

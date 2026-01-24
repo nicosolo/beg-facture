@@ -203,6 +203,28 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                     throwActivityLocked("Cannot modify activities older than 60 days")
                 }
             }
+
+            // Check billed toggle permission for non-admin users
+            if (
+                activityData.billed !== undefined &&
+                activityData.billed !== existingActivity.billed &&
+                !hasRole(user.role, "admin") &&
+                !hasRole(user.role, "super_admin")
+            ) {
+                const isManager = await projectRepository.isProjectManager(
+                    existingActivity.project?.id ?? 0,
+                    user.id
+                )
+                if (!isManager) {
+                    throwValidationError("Access denied", [
+                        {
+                            field: "billed",
+                            message: "Only project managers can modify billed status",
+                        },
+                    ])
+                }
+            }
+
             const userId = activityData.userId
                 ? hasRole(user.role, "admin")
                     ? activityData.userId
@@ -319,6 +341,33 @@ export const activityRoutes = new Hono<{ Variables: Variables }>()
                     throwActivityLocked(
                         `Cannot modify activities older than 60 days. Locked activities: ${lockedIds}`
                     )
+                }
+            }
+
+            // Check billed toggle permission for non-admin users
+            if (
+                updates.billed !== undefined &&
+                !hasRole(user.role, "admin") &&
+                !hasRole(user.role, "super_admin")
+            ) {
+                const projectIds = [
+                    ...new Set(
+                        activities
+                            .filter((a) => a?.project?.id)
+                            .map((a) => a!.project!.id)
+                    ),
+                ]
+                for (const projectId of projectIds) {
+                    const isManager = await projectRepository.isProjectManager(projectId, user.id)
+                    if (!isManager) {
+                        throwValidationError("Access denied", [
+                            {
+                                field: "billed",
+                                message:
+                                    "Only project managers can modify billed status",
+                            },
+                        ])
+                    }
                 }
             }
 

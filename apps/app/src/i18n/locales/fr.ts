@@ -379,6 +379,7 @@ export default {
             deleteError: "Erreur lors de la suppression",
         },
         locked: "Verrouillé (+ de 60 jours)",
+        billedRestricted: "Seuls les responsables peuvent modifier le statut facturé",
     },
     location: {
         title: "Localités",

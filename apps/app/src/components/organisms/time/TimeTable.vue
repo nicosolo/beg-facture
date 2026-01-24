@@ -114,8 +114,8 @@
                     :checked="item.billed"
                     @change="updateBilledStatus(item.id, !item.billed)"
                     @click.stop
-                    :disabled="isActivityLocked(item)"
-                    :title="isActivityLocked(item) ? $t('time.locked') : ''"
+                    :disabled="isActivityLocked(item) || !canToggleBilled(item)"
+                    :title="isActivityLocked(item) ? $t('time.locked') : !canToggleBilled(item) ? $t('time.billedRestricted') : ''"
                     class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
             </template>
@@ -194,7 +194,7 @@ const { isRole } = useAuthStore()
 const { formatDuration, formatDate, formatNumber, formatCurrency } = useFormat()
 const { t } = useI18n()
 const { successAlert, errorAlert } = useAlert()
-const { isActivityLocked } = useActivityLock()
+const { isActivityLocked, canToggleBilled } = useActivityLock()
 
 interface Props {
     activities: ActivityResponse[]
@@ -302,11 +302,13 @@ const updateDisbursementStatus = async (activityId: number, disbursement: boolea
 const updateSelectedRows = async (field: "billed" | "disbursement", value: boolean) => {
     const ids = Array.from(selectedRows.value).map((id) => Number(id))
 
-    // Filter out locked activities
+    // Filter out locked activities and (for billed) activities without permission
     const selectedActivities = props.activities.filter((activity) => ids.includes(activity.id))
-    const lockedActivities = selectedActivities.filter((activity) => isActivityLocked(activity))
+    const lockedActivities = selectedActivities.filter(
+        (activity) => isActivityLocked(activity) || (field === "billed" && !canToggleBilled(activity))
+    )
     const editableIds = selectedActivities
-        .filter((activity) => !isActivityLocked(activity))
+        .filter((activity) => !isActivityLocked(activity) && (field !== "billed" || canToggleBilled(activity)))
         .map((activity) => activity.id)
 
     // If there are locked activities, warn the user

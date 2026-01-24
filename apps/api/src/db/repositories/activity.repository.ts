@@ -1,6 +1,6 @@
 import { and, eq, sql, desc, asc, gte, lte, or } from "drizzle-orm"
 import { db } from "../index"
-import { activities, activityTypes, projects, users, projectUsers } from "../schema"
+import { activities, activityTypes, projects, users } from "../schema"
 import type { ActivityFilter } from "@beg/validations"
 import type { Variables } from "@src/types/global"
 import { hasRole } from "@src/tools/role-middleware"
@@ -64,6 +64,9 @@ const selectFields = (user: Variables["user"]) => ({
     createdAt: activities.createdAt,
     updatedAt: activities.updatedAt,
     invoiceId: activities.invoiceId,
+    userProjectRole: sql<
+        string | null
+    >`(SELECT role FROM project_users WHERE projectId = ${projects.id} AND userId = ${user.id} LIMIT 1)`,
     user: {
         id: users.id,
         firstName: users.firstName,
@@ -91,13 +94,12 @@ const createBaseQuery = (user: Variables["user"]) => {
         .leftJoin(users, eq(activities.userId, users.id))
         .leftJoin(projects, eq(activities.projectId, projects.id))
         .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
-    if (!hasRole(user.role, "admin")) {
-        baseQuery.innerJoin(
-            projectUsers,
-            and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
-        )
-    }
     return baseQuery
+}
+
+const accessControlCondition = (user: Variables["user"]) => {
+    if (hasRole(user.role, "admin")) return undefined
+    return sql`EXISTS (SELECT 1 FROM project_users WHERE projectId = ${activities.projectId} AND userId = ${user.id})`
 }
 
 const buildFilterComponents = (filter: ActivityFilter, user?: Variables["user"]) => {
@@ -189,6 +191,8 @@ export const activityRepository = {
 
         // Query with conditions
         const baseQuery = createBaseQuery(user)
+        const acl = accessControlCondition(user)
+        if (acl) whereConditions.push(acl)
 
         const dataQuery =
             whereConditions.length > 0
@@ -207,13 +211,6 @@ export const activityRepository = {
             .from(activities)
             .leftJoin(projects, eq(activities.projectId, projects.id))
             .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
-        // Disable access control for now
-        if (!hasRole(user.role, "admin")) {
-            countQuery.innerJoin(
-                projectUsers,
-                and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
-            )
-        }
 
         const [{ count }] = await (whereConditions.length > 0
             ? countQuery.where(and(...whereConditions))
@@ -230,13 +227,6 @@ export const activityRepository = {
             .from(activities)
             .leftJoin(projects, eq(activities.projectId, projects.id))
             .leftJoin(activityTypes, eq(activities.activityTypeId, activityTypes.id))
-        // Disable access control for now
-        if (!hasRole(user.role, "admin")) {
-            totalsQuery.innerJoin(
-                projectUsers,
-                and(eq(projects.id, projectUsers.projectId), eq(projectUsers.userId, user.id))
-            )
-        }
 
         const [totalsResult] = await (whereConditions.length > 0
             ? totalsQuery.where(and(...whereConditions))
@@ -264,6 +254,8 @@ export const activityRepository = {
             user
         )
         const baseQuery = createBaseQuery(user)
+        const acl = accessControlCondition(user)
+        if (acl) whereConditions.push(acl)
 
         const dataQuery =
             whereConditions.length > 0
@@ -289,6 +281,9 @@ export const activityRepository = {
                 createdAt: activities.createdAt,
                 updatedAt: activities.updatedAt,
                 invoiceId: activities.invoiceId,
+                userProjectRole: sql<
+                    string | null
+                >`(SELECT role FROM project_users WHERE projectId = ${projects.id} AND userId = ${user.id} LIMIT 1)`,
                 user: {
                     id: users.id,
                     firstName: users.firstName,

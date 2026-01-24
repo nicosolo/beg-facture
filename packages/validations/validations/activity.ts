@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { createPageResponseSchema, paginationSchema } from "./pagination"
 import { booleanSchema, classSchema, dateSchema, timestampsSchema } from "./base"
+import { projectUserRoleSchema } from "./projectUsers"
 
 // Base activity filter schema without pagination
 const activityBaseFilterSchema = z.object({
@@ -107,6 +108,7 @@ export const activityResponseSchema = z
                 adminOnly: z.boolean(),
             })
             .nullable(),
+        userProjectRole: projectUserRoleSchema.nullable().optional(),
     })
     .merge(timestampsSchema)
 

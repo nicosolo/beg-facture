@@ -293,7 +293,7 @@ export default {
         // Error messages with placeholders
         DUPLICATE_ENTRY_DETAIL: "Le champ '{field}' contient une valeur qui existe déjà",
         VALIDATION_ERROR_DETAIL: "Erreurs de validation: {details}",
-        NO_PROJECT_FOLDER: "Dossier du projet ou '9. Facture' non trouvé",
+        NO_PROJECT_FOLDER: "Dossier du mandat ou '9. Facture' non trouvé",
         INVALID_FIELD: "Ce champ est invalide",
     },
     validation: {
@@ -372,9 +372,8 @@ export default {
             bulkUpdateFailed: "Erreur lors de la mise à jour en masse",
             activityLocked: "Cette activité est verrouillée et ne peut pas être modifiée",
             activityLockedMessage:
-                "Cette activité date de plus de 60 jours. Seul le projet peut être modifié.",
-            billedLockedMessage:
-                "Cette activité est facturée et ne peut pas être modifiée.",
+                "Cette activité date de plus de 60 jours. Seul le mandat peut être modifié.",
+            billedLockedMessage: "Cette activité est facturée et ne peut pas être modifiée.",
             lockedActivitiesSkipped: "{count} activité(s) verrouillée(s) ignorée(s) sur {total}",
             confirmDelete: "Êtes-vous sûr de vouloir supprimer cette saisie d'heures ?",
             entryDeleted: "Saisie d'heures supprimée",

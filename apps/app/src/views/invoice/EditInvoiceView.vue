@@ -2,7 +2,7 @@
     <form @submit.prevent="handleSave">
         <FormLayout
             :title="isNewInvoice ? 'Créer une facture' : 'Modifier la facture'"
-            :subtitle="invoice?.reference"
+            :subtitle="invoice?.reference + ' - ' + invoice?.invoiceNumber"
             :loading="fetchProjectLoading || fetchUnbilledLoading"
             :error-message="errorMessage"
             :has-unsaved-changes="hasUnsavedChanges"
@@ -637,7 +637,7 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
             }
             invoice.value.projectId = projectId.value
 
-            // Set reference from project data (projectNumber + subProjectName + name)
+            // Set reference and invoice number from project data
             if (projectResponse.value && isNewInvoice.value) {
                 const referenceParts = []
                 if (projectResponse.value.projectNumber) {
@@ -650,6 +650,14 @@ const loadUnbilledActivities = async (periodStart?: Date, periodEnd?: Date) => {
                     referenceParts.push(projectResponse.value.name)
                 }
                 invoice.value.reference = referenceParts.join(" - ")
+
+                // Generate default invoice number
+                const now = new Date()
+                const projectNum = projectResponse.value.projectNumber || ""
+                const sub = projectResponse.value.subProjectName
+                    ? `-${projectResponse.value.subProjectName}`
+                    : ""
+                invoice.value.invoiceNumber = `${projectNum}${sub} F ${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`
             }
 
             // Set period string from dates

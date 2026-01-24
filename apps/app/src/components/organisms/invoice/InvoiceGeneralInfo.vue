@@ -3,6 +3,13 @@
         <!-- Left Column -->
         <div>
             <div class="mb-4">
+                <label class="text-sm font-medium text-gray-700 mb-1" for="invoiceNumber">
+                    {{ $t("invoice.invoiceNumber") }}
+                </label>
+                <Input id="invoiceNumber" v-model="invoice.invoiceNumber" type="text" />
+            </div>
+
+            <div class="mb-4">
                 <h3 class="text-sm font-medium text-gray-700 mb-1">Objet de la facture</h3>
                 <Input v-model="invoice.reference" type="text" required />
             </div>

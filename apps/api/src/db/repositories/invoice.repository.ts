@@ -493,7 +493,7 @@ export const invoiceRepository = {
                     projectId: data.projectId,
                     invoiceNumber:
                         data.invoiceNumber ||
-                        `${data.projectId} F ${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`,
+                        `${project.projectNumber}${project.subProjectName ? `-${project.subProjectName}` : ""} F ${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`,
                     reference: data.reference || null,
                     type: data.type,
                     billingMode: data.billingMode,

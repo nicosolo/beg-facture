@@ -25,7 +25,6 @@ import { hashPassword } from "@src/tools/auth"
 import type { ActivityRateUser, ClassSchema, Company, UserRole } from "@beg/validations"
 import { updateProjectActivityDates } from "./repositories/activity.repository"
 import { importProjectCoordinatesFromCsv } from "../scripts/import-project-coordinates"
-import { importInvoices } from "../scripts/import-invoices"
 
 let exportDir = "/app/export-mdb"
 

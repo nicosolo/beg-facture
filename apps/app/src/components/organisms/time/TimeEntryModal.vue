@@ -75,7 +75,6 @@
                             v-model="activity.activityTypeId"
                             :disabled="loading || isLocked"
                             :required="true"
-                            :filtered="!isRole('admin')"
                             class-name="w-full"
                         />
                     </div>

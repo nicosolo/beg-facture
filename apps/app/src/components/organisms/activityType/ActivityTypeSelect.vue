@@ -14,10 +14,7 @@
 import { computed, onMounted } from "vue"
 import { useI18n } from "vue-i18n"
 import Select from "@/components/atoms/Select.vue"
-import {
-    useFetchActivityTypes,
-    useFetchActivityTypeFiltered,
-} from "@/composables/api/useActivityType"
+import { useFetchActivityTypeFiltered } from "@/composables/api/useActivityType"
 
 interface Props {
     modelValue?: number | string | null
@@ -26,7 +23,6 @@ interface Props {
     className?: string
     placeholder?: string
     showAllOption?: boolean
-    filtered?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -40,15 +36,14 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { get: fetchAll, loading: loadingAll, data: allData } = useFetchActivityTypes()
 const {
     get: fetchFiltered,
     loading: loadingFiltered,
     data: filteredData,
 } = useFetchActivityTypeFiltered()
 
-const loading = computed(() => (props.filtered ? loadingFiltered.value : loadingAll.value))
-const activityTypesData = computed(() => (props.filtered ? filteredData.value : allData.value))
+const loading = computed(() => loadingFiltered.value)
+const activityTypesData = computed(() => filteredData.value)
 
 const options = computed(() => {
     const typeOptions = activityTypesData.value
@@ -74,10 +69,6 @@ function handleUpdate(value: string | number | boolean | null) {
 }
 
 onMounted(() => {
-    if (props.filtered) {
-        fetchFiltered()
-    } else {
-        fetchAll()
-    }
+    fetchFiltered()
 })
 </script>

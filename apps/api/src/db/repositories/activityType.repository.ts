@@ -1,4 +1,4 @@
-import { eq, sql, ne, and } from "drizzle-orm"
+import { eq, sql, ne, and, asc } from "drizzle-orm"
 import { db } from "../index"
 import { activityTypes, activities } from "../schema"
 import type {
@@ -31,6 +31,7 @@ export const activityTypeRepository = {
                 updatedAt: activityTypes.updatedAt,
             })
             .from(activityTypes)
+            .orderBy(asc(activityTypes.code), asc(activityTypes.name))
             .where(conditions.length > 0 ? and(...conditions) : undefined)
     },
 

@@ -1,6 +1,7 @@
 import { computed, ref } from "vue"
 import { invoke } from "@tauri-apps/api/core"
 import { useAlert } from "@/composables/utils/useAlert"
+import { useRouter } from "vue-router"
 
 const appVersion = ref<string | null>(null)
 
@@ -13,6 +14,7 @@ const isDragging = ref(false)
 const dragPosition = ref<{ x: number; y: number } | null>(null)
 const pendingDrop = ref<{ paths: string[]; position: { x: number; y: number } } | null>(null)
 let dragDropListenerActive = false
+let deepLinkListenerActive = false
 
 const ensureDragDropListener = async () => {
     if (dragDropListenerActive || !isTauriEnvironment()) return
@@ -51,9 +53,25 @@ const ensureDragDropListener = async () => {
     }
 }
 
+// Parse deep link URL and return the path
+const parseDeepLinkUrl = (url: string): string | null => {
+    try {
+        // URL format: beg-gestion://path or beg-gestion:///path
+        const match = url.match(/^beg-gestion:\/\/\/?(.*)$/)
+        if (match) {
+            const path = match[1]
+            return path.startsWith("/") ? path : `/${path}`
+        }
+        return null
+    } catch {
+        return null
+    }
+}
+
 export function useTauri() {
     const isTauri = computed(() => isTauriEnvironment())
     const { errorAlert } = useAlert()
+    const router = useRouter()
 
     const openFolder = async (folderPath: string): Promise<boolean> => {
         if (!isTauri.value) return false
@@ -100,6 +118,45 @@ export function useTauri() {
         }
     }
 
+    const handleDeepLinkUrls = (urls: string[]) => {
+        for (const url of urls) {
+            const path = parseDeepLinkUrl(url)
+            if (path) {
+                router.push(path)
+                break // Only handle the first valid URL
+            }
+        }
+    }
+
+    const setupDeepLinkListener = async () => {
+        if (deepLinkListenerActive || !isTauriEnvironment()) return
+        deepLinkListenerActive = true
+
+        try {
+            const { getCurrent, onOpenUrl } = await import("@tauri-apps/plugin-deep-link")
+            const { listen } = await import("@tauri-apps/api/event")
+
+            // Check for deep link URLs on startup
+            const startUrls = await getCurrent()
+            if (startUrls && startUrls.length > 0) {
+                handleDeepLinkUrls(startUrls)
+            }
+
+            // Listen for subsequent deep link events (new instance)
+            await onOpenUrl((urls) => {
+                handleDeepLinkUrls(urls)
+            })
+
+            // Listen for deep links from single-instance plugin (existing instance)
+            await listen<string[]>("deep-link-open", (event) => {
+                handleDeepLinkUrls(event.payload)
+            })
+        } catch (error) {
+            console.error("Failed to setup deep link listener:", error)
+            deepLinkListenerActive = false
+        }
+    }
+
     return {
         isTauri,
         isDragging,
@@ -111,6 +168,7 @@ export function useTauri() {
         ensureDragDropListener,
         consumePendingDrop,
         fetchAppVersion,
+        setupDeepLinkListener,
     }
 }
 

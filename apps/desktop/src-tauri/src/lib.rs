@@ -1,5 +1,6 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 use std::path::PathBuf;
+use tauri::{Emitter, Manager};
 
 #[tauri::command]
 fn open_project_folder(relative_path: String) -> Result<String, String> {
@@ -56,9 +57,26 @@ fn get_project_base_path() -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            // Focus the main window
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.set_focus();
+            }
+
+            // Forward deep link URLs to the frontend
+            let deep_links: Vec<&String> = args
+                .iter()
+                .filter(|arg| arg.starts_with("beg-gestion://"))
+                .collect();
+
+            if !deep_links.is_empty() {
+                let _ = app.emit("deep-link-open", deep_links);
+            }
+        }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_deep_link::init())
         .invoke_handler(tauri::generate_handler![
             open_project_folder,
             get_project_base_path

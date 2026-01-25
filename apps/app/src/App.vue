@@ -15,11 +15,12 @@ import { useAlert } from "./composables/utils/useAlert"
 import { useTauri } from "./composables/useTauri"
 import Snackbar from "./components/atoms/Snackbar.vue"
 import Button from "./components/atoms/Button.vue"
+import desktopVersionConfig from "./config/desktop-version.json"
 
 const { t } = useI18n()
 const isSidebarOpen = ref(false)
 const { alerts, removeAlert } = useAlert()
-const { isTauri, appVersion, fetchAppVersion } = useTauri()
+const { isTauri, appVersion, fetchAppVersion, setupDeepLinkListener } = useTauri()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
@@ -41,6 +42,20 @@ const isLoginPage = computed(() => route.name === "login")
 const canGoBack = computed(
     () => isTauri.value && route.name !== "home" && window.history.length > 1
 )
+
+// Compare versions to check if update is available
+const isUpdateAvailable = computed(() => {
+    if (!isTauri.value || !appVersion.value) return false
+    const current = appVersion.value.split(".").map(Number)
+    const latest = desktopVersionConfig.version.split(".").map(Number)
+    for (let i = 0; i < Math.max(current.length, latest.length); i++) {
+        const c = current[i] || 0
+        const l = latest[i] || 0
+        if (l > c) return true
+        if (c > l) return false
+    }
+    return false
+})
 
 const goBack = () => {
     router.back()
@@ -196,6 +211,7 @@ watch(
 onMounted(() => {
     initializeExpandedItems()
     fetchAppVersion()
+    setupDeepLinkListener()
 })
 
 const toggleNestedMenu = (itemName: string) => {
@@ -393,6 +409,20 @@ html {
                                 </RouterLink>
                             </template>
                         </nav>
+                    </div>
+                    <!-- Update available notice - only visible in Tauri when update available -->
+                    <div
+                        v-if="isUpdateAvailable"
+                        class="flex-shrink-0 border-t border-gray-200 px-4 py-3 bg-amber-50"
+                    >
+                        <RouterLink
+                            :to="{ name: 'download-app' }"
+                            class="flex items-center text-sm text-amber-700 hover:text-amber-900 font-medium"
+                            @click="toggleSidebar"
+                        >
+                            <ArrowDownTrayIcon class="h-4 w-4 mr-2" />
+                            {{ t("downloadApp.updateAvailable") }} (v{{ desktopVersionConfig.version }})
+                        </RouterLink>
                     </div>
                     <!-- Download app link - only visible in web (not Tauri) -->
                     <div v-if="!isTauri" class="flex-shrink-0 border-t border-gray-200 px-4 py-3">

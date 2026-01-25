@@ -608,6 +608,7 @@ export default {
         version: "Version",
         linkText: "Télécharger l'app",
         recommended: "Recommandé",
+        updateAvailable: "Mise à jour disponible",
     },
     appSettings: {
         title: "Paramètres de l'application",
